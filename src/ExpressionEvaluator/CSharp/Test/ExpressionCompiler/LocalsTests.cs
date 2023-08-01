@@ -1453,6 +1453,67 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69117")]
+        public void CapturedParameters()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void F(int a, byte b, bool c)
+    {
+        new Func<int>(() => a + b).Invoke();
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.F");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "a", expectedILOpt: @"
+ {
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.a""
+  IL_0006:  ret
+}");
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "b", expectedILOpt: @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.b""
+  IL_0006:  ret
+}");
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "c", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.3
+  IL_0001:  ret
+}");
+            });
+        }
+
+        [Fact]
         public void RefReadOnlyLocalFunction()
         {
             var source = @"

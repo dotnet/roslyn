@@ -758,6 +758,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Enum:
                         return null;
 
+                    case TypeKindInternal.FunctionType:
+                        if (((FunctionTypeSymbol)current).GetInternalDelegateType() is not { } delegateType)
+                        {
+                            return null;
+                        }
+
+                        current = delegateType;
+                        goto case TypeKind.Delegate;
+
                     case TypeKind.Error:
                     case TypeKind.Class:
                     case TypeKind.Struct:
@@ -2006,6 +2015,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeRequiresLocationAttribute(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownCompilerServicesTopLevelType("RequiresLocationAttribute");
 
         internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");

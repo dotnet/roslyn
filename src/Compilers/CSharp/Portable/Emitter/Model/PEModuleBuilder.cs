@@ -1557,6 +1557,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeRequiresLocationAttribute(ParameterSymbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeRequiresLocationAttribute();
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1763,6 +1774,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1794,6 +1811,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureIsReadOnlyAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
+        }
+
+        internal void EnsureRequiresLocationAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
         }
 
         internal void EnsureIsUnmanagedAttributeExists()

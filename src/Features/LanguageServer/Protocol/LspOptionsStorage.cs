@@ -20,5 +20,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_enable_lsp_semantic_tokens", defaultValue: false);
+
+        /// <summary>
+        /// This flag is turned on when the C# devkit is installed.
+        /// This can cause certain LSP features to behave differently, for example we avoid returning test code lenses when devkit is running.
+        /// </summary>
+        /// <remarks>
+        /// This flag is not user visible.
+        /// </remarks>
+        public static readonly Option2<bool> LspUsingDevkitFeatures = new("dotnet_lsp_using_devkit", defaultValue: false);
     }
 }

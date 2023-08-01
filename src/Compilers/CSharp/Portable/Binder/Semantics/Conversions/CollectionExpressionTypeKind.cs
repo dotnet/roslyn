@@ -4,12 +4,13 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal enum CollectionLiteralTypeKind
+    internal enum CollectionExpressionTypeKind
     {
         None = 0,
         Array,
         Span,
         ReadOnlySpan,
+        CollectionBuilder,
         CollectionInitializer,
         ListInterface,
     }

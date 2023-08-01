@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
                 ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
+                CollectionExpressionWrappingLength = globalOptions.GetOption(CollectionExpressionWrappingLength, languageServices.Language),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
@@ -43,5 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
             "dotnet_conditional_expression_wrapping_length", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
+
+        public static readonly PerLanguageOption2<int> CollectionExpressionWrappingLength = new(
+            "dotnet_collection_expression_wrapping_length", CodeActionOptions.DefaultCollectionExpressionWrappingLength);
     }
 }

@@ -309,6 +309,18 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                         case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                        case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                        case ErrorCode.WRN_InlineArraySliceNotUsed:
+                        case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                        case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                        case ErrorCode.WRN_BadArgRef:
+                        case ErrorCode.WRN_ArgExpectedRefOrIn:
+                        case ErrorCode.WRN_RefReadonlyNotVariable:
+                        case ErrorCode.WRN_ArgExpectedIn:
+                        case ErrorCode.WRN_OverridingDifferentRefness:
+                        case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_TargetDifferentRefness:
+                        case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -446,6 +458,7 @@ class X
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_AddressOfInAsync:
+                        case ErrorCode.WRN_ByValArraySizeConstRequired:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
