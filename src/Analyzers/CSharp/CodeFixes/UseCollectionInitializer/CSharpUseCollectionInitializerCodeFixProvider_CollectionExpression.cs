@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                         Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)));
 
+                    // Now, figure out what trivia to move over from the original object over to the new collection.
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         updatedParsedDocument.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
                 }
@@ -182,11 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             {
                 // If the object creation expression had an initializer (with at least one element in it).  Attempt to
                 // preserve the formatting of the original initializer and the new collection expression.
+
                 var initializer = objectCreation.Initializer;
                 Contract.ThrowIfNull(initializer);
-
-                var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
-                var indentationOptions = new IndentationOptions(formattingOptions);
 
                 if (!document.Text.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
                 {
@@ -237,14 +236,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     if (document.Text.AreOnSameLine(objectCreation.NewKeyword, initializer.OpenBraceToken))
                     {
+                        // Determine where both the braces and the items would like to be wrapped to.
                         var preferredBraceIndentation = initializer.OpenBraceToken.GetPreferredIndentation(document, indentationOptions, cancellationToken);
                         var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
+                        // Update both the braces and initial elements to the right location.
                         initialCollection = initialCollection.Update(
                             initialCollection.OpenBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredBraceIndentation)),
                             initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredItemIndentation))),
                             initialCollection.CloseBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredBraceIndentation)));
 
+                        // Then add all new elements at the right identation level.
                         var finalCollection = AddMatchesToExistingCollectionExpression(
                             initialCollection, preferredItemIndentation);
 
