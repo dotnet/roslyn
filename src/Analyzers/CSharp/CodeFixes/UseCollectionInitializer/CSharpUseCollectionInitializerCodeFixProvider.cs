@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches,
             CancellationToken cancellationToken)
         {
-            //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-            //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -114,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             var indentationOptions = new IndentationOptions(formattingOptions);
 
             // the option is currently not an editorconfig option, so not available in code style layer
-            var wrappingLength =
-#if !CODE_STYLE
-                fallbackOptions.GetOptions(document.Project.Services)?.CollectionExpressionWrappingLength ??
+#if CODE_STYLE
+            var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
+#else
+            var wrappingLength = fallbackOptions.GetOptions(document.Project.Services).CollectionExpressionWrappingLength;
 #endif
-                CodeActionOptions.DefaultCollectionExpressionWrappingLength;
 
             var makeMultiLine = MakeMultiLine(sourceText, objectCreation, matches, wrappingLength);
 
@@ -369,7 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
                                 ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
                                 : preferredIndentation;
-                            return currentToken.WithLeadingTrivia(Whitespace(currentTokenPreferredIndentation));
+
+                            // trim off the existing leading whitespace for this token if it has any, then add the new preferred indentation.
+                            var finalLeadingTrivia = currentToken.LeadingTrivia
+                                .Take(currentToken.LeadingTrivia.Count - 1)
+                                .Append(Whitespace(currentTokenPreferredIndentation));
+
+                            return currentToken.WithLeadingTrivia(finalLeadingTrivia);
                         }
 
                         // Any other token is unchanged.
