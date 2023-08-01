@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // fresh collection expression, and do a wholesale replacement of the original object creation
                     // expression with it.
                     var collectionExpression = CollectionExpression(
-                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation: null))));
+                        SeparatedList(matches.Select(m => CreateElement(m, preferredIndentation: null))));
                     return collectionExpression.WithTriviaFrom(objectCreation);
                 }
             }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
                 }
 
-                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation)))
+                foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
                 {
                     // Add a comment before each new element we're adding.
                     nodesAndTokens.Add(commaToken);
@@ -273,6 +273,118 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var finalCollection = initialCollectionExpression.WithElements(
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens));
                 return finalCollection;
+            }
+
+            CollectionElementSyntax CreateElement(
+                Match<StatementSyntax> match, string? preferredIndentation)
+            {
+                var statement = match.Statement;
+
+                if (statement is ExpressionStatementSyntax expressionStatement)
+                {
+                    return CreateCollectionElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation));
+                }
+                else if (statement is ForEachStatementSyntax foreachStatement)
+                {
+                    return CreateCollectionElement(match, Indent(foreachStatement.Expression, preferredIndentation));
+                }
+                else if (statement is IfStatementSyntax ifStatement)
+                {
+                    var condition = Indent(ifStatement.Condition, preferredIndentation).Parenthesize();
+                    var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
+
+                    if (ifStatement.Else is null)
+                    {
+                        // Create: x ? [y] : []
+                        var expression = ConditionalExpression(
+                            condition,
+                            CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
+                                ExpressionElement(ConvertExpression(trueStatement.Expression, preferredIndentation: null)))),
+                            CollectionExpression());
+                        return CreateCollectionElement(match, expression);
+                    }
+                    else
+                    {
+                        // Create: x ? y : z
+                        var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
+                        var expression = ConditionalExpression(
+                            ifStatement.Condition,
+                            ConvertExpression(trueStatement.Expression, preferredIndentation: null),
+                            ConvertExpression(falseStatement.Expression, preferredIndentation: null));
+                        return CreateCollectionElement(match, expression);
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            TExpressionSyntax Indent<TExpressionSyntax>(
+               TExpressionSyntax expression,
+               string? preferredIndentation) where TExpressionSyntax : SyntaxNode
+            {
+                // This must be called from an expression from the original tree.  Not something we're already transforming.
+                // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+                Contract.ThrowIfNull(expression.Parent);
+                if (preferredIndentation is null)
+                    return expression.WithoutLeadingTrivia();
+
+                // we're starting with something either like:
+                //
+                //      collection.Add(some_expr +
+                //          cont);
+                //
+                // or
+                //
+                //      collection.Add(
+                //          some_expr +
+                //              cont);
+                //
+                // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+                // that we can accurately determine where the preferred indentation should move all of it.
+
+                var syntaxTree = expression.SyntaxTree;
+                var root = syntaxTree.GetRoot(cancellationToken);
+                var startLine = sourceText.Lines.GetLineFromPosition(expression.SpanStart);
+
+                var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.LineNumber));
+
+                var expressionFirstToken = expression.GetFirstToken();
+                return expression.ReplaceTokens(
+                    expression.DescendantTokens(),
+                    (currentToken, _) =>
+                    {
+                        // Ensure the first token has the indentation we're moving the entire node to
+                        if (currentToken == expressionFirstToken)
+                            return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
+
+                        // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+                        // otherwise always consumed as trailing trivia if it comes after a token.
+                        if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                        {
+                            // First, figure out how much this token is indented *from the line* the first token was on.
+                            // Then adjust the preferred indentation that amount for this token.
+                            var currentTokenIndentation = GetIndentationStringForToken(currentToken);
+                            var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
+                                ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
+                                : preferredIndentation;
+                            return currentToken.WithLeadingTrivia(Whitespace(currentTokenPreferredIndentation));
+                        }
+
+                        // Any other token is unchanged.
+                        return currentToken;
+                    });
+            }
+
+            string GetIndentationStringForToken(SyntaxToken token)
+            {
+                var tokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+                var indentation = token.SpanStart - tokenLine.Start;
+                var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
+                    sourceText, indentationOptions);
+
+                return indentationString;
             }
         }
 
@@ -419,124 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             }
 
             return SeparatedList<TNode>(nodesAndTokens);
-        }
-
-        private static TElementSyntax CreateElement<TElementSyntax>(
-            Match<StatementSyntax> match,
-            Func<Match<StatementSyntax>?, ExpressionSyntax, TElementSyntax> createElement,
-            string? preferredIndentation)
-            where TElementSyntax : SyntaxNode
-        {
-            var statement = match.Statement;
-
-            if (statement is ExpressionStatementSyntax expressionStatement)
-            {
-                return createElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation));
-            }
-            else if (statement is ForEachStatementSyntax foreachStatement)
-            {
-                return createElement(match, Indent(foreachStatement.Expression, preferredIndentation));
-            }
-            else if (statement is IfStatementSyntax ifStatement)
-            {
-                var condition = Indent(ifStatement.Condition, preferredIndentation).Parenthesize();
-                var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
-
-                if (ifStatement.Else is null)
-                {
-                    // Create: x ? [y] : []
-                    var expression = ConditionalExpression(
-                        condition,
-                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
-                            ExpressionElement(ConvertExpression(trueStatement.Expression, preferredIndentation: null)))),
-                        CollectionExpression());
-                    return createElement(match, expression);
-                }
-                else
-                {
-                    // Create: x ? y : z
-                    var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                    var expression = ConditionalExpression(
-                        ifStatement.Condition,
-                        ConvertExpression(trueStatement.Expression, preferredIndentation: null),
-                        ConvertExpression(falseStatement.Expression, preferredIndentation: null));
-                    return createElement(match, expression);
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private static TExpressionSyntax Indent<TExpressionSyntax>(
-            SourceText text,
-            IndentationOptions indentationOptions,
-            TExpressionSyntax expression,
-            string? preferredIndentation,
-            CancellationToken cancellationToken) where TExpressionSyntax : SyntaxNode
-        {
-            // This must be called from an expression from the original tree.  Not something we're already transforming.
-            // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
-            Contract.ThrowIfNull(expression.Parent);
-            if (preferredIndentation is null)
-                return expression.WithoutLeadingTrivia();
-
-            // we're starting with something either like:
-            //
-            //      collection.Add(some_expr +
-            //          cont);
-            //
-            // or
-            //
-            //      collection.Add(
-            //          some_expr +
-            //              cont);
-            //
-            // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
-            // that we can accurately determine where the preferred indentation should move all of it.
-
-            var syntaxTree = expression.SyntaxTree;
-            var root = syntaxTree.GetRoot(cancellationToken);
-            var startLine = text.Lines.GetLineFromPosition(expression.SpanStart);
-
-            var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.LineNumber));
-
-            var expressionFirstToken = expression.GetFirstToken();
-            return expression.ReplaceTokens(
-                expression.DescendantTokens(),
-                (currentToken, _) =>
-                {
-                    // Ensure the first token has the indentation we're moving the entire node to
-                    if (currentToken == expressionFirstToken)
-                        return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
-
-                    // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
-                    // otherwise always consumed as trailing trivia if it comes after a token.
-                    if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
-                    {
-                        // First, figure out how much this token is indented *from the line* the first token was on.
-                        // Then adjust the preferred indentation that amount for this token.
-                        var currentTokenIndentation = GetIndentationStringForToken(currentToken);
-                        var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
-                            ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
-                            : preferredIndentation;
-                        return currentToken.WithLeadingTrivia(Whitespace(currentTokenPreferredIndentation));
-                    }
-
-                    // Any other token is unchanged.
-                    return currentToken;
-                });
-
-            string GetIndentationStringForToken(SyntaxToken token)
-            {
-                var tokenLine = text.Lines.GetLineFromPosition(token.SpanStart);
-                var indentation = token.SpanStart - startLine.Start;
-                var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
-                    text, indentationOptions);
-
-                return indentationString;
-            }
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateCollectionInitializerExpressions(
