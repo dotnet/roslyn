@@ -41,14 +41,14 @@ internal static class UseCollectionExpressionHelpers
         // First, we don't change things if X and Y are different.  That could lead to something observable at
         // runtime in the case of something like:  object[] x = new string[] ...
 
-        var typeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
-        if (typeInfo.Type is IErrorTypeSymbol)
+        var originalTypeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
+        if (originalTypeInfo.Type is IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.ConvertedType is null or IErrorTypeSymbol)
+        if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.Type != null && !typeInfo.Type.Equals(typeInfo.ConvertedType))
+        if (originalTypeInfo.Type != null && !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType))
             return false;
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
@@ -72,6 +72,12 @@ internal static class UseCollectionExpressionHelpers
         // collection type).
         var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
         if (!conversion.IsCollectionExpression)
+            return false;
+
+        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+        // converting this to some different collection type unintentionally.
+        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
             return false;
 
         return true;
