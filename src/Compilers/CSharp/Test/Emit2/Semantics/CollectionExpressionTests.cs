@@ -9371,6 +9371,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("scoped System.ReadOnlySpan<T> items").WithLocation(16, 82));
         }
 
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_MissingInt32(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<string> y = ["2"];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            comp.VerifyEmitDiagnostics(
+                // (7,34): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         MyCollection<string> y = ["2"];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[""2""]").WithArguments("System.Int32").WithLocation(7, 34),
+                // (7,34): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         MyCollection<string> y = ["2"];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[""2""]").WithArguments("System.Int32").WithLocation(7, 34),
+                // (7,34): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         MyCollection<string> y = ["2"];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[""2""]").WithArguments("System.Int32").WithLocation(7, 34));
+        }
+
         [Fact]
         public void CollectionBuilder_Async()
         {

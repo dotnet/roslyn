@@ -1975,9 +1975,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
             Debug.Assert(arrayLength > 0);
 
-            string typeName = $"<>y__InlineArray{arrayLength}"; // see GeneratedNameKind.InlineArrayType
+            string typeName = $"<>{(char)GeneratedNameKind.InlineArrayType}__InlineArray{arrayLength}";
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var typeAdapter = privateImplClass.GetType(typeName);
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
 
             if (typeAdapter is null)
             {
@@ -1986,7 +1986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
                 privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetType(typeName)!;
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }
 
             Debug.Assert(typeAdapter.Name == typeName);

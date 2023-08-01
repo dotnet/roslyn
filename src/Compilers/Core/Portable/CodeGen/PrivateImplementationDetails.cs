@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
-        // synthesized inline array types
-        private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedInlineArrayTypes;
-        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedInlineArrayTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
+        // synthesized top-level types (for inline arrays currently)
+        private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
+        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
 
         // field types for different block sizes.
         private ImmutableArray<Cci.ITypeReference> _orderedProxyTypes;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
 
             // Sort top-level types.
-            _orderedInlineArrayTypes = _synthesizedInlineArrayTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INamespaceTypeDefinition)kvp.Value).AsImmutable();
+            _orderedTopLevelTypes = _synthesizedTopLevelTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INamespaceTypeDefinition)kvp.Value).AsImmutable();
 
             // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
@@ -306,13 +306,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 #nullable enable
         }
 
-        internal bool TryAddSynthesizedType(Cci.INamespaceTypeDefinition type)
-        {
-            Debug.Assert(!IsFrozen);
-            Debug.Assert(type.Name is { });
-            return _synthesizedInlineArrayTypes.TryAdd(type.Name, type);
-        }
-
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
         {
             Debug.Assert(IsFrozen);
@@ -333,16 +326,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return method;
         }
 
-        internal Cci.INamespaceTypeDefinition? GetType(string name)
+        internal bool TryAddSynthesizedType(Cci.INamespaceTypeDefinition type)
         {
-            _synthesizedInlineArrayTypes.TryGetValue(name, out var type);
+            Debug.Assert(!IsFrozen);
+            Debug.Assert(type.Name is { });
+            return _synthesizedTopLevelTypes.TryAdd(type.Name, type);
+        }
+
+        internal Cci.INamespaceTypeDefinition? GetSynthesizedType(string name)
+        {
+            _synthesizedTopLevelTypes.TryGetValue(name, out var type);
             return type;
         }
 
         internal IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypes()
         {
             Debug.Assert(IsFrozen);
-            return _orderedInlineArrayTypes;
+            return _orderedTopLevelTypes;
         }
 
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
