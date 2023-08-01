@@ -149,9 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var finalCollection = AddMatchesToExistingCollectionExpression(
                             initialCollection, preferredItemIndentation);
 
-                        return finalCollection
-                            .WithTrailingTrivia(objectCreation.GetTrailingTrivia())
-                            .WithPrependedLeadingTrivia(objectCreation.GetLeadingTrivia());
+                        return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                     else
                     {
@@ -169,9 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var finalCollection = AddMatchesToExistingCollectionExpression(
                             initialCollection, preferredIndentation: preferredItemIndentation);
 
-                        return finalCollection
-                            .WithPrependedLeadingTrivia(initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia)
-                            .WithPrependedLeadingTrivia(ElasticMarker);
+                        return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                 }
                 else
