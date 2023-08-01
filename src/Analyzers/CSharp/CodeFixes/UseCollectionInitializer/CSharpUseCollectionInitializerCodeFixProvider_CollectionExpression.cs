@@ -406,23 +406,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 TExpressionSyntax expression,
                 string preferredIndentation) where TExpressionSyntax : SyntaxNode
             {
-                var statementLeadingTrivia = parentStatement.GetLeadingTrivia();
-                if (!statementLeadingTrivia.Any(static t => t.IsSingleOrMultiLineComment()))
-                    return expression;
+                using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newLeadingTrivia);
+                using var _2 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newTrailingTrivia);
 
-                using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var finalTrivia);
-                foreach (var trivia in statementLeadingTrivia)
+                // move leading comments over.
+                foreach (var trivia in parentStatement.GetLeadingTrivia())
                 {
                     if (trivia.IsSingleOrMultiLineComment())
                     {
-                        finalTrivia.Add(Whitespace(preferredIndentation));
-                        finalTrivia.Add(trivia);
-                        finalTrivia.Add(ElasticCarriageReturnLineFeed);
+                        newLeadingTrivia.Add(Whitespace(preferredIndentation));
+                        newLeadingTrivia.Add(trivia);
+                        newLeadingTrivia.Add(ElasticCarriageReturnLineFeed);
                     }
                 }
 
-                var finalExpression = expression.WithPrependedLeadingTrivia(finalTrivia);
-                return finalExpression;
+                // if there are trailing comments, move the trailing whitespace and comments over.
+                if (parentStatement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                {
+                    foreach (var trivia in parentStatement.GetTrailingTrivia())
+                    {
+                        if (trivia.IsSingleOrMultiLineComment() || trivia.IsWhitespace())
+                            newTrailingTrivia.Add(trivia);
+                    }
+                }
+
+                expression = expression
+                    .WithPrependedLeadingTrivia(newLeadingTrivia)
+                    .WithAppendedTrailingTrivia(newTrailingTrivia);
+
+                return expression;
             }
 
             string GetIndentationStringForToken(SyntaxToken token)
