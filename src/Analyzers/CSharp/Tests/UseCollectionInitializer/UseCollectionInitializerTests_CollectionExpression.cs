@@ -1574,8 +1574,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                     [
-                    // Goo
-                    1,
+                        // Goo
+                        1,
                         // Bar
                         2
                     ];
