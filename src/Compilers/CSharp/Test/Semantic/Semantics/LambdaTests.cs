@@ -173,6 +173,9 @@ class C
                 // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
                 //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
+                // (21,17): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double x6, ref int y6, ref int z6)=>1").WithArguments("lambda expression", "C.D1").WithLocation(21, 17),
                 // (21,25): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x6").WithArguments("1", "ref").WithLocation(21, 25),
@@ -188,9 +191,15 @@ class C
                 // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
                 //         Frob q8 = ()=>{};
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
+                // (36,17): error CS1661: Cannot convert lambda expression to type 'C.D2' because the parameter types do not match the delegate parameter types
+                //         D2 q9 = x9=>{};
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "x9=>{}").WithArguments("lambda expression", "C.D2").WithLocation(36, 17),
                 // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
                 //         D2 q9 = x9=>{};
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
+                // (38,18): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(x10,y10,z10)=>{}").WithArguments("lambda expression", "C.D1").WithLocation(38, 18),
                 // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q10 = (x10,y10,z10)=>{}; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
@@ -6840,6 +6849,9 @@ class Program
                 // (7,20): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 //         D d2 = (in ref int i) => { };
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(7, 20),
+                // (8,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(out ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(8, 16),
                 // (8,16): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
                 //         D d3 = (out ref int i) => { };
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "(out ref int i) => { }").WithArguments("i").WithLocation(8, 16),
@@ -7052,9 +7064,15 @@ public class DisplayAttribute : System.Attribute
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (9,17): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "r1 => r1").WithArguments("lambda expression", "D1").WithLocation(9, 17),
                 // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 d1 = r1 => r1; // 1
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "r2 => r2").WithArguments("lambda expression", "D1").WithLocation(10, 11),
                 // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         M(r2 => r2); // 2
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
@@ -8648,6 +8666,9 @@ class Program
                 // (14,33): error CS8171: Cannot initialize a by-value variable with a reference
                 //         SelfReturnerRef<string> fref = ref x => x;
                 Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "fref = ref x => x").WithLocation(14, 33),
+                // (14,44): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "x => x").WithArguments("lambda expression", "SelfReturnerRef<string>").WithLocation(14, 44),
                 // (14,44): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         SelfReturnerRef<string> fref = ref x => x;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref").WithLocation(14, 44),
@@ -8783,18 +8804,30 @@ class Program
                 // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 // delegate T SelfReturnerScoped<T>(scoped T t, int index);
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (14,48): error CS1661: Cannot convert lambda expression to type 'SelfReturnerIn<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(_, _) => string.Empty").WithArguments("lambda expression", "SelfReturnerIn<string>").WithLocation(14, 48),
                 // (14,49): error CS1676: Parameter 1 must be declared with the 'in' keyword
                 //         SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "in").WithLocation(14, 49),
+                // (16,50): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(_, _) => string.Empty").WithArguments("lambda expression", "SelfReturnerRef<string>").WithLocation(16, 50),
                 // (16,51): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(16, 51),
                 // (17,62): error CS0177: The out parameter '_' must be assigned to before control leaves the current method
                 //         SelfReturnerOut<string> foutImplicit = (out _, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "string.Empty").WithArguments("_").WithLocation(17, 62),
+                // (18,50): error CS1661: Cannot convert lambda expression to type 'SelfReturnerOut<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(_, _) => string.Empty").WithArguments("lambda expression", "SelfReturnerOut<string>").WithLocation(18, 50),
                 // (18,51): error CS1676: Parameter 1 must be declared with the 'out' keyword
                 //         SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "out").WithLocation(18, 51),
+                // (20,57): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRefReadonly<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(_, _) => string.Empty").WithArguments("lambda expression", "SelfReturnerRefReadonly<string>").WithLocation(20, 57),
                 // (20,58): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
                 //         SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref readonly").WithLocation(20, 58),
@@ -8804,6 +8837,9 @@ class Program
                 // (21,60): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "_").WithLocation(21, 60),
+                // (24,55): error CS1661: Cannot convert lambda expression to type 'SelfReturnerScopedRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(_, _) => string.Empty").WithArguments("lambda expression", "SelfReturnerScopedRef<string>").WithLocation(24, 55),
                 // (24,56): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
                 Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(24, 56)
