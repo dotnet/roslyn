@@ -199,24 +199,28 @@ internal static class UseCollectionExpressionHelpers
     public static CollectionExpressionSyntax ReplaceWithCollectionExpression(
         SourceText sourceText,
         InitializerExpressionSyntax originalInitializer,
-        CollectionExpressionSyntax newCollectionExpression)
+        CollectionExpressionSyntax newCollectionExpression,
+        bool newCollectionIsSingleLine)
     {
         Contract.ThrowIfFalse(originalInitializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax or BaseObjectCreationExpressionSyntax);
 
         var initializerParent = originalInitializer.GetRequiredParent();
 
-        return ShouldReplaceExistingExpressionEntirely(sourceText, originalInitializer)
+        return ShouldReplaceExistingExpressionEntirely(sourceText, originalInitializer, newCollectionIsSingleLine)
             ? newCollectionExpression.WithTriviaFrom(initializerParent)
             : newCollectionExpression
                 .WithPrependedLeadingTrivia(originalInitializer.OpenBraceToken.GetPreviousToken().TrailingTrivia)
                 .WithPrependedLeadingTrivia(ElasticMarker);
     }
 
-    private static bool ShouldReplaceExistingExpressionEntirely(SourceText sourceText, InitializerExpressionSyntax initializer)
+    private static bool ShouldReplaceExistingExpressionEntirely(
+        SourceText sourceText,
+        InitializerExpressionSyntax initializer,
+        bool newCollectionIsSingleLine)
     {
         // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
         // with `[x, y, z]`.
-        if (sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+        if (newCollectionIsSingleLine && sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
             return true;
 
         // initializer was on multiple lines, but started on the same line as the 'new' keyword.  e.g.:
@@ -232,8 +236,11 @@ internal static class UseCollectionExpressionHelpers
         //      ];
         var parent = initializer.GetRequiredParent();
         var newKeyword = parent.GetFirstToken();
-        if (sourceText.AreOnSameLine(newKeyword, initializer.OpenBraceToken))
+        if (sourceText.AreOnSameLine(newKeyword, initializer.OpenBraceToken) &&
+            !sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+        {
             return true;
+        }
 
         // Initializer was on multiple lines, and was not on the same line as the 'new' keyword, and the 'new' is on a newline:
         //

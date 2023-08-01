@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             initialCollection, preferredIndentation: null);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection);
+                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                     else
                     {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             initialCollection, preferredIndentation);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection);
+                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                 }
                 else if (makeMultiLineCollectionExpression)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, initializer, finalCollection);
+                        sourceText, initializer, finalCollection, newCollectionIsSingleLine: true);
                 }
             }
 

@@ -96,12 +96,12 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                     var currentArrayCreation = (ArrayCreationExpressionSyntax)current;
                     Contract.ThrowIfNull(currentArrayCreation.Initializer);
 
+                    var isOnSingleLine = IsOnSingleLine(sourceText, arrayCreation.Initializer);
                     var collectionExpression = ConvertInitializerToCollectionExpression(
-                        currentArrayCreation.Initializer,
-                        IsOnSingleLine(sourceText, arrayCreation.Initializer));
+                        currentArrayCreation.Initializer, isOnSingleLine);
 
                     return ReplaceWithCollectionExpression(
-                        sourceText, arrayCreation.Initializer, collectionExpression);
+                        sourceText, arrayCreation.Initializer, collectionExpression, isOnSingleLine);
                 });
         }
 
@@ -116,12 +116,12 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                     var currentArrayCreation = (ImplicitArrayCreationExpressionSyntax)current;
                     Contract.ThrowIfNull(currentArrayCreation.Initializer);
 
+                    var isOnSingleLine = IsOnSingleLine(sourceText, implicitArrayCreation);
                     var collectionExpression = ConvertInitializerToCollectionExpression(
-                        currentArrayCreation.Initializer,
-                        IsOnSingleLine(sourceText, implicitArrayCreation));
+                        currentArrayCreation.Initializer, isOnSingleLine);
 
                     return ReplaceWithCollectionExpression(
-                        sourceText, implicitArrayCreation.Initializer, collectionExpression);
+                        sourceText, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
                 });
         }
     }
