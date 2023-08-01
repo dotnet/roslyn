@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         // Helpers used both by CollectionInitializers and CollectionExpressions.
 
-        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression, Func<ExpressionSyntax, ExpressionSyntax>? indent)
+        private static ExpressionSyntax ConvertExpression(
+            ExpressionSyntax expression,
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.

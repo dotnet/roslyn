@@ -293,15 +293,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 if (statement is ExpressionStatementSyntax expressionStatement)
                 {
-                    return CreateCollectionElement(match, ConvertExpression(expressionStatement.Expression, expr => Indent(expr, preferredIndentation)));
+                    return CreateCollectionElement(
+                        match,
+                        ConvertExpression(expressionStatement.Expression, expr => Indent(expressionStatement, expr, preferredIndentation)));
                 }
                 else if (statement is ForEachStatementSyntax foreachStatement)
                 {
-                    return CreateCollectionElement(match, Indent(foreachStatement.Expression, preferredIndentation));
+                    return CreateCollectionElement(
+                        match,
+                        Indent(foreachStatement, foreachStatement.Expression, preferredIndentation));
                 }
                 else if (statement is IfStatementSyntax ifStatement)
                 {
-                    var condition = Indent(ifStatement.Condition, preferredIndentation).Parenthesize();
+                    var condition = Indent(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize();
                     var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                     if (ifStatement.Else is null)
@@ -332,6 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             }
 
             TExpressionSyntax Indent<TExpressionSyntax>(
+                StatementSyntax parentStatement,
                 TExpressionSyntax expression,
                 string? preferredIndentation) where TExpressionSyntax : SyntaxNode
             {
@@ -362,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.Start));
 
                 var expressionFirstToken = expression.GetFirstToken();
-                return expression.ReplaceTokens(
+                var updatedExpression = expression.ReplaceTokens(
                     expression.DescendantTokens(),
                     (currentToken, _) =>
                     {
@@ -392,6 +397,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         // Any other token is unchanged.
                         return currentToken;
                     });
+
+                return TransferComments(parentStatement, updatedExpression, preferredIndentation);
+            }
+
+            static TExpressionSyntax TransferComments<TExpressionSyntax>(
+                StatementSyntax parentStatement,
+                TExpressionSyntax expression,
+                string preferredIndentation) where TExpressionSyntax : SyntaxNode
+            {
+                var statementLeadingTrivia = parentStatement.GetLeadingTrivia();
+                if (!statementLeadingTrivia.Any(static t => t.IsSingleOrMultiLineComment()))
+                    return expression;
+
+                using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var finalTrivia);
+                foreach (var trivia in statementLeadingTrivia)
+                {
+                    if (trivia.IsSingleOrMultiLineComment())
+                    {
+                        finalTrivia.Add(Whitespace(preferredIndentation));
+                        finalTrivia.Add(trivia);
+                        finalTrivia.Add(ElasticCarriageReturnLineFeed);
+                    }
+                }
+
+                var finalExpression = expression.WithPrependedLeadingTrivia(finalTrivia);
+                return finalExpression;
             }
 
             string GetIndentationStringForToken(SyntaxToken token)

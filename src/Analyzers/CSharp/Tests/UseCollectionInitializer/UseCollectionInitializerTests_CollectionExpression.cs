@@ -1480,7 +1480,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [
+                    List<Action> list1 =
+                    [
                         () => {
                             List<int> list2 = [2];
                         }
@@ -1498,10 +1499,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [() =>
-                    {
-                        List<int> list2 = [2];
-                    }
+                    List<Action> list1 =
+                    [
+                        () => {
+                            List<int> list2 = [2];
+                        }
 
                     ];
                 }
@@ -1533,9 +1535,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1, // Goo
+                    List<int> c =
+                    [
+                        1, // Goo
                         2 // Bar
-            ];
+                    ];
                 }
             }
             """);
@@ -1568,11 +1572,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [
+                    List<int> c =
+                    [
                     // Goo
                     1,
                         // Bar
-                        2];
+                        2
+                    ];
                 }
             }
             """);
