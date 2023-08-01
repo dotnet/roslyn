@@ -4729,7 +4729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(bindElement(element, diagnostics));
             }
-            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree(), this);
+            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
