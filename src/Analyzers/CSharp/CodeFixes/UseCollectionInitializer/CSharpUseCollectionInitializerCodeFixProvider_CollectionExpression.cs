@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     if (nodesAndTokens.Count > 0)
                     {
                         var lastNode = nodesAndTokens[^1];
-                        var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(IsWhitespaceOrComment);
+                        var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(static t => t.IsWhitespaceOrSingleOrMultiLineComment());
 
                         nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
 
@@ -429,13 +429,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 using var _2 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newTrailingTrivia);
 
                 // move leading comments over.
-                foreach (var trivia in parentStatement.GetLeadingTrivia())
+                var leadingTrivia = parentStatement.GetLeadingTrivia();
+                var firstLeadingComment = leadingTrivia.FirstOrDefault(t => t.IsSingleOrMultiLineComment());
+                var lastLeadingComment = leadingTrivia.LastOrDefault(t => t.IsSingleOrMultiLineComment());
+                if (firstLeadingComment != default)
                 {
-                    if (trivia.IsSingleOrMultiLineComment())
+                    var firstLeadingCommentIndex = leadingTrivia.IndexOf(firstLeadingComment);
+                    var lastLeadingCommentIndex = leadingTrivia.IndexOf(lastLeadingComment);
+
+                    var afterNewLine = true;
+                    for (var i = firstLeadingCommentIndex; i <= lastLeadingCommentIndex; i++)
                     {
-                        newLeadingTrivia.Add(Whitespace(preferredIndentation));
-                        newLeadingTrivia.Add(trivia);
-                        newLeadingTrivia.Add(ElasticCarriageReturnLineFeed);
+                        var currentTrivia = leadingTrivia[i];
+                        if (currentTrivia.IsSingleOrMultiLineComment() && afterNewLine)
+                        {
+                            if (newLeadingTrivia.LastOrDefault().IsWhitespace())
+                                newLeadingTrivia.RemoveLast();
+
+                            newLeadingTrivia.Add(Whitespace(preferredIndentation));
+                        }
+
+                        newLeadingTrivia.Add(currentTrivia);
+                        afterNewLine = currentTrivia.IsEndOfLine();
+                    }
+
+                    if (lastLeadingCommentIndex + 1 < leadingTrivia.Count &&
+                        leadingTrivia[lastLeadingCommentIndex + 1].IsEndOfLine())
+                    {
+                        newLeadingTrivia.Add(leadingTrivia[lastLeadingCommentIndex + 1]);
                     }
                 }
 
@@ -444,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 {
                     foreach (var trivia in parentStatement.GetTrailingTrivia())
                     {
-                        if (IsWhitespaceOrComment(trivia))
+                        if (trivia.IsWhitespaceOrSingleOrMultiLineComment())
                             newTrailingTrivia.Add(trivia);
                     }
                 }
@@ -519,11 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
                 => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
-        }
-
-        private static bool IsWhitespaceOrComment(SyntaxTrivia trivia)
-        {
-            return trivia.IsSingleOrMultiLineComment() || trivia.IsWhitespace();
         }
     }
 }

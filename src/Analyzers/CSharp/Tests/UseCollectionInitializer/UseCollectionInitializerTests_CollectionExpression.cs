@@ -1645,7 +1645,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         c.Add(1);
 
                     // Bar
-                    if (b1)
+                    if (b2)
                     {
                         c.Add(2);
                     }
@@ -1694,7 +1694,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             
                     // Baz
                     // Quux
-                    if (b1)
+                    if (b2)
                     {
                         c.Add(2);
                     }
