@@ -3248,8 +3248,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                     [
-                        1,
-                        2,
+                        1, 2,
                         3 +
                             4
                     ];
