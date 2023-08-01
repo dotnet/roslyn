@@ -3247,12 +3247,12 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
-                        [
-                            1,
-                            2,
-                            3 +
-                                4
-                        ];
+                    [
+                        1,
+                        2,
+                        3 +
+                            4
+                    ];
                 }
             }
             """);
@@ -3285,8 +3285,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                     [
-                        1,
-                        2,
+                        1, 2,
                         3 +
                             4
                     ];
@@ -3360,8 +3359,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [
-                            1,
-                            2,
+                            1, 2,
                             3 +
                                 4
                         ];
@@ -3398,8 +3396,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [
-                            1,
-                            2,
+                            1, 2,
                             3 +
                                 4
                         ];
