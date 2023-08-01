@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         emitFormatMethods = false;
                     }
 
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.Public", out var publicText)
+                        || !bool.TryParse(publicText, out var publicResource))
+                    {
+                        publicResource = false;
+                    }
+
                     return new[]
                     {
                         new ResourceInformation(
@@ -118,7 +124,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             OmitGetResourceString: omitGetResourceString,
                             AsConstants: asConstants,
                             IncludeDefaultValues: includeDefaultValues,
-                            EmitFormatMethods: emitFormatMethods)
+                            EmitFormatMethods: emitFormatMethods,
+                            Public: publicResource)
                     };
                 });
             var renameMapping = resourceFilesToGenerateSource
@@ -242,6 +249,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         /// <param name="AsConstants">If set to <see langword="true"/>, emits constant key strings instead of properties that retrieve values.</param>
         /// <param name="IncludeDefaultValues">If set to <see langword="true"/>, calls to <c>GetResourceString</c> receive a default resource string value.</param>
         /// <param name="EmitFormatMethods">If set to <see langword="true"/>, the generated code will include <c>.FormatXYZ(...)</c> methods.</param>
+        /// <param name="Public">If set to <see langword="true"/>, the generated class will be declared <see langword="public"/>; otherwise, it will be declared <see langword="internal"/>.</param>
         private sealed record ResourceInformation(
             CompilationInformation CompilationInformation,
             AdditionalText ResourceFile,
@@ -251,7 +259,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             bool OmitGetResourceString,
             bool AsConstants,
             bool IncludeDefaultValues,
-            bool EmitFormatMethods);
+            bool EmitFormatMethods,
+            bool Public);
 
         private sealed class ImmutableDictionaryEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, TValue>?>
             where TKey : notnull
