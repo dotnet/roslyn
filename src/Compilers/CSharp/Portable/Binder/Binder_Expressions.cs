@@ -5826,12 +5826,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Receiver is early bound, find method Add and invoke it (may still be a dynamic invocation):
 
+            var addMethodDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                 elementInitializer,
                 implicitReceiver,
                 methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                 args: boundElementInitializerExpressions,
-                diagnostics: diagnostics);
+                diagnostics: addMethodDiagnostics);
+            copyRelevantAddMethodDiagnostics(addMethodDiagnostics, diagnostics);
 
             if (addMethodInvocation.Kind == BoundKind.DynamicInvocation)
             {
@@ -5875,6 +5877,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(addMethodInvocation.Kind == BoundKind.BadExpression);
                 return addMethodInvocation;
+            }
+
+            static void copyRelevantAddMethodDiagnostics(BindingDiagnosticBag source, BindingDiagnosticBag target)
+            {
+                target.AddDependencies(source);
+
+                if (source.DiagnosticBag is { IsEmptyWithoutResolution: false } bag)
+                {
+                    foreach (var diagnostic in bag.AsEnumerableWithoutResolution())
+                    {
+                        // Filter diagnostics that cannot be fixed since one cannot use ref modifiers in collection initializers.
+                        if (!((ErrorCode)diagnostic.Code is ErrorCode.WRN_ArgExpectedRefOrIn or ErrorCode.WRN_ArgExpectedIn))
+                        {
+                            target.Add(diagnostic);
+                        }
+                    }
+                }
+
+                source.Free();
             }
         }
 
