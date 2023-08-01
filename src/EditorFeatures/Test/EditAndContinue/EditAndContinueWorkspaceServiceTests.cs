@@ -1898,6 +1898,7 @@ class C { int Y => 1; }
 
             EndDebuggingSession(debuggingSession);
         }
+
         [Fact]
         public async Task HasChanges()
         {
