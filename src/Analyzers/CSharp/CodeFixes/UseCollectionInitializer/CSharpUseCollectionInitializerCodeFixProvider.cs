@@ -470,8 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         }
 
         private static TExpressionSyntax Indent<TExpressionSyntax>(
+            SourceText text,
+            IndentationOptions indentationOptions,
             TExpressionSyntax expression,
-            string? preferredIndentation) where TExpressionSyntax : SyntaxNode
+            string? preferredIndentation,
+            CancellationToken cancellationToken) where TExpressionSyntax : SyntaxNode
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
@@ -479,7 +482,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             if (preferredIndentation is null)
                 return expression.WithoutLeadingTrivia();
 
-            return expression;
+            // we're starting with something either like:
+            //
+            //      collection.Add(some_expr +
+            //          cont);
+            //
+            // or
+            //
+            //      collection.Add(
+            //          some_expr +
+            //              cont);
+            //
+            // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+            // that we can accurately determine where the preferred indentation should move all of it.
+
+            var syntaxTree = expression.SyntaxTree;
+            var root = syntaxTree.GetRoot(cancellationToken);
+            var startLine = text.Lines.GetLineFromPosition(expression.SpanStart);
+
+            var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.LineNumber));
+
+            var expressionFirstToken = expression.GetFirstToken();
+            return expression.ReplaceTokens(
+                expression.DescendantTokens(),
+                (currentToken, _) =>
+                {
+                    // Ensure the first token has the indentation we're moving the entire node to
+                    if (currentToken == expressionFirstToken)
+                        return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
+
+                    // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+                    // otherwise always consumed as trailing trivia if it comes after a token.
+                    if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                    {
+                        // First, figure out how much this token is indented *from the line* the first token was on.
+                        // Then adjust the preferred indentation that amount for this token.
+                        var currentTokenIndentation = GetIndentationStringForToken(currentToken);
+                        var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
+                            ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
+                            : preferredIndentation;
+                        return currentToken.WithLeadingTrivia(Whitespace(currentTokenPreferredIndentation));
+                    }
+
+                    // Any other token is unchanged.
+                    return currentToken;
+                });
+
+            string GetIndentationStringForToken(SyntaxToken token)
+            {
+                var tokenLine = text.Lines.GetLineFromPosition(token.SpanStart);
+                var indentation = token.SpanStart - startLine.Start;
+                var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
+                    text, indentationOptions);
+
+                return indentationString;
+            }
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateCollectionInitializerExpressions(
