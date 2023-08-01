@@ -97,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, out text) ||
-                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForPreProcessor(token, out text) ||
+                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForOperator(token, document, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
@@ -339,16 +339,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var syntaxFacts = CSharpSyntaxFacts.Instance;
 
-            if (syntaxFacts.IsPreprocessorKeyword(token))
+            // Several keywords are both normal keywords and preprocessor keywords.  So only consider this token a
+            // pp-keyword if we're actually in a directive.
+            var directive = token.GetAncestor<DirectiveTriviaSyntax>();
+            if (directive != null)
             {
-                text = "#" + token.Text;
-                return true;
-            }
+                if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is LineDirectiveTriviaSyntax)
+                {
+                    text = Keyword("defaultline");
+                    return true;
+                }
 
-            if (token.IsKind(SyntaxKind.EndOfDirectiveToken) && token.GetAncestor<RegionDirectiveTriviaSyntax>() != null)
-            {
-                text = "#region";
-                return true;
+                if (syntaxFacts.IsPreprocessorKeyword(token))
+                {
+                    text = $"#{token.Text}";
+                    return true;
+                }
+
+                if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
+                {
+                    text = $"#{directive.HashToken.GetNextToken(includeDirectives: true).Text}";
+                    return true;
+                }
             }
 
             text = null;
@@ -472,12 +484,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = Keyword("defaultcase");
                     return true;
                 }
-
-                if (token.Parent is LineDirectiveTriviaSyntax)
-                {
-                    text = Keyword("defaultline");
-                    return true;
-                }
             }
 
             if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
@@ -502,20 +508,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 text = Keyword("switch-expression");
                 return true;
-            }
-
-            // "if" and "else" may appear in "#if" or "#else". These two break the pattern
-            // because we don't treat them as keywords when the parent isn't the if or else statement.
-            if (token.IsKind(SyntaxKind.IfKeyword) && token.Parent is not IfStatementSyntax)
-            {
-                text = null;
-                return false;
-            }
-
-            if (token.IsKind(SyntaxKind.ElseKeyword) && token.Parent is not ElseClauseSyntax)
-            {
-                text = null;
-                return false;
             }
 
             if (token.IsKeyword())

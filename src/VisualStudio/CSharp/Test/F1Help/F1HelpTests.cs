@@ -267,6 +267,14 @@ class Program<T> wh[||]ere T : class
         }
 
         [Fact]
+        public async Task TestPreprocessor2()
+        {
+            await TestAsync(
+@"#region[||]
+#endregion", "#region");
+        }
+
+        [Fact]
         public async Task TestConstructor()
         {
             await TestAsync(
@@ -1955,6 +1963,16 @@ class C
         }
 
         [Fact]
+        public async Task TestPreprocessorIf2()
+        {
+            await TestAsync(
+@"
+#if ANY[||]
+#endif
+", "#if");
+        }
+
+        [Fact]
         public async Task TestPreprocessorEndIf()
         {
             await TestAsync(
@@ -1965,12 +1983,33 @@ class C
         }
 
         [Fact]
+        public async Task TestPreprocessorEndIf2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#endif[||]
+", "#endif");
+        }
+
+        [Fact]
         public async Task TestPreprocessorElse()
         {
             await TestAsync(
 @"
 #if ANY
 #el[||]se
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#else[||]
 #endif
 ", "#else");
         }
