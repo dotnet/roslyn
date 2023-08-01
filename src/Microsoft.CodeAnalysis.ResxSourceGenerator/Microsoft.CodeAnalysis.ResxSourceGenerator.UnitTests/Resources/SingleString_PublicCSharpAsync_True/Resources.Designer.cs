@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace TestProject
 {
-    internal static partial class Resources
+    public static partial class Resources
     {
         private static global::System.Resources.ResourceManager? s_resourceManager;
         public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));

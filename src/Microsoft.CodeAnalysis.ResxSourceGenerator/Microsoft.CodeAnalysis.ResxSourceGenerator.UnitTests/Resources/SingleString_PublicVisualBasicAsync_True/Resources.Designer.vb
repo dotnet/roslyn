@@ -4,7 +4,7 @@ Imports System.Reflection
 
 
 Namespace Global.TestProject
-    Friend Partial Class Resources
+    Public Partial Class Resources
         Private Sub New
         End Sub
         

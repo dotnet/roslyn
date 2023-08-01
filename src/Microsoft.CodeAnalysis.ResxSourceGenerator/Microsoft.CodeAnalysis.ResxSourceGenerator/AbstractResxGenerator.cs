@@ -621,7 +621,7 @@ using System.Reflection;
 
 {resourceTypeDefinition}
 {namespaceStart}
-{classIndent}internal static partial class {className}
+{classIndent}{(ResourceInformation.Public ? "public" : "internal")} static partial class {className}
 {classIndent}{{
 {memberIndent}private static global::System.Resources.ResourceManager{(CompilationInformation.SupportsNullable ? "?" : "")} s_resourceManager;
 {memberIndent}public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof({resourceTypeName})));
@@ -639,7 +639,7 @@ Imports System.Reflection
 
 {resourceTypeDefinition}
 {namespaceStart}
-{classIndent}Friend Partial Class {className}
+{classIndent}{(ResourceInformation.Public ? "Public" : "Friend")} Partial Class {className}
 {memberIndent}Private Sub New
 {memberIndent}End Sub
 {memberIndent}
