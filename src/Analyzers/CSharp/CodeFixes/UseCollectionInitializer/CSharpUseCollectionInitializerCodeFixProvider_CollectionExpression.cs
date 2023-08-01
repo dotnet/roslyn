@@ -162,12 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
                         var braceIndentation = GetIndentationStringForToken(initializer.OpenBraceToken);
 
-                        var finalCollection = initialCollection
+                        initialCollection = initialCollection
                             .WithElements(initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredItemIndentation))))
                             .WithCloseBracketToken(initialCollection.CloseBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(braceIndentation)));
 
-                        return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection);
+                        var finalCollection = AddMatchesToExistingCollectionExpression(
+                            initialCollection, preferredIndentation: preferredItemIndentation);
+
+                        return finalCollection
+                            .WithPrependedLeadingTrivia(initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia)
+                            .WithPrependedLeadingTrivia(ElasticMarker);
                     }
                 }
                 else
