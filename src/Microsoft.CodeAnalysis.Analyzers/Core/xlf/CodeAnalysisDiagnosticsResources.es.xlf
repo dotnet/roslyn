@@ -418,8 +418,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
-        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
+        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">

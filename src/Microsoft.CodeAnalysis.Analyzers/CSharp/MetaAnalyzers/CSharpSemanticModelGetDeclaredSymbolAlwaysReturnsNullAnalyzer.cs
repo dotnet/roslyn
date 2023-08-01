@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, getDeclaredSymbolMethod))
             {
                 var syntaxNodeType = invocation.Arguments[1].Value.WalkDownConversion().Type;
-                if (syntaxNodeType is not null && syntaxNodeType.GetBaseTypesAndThis().ToSet().Overlaps(new[] { globalStatementSymbol, incompleteMemberSymbol, baseFieldDeclarationSymbol }))
+                if (syntaxNodeType is not null &&
+                    (syntaxNodeType.DerivesFrom(globalStatementSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)
+                    || syntaxNodeType.DerivesFrom(incompleteMemberSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)
+                    || syntaxNodeType.DerivesFrom(baseFieldDeclarationSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)))
                 {
                     var diagnostic = invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeType.Name);
                     context.ReportDiagnostic(diagnostic);

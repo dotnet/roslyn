@@ -578,6 +578,6 @@
     <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>
   </data>
   <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle" xml:space="preserve">
-    <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>
+    <value>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</value>
   </data>
 </root>

@@ -472,7 +472,7 @@ Types which implement compiler extension points should not be declared in assemb
 |CodeFix|False|
 ---
 
-## RS1039: A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'
+## RS1039: This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
 
 Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'GlobalStatementSyntax', 'IncompleteMemberSyntax' or a type inheriting from 'BaseFieldDeclarationSyntax' will always return 'null'.
 
