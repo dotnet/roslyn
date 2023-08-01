@@ -217,13 +217,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            // A temporary directory is required for the server to startup hence we bail out early
-            // here if it's not available.
-            if (buildPaths.TempDirectory is null)
-            {
-                return null;
-            }
-
             try
             {
                 var requestId = Guid.NewGuid();

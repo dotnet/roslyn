@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
-            string tempDirectory,
+            string? tempDirectory,
             string? keepAlive,
             string? libDirectory)
         {
