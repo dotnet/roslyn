@@ -1592,6 +1592,49 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.Generic;
             class C
             {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    // Bar
+                    [|foreach (var v in |]x)
+                        c.Add(v);
+
+                    // Baz
+                    // Quux
+                    [|foreach (var v in |]y)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        // Bar
+                        .. x,
+                        // Baz
+                        // Quux
+                        .. y
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
                 void M(bool b1, bool b2)
                 {
                     List<int> c = [|new|] List<int>();
@@ -1624,6 +1667,57 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         b1 ? 0 : 1,
                         // Bar
+                        b2 ? 2 : 3
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    // Bar
+                    if (b1)
+                        c.Add(0);
+                    else
+                        c.Add(1);
+            
+                    // Baz
+                    // Quux
+                    if (b1)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        // Bar
+                        b1 ? 0 : 1,
+                        // Baz
+                        // Quux
                         b2 ? 2 : 3
                     ];
                 }
