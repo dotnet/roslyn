@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             public abstract IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider);
 
             /// <summary>Generates source equivalent to application of this operator.</summary>
-            public abstract void AppendTo(StringBuilder builder); // TODO: depth parameter to improve readability?
+            public abstract void AppendTo(StringBuilder builder);
         }
 
         class SelectOperator(Operator Source, bool TransformAs, bool TransformCs) : Operator
