@@ -14097,7 +14097,7 @@ class B
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment()
         {
             var comp = CreateCompilation("""
@@ -14109,7 +14109,7 @@ class B
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
-                // (4,20): warning CS9201: ref field 'ri' should be ref-assigned before use.
+                // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
 
@@ -14122,7 +14122,7 @@ class B
             Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_RefAssignment()
         {
             var comp = CreateCompilation("""

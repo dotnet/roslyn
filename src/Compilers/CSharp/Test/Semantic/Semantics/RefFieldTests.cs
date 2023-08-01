@@ -29549,7 +29549,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_01()
         {
             var verifier = CompileAndVerify("""
@@ -29576,7 +29576,7 @@ Block[B2] - Exit
                 expectedOutput: "1");
 
             verifier.VerifyDiagnostics(
-                // (15,20): warning CS9201: 'ref' field 'ri' should be ref-assigned before use.
+                // (15,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(15, 20));
 
@@ -29597,7 +29597,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_02()
         {
             var verifier = CompileAndVerify("""
@@ -29633,7 +29633,7 @@ Block[B2] - Exit
                 // (15,12): warning CS9022: Control is returned to caller before field 'RS.ri' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public RS()
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "RS").WithArguments("RS.ri").WithLocation(15, 12),
-                // (17,21): warning CS9201: 'ref' field 'ri' should be ref-assigned before use.
+                // (17,21): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //         int local = ri; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(17, 21));
 
@@ -29656,7 +29656,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_03()
         {
             var verifier = CompileAndVerify("""
@@ -29695,10 +29695,10 @@ Block[B2] - Exit
                 expectedOutput: "12");
 
             verifier.VerifyDiagnostics(
-                // (20,29): warning CS9201: ref field 'ri' should be ref-assigned before use.
+                // (20,29): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //         ref int local = ref ri; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(20, 29),
-                // (25,29): warning CS9201: ref field 'ri' should be ref-assigned before use.
+                // (25,29): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //         ref int local = ref ri; // 2
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(25, 29));
 
@@ -29720,7 +29720,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_04()
         {
             var verifier = CompileAndVerify("""
@@ -29755,6 +29755,27 @@ Block[B2] - Exit
                 expectedOutput: "12");
 
             verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_05()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref readonly int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (4,20): error CS8331: Cannot assign to field 'ri' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "ri").WithArguments("field", "ri").WithLocation(4, 20),
+                // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
         }
     }
 }

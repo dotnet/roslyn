@@ -4993,13 +4993,13 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
-        <source>ref field '{0}' should be ref-assigned before use.</source>
-        <target state="new">ref field '{0}' should be ref-assigned before use.</target>
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="new">Ref field '{0}' should be ref-assigned before use.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
-        <source>ref field should be ref-assigned before use.</source>
-        <target state="new">ref field should be ref-assigned before use.</target>
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="new">Ref field should be ref-assigned before use.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
