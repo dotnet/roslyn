@@ -24,10 +24,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
-            var expressions = CreateCollectionInitializerExpressions(objectCreation, matches);
+            var expressions = CreateCollectionInitializerExpressions();
             var withLineBreaks = AddLineBreaks(expressions);
+
             var newCreation = UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
             return newCreation.WithAdditionalAnnotations(Formatter.Annotation);
+
+            SeparatedSyntaxList<ExpressionSyntax> CreateCollectionInitializerExpressions()
+            {
+                using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+                UseInitializerHelpers.AddExistingItems<Match<StatementSyntax>, ExpressionSyntax>(
+                    objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
+
+                for (var i = 0; i < matches.Length; i++)
+                {
+                    var match = matches[i];
+                    var statement = (ExpressionStatementSyntax)match.Statement;
+
+                    var trivia = statement.GetLeadingTrivia();
+                    var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
+
+                    var trailingTrivia = statement.SemicolonToken.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
+                        ? statement.SemicolonToken.TrailingTrivia
+                        : default;
+
+                    var expression = ConvertExpression(statement.Expression, indent: null)
+                        .WithTrailingTrivia().WithLeadingTrivia(leadingTrivia);
+
+                    if (i < matches.Length - 1)
+                    {
+                        nodesAndTokens.Add(expression);
+                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
+                    }
+                    else
+                    {
+                        nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
+                    }
+                }
+
+                return SeparatedList<ExpressionSyntax>(nodesAndTokens);
+            }
 
             static SeparatedSyntaxList<TNode> AddLineBreaks<TNode>(SeparatedSyntaxList<TNode> nodes)
                 where TNode : SyntaxNode
@@ -50,44 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 return SeparatedList<TNode>(nodesAndTokens);
             }
-        }
-
-        private static SeparatedSyntaxList<ExpressionSyntax> CreateCollectionInitializerExpressions(
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches)
-        {
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-
-            UseInitializerHelpers.AddExistingItems<Match<StatementSyntax>, ExpressionSyntax>(
-                objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
-
-            for (var i = 0; i < matches.Length; i++)
-            {
-                var match = matches[i];
-                var statement = (ExpressionStatementSyntax)match.Statement;
-
-                var trivia = statement.GetLeadingTrivia();
-                var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
-
-                var trailingTrivia = statement.SemicolonToken.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
-                    ? statement.SemicolonToken.TrailingTrivia
-                    : default;
-
-                var expression = ConvertExpression(statement.Expression, indent: null)
-                    .WithTrailingTrivia().WithLeadingTrivia(leadingTrivia);
-
-                if (i < matches.Length - 1)
-                {
-                    nodesAndTokens.Add(expression);
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
-                }
-                else
-                {
-                    nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
-                }
-            }
-
-            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
         }
     }
 }
