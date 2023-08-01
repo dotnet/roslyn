@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
                 else if (statement is IfStatementSyntax ifStatement)
                 {
-                    var condition = Indent(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize();
+                    var condition = Indent(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
                     var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                     if (ifStatement.Else is null)
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
                         var expression = ConditionalExpression(
                             condition,
-                            ConvertExpression(trueStatement.Expression, indent: null),
-                            ConvertExpression(falseStatement.Expression, indent: null));
+                            ConvertExpression(trueStatement.Expression, indent: null).Parenthesize(includeElasticTrivia: false),
+                            ConvertExpression(falseStatement.Expression, indent: null).Parenthesize(includeElasticTrivia: false));
                         return CreateCollectionElement(match, expression);
                     }
                 }

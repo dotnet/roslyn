@@ -1570,14 +1570,14 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.Generic;
             class C
             {
-                void M()
+                void M(int[] x, int[] y)
                 {
                     List<int> c =
                     [
                         // Goo
-                       .. x,
+                        .. x,
                         // Bar
-                       .. y
+                        .. y
                     ];
                 }
             }
@@ -1621,8 +1621,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                     [
-                        b1 ? 0 : 1, // Goo
-                        b2 ? 2 : 3 // Bar
+                        // Goo
+                        b1 ? 0 : 1,
+                        // Bar
+                        b2 ? 2 : 3
                     ];
                 }
             }
