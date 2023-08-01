@@ -29634,7 +29634,7 @@ Block[B2] - Exit
                 //     public RS()
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "RS").WithArguments("RS.ri").WithLocation(15, 12),
                 // (17,21): warning CS9201: Ref field 'ri' should be ref-assigned before use.
-                //         int local = ri; // 1
+                //         int local = ri;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(17, 21));
 
             verifier.VerifyIL("RS..ctor", """
