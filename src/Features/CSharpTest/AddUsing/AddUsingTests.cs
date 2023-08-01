@@ -1915,6 +1915,7 @@ class Program
 @"#define goo
 
 using System;
+
 /// Goo
 class Program
 {
@@ -2707,6 +2708,7 @@ interface MyNotifyPropertyChanged { }";
 
             var expectedText =
 @"using System.ComponentModel;
+
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
 /// </summary>
@@ -2728,6 +2730,7 @@ interface MyNotifyPropertyChanged { }";
 
             var expectedText =
 @"using System.ComponentModel;
+
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
 /// </summary>
@@ -3395,7 +3398,6 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
@@ -3421,7 +3423,6 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
@@ -4568,6 +4569,7 @@ class C
 ",
 @"
 using System;
+
 /// Copyright 2016 - MyCompany 
 /// All Rights Reserved 
 class C
@@ -5441,7 +5443,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
@@ -5498,7 +5499,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
@@ -5599,7 +5599,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
