@@ -10411,7 +10411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return s2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(12, 16),
-                // (17,14): error CS9201: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (17,14): error CS9202: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         s3 = [3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[3]").WithArguments($"System.{spanType}").WithLocation(17, 14));
         }
@@ -10825,7 +10825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
-                // (9,13): error CS9201: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (9,13): error CS9202: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         r = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1]").WithArguments("System.Span<object>").WithLocation(9, 13));
         }
@@ -10857,7 +10857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS9201: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (9,17): error CS9202: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //             x = [2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[2]").WithArguments("System.ReadOnlySpan<object>").WithLocation(9, 17),
                 // (14,17): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope

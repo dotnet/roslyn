@@ -4997,6 +4997,16 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <target state="translated">Uso della proprietà implementata automaticamente probabilmente non assegnata</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField">
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="new">Ref field '{0}' should be ref-assigned before use.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField_Title">
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="new">Ref field should be ref-assigned before use.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
         <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
         <target state="translated">L'oggetto 'this' viene letto prima che tutti i relativi campi siano stati assegnati, determinando le assegnazioni implicite precedenti di 'default' ai campi non esplicitamente assegnati.</target>
