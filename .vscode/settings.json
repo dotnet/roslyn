@@ -33,6 +33,6 @@
     "powershell.startAutomatically": false,
     // ms-azure-devops.azure-pipelines settings
     "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
-    "dotnet.defaultSolution": "Roslyn.sln",
+    "dotnet.defaultSolution": "Metalama.Compiler.slnf",
     "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
 }
