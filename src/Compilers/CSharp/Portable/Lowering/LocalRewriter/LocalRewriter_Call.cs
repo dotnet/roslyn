@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ref tempsOpt,
                         ref argumentsAssignedToTemp);
 
-                    visitedArgumentsBuilder.Add(VisitExpression(argument));
+                    var rewrittenArgument = visitArgument(parameters, argument, i, methodOrIndexer, argsToParamsOpt, ref tempsOpt);
+                    visitedArgumentsBuilder.Add(rewrittenArgument);
 
                     foreach (var placeholder in argumentPlaceholders)
                     {
@@ -848,6 +849,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return ImmutableArray<BoundInterpolatedStringArgumentPlaceholder>.Empty;
+            }
+
+            BoundExpression visitArgument(
+                ImmutableArray<ParameterSymbol> parameters,
+                BoundExpression argument,
+                int argIndex,
+                Symbol methodOrIndexer,
+                ImmutableArray<int> argsToParamsOpt,
+                ref ArrayBuilder<LocalSymbol>? tempsOpt)
+            {
+                int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                if (paramIndex < parameters.Length &&
+                    parameters[paramIndex] is { Type: { IsRefLikeType: true } } parameter &&
+                    argument is BoundConversion { ConversionKind: ConversionKind.CollectionExpression, Operand: BoundCollectionExpression collectionExpression } &&
+                    ConversionsBase.GetCollectionExpressionTypeKind(_compilation, parameter.Type, out var elementType) is var collectionTypeKind &&
+                    collectionTypeKind is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan &&
+                    ShouldUseInlineArray(collectionExpression) &&
+                    (parameter.EffectiveScope == ScopedKind.ScopedValue || !mayCaptureRefArgument(methodOrIndexer)))
+                {
+                    tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                    return CreateAndPopulateSpanFromInlineArray(
+                        collectionExpression.Syntax,
+                        TypeWithAnnotations.Create(elementType),
+                        collectionExpression.Elements,
+                        asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan,
+                        tempsOpt);
+                }
+                return VisitExpression(argument);
+            }
+
+            static bool mayCaptureRefArgument(Symbol methodOrIndexer)
+            {
+                MethodSymbol? method = methodOrIndexer is PropertySymbol property ?
+                    property.GetMethod ?? property.SetMethod :
+                    methodOrIndexer as MethodSymbol;
+                Debug.Assert(method is { });
+                if (method is null)
+                {
+                    return true;
+                }
+                if (!method.IsStatic && method.ContainingType.IsRefLikeType && !method.IsEffectivelyReadOnly)
+                {
+                    return true;
+                }
+                if (method.ReturnType.IsRefLikeType || method.RefKind != RefKind.None)
+                {
+                    return true;
+                }
+                if (method.Parameters.Any(p => p is { Type.IsRefLikeType: true, RefKind: RefKind.Out or RefKind.Ref }))
+                {
+                    return true;
+                }
+                return false;
             }
 
             static bool usesReceiver(BoundExpression argument)

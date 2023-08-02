@@ -4494,8 +4494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        {{collectionType}} c;
-                        c = [];
+                        {{collectionType}} c = [];
                         c = Append(c);
                         c.Report();
                     }
@@ -4986,7 +4985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         {{collectionType}}<int> a = [1, 2, 3];
-                        {{collectionType}}<object> b;
+                        {{collectionType}}<object> b = [];
                         b = F1(a);
                         b.Report();
                         b = F2<int, object>(a);
@@ -9647,6 +9646,733 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 0.cs(6,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [CollectionBuilder(typeof(MyCollectionBuilder), MyCollectionBuilder.GetName([1, 2, 3]))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyCollectionBuilder.GetName([1, 2, 3])").WithLocation(6, 49));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void SpanArgument_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F1<object>([1]);
+                        F2<int?>([2]);
+                        F3<int?>([3]);
+                        F4<object>([4]);
+                    }
+                    static void F1<T>(Span<T> s) { s.Report(); }
+                    static void F2<T>(ReadOnlySpan<T> s) { s.Report(); }
+                    static void F3<T>(in Span<T> s) { s.Report(); }
+                    static void F4<T>(in ReadOnlySpan<T> s) { s.Report(); }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: targetFramework,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1], [2], [3], [4], "));
+            if (targetFramework == TargetFramework.Net80)
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size      159 (0x9f)
+                      .maxstack  2
+                      .locals init (<>y__InlineArray1<object> V_0,
+                                    <>y__InlineArray1<int?> V_1,
+                                    System.Span<int?> V_2,
+                                    System.ReadOnlySpan<object> V_3)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "<>y__InlineArray1<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_001f:  call       "void Program.F1<object>(System.Span<object>)"
+                      IL_0024:  ldloca.s   V_1
+                      IL_0026:  initobj    "<>y__InlineArray1<int?>"
+                      IL_002c:  ldloca.s   V_1
+                      IL_002e:  ldc.i4.0
+                      IL_002f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_0034:  ldc.i4.2
+                      IL_0035:  newobj     "int?..ctor(int)"
+                      IL_003a:  stobj      "int?"
+                      IL_003f:  ldloca.s   V_1
+                      IL_0041:  ldc.i4.1
+                      IL_0042:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                      IL_0047:  call       "void Program.F2<int?>(System.ReadOnlySpan<int?>)"
+                      IL_004c:  ldloca.s   V_1
+                      IL_004e:  initobj    "<>y__InlineArray1<int?>"
+                      IL_0054:  ldloca.s   V_1
+                      IL_0056:  ldc.i4.0
+                      IL_0057:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_005c:  ldc.i4.3
+                      IL_005d:  newobj     "int?..ctor(int)"
+                      IL_0062:  stobj      "int?"
+                      IL_0067:  ldloca.s   V_1
+                      IL_0069:  ldc.i4.1
+                      IL_006a:  call       "InlineArrayAsSpan<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_006f:  stloc.2
+                      IL_0070:  ldloca.s   V_2
+                      IL_0072:  call       "void Program.F3<int?>(in System.Span<int?>)"
+                      IL_0077:  ldloca.s   V_0
+                      IL_0079:  initobj    "<>y__InlineArray1<object>"
+                      IL_007f:  ldloca.s   V_0
+                      IL_0081:  ldc.i4.0
+                      IL_0082:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0087:  ldc.i4.4
+                      IL_0088:  box        "int"
+                      IL_008d:  stind.ref
+                      IL_008e:  ldloca.s   V_0
+                      IL_0090:  ldc.i4.1
+                      IL_0091:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_0096:  stloc.3
+                      IL_0097:  ldloca.s   V_3
+                      IL_0099:  call       "void Program.F4<object>(in System.ReadOnlySpan<object>)"
+                      IL_009e:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size      115 (0x73)
+                      .maxstack  4
+                      .locals init (System.Span<int?> V_0,
+                                    System.ReadOnlySpan<object> V_1)
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "object"
+                      IL_0006:  dup
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  ldc.i4.1
+                      IL_0009:  box        "int"
+                      IL_000e:  stelem.ref
+                      IL_000f:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0014:  call       "void Program.F1<object>(System.Span<object>)"
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  newarr     "int?"
+                      IL_001f:  dup
+                      IL_0020:  ldc.i4.0
+                      IL_0021:  ldc.i4.2
+                      IL_0022:  newobj     "int?..ctor(int)"
+                      IL_0027:  stelem     "int?"
+                      IL_002c:  newobj     "System.ReadOnlySpan<int?>..ctor(int?[])"
+                      IL_0031:  call       "void Program.F2<int?>(System.ReadOnlySpan<int?>)"
+                      IL_0036:  ldc.i4.1
+                      IL_0037:  newarr     "int?"
+                      IL_003c:  dup
+                      IL_003d:  ldc.i4.0
+                      IL_003e:  ldc.i4.3
+                      IL_003f:  newobj     "int?..ctor(int)"
+                      IL_0044:  stelem     "int?"
+                      IL_0049:  newobj     "System.Span<int?>..ctor(int?[])"
+                      IL_004e:  stloc.0
+                      IL_004f:  ldloca.s   V_0
+                      IL_0051:  call       "void Program.F3<int?>(in System.Span<int?>)"
+                      IL_0056:  ldc.i4.1
+                      IL_0057:  newarr     "object"
+                      IL_005c:  dup
+                      IL_005d:  ldc.i4.0
+                      IL_005e:  ldc.i4.4
+                      IL_005f:  box        "int"
+                      IL_0064:  stelem.ref
+                      IL_0065:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                      IL_006a:  stloc.1
+                      IL_006b:  ldloca.s   V_1
+                      IL_006d:  call       "void Program.F4<object>(in System.ReadOnlySpan<object>)"
+                      IL_0072:  ret
+                    }
+                    """);
+            }
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void SpanArgument_02([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
+        {
+            string source = """
+                using System;
+                struct S { }
+                ref struct R { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReturnsStruct<object>([1]);
+                        ReturnsRefStruct<object>([2]);
+                        ReturnsRef<object>([3]);
+                        ReturnsRefReadOnly<object>([4]);
+                    }
+                    static int _f = 0;
+                    static S ReturnsStruct<T>(Span<T> s) { s.Report(); return default; }
+                    static R ReturnsRefStruct<T>(Span<T> s) { s.Report(); return default; }
+                    static ref int ReturnsRef<T>(Span<T> s) { s.Report(); return ref _f; }
+                    static ref readonly int ReturnsRefReadOnly<T>(Span<T> s) { s.Report(); return ref _f; }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: targetFramework,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1], [2], [3], [4], "));
+            if (targetFramework == TargetFramework.Net80)
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size      116 (0x74)
+                      .maxstack  4
+                      .locals init (<>y__InlineArray1<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "<>y__InlineArray1<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_001f:  call       "S Program.ReturnsStruct<object>(System.Span<object>)"
+                      IL_0024:  pop
+                      IL_0025:  ldc.i4.1
+                      IL_0026:  newarr     "object"
+                      IL_002b:  dup
+                      IL_002c:  ldc.i4.0
+                      IL_002d:  ldc.i4.2
+                      IL_002e:  box        "int"
+                      IL_0033:  stelem.ref
+                      IL_0034:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0039:  call       "R Program.ReturnsRefStruct<object>(System.Span<object>)"
+                      IL_003e:  pop
+                      IL_003f:  ldc.i4.1
+                      IL_0040:  newarr     "object"
+                      IL_0045:  dup
+                      IL_0046:  ldc.i4.0
+                      IL_0047:  ldc.i4.3
+                      IL_0048:  box        "int"
+                      IL_004d:  stelem.ref
+                      IL_004e:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0053:  call       "ref int Program.ReturnsRef<object>(System.Span<object>)"
+                      IL_0058:  pop
+                      IL_0059:  ldc.i4.1
+                      IL_005a:  newarr     "object"
+                      IL_005f:  dup
+                      IL_0060:  ldc.i4.0
+                      IL_0061:  ldc.i4.4
+                      IL_0062:  box        "int"
+                      IL_0067:  stelem.ref
+                      IL_0068:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_006d:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(System.Span<object>)"
+                      IL_0072:  pop
+                      IL_0073:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size      105 (0x69)
+                      .maxstack  4
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "object"
+                      IL_0006:  dup
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  ldc.i4.1
+                      IL_0009:  box        "int"
+                      IL_000e:  stelem.ref
+                      IL_000f:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0014:  call       "S Program.ReturnsStruct<object>(System.Span<object>)"
+                      IL_0019:  pop
+                      IL_001a:  ldc.i4.1
+                      IL_001b:  newarr     "object"
+                      IL_0020:  dup
+                      IL_0021:  ldc.i4.0
+                      IL_0022:  ldc.i4.2
+                      IL_0023:  box        "int"
+                      IL_0028:  stelem.ref
+                      IL_0029:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_002e:  call       "R Program.ReturnsRefStruct<object>(System.Span<object>)"
+                      IL_0033:  pop
+                      IL_0034:  ldc.i4.1
+                      IL_0035:  newarr     "object"
+                      IL_003a:  dup
+                      IL_003b:  ldc.i4.0
+                      IL_003c:  ldc.i4.3
+                      IL_003d:  box        "int"
+                      IL_0042:  stelem.ref
+                      IL_0043:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0048:  call       "ref int Program.ReturnsRef<object>(System.Span<object>)"
+                      IL_004d:  pop
+                      IL_004e:  ldc.i4.1
+                      IL_004f:  newarr     "object"
+                      IL_0054:  dup
+                      IL_0055:  ldc.i4.0
+                      IL_0056:  ldc.i4.4
+                      IL_0057:  box        "int"
+                      IL_005c:  stelem.ref
+                      IL_005d:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0062:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(System.Span<object>)"
+                      IL_0067:  pop
+                      IL_0068:  ret
+                    }
+                    """);
+            }
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void SpanArgument_03([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
+        {
+            string source = """
+                using System;
+                struct S { }
+                ref struct R { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReturnsRefStruct<object>([2]);
+                        ReturnsRef<object>([3]);
+                        ReturnsRefReadOnly<object>([4]);
+                    }
+                    static int _f = 0;
+                    static R ReturnsRefStruct<T>(scoped Span<T> s) { s.Report(); return default; }
+                    static ref int ReturnsRef<T>(scoped Span<T> s) { s.Report(); return ref _f; }
+                    static ref readonly int ReturnsRefReadOnly<T>(scoped Span<T> s) { s.Report(); return ref _f; }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: targetFramework,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[2], [3], [4], "));
+            if (targetFramework == TargetFramework.Net80)
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size      112 (0x70)
+                      .maxstack  2
+                      .locals init (<>y__InlineArray1<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "<>y__InlineArray1<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0010:  ldc.i4.2
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_001f:  call       "R Program.ReturnsRefStruct<object>(scoped System.Span<object>)"
+                      IL_0024:  pop
+                      IL_0025:  ldloca.s   V_0
+                      IL_0027:  initobj    "<>y__InlineArray1<object>"
+                      IL_002d:  ldloca.s   V_0
+                      IL_002f:  ldc.i4.0
+                      IL_0030:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0035:  ldc.i4.3
+                      IL_0036:  box        "int"
+                      IL_003b:  stind.ref
+                      IL_003c:  ldloca.s   V_0
+                      IL_003e:  ldc.i4.1
+                      IL_003f:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0044:  call       "ref int Program.ReturnsRef<object>(scoped System.Span<object>)"
+                      IL_0049:  pop
+                      IL_004a:  ldloca.s   V_0
+                      IL_004c:  initobj    "<>y__InlineArray1<object>"
+                      IL_0052:  ldloca.s   V_0
+                      IL_0054:  ldc.i4.0
+                      IL_0055:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_005a:  ldc.i4.4
+                      IL_005b:  box        "int"
+                      IL_0060:  stind.ref
+                      IL_0061:  ldloca.s   V_0
+                      IL_0063:  ldc.i4.1
+                      IL_0064:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0069:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(scoped System.Span<object>)"
+                      IL_006e:  pop
+                      IL_006f:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size       79 (0x4f)
+                      .maxstack  4
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "object"
+                      IL_0006:  dup
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  ldc.i4.2
+                      IL_0009:  box        "int"
+                      IL_000e:  stelem.ref
+                      IL_000f:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0014:  call       "R Program.ReturnsRefStruct<object>(scoped System.Span<object>)"
+                      IL_0019:  pop
+                      IL_001a:  ldc.i4.1
+                      IL_001b:  newarr     "object"
+                      IL_0020:  dup
+                      IL_0021:  ldc.i4.0
+                      IL_0022:  ldc.i4.3
+                      IL_0023:  box        "int"
+                      IL_0028:  stelem.ref
+                      IL_0029:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_002e:  call       "ref int Program.ReturnsRef<object>(scoped System.Span<object>)"
+                      IL_0033:  pop
+                      IL_0034:  ldc.i4.1
+                      IL_0035:  newarr     "object"
+                      IL_003a:  dup
+                      IL_003b:  ldc.i4.0
+                      IL_003c:  ldc.i4.4
+                      IL_003d:  box        "int"
+                      IL_0042:  stelem.ref
+                      IL_0043:  newobj     "System.Span<object>..ctor(object[])"
+                      IL_0048:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(scoped System.Span<object>)"
+                      IL_004d:  pop
+                      IL_004e:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Fact]
+        public void SpanArgument_04()
+        {
+            string source = """
+                using System;
+                struct S
+                {
+                    public void M(ReadOnlySpan<int?> s) { s.Report(); }
+                    public object this[ReadOnlySpan<int?> s] { set { s.Report(); } }
+                }
+                ref struct R1
+                {
+                    public void M(ReadOnlySpan<int?> s) { s.Report(); }
+                    public object this[ReadOnlySpan<int?> s] { set { s.Report(); } }
+                }
+                ref struct R2
+                {
+                    public void M(scoped ReadOnlySpan<int?> s) { s.Report(); }
+                    public object this[scoped ReadOnlySpan<int?> s] { set { s.Report(); } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var s = new S();
+                        s.M([1]);
+                        s[[2]] = null;
+                        var r1 = new R1();
+                        r1.M([3]);
+                        r1[[4]] = null;
+                        var r2 = new R2();
+                        r2.M([5]);
+                        r2[[6]] = null;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1], [2], [3], [4], [5], [6], "));
+            verifier.VerifyIL("Program.Main", """
+                {
+                    // Code size      258 (0x102)
+                    .maxstack  5
+                    .locals init (S V_0, //s
+                                R1 V_1, //r1
+                                R2 V_2, //r2
+                                <>y__InlineArray1<int?> V_3)
+                    IL_0000:  ldloca.s   V_0
+                    IL_0002:  initobj    "S"
+                    IL_0008:  ldloca.s   V_0
+                    IL_000a:  ldloca.s   V_3
+                    IL_000c:  initobj    "<>y__InlineArray1<int?>"
+                    IL_0012:  ldloca.s   V_3
+                    IL_0014:  ldc.i4.0
+                    IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_001a:  ldc.i4.1
+                    IL_001b:  newobj     "int?..ctor(int)"
+                    IL_0020:  stobj      "int?"
+                    IL_0025:  ldloca.s   V_3
+                    IL_0027:  ldc.i4.1
+                    IL_0028:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_002d:  call       "void S.M(System.ReadOnlySpan<int?>)"
+                    IL_0032:  ldloca.s   V_0
+                    IL_0034:  ldloca.s   V_3
+                    IL_0036:  initobj    "<>y__InlineArray1<int?>"
+                    IL_003c:  ldloca.s   V_3
+                    IL_003e:  ldc.i4.0
+                    IL_003f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_0044:  ldc.i4.2
+                    IL_0045:  newobj     "int?..ctor(int)"
+                    IL_004a:  stobj      "int?"
+                    IL_004f:  ldloca.s   V_3
+                    IL_0051:  ldc.i4.1
+                    IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_0057:  ldnull
+                    IL_0058:  call       "void S.this[System.ReadOnlySpan<int?>].set"
+                    IL_005d:  ldloca.s   V_1
+                    IL_005f:  initobj    "R1"
+                    IL_0065:  ldloca.s   V_1
+                    IL_0067:  ldc.i4.1
+                    IL_0068:  newarr     "int?"
+                    IL_006d:  dup
+                    IL_006e:  ldc.i4.0
+                    IL_006f:  ldc.i4.3
+                    IL_0070:  newobj     "int?..ctor(int)"
+                    IL_0075:  stelem     "int?"
+                    IL_007a:  newobj     "System.ReadOnlySpan<int?>..ctor(int?[])"
+                    IL_007f:  call       "void R1.M(System.ReadOnlySpan<int?>)"
+                    IL_0084:  ldloca.s   V_1
+                    IL_0086:  ldc.i4.1
+                    IL_0087:  newarr     "int?"
+                    IL_008c:  dup
+                    IL_008d:  ldc.i4.0
+                    IL_008e:  ldc.i4.4
+                    IL_008f:  newobj     "int?..ctor(int)"
+                    IL_0094:  stelem     "int?"
+                    IL_0099:  newobj     "System.ReadOnlySpan<int?>..ctor(int?[])"
+                    IL_009e:  ldnull
+                    IL_009f:  call       "void R1.this[System.ReadOnlySpan<int?>].set"
+                    IL_00a4:  ldloca.s   V_2
+                    IL_00a6:  initobj    "R2"
+                    IL_00ac:  ldloca.s   V_2
+                    IL_00ae:  ldloca.s   V_3
+                    IL_00b0:  initobj    "<>y__InlineArray1<int?>"
+                    IL_00b6:  ldloca.s   V_3
+                    IL_00b8:  ldc.i4.0
+                    IL_00b9:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_00be:  ldc.i4.5
+                    IL_00bf:  newobj     "int?..ctor(int)"
+                    IL_00c4:  stobj      "int?"
+                    IL_00c9:  ldloca.s   V_3
+                    IL_00cb:  ldc.i4.1
+                    IL_00cc:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_00d1:  call       "void R2.M(scoped System.ReadOnlySpan<int?>)"
+                    IL_00d6:  ldloca.s   V_2
+                    IL_00d8:  ldloca.s   V_3
+                    IL_00da:  initobj    "<>y__InlineArray1<int?>"
+                    IL_00e0:  ldloca.s   V_3
+                    IL_00e2:  ldc.i4.0
+                    IL_00e3:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_00e8:  ldc.i4.6
+                    IL_00e9:  newobj     "int?..ctor(int)"
+                    IL_00ee:  stobj      "int?"
+                    IL_00f3:  ldloca.s   V_3
+                    IL_00f5:  ldc.i4.1
+                    IL_00f6:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_00fb:  ldnull
+                    IL_00fc:  call       "void R2.this[scoped System.ReadOnlySpan<int?>].set"
+                    IL_0101:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpanArgument_05()
+        {
+            string source = """
+                using System;
+                readonly ref struct R1
+                {
+                    public void M(ReadOnlySpan<int?> s) { s.Report(); }
+                    public object this[ReadOnlySpan<int?> s] { get { s.Report(); return null; } }
+                }
+                ref struct R2
+                {
+                    public readonly void M(ReadOnlySpan<int?> s) { s.Report(); }
+                    public readonly object this[ReadOnlySpan<int?> s] { get { s.Report(); return null; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r1 = new R1();
+                        r1.M([3]);
+                        _ = r1[[4]];
+                        var r2 = new R2();
+                        r2.M([5]);
+                        _ = r2[[6]];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[3], [4], [5], [6], "));
+            verifier.VerifyIL("Program.Main", """
+                {
+                    // Code size      187 (0xbb)
+                    .maxstack  3
+                    .locals init (R1 V_0, //r1
+                                R2 V_1, //r2
+                                <>y__InlineArray1<int?> V_2)
+                    IL_0000:  ldloca.s   V_0
+                    IL_0002:  initobj    "R1"
+                    IL_0008:  ldloca.s   V_0
+                    IL_000a:  ldloca.s   V_2
+                    IL_000c:  initobj    "<>y__InlineArray1<int?>"
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  ldc.i4.0
+                    IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_001a:  ldc.i4.3
+                    IL_001b:  newobj     "int?..ctor(int)"
+                    IL_0020:  stobj      "int?"
+                    IL_0025:  ldloca.s   V_2
+                    IL_0027:  ldc.i4.1
+                    IL_0028:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_002d:  call       "void R1.M(System.ReadOnlySpan<int?>)"
+                    IL_0032:  ldloca.s   V_0
+                    IL_0034:  ldloca.s   V_2
+                    IL_0036:  initobj    "<>y__InlineArray1<int?>"
+                    IL_003c:  ldloca.s   V_2
+                    IL_003e:  ldc.i4.0
+                    IL_003f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_0044:  ldc.i4.4
+                    IL_0045:  newobj     "int?..ctor(int)"
+                    IL_004a:  stobj      "int?"
+                    IL_004f:  ldloca.s   V_2
+                    IL_0051:  ldc.i4.1
+                    IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_0057:  call       "object R1.this[System.ReadOnlySpan<int?>].get"
+                    IL_005c:  pop
+                    IL_005d:  ldloca.s   V_1
+                    IL_005f:  initobj    "R2"
+                    IL_0065:  ldloca.s   V_1
+                    IL_0067:  ldloca.s   V_2
+                    IL_0069:  initobj    "<>y__InlineArray1<int?>"
+                    IL_006f:  ldloca.s   V_2
+                    IL_0071:  ldc.i4.0
+                    IL_0072:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_0077:  ldc.i4.5
+                    IL_0078:  newobj     "int?..ctor(int)"
+                    IL_007d:  stobj      "int?"
+                    IL_0082:  ldloca.s   V_2
+                    IL_0084:  ldc.i4.1
+                    IL_0085:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_008a:  call       "readonly void R2.M(System.ReadOnlySpan<int?>)"
+                    IL_008f:  ldloca.s   V_1
+                    IL_0091:  ldloca.s   V_2
+                    IL_0093:  initobj    "<>y__InlineArray1<int?>"
+                    IL_0099:  ldloca.s   V_2
+                    IL_009b:  ldc.i4.0
+                    IL_009c:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                    IL_00a1:  ldc.i4.6
+                    IL_00a2:  newobj     "int?..ctor(int)"
+                    IL_00a7:  stobj      "int?"
+                    IL_00ac:  ldloca.s   V_2
+                    IL_00ae:  ldc.i4.1
+                    IL_00af:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                    IL_00b4:  call       "readonly object R2.this[System.ReadOnlySpan<int?>].get"
+                    IL_00b9:  pop
+                    IL_00ba:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpanArgument_06()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F1<object>(y: [1], x: [2]);
+                        F2<object>(y: [3], x: [4]);
+                    }
+                    static Span<T> F1<T>(Span<T> x, scoped Span<T> y)
+                    {
+                        x.Report();
+                        y.Report();
+                        return x;
+                    }
+                    static ReadOnlySpan<T> F2<T>(scoped ReadOnlySpan<T> x, ReadOnlySpan<T> y)
+                    {
+                        x.Report();
+                        y.Report();
+                        return y;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[2], [1], [4], [3], "));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      120 (0x78)
+                  .maxstack  5
+                  .locals init (<>y__InlineArray1<object> V_0,
+                                System.Span<object> V_1,
+                                System.ReadOnlySpan<object> V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<object>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stind.ref
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_001f:  stloc.1
+                  IL_0020:  ldc.i4.1
+                  IL_0021:  newarr     "object"
+                  IL_0026:  dup
+                  IL_0027:  ldc.i4.0
+                  IL_0028:  ldc.i4.2
+                  IL_0029:  box        "int"
+                  IL_002e:  stelem.ref
+                  IL_002f:  newobj     "System.Span<object>..ctor(object[])"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "System.Span<object> Program.F1<object>(System.Span<object>, scoped System.Span<object>)"
+                  IL_003a:  pop
+                  IL_003b:  ldloca.s   V_2
+                  IL_003d:  ldc.i4.1
+                  IL_003e:  newarr     "object"
+                  IL_0043:  dup
+                  IL_0044:  ldc.i4.0
+                  IL_0045:  ldc.i4.3
+                  IL_0046:  box        "int"
+                  IL_004b:  stelem.ref
+                  IL_004c:  call       "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0051:  ldloca.s   V_0
+                  IL_0053:  initobj    "<>y__InlineArray1<object>"
+                  IL_0059:  ldloca.s   V_0
+                  IL_005b:  ldc.i4.0
+                  IL_005c:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0061:  ldc.i4.4
+                  IL_0062:  box        "int"
+                  IL_0067:  stind.ref
+                  IL_0068:  ldloca.s   V_0
+                  IL_006a:  ldc.i4.1
+                  IL_006b:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0070:  ldloc.2
+                  IL_0071:  call       "System.ReadOnlySpan<object> Program.F2<object>(scoped System.ReadOnlySpan<object>, System.ReadOnlySpan<object>)"
+                  IL_0076:  pop
+                  IL_0077:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
