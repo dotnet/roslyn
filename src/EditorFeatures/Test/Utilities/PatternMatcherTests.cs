@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using ICSharpCode.Decompiler.CSharp.Syntax.PatternMatching;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -412,6 +413,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 Thread.CurrentThread.CurrentCulture = previousCulture;
             }
+        }
+
+        [Fact]
+        public void TestMultipleWords()
+        {
+            using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
+            matcher.Matches("Go");
+            matcher.Matches("Go");
+            matcher.Matches("oGo");
         }
 
         private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
