@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1315,7 +1316,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             catch (System.MissingMethodException e)
             {
-                System.Console.Write(e.Message);
+                System.Console.Write(e.Message.Contains("Void C.M(Void (Int32 ByRef))"));
             }
             """;
         CompileAndVerify(source3, new[] { comp1v1Ref, comp2Ref }, expectedOutput: "F123").VerifyDiagnostics();
@@ -1339,8 +1340,63 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var comp1v2Ref = comp1v2.EmitToImageReference();
 
         // That breaks the consumer.
-        CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref },
-            expectedOutput: "Method not found: 'Void C.M(Void (Int32 ByRef))'.").VerifyDiagnostics();
+        CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionPointer_DefineManually_AndInReference()
+    {
+        var source1 = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+                public sealed class RequiresLocationAttribute : Attribute
+                {
+                }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        // Attribute declared both in the same assembly and in a reference.
+        var source2 = """
+            public class C
+            {
+                public unsafe void M(delegate*<ref readonly int, void> f) { }
+            }
+            """;
+        var comp2 = CreateCompilation(new[] { source2, RequiresLocationAttributeDefinition }, new[] { comp1Ref },
+            assemblyName: "Assembly2", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp2, sourceSymbolValidator: verify2, symbolValidator: verify2).VerifyDiagnostics();
+
+        static void verify2(ModuleSymbol m)
+        {
+            Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly2", modifier.ContainingAssembly.Name);
+        }
+
+        // Attribute declared only in a reference.
+        var comp3 = CreateCompilation(source2, new[] { comp1Ref }, assemblyName: "Assembly3", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp3, sourceSymbolValidator: verify3, symbolValidator: verify3).VerifyDiagnostics();
+
+        static void verify3(ModuleSymbol m)
+        {
+            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly1", modifier.ContainingAssembly.Name);
+        }
+
+        static INamedTypeSymbol verify(ModuleSymbol m)
+        {
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var ptr = (FunctionPointerTypeSymbol)p.Type;
+            var p2 = ptr.Signature.Parameters.Single();
+            VerifyRefReadonlyParameter(p2, customModifiers: VerifyModifiers.RequiresLocation);
+            return p2.RefCustomModifiers.Single().Modifier;
+        }
     }
 
     [Fact]
