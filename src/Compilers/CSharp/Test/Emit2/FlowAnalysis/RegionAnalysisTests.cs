@@ -14096,5 +14096,53 @@ class B
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(assignment);
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_RefAssignment()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref int ri;
+                    public unsafe RS() => ri = ref *default(int*);
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(assignment);
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+        }
     }
 }
