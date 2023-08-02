@@ -138,12 +138,12 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... t i) => { }')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = (int i) => { }')
-          Initializer: 
+          Initializer:
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (int i) => { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '(int i) => { }')
-                Target: 
+                Target:
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-                    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
     Initializer: 
       null
 ";
@@ -235,9 +235,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
-  Target: 
+  Target:
     IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (7,47): error CS1593: Delegate 'Action' does not take 1 arguments
@@ -340,15 +340,15 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
-  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
-    Declarators:
-        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
-          Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate(int i) { }')
-              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
-                Target: 
-                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
-                    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate(int i) { }')
+                  IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
+                    Target:
+                      IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
+                        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
     Initializer: 
       null
 ";
@@ -941,11 +941,11 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action( ...  i) => { })')
-  Target: 
+  Target:
     IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
-        IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '{ }')
-          ReturnedValue: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue:
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1401,11 +1401,11 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... i) => { }))')
-  Children(1):
-      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
-        Target: 
-          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-            IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+    Children(1):
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
+        Target:
+            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
+            IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (7,58): error CS1593: Delegate 'Action' does not take 1 arguments

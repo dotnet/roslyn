@@ -211,19 +211,18 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                // (7,16): error CS1661: Cannot convert anonymous method to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo").WithLocation(7, 16),
                 // (7,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
-                // (8,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(7, 33),
+                // (8,16): error CS1661: Cannot convert anonymous method to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo").WithLocation(8, 16),
                 // (8,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
-                );
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(8, 33));
         }
 
         // Lambda expression to removal or concatenation
@@ -244,19 +243,18 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                // (7,27): error CS1661: Cannot convert lambda expression to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo += (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo").WithLocation(7, 27),
                 // (7,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
-                // (8,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(7, 24),
+                // (8,27): error CS1661: Cannot convert lambda expression to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo -= (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo").WithLocation(8, 27),
                 // (8,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo -= (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
-                );
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(8, 24));
         }
 
         // Successive operator for addition and subtraction assignment

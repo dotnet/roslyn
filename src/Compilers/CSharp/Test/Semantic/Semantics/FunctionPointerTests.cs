@@ -2818,13 +2818,12 @@ unsafe
                 // (5,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test2(0, v => 0);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(5, 5),
-                // (6,38): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                // (6,40): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
                 //     Test1<string, int>(string.Empty, v => 0);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(6, 38),
-                // (7,27): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(6, 40),
+                // (7,29): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
                 //     Test2<string, int>(0, v => 0);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(7, 27)
-            );
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(7, 29));
         }
 
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]

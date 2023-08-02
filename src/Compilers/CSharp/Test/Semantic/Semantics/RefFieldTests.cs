@@ -16180,10 +16180,9 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
+                // (12,20): error CS1593: Delegate 'D1' does not take 0 arguments
                 //         D1 d1 = () => new R();
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "0").WithLocation(12, 20));
         }
 
         [Fact]
@@ -16208,13 +16207,12 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                // (12,19): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d1 = r => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
-                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(12, 19),
+                // (13,30): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d2 = (scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(13, 30));
         }
 
         [Fact]

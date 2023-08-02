@@ -1977,7 +1977,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return anonymousMethod.DelegateKeyword.GetLocation();
 
                 default:
-                    Debug.Fail("Unhandled case in GetPreferredAnonymousFunctionDiagnosticLocation");
                     return node.Location;
             }
         }
