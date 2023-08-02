@@ -5677,12 +5677,12 @@ class Program
                 // (5,34): error CS0570: 'D.Invoke()' is not supported by the language
                 //         System.Console.WriteLine(d());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(5, 34),
-                // (9,11): error CS0570: 'D.Invoke()' is not supported by the language
+                // (9,14): error CS0570: 'D.Invoke()' is not supported by the language
                 //         F(() => 1);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "() => 1").WithArguments("D.Invoke()").WithLocation(9, 11),
-                // (10,11): error CS0570: 'D.Invoke()' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(9, 14),
+                // (10,18): error CS0570: 'D.Invoke()' is not supported by the language
                 //         F(int () => 2);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "int () => 2").WithArguments("D.Invoke()").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(10, 18));
         }
 
         [Fact]
