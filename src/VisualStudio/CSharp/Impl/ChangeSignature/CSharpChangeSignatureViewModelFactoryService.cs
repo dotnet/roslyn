@@ -57,6 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 
         public override SyntaxNode GetTypeNode(string typeName) => SyntaxFactory.ParseTypeName(typeName);
 
-        public override bool IsVoidTypeSyntax(SyntaxNode node) => node is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword };
+        public override bool IsVoidTypeSyntax(SyntaxNode node) => node is PredefinedTypeSyntax(kind: SyntaxKind.VoidKeyword);
     }
 }
