@@ -1341,6 +1341,22 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         // That breaks the consumer.
         CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+
+        // Unless the library adds type forwarding.
+        var source5 = """
+            using System.Runtime.CompilerServices;
+            [assembly: TypeForwardedToAttribute(typeof(RequiresLocationAttribute))]
+            """;
+        var comp1v3 = CreateCompilation(new[] { source1, source5 }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v3.VerifyDiagnostics();
+        var comp1v3Ref = comp1v3.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v3Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        // Or keeps the manual attribute definition.
+        var comp1v4 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v4.VerifyDiagnostics();
+        var comp1v4Ref = comp1v4.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v4Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
     }
 
     [Fact]
