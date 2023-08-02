@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (_isVoidParameterType)
             {
-                message = ServicesVSResources.void_is_not_a_valid_type_for_a_parameter;
+                message = ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter;
                 return false;
             }
 
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     TypeDoesNotParseOrInvalidTypeImage = Visibility.Visible;
                     TypeDoesNotBindImage = Visibility.Collapsed;
                     TypeBindsImage = Visibility.Collapsed;
-                    TypeBindsDynamicStatus = ServicesVSResources.void_is_not_a_valid_type_for_a_parameter;
+                    TypeBindsDynamicStatus = ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter;
                 }
                 else if (!IsParameterTypeSyntacticallyValid(typeName) || TypeSymbol == null)
                 {
