@@ -9931,7 +9931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnostics, location);
+            return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnostics, getErrorLocation());
 
             Location getErrorLocation()
             {

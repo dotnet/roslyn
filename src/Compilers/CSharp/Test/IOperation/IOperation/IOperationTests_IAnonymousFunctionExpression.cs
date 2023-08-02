@@ -272,9 +272,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action<int>' does not take 0 arguments
-                //         Action<int> x /*<bind>*/= () => F()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => F()").WithArguments("System.Action<int>", "0").WithLocation(8, 35)
+                // (8,38): error CS1593: Delegate 'Action<int>' does not take 0 arguments
+                //         /*<bind>*/Action<int> x = () => F();/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action<int>", "0").WithLocation(8, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -374,9 +374,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action<int>' does not take 0 arguments
+                // (8,52): error CS1593: Delegate 'Action<int>' does not take 0 arguments
                 //         /*<bind>*/Action<int> x = (Action<int>)(() => F());/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => F()").WithArguments("System.Action<int>", "0").WithLocation(8, 49)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action<int>", "0").WithLocation(8, 52)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

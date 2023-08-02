@@ -307,18 +307,18 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (6,23): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         object o = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "object").WithLocation(6, 20),
-                // (7,24): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(6, 23),
+                // (7,27): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
                 //         ICloneable c = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 24),
-                // (8,22): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 27),
+                // (8,25): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         Delegate d = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 22),
-                // (9,31): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 25),
+                // (9,34): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
                 //         MulticastDelegate m = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 34));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action
@@ -586,16 +586,16 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,20): error CS1660: Cannot convert anonymous method to type 'object' because it is not a delegate type
                 //         object o = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "object").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "object").WithLocation(6, 20),
                 // (7,24): error CS1660: Cannot convert anonymous method to type 'ICloneable' because it is not a delegate type
                 //         ICloneable c = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.ICloneable").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.ICloneable").WithLocation(7, 24),
                 // (8,22): error CS1660: Cannot convert anonymous method to type 'Delegate' because it is not a delegate type
                 //         Delegate d = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 22),
                 // (9,31): error CS1660: Cannot convert anonymous method to type 'MulticastDelegate' because it is not a delegate type
                 //         MulticastDelegate m = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.MulticastDelegate").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.MulticastDelegate").WithLocation(9, 31));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action
@@ -625,16 +625,16 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,48): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e = delegate () { return 1; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 1; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(6, 48),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(6, 48),
                 // (7,25): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         e = (Expression)delegate () { return 2; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 2; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(7, 25),
                 // (8,30): error CS1660: Cannot convert anonymous method to type 'LambdaExpression' because it is not a delegate type
                 //         LambdaExpression l = delegate () { return 3; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 3; }").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(8, 30),
                 // (9,31): error CS1660: Cannot convert anonymous method to type 'LambdaExpression' because it is not a delegate type
                 //         l = (LambdaExpression)delegate () { return 4; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 4; }").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 31));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -673,9 +673,9 @@ class Program
                 // (7,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'dynamic'. Did you intend to invoke the method?
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "dynamic").WithLocation(7, 13),
-                // (8,13): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
+                // (8,16): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
                 //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "dynamic").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "dynamic").WithLocation(8, 16));
         }
 
         private static IEnumerable<object?[]> GetMethodGroupData(Func<string, string, DiagnosticDescription[]> getExpectedDiagnostics)
@@ -881,9 +881,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,29): error CS8917: The delegate type could not be inferred.
-                    //         System.Delegate d = x => x;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 29));
+                    // 0.cs(5,32): error CS8917: The delegate type could not be inferred.
+                    //         System.Delegate d = () => throw null;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 32));
             }
             else
             {
@@ -924,9 +924,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,38): error CS8917: The delegate type could not be inferred.
-                    //         object o = (System.Delegate)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 38));
+                    // 0.cs(5,41): error CS8917: The delegate type could not be inferred.
+                    //         object o = (System.Delegate)(() => throw null);
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 41));
             }
             else
             {
@@ -982,9 +982,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,48): error CS8917: The delegate type could not be inferred.
+                    // (5,50): error CS8917: The delegate type could not be inferred.
                     //         System.Linq.Expressions.Expression e = x => x;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 48));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 50));
             }
             else
             {
@@ -1022,9 +1022,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,57): error CS8917: The delegate type could not be inferred.
+                    // (5,59): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Linq.Expressions.Expression)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 57));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 59));
             }
             else
             {
@@ -1067,9 +1067,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,23): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS8917: The delegate type could not be inferred.
                 //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; }").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 26),
                 // (6,68): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(6, 68),
@@ -4935,12 +4935,12 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
-                //         var a1 = new[] { (object o) => { }, (string s) => { } };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(6, 26),
                 // (6,34): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         var a1 = new[] { (object o) => { }, (string s) => { } };
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(6, 34));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(6, 34),
+                // (6,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         var a1 = new[] { (object o) => { }, (string s) => { } };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<string>").WithLocation(6, 37));
         }
 
         [Fact]
@@ -5200,12 +5200,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,35): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (7,38): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         var a1 = new Delegate[] { () => 1 };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 35),
-                // (8,37): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 38),
+                // (8,40): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         var a2 = new Expression[] { () => 2 };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(8, 37));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(8, 40));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Int32]
@@ -5406,12 +5406,12 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8917: The delegate type could not be inferred.
+                // (6,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return null; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return null; }").WithLocation(6, 16),
-                // (7,16): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 25),
+                // (7,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return; else return null; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return; else return null; }").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 25),
                 // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
                 //         Report((bool b) => { if (b) return; else return null; });
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
@@ -5462,15 +5462,15 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (6,31): error CS0126: An object of a type convertible to 'object' is required
-                //         Report(object () => { return; });
-                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(6, 31),
-                // (7,32): error CS1643: Not all code paths return a value in lambda expression of type 'Func<bool, object>'
-                //         Report(object (bool b) => { if (b) return null; });
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<bool, object>").WithLocation(7, 32),
-                // (8,44): error CS0126: An object of a type convertible to 'object' is required
-                //         Report(object (bool b) => { if (b) return; else return default; });
-                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(8, 44));
+                // (6,25): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return default; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 25),
+                // (7,25): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 25),
+                // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //         Report((bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
         }
 
         [Fact]
@@ -12896,12 +12896,12 @@ class Program
     }
     """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
-                //         D d = (int x, double d = 3.0) => x + d;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, double d = 3.0) => x + d").WithArguments("lambda expression", "Program.D").WithLocation(6, 15),
-                // (6,30): error CS1678: Parameter 2 is declared as type 'double' but should be 'int'
-                //         D d = (int x, double d = 3.0) => x + d;
-                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("2", "", "double", "", "int").WithLocation(6, 30));
+                // (12,25): error CS1678: Parameter 2 is declared as type 'A' but should be 'B'
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25),
+                // (12,35): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Program.D").WithLocation(12, 35));
         }
 
         [Fact]

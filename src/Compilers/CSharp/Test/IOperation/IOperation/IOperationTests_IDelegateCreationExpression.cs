@@ -148,9 +148,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,38): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         /*<bind>*/Action a = (int i) => { };/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -240,9 +240,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,47): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/(Action)((int i) => { })/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 47)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -353,9 +353,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,30): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         /*<bind>*/Action a = delegate(int i) { };/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate(int i) { }").WithArguments("System.Action", "1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate").WithArguments("System.Action", "1").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -949,9 +949,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,49): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/new Action((int i) => { })/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 41)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 49)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1408,9 +1408,9 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
             IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,58): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/new Action((Action)((int i) => { }))/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 50)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 58)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

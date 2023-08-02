@@ -1160,9 +1160,9 @@ public class C
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
             CreateCompilation(testInMethod).VerifyDiagnostics(
-                // (1,34): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (1,43): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static x => x]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static x => x").WithArguments("lambda expression", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(1, 43));
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { _ = new int[static x => x]; } }
@@ -1793,9 +1793,9 @@ public class C
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
             CreateCompilation(testInMethod).VerifyDiagnostics(
-                // (1,34): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                // (1,41): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static delegate(int x) { }]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate(int x) { }").WithArguments("anonymous method", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "int").WithLocation(1, 41));
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { _ = new int[static delegate(int x) { }]; } }
