@@ -456,6 +456,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ''' <summary>
+        ''' True if this symbol has been marked with the Experimental attribute. 
+        ''' This property returns Unknown if the Experimental attribute hasn't been cracked yet.
+        ''' </summary>
+        Friend ReadOnly Property ExperimentalState As ThreeState
+            Get
+                Select Case ObsoleteKind
+                    Case ObsoleteAttributeKind.Experimental
+                        Return ThreeState.True
+                    Case ObsoleteAttributeKind.Uninitialized
+                        Return ThreeState.Unknown
+                    Case Else
+                        Return ThreeState.False
+                End Select
+            End Get
+        End Property
+
         Friend ReadOnly Property ObsoleteKind As ObsoleteAttributeKind
             Get
                 Dim data = Me.ObsoleteAttributeData

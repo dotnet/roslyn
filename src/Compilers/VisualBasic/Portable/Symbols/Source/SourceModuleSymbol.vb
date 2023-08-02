@@ -1116,6 +1116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).HasDebuggableAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).ObsoleteAttributeData = attrData.DecodeObsoleteAttribute(ObsoleteAttributeKind.Experimental)
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
@@ -1220,5 +1222,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return Nothing
         End Function
+
+        ''' <summary>
+        ''' Returns data decoded from Experimental attribute or null if there is no Obsolete/Experimental/... attribute.
+        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        ''' </summary>
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
+            End Get
+        End Property
+
     End Class
 End Namespace

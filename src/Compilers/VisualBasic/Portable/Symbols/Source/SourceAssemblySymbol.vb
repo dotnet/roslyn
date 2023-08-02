@@ -5,10 +5,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Reflection.Metadata
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Security.Cryptography
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -1092,6 +1089,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().RuntimeCompatibilityWrapNonExceptionThrows = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasDebuggableAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().ObsoleteAttributeData = attrData.DecodeExperimentalAttribute()
             Else
                 Dim signature As Integer = attrData.GetTargetAttributeSignatureIndex(Me, AttributeDescription.AssemblyAlgorithmIdAttribute)
 
@@ -1780,5 +1779,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _compilation
             End Get
         End Property
+
+        ''' <summary>
+        ''' Returns data decoded from Experimental attribute or null if there is no Obsolete/Experimental/... attribute.
+        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        ''' </summary>
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                ' <assembly: Experimental> may have been specified in the assembly or one of the modules
+                Dim result = If(GetSourceDecodedWellKnownAttributeData()?.ObsoleteAttributeData, GetNetModuleDecodedWellKnownAttributeData()?.ObsoleteAttributeData)
+
+                Debug.Assert(result Is Nothing OrElse result.Kind = ObsoleteAttributeKind.Experimental)
+                Return result
+            End Get
+        End Property
+
     End Class
 End Namespace

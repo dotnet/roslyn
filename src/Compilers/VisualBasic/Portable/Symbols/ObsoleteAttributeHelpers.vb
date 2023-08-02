@@ -46,13 +46,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         ''' hierarchy is Obsolete.
         ''' </returns>
-        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean) As ThreeState
+        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean, getStateFromSymbol As Func(Of Symbol, ThreeState)) As ThreeState
             While symbol IsNot Nothing
                 If forceComplete Then
                     symbol.ForceCompleteObsoleteAttribute()
                 End If
 
-                Dim state = symbol.ObsoleteState
+                Dim state = getStateFromSymbol(symbol)
                 If state <> ThreeState.False Then
                     Return state
                 End If
@@ -72,11 +72,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
+            Dim namedType = TryCast(symbol, NamedTypeSymbol)
+            If namedType IsNot Nothing AndAlso
+                IsExperimentalSymbol(namedType) Then
+
+                ' Skip for System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
+                Return ObsoleteDiagnosticKind.NotObsolete
+            End If
+
+            Dim method = TryCast(symbol, MethodSymbol)
+            If method IsNot Nothing AndAlso
+                    method.MethodKind = MethodKind.Constructor AndAlso
+                    IsExperimentalSymbol(method.ContainingType) Then
+
+                ' Skip for constructors of System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
+                Return ObsoleteDiagnosticKind.NotObsolete
+            End If
+
+            Debug.Assert(symbol.ContainingModule Is Nothing OrElse symbol.ContainingModule.ObsoleteKind <> ObsoleteAttributeKind.Uninitialized)
+            Debug.Assert(symbol.ContainingAssembly Is Nothing OrElse symbol.ContainingAssembly.ObsoleteKind <> ObsoleteAttributeKind.Uninitialized)
+
+            If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
+                symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
+
+                Return GetExperimentalDiagnosticKind(context, forceComplete)
+            End If
+
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
                     Return ObsoleteDiagnosticKind.NotObsolete
-                Case ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
+                Case ObsoleteAttributeKind.WindowsExperimental
                     Return ObsoleteDiagnosticKind.Diagnostic
+                Case ObsoleteAttributeKind.Experimental
+                    Return GetExperimentalDiagnosticKind(context, forceComplete)
                 Case ObsoleteAttributeKind.Uninitialized
                     ' If we haven't cracked attributes on the symbol at all or we haven't
                     ' cracked attribute arguments enough to be able to report diagnostics for
@@ -85,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ObsoleteDiagnosticKind.Lazy
             End Select
 
-            Select Case GetObsoleteContextState(context, forceComplete)
+            Select Case GetObsoleteContextState(context, forceComplete, getStateFromSymbol:=Function(s) s.ObsoleteState)
                 Case ThreeState.False
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ThreeState.True
@@ -99,12 +127,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
+        Private Shared Function IsExperimentalSymbol(namedType As NamedTypeSymbol) As Boolean
+            Return namedType IsNot Nothing AndAlso
+                namedType.Arity = 0 AndAlso
+                namedType.HasNameQualifier("System.Diagnostics.CodeAnalysis", StringComparison.Ordinal) AndAlso
+                namedType.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal)
+        End Function
+
+        Private Shared Function GetExperimentalDiagnosticKind(containingMember As Symbol, forceComplete As Boolean) As ObsoleteDiagnosticKind
+
+            Select Case GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
+                Case ThreeState.False
+                    Return ObsoleteDiagnosticKind.Diagnostic
+                Case ThreeState.True
+                    ' If we are in a context that is already experimental, there is no point reporting
+                    ' more experimental diagnostics.
+                    Return ObsoleteDiagnosticKind.Suppressed
+                Case Else
+                    ' If the context is unknown, then store the symbol so that we can do this check at a
+                    ' later stage
+                    Return ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+            End Select
+        End Function
+
         ''' <summary>
         ''' Create a diagnostic for the given symbol. This could be an error or a warning based on
         ''' the ObsoleteAttribute's arguments.
         ''' </summary>
         Friend Shared Function CreateObsoleteDiagnostic(symbol As Symbol) As DiagnosticInfo
-            Dim data = symbol.ObsoleteAttributeData
+            Dim data = If(If(symbol.ObsoleteAttributeData, symbol.ContainingModule.ObsoleteAttributeData), symbol.ContainingAssembly.ObsoleteAttributeData)
+
             Debug.Assert(data IsNot Nothing)
 
             If data Is Nothing Then
