@@ -4250,9 +4250,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         M(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 14));
 
             var expectedOutput = @"M(Expression e)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
@@ -4279,12 +4279,12 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Expression'
+                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Linq.Expressions.Expression'
                 //         M(F);
                 Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11),
-                // (11,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (11,14): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         M(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 14));
 
             var expectedDiagnostics = new[]
             {
@@ -5926,12 +5926,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                   // (10,42): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F1((D1<string> d) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(10, 42),
                 // (10,50): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F1((D1<string> d) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(10, 50)
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(10, 50),
+                // (10,53): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1<string>").WithLocation(10, 53)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -11560,12 +11560,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (16,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (16,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(16, 17),
-                // (17,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(16, 20),
+                // (17,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(17, 20),
                 // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(18, 14)
@@ -11615,24 +11615,24 @@ class Program
                 // (8,37): error CS0552: 'C2.implicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
                 //     public static implicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.implicit operator C2(System.ICloneable)").WithLocation(8, 37),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(15, 17),
-                // (16,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(15, 20),
+                // (16,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(16, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(16, 20),
                 // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(17, 14),
                 // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(18, 14),
-                // (19,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (19,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(19, 18),
-                // (20,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(19, 21),
+                // (20,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(20, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(20, 21),
                 // (21,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(21, 13),
@@ -11692,36 +11692,36 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (24,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (24,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 17),
-                // (25,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(24, 20),
+                // (25,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(25, 17),
-                // (26,17): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(25, 20),
+                // (26,20): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
                 //         C3 c3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(26, 17),
-                // (27,17): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C3").WithLocation(26, 20),
+                // (27,20): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
                 //         C4 c4 = () => 4;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(27, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C4").WithLocation(27, 20),
                 // (28,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(28, 14),
                 // (29,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(29, 14),
-                // (30,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (30,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(30, 18),
-                // (31,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(30, 21),
+                // (31,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(31, 18),
-                // (32,18): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(31, 21),
+                // (32,21): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
                 //         _ = (C3)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(32, 18),
-                // (33,18): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C3").WithLocation(32, 21),
+                // (33,21): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
                 //         _ = (C4)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(33, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C4").WithLocation(33, 21),
                 // (34,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(34, 13),
@@ -11764,24 +11764,24 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,24): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                // (11,27): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         C<object> c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 24),
-                // (12,28): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<object>").WithLocation(11, 27),
+                // (12,31): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
                 //         C<ICloneable> c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 31),
                 // (13,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<object>'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<object>").WithLocation(13, 14),
                 // (14,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<ICloneable>'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.ICloneable>").WithLocation(14, 14),
-                // (15,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                // (15,28): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         _ = (C<object>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(15, 25),
-                // (16,29): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<object>").WithLocation(15, 28),
+                // (16,32): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
                 //         _ = (C<ICloneable>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(16, 32),
                 // (17,13): error CS0030: Cannot convert type 'method' to 'C<object>'
                 //         _ = (C<object>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(17, 13),
@@ -11829,36 +11829,36 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (12,26): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                // (12,29): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         C<Delegate> c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 26),
-                // (13,35): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 29),
+                // (13,38): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
                 //         C<MulticastDelegate> c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 35),
-                // (14,28): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 38),
+                // (14,31): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
                 //         C<Expression> c3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 28),
-                // (15,34): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 31),
+                // (15,37): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
                 //         C<LambdaExpression> c4 = () => 4;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 34),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 37),
                 // (16,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<Delegate>'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.Delegate>").WithLocation(16, 14),
                 // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<MulticastDelegate>'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.MulticastDelegate>").WithLocation(17, 14),
-                // (18,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                // (18,30): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         _ = (C<Delegate>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(18, 27),
-                // (19,36): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(18, 30),
+                // (19,39): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
                 //         _ = (C<MulticastDelegate>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(19, 36),
-                // (20,29): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(19, 39),
+                // (20,32): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
                 //         _ = (C<Expression>)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(20, 29),
-                // (21,35): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(20, 32),
+                // (21,38): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
                 //         _ = (C<LambdaExpression>)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(21, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(21, 38),
                 // (22,13): error CS0030: Cannot convert type 'method' to 'C<Delegate>'
                 //         _ = (C<Delegate>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(22, 13),
