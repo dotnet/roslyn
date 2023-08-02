@@ -324,11 +324,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagsByBuffer =
                     context.TagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                     .ToLookup(t => t.Span.Snapshot.TextBuffer);
-                var spansTagged = context._spansTagged;
+                var spansActuallyTagged = context.GetSpansActuallyTagged();
 
-                var spansToInvalidateByBuffer = spansTagged.ToLookup(
-                    keySelector: span => span.Snapshot.TextBuffer,
-                    elementSelector: span => span);
+                var spansToInvalidateByBuffer = spansActuallyTagged.ToLookup(
+                    keySelector: static span => span.Snapshot.TextBuffer,
+                    elementSelector: static span => span);
 
                 // Walk through each relevant buffer and decide what the interval tree should be
                 // for that buffer.  In general this will work by keeping around old tags that

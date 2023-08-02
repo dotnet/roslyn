@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             var onExistingTags = context.HasExistingContainingTags(new SnapshotPoint(snapshot, position));
             if (onExistingTags)
             {
-                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
+                context.ClearSpansActuallyTagged();
                 return;
             }
 

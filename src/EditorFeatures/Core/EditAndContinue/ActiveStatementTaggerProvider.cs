@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     context.AddTag(new TagSpan<ITextMarkerTag>(snapshotSpan, ActiveStatementTag.Instance));
                 }
             }
-
-            // Let the context know that this was the span we actually tried to tag.
-            context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
         }
 
         protected override bool TagEquals(ITextMarkerTag tag1, ITextMarkerTag tag2)

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             var onExistingTags = context.HasExistingContainingTags(caretPosition);
             if (onExistingTags)
             {
-                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
+                context.ClearSpansActuallyTagged();
                 return Task.CompletedTask;
             }
 

@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
@@ -23,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-        internal ImmutableArray<SnapshotSpan> _spansTagged;
+        private List<SnapshotSpan> _spansActuallyTagged;
         public readonly SegmentedList<ITagSpan<TTag>> TagSpans = new();
 
         public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
@@ -68,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this.CaretPosition = caretPosition;
             this.TextChangeRange = textChangeRange;
 
-            _spansTagged = spansToTag.SelectAsArray(ds => ds.SnapshotSpan);
             _existingTags = existingTags;
         }
 
@@ -78,14 +74,31 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public void ClearTags()
             => TagSpans.Clear();
 
+        public ImmutableArray<SnapshotSpan> GetSpansActuallyTagged()
+        {
+            // If the actual tagger didn't report anything different, then we tagged everything we were asked to tag.
+            if (_spansActuallyTagged is null)
+                return SpansToTag.SelectAsArray(ds => ds.SnapshotSpan);
+
+            return _spansActuallyTagged.ToImmutableArray();
+        }
+
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful when the tagger decides
         /// to tag a different span than the entire file.  If a sub-span of a document is tagged then the tagger
         /// infrastructure will keep previously computed tags from before and after the sub-span and merge them with the
         /// newly produced tags.
         /// </summary>
-        public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
-            => _spansTagged = spansTagged;
+        public void AddActuallyTaggedSpan(SnapshotSpan taggedSpan)
+        {
+            _spansActuallyTagged ??= new();
+            _spansActuallyTagged.Add(taggedSpan);
+        }
+
+        public void ClearSpansActuallyTagged()
+        {
+            _spansActuallyTagged = new();
+        }
 
         public bool HasExistingContainingTags(SnapshotPoint point)
             => _existingTags != null &&
