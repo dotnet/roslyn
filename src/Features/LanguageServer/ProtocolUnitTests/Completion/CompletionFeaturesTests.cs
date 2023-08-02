@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -554,5 +555,40 @@ namespace Program
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
         AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5732")]
+    public async Task TestEmptyCommitCharsInSuggestionMode(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+using System.Collections.Generic;
+using System.Linq;
+public class C
+{
+    public Foo(List<int> myList)
+    {
+        var foo = myList.Where(i{|caret:|})
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.NotEmpty(results.Items);
+        Assert.Empty(results.ItemDefaults.CommitCharacters);
+        Assert.True(results.Items.All(item => item.CommitCharacters is null));
     }
 }
