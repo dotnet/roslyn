@@ -456,10 +456,9 @@ global using Bar;";
         }
 
         [Fact]
-        public async Task TestAfterUsingInMethodBody()
+        public async Task TestNotAfterUsingInMethodBody()
         {
-            // This recommendation isn't useful
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C {
     void M() {
         using $$");
