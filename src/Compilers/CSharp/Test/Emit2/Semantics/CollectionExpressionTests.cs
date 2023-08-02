@@ -4494,7 +4494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        {{collectionType}} c = [];
+                        {{collectionType}} c;
+                        c = [];
                         c = Append(c);
                         c.Report();
                     }
@@ -4985,7 +4986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         {{collectionType}}<int> a = [1, 2, 3];
-                        {{collectionType}}<object> b = [];
+                        {{collectionType}}<object> b;
                         b = F1(a);
                         b.Report();
                         b = F2<int, object>(a);
