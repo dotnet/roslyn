@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
                     {
-                        Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, GetAnonymousFunctionLocation(syntax));
+                        conversionError(diagnostics, ErrorCode.ERR_CannotInferDelegateType);
                         var lambda = anonymousFunction.BindForErrorRecovery();
                         diagnostics.AddRange(lambda.Diagnostics);
                         return;
@@ -2036,27 +2036,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
-                Error(diagnostics, ErrorCode.ERR_AnonMethToNonDel, GetAnonymousFunctionLocation(syntax), id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_AnonMethToNonDel, id, targetType);
                 return;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument)
             {
                 Debug.Assert(targetType.IsExpressionTree());
-                Error(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, GetAnonymousFunctionLocation(syntax), ((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                conversionError(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, ((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
                 return;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
                 Debug.Assert(targetType.IsGenericOrNonGenericExpressionType(out _));
-                Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, GetAnonymousFunctionLocation(syntax));
+                conversionError(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree);
                 return;
             }
 
             if (reason == LambdaConversionResult.MismatchedReturnType)
             {
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, GetAnonymousFunctionLocation(syntax), id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, id, targetType);
                 return;
             }
 
@@ -2082,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This seems redundant, (because there is no "parameter 1" in the source code)
                 // and unnecessary. I propose that we eliminate the first error.
 
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, GetAnonymousFunctionLocation(syntax), targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, targetType);
                 return;
             }
 
@@ -2094,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.BadParameterCount)
             {
                 // Delegate '{0}' does not take {1} arguments
-                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, GetAnonymousFunctionLocation(syntax), delegateType, anonymousFunction.ParameterCount);
+                conversionError(diagnostics, ErrorCode.ERR_BadDelArgCount, delegateType, anonymousFunction.ParameterCount);
                 return;
             }
 
@@ -2153,7 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
                 // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, GetAnonymousFunctionLocation(syntax), id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
@@ -2205,6 +2205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
+
+            void conversionError(BindingDiagnosticBag diagnostics, ErrorCode code, params object[] args)
+                => Error(diagnostics, code, GetAnonymousFunctionLocation(syntax), args);
         }
 #nullable disable
 
