@@ -200,10 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 TypeIsEmptyImage = Visibility.Collapsed;
 
                 var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-                var typeNode = languageService.GetTypeNode(typeName);
-                TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, typeNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
-                if (languageService.IsVoidTypeSyntax(typeNode) || TypeSymbol is { SpecialType: SpecialType.System_Void })
+                if (TypeSymbol is { SpecialType: SpecialType.System_Void })
                 {
                     _isVoidParameterType = true;
                     TypeDoesNotParseOrInvalidTypeImage = Visibility.Visible;

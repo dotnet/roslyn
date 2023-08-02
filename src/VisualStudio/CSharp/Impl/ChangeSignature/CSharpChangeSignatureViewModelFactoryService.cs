@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialogViewModel;
@@ -56,7 +55,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
         public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName, options: s_langVersionLatestParseOptions).ContainsDiagnostics;
 
         public override SyntaxNode GetTypeNode(string typeName) => SyntaxFactory.ParseTypeName(typeName);
-
-        public override bool IsVoidTypeSyntax(SyntaxNode node) => node is PredefinedTypeSyntax(kind: SyntaxKind.VoidKeyword);
     }
 }
