@@ -9912,7 +9912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol invoke = possibleDelegateType.DelegateInvokeMethod();
             if ((object)invoke == null)
             {
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), location ?? node.Location);
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), location ?? GetAnonymousFunctionLocation(node));
                 return true;
             }
 
@@ -9925,10 +9925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (location == null)
-            {
-                location = node.Location;
-            }
+            location ??= GetAnonymousFunctionLocation(node);
 
             if (diagnosticInfo.Code == (int)ErrorCode.ERR_InvalidDelegateType)
             {
