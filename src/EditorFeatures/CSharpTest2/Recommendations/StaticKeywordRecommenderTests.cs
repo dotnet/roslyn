@@ -456,9 +456,10 @@ global using Bar;";
         }
 
         [Fact]
-        public async Task TestNotAfterUsingInMethodBody()
+        public async Task TestAfterUsingInMethodBody()
         {
-            await VerifyAbsenceAsync(
+            // This recommendation isn't useful
+            await VerifyKeywordAsync(
 @"class C {
     void M() {
         using $$");
@@ -607,5 +608,14 @@ class C
         [Fact]
         public async Task TestInFor()
             => await VerifyKeywordAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
+
+        [Fact]
+        public async Task TestAfterUsingKeywordBeforeTopLevelStatement()
+        {
+            await VerifyKeywordAsync("""
+using $$
+var i = 1;
+""");
+        }
     }
 }

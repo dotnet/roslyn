@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                context.TargetToken.IsUsingKeywordInUsingDirective() ||
+                context.TargetToken.IsKind(SyntaxKind.UsingKeyword) ||
                 IsValidContextForType(context, cancellationToken) ||
                 IsValidContextForMember(context, cancellationToken) ||
                 context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.AsyncKeyword, cancellationToken) ||
