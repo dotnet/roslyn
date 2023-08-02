@@ -844,7 +844,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual void HandlePossibleThrowingOperation(IOperation operation)
         {
-            Debug.Assert(DataFlowAnalysisContext.ExceptionPathsAnalysis);
             Debug.Assert(ExecutingExceptionPathsAnalysisPostPass);
 
             // Bail out if we are not analyzing an interprocedural call and there is no
