@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     // various factory methods. all these are just helper methods
-    internal partial class Checksum
+    internal partial record class Checksum
     {
         // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
         private const int SHA256HashSizeBytes = 256 / 8;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
         {
-            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum };
+            Span<HashData> checksums = stackalloc HashData[] { checksum1.Hash, checksum2.Hash };
             Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
             SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         {
-            Span<HashData> checksums = stackalloc HashData[] { checksum1._checksum, checksum2._checksum, checksum3._checksum };
+            Span<HashData> checksums = stackalloc HashData[] { checksum1.Hash, checksum2.Hash, checksum3.Hash };
             Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 
             SHA256.HashData(MemoryMarshal.AsBytes(checksums), hashResultSpan);

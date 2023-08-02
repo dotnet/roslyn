@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 return ImmutableArray<SnippetPlaceholder>.Empty;
 
             var condition = GetCondition(node);
-            var placeholder = new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart));
+            var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
 
             return ImmutableArray.Create(placeholder);
         }

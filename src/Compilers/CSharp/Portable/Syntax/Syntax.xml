@@ -1798,6 +1798,32 @@
       <summary>Creates an ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="CollectionExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="CollectionExpression"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;CollectionElementSyntax&gt;" AllowTrailingSeparator="true">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="CollectionElementSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="ExpressionElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="ExpressionElement"/>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="SpreadElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="SpreadElement"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">
@@ -4493,7 +4519,8 @@
     <TypeComment>
       <summary>
         An element of a BaseCrefParameterListSyntax.
-        Unlike a regular parameter, a cref parameter has only an optional ref or out keyword and a type -
+        Unlike a regular parameter, a cref parameter has only an optional ref, in, out keyword,
+        an optional readonly keyword, and a type -
         there is no name and there are no attributes or other modifiers.
       </summary>
     </TypeComment>
@@ -4502,6 +4529,9 @@
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
       <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="ReadOnlyKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="ReadOnlyKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>

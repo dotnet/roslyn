@@ -364,11 +364,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
                 if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 1")).WaitForExit();
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Feature\" OOPCoreClr dword 1")).WaitForExit();
                 }
                 else
                 {
-                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 0")).WaitForExit();
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Feature\" OOPCoreClr dword 0")).WaitForExit();
                 }
 
                 _firstLaunch = false;

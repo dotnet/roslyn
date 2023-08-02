@@ -664,6 +664,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 AddTopLevelType(names, privateImpl);
                 VisitTopLevelType(typeReferenceIndexer, privateImpl);
                 yield return privateImpl;
+
+                foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
+                {
+                    AddTopLevelType(names, typeDef);
+                    VisitTopLevelType(typeReferenceIndexer, typeDef);
+                    yield return typeDef;
+                }
             }
 
             if (EmbeddedTypesManagerOpt != null)

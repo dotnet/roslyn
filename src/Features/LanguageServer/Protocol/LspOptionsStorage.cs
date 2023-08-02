@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// This sets the max list size we will return in response to a completion request.
         /// If there are more than this many items, we will set the isIncomplete flag on the returned completion list.
+        /// If set to negative value, we will always return the full list.
         /// </summary>
         public static readonly Option2<int> MaxCompletionListSize = new("dotnet_lsp_max_completion_list_size", defaultValue: 1000);
 
@@ -19,5 +20,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_enable_lsp_semantic_tokens", defaultValue: false);
+
+        /// <summary>
+        /// This flag is turned on when the C# devkit is installed.
+        /// This can cause certain LSP features to behave differently, for example we avoid returning test code lenses when devkit is running.
+        /// </summary>
+        /// <remarks>
+        /// This flag is not user visible.
+        /// </remarks>
+        public static readonly Option2<bool> LspUsingDevkitFeatures = new("dotnet_lsp_using_devkit", defaultValue: false);
     }
 }

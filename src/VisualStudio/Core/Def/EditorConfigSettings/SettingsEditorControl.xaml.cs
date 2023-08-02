@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
+                var originalText = await analyzerConfigDocument.GetValueTextAsync(default).ConfigureAwait(false);
                 var updatedText = originalText;
                 foreach (var view in _views)
                 {

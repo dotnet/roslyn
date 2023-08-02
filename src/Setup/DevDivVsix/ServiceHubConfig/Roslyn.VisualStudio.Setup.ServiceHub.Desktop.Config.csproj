@@ -12,6 +12,7 @@
     <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\VBCSharp\LanguageServices (our vsix directory)
          relative to Common7\ServiceHub\Services\RoslynCodeAnalysisService where our in-box servicehub.service.json files are -->
     <ServiceHubAssemblyBasePath>..\..\..\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\</ServiceHubAssemblyBasePath>
+    <ServiceHubHostRuntime>desktop</ServiceHubHostRuntime>
   </PropertyGroup>
 
   <Target Name="_SetSwrFilePath">

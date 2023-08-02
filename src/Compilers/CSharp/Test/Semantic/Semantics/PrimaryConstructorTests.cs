@@ -358,6 +358,41 @@ interface Base{}
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68782")]
+        public void BindIdentifier()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void Test()
+    {
+        foreach (ref read)
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'ref'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref read").WithArguments("ref").WithLocation(6, 18),
+                // (6,26): error CS1515: 'in' expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 26),
+                // (6,26): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 26),
+                // (6,26): error CS1525: Invalid expression term ')'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 26),
+                // (6,27): error CS1525: Invalid expression term '}'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 27),
+                // (6,27): error CS1002: ; expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 27)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void ConstructorSymbol_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -696,6 +731,27 @@ static " + keyword + @" C(int x, string y);
                     Assert.Equal(0, ctor.ParameterCount);
                 }
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68345")]
+        public void ConstructorOverloading_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
+" + keyword + @" C(int x, string y)
+{
+    internal C(C other) // overload
+    {
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+                //     internal C(C other) // overload
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 14)
+                );
         }
 
         [Theory]
@@ -3426,6 +3482,121 @@ class C(int someParam)
 
             var c = (SourceNamedTypeSymbol)comp.GetTypeByMetadataName("C");
             Assert.Equal(@"A(""someParam"")", c.PrimaryConstructor.GetAttributes().Single().ToString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_11([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C.C()' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.C()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.True(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_12([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+partial " + declaration + @" C1();
+
+#line 100
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1
+#line 200
+    ;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (100,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: System.Obsolete("Obsolete!!!", error: true)]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(100, 2)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.False(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AttributesOnPrimaryConstructor_13([CombinatorialValues("class", "struct", "record", "record class", "record struct")] string declaration)
+        {
+            string source = @"
+_ = new C1();
+
+[method: System.Obsolete(""Obsolete!!!"", error: true)]
+partial " + declaration + @" C1();
+
+partial " + declaration + @" C1;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0619: 'C1.C1()' is obsolete: 'Obsolete!!!'
+                // _ = new C1();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C1()").WithArguments("C1.C1()", "Obsolete!!!").WithLocation(2, 5)
+                );
+
+            var c1 = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C1");
+            Assert.True(c1.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_14([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68349")]
+        public void AttributesOnPrimaryConstructor_15([CombinatorialValues("class C();", "struct C();", "record C();", "record class C();", "record struct C();")] string declaration)
+        {
+            string source = @"
+_ = new C();
+
+[type: System.Obsolete(""Obsolete!!!"", error: true)]
+" + declaration + @"
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0619: 'C' is obsolete: 'Obsolete!!!'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "Obsolete!!!").WithLocation(2, 9)
+                );
+
+            var c = (SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C");
+            Assert.False(c.AnyMemberHasAttributes);
         }
 
         [Fact]
@@ -11742,7 +11913,11 @@ class Program
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics(
+                // (4,21): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     public int F1 = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 21)
+                );
 
             verifier.VerifyIL("C1..ctor(int, int)",
 @"
@@ -15390,6 +15565,342 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_152_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(string s)
+{
+    public string S { get; } = s;
+}
+
+class C(B b)
+    : B(b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_153_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() => b.S)
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68384")]
+        public void ParameterCapturing_154_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+
+class B(System.Func<string> s)
+{
+    public string S { get; } = s();
+}
+
+class C(B b)
+    : B(() =>
+        {
+            string local() => b.S;
+            return local();
+        })
+{
+    string T() => b.S;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_155_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,13): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_156_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = (int)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,18): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F = (int)p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 18)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_157_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_158_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    long F = (long)p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_159_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    static int F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,20): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                //     static int F = p1;
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_160_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_161_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+ref struct C1([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int p1)
+{
+    ref readonly int F = ref p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (8,13): error CS9109: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                //         _ = p1; 
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(8, 13)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_162_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F { get; } = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,22): warning CS9124: Parameter 'int p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     int F { get; } = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("int p1").WithLocation(4, 22)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_163_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(System.Action p1)
+{
+    event System.Action F = p1;
+
+    void M()
+    {
+        _ = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (4,29): warning CS9124: Parameter 'Action p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+                //     event System.Action F = p1;
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, "p1").WithArguments("System.Action p1").WithLocation(4, 29)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_164_WRN_CapturedPrimaryConstructorParameterInFieldInitializer()
+        {
+            var source = @"
+class C1(int p1)
+{
+    int F = p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68796")]
+        public void ParameterCapturing_165_ColorColor_MemberAccess_InstanceAndStatic_MethodAndExtensionMethod_Generic()
+        {
+            var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+static class E
+{
+    public static void M1<T>(this T c, S1 x, int y = 0)
+    {
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
@@ -16003,6 +16514,68 @@ public partial struct S
             }
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_01_NotCaptured()
+        {
+            var source = @"
+#nullable enable
+class C1(string p1, string p2)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    string M1() => p2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (5,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 24),
+                // (6,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_02_Captured()
+        {
+            var source = @"
+#pragma warning disable CS9124 // Parameter 'string p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+#nullable enable
+class C1(string p1)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    void M1()
+    {
+        p1 = null;
+    }
+
+    void M2()
+    {
+        p1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 24),
+                // (7,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(7, 17),
+                // (11,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         p1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RestrictedType_01([CombinatorialValues("class", "struct")] string declaration)
@@ -16066,6 +16639,1290 @@ public partial struct S
                 // (3,2): error CS0610: Field or property cannot be of type 'ArgIterator'
                 // (System.ArgIterator x)
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 2)
+                );
+        }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols1()
+        {
+            var src1 = """
+                using System;
+
+                [method: Obsolete("")]
+                class Point(int i)
+                {
+                    public int I { get; } = i;
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var typeDeclaration = tree.GetRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Single();
+
+            var symbols = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration);
+            Assert.Equal(2, symbols.Length);
+
+            var namedType = symbols.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor = symbols.OfType<IMethodSymbol>().Single();
+
+            Assert.Same(primaryConstructor, namedType.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol());
+            Assert.Equal(1, primaryConstructor.GetAttributes().Length);
+        }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols2()
+        {
+            var src1 = """
+                using System;
+
+                [method: Obsolete("")]
+                partial class Point(int i)
+                {
+                    public int I { get; } = i;
+                }
+
+                partial class Point
+                {
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var typeDeclaration1 = root.ChildNodes().OfType<TypeDeclarationSyntax>().First();
+
+            var symbols1 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration1);
+            Assert.Equal(2, symbols1.Length);
+
+            var namedType1 = symbols1.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor1 = symbols1.OfType<IMethodSymbol>().Single();
+
+            Assert.Same(primaryConstructor1, namedType1.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol());
+            Assert.Equal(1, primaryConstructor1.GetAttributes().Length);
+
+            var typeDeclaration2 = root.ChildNodes().OfType<TypeDeclarationSyntax>().Last();
+            var symbols2 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration2);
+            Assert.Equal(1, symbols2.Length);
+
+            var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
+            Assert.Equal(namedType1, namedType2);
+        }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols3()
+        {
+            var src1 = """
+                using System;
+
+                [method: Obsolete("")]
+                partial class Point(int i)
+                {
+                    public int I { get; } = i;
+                }
+
+                partial class Point(int i)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,20): error CS8863: Only a single partial type declaration may have a parameter list
+                // partial class Point(int i)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(9, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var typeDeclaration1 = root.ChildNodes().OfType<TypeDeclarationSyntax>().First();
+
+            var symbols1 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration1);
+            Assert.Equal(2, symbols1.Length);
+
+            var namedType1 = symbols1.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor1 = symbols1.OfType<IMethodSymbol>().Single();
+
+            Assert.Same(primaryConstructor1, namedType1.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol());
+            Assert.Equal(1, primaryConstructor1.GetAttributes().Length);
+
+            var typeDeclaration2 = root.ChildNodes().OfType<TypeDeclarationSyntax>().Last();
+            var symbols2 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration2);
+            Assert.Equal(1, symbols2.Length);
+
+            var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
+            Assert.Equal(namedType1, namedType2);
+        }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols4()
+        {
+            var src1 = """
+                using System;
+
+                [method: Obsolete("")]
+                partial class Point
+                {
+                    public int I { get; } = i;
+                }
+
+                partial class Point(int i)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (3,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: Obsolete("")]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(3, 2));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var typeDeclaration1 = root.ChildNodes().OfType<TypeDeclarationSyntax>().First();
+
+            var symbols1 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration1);
+            Assert.Equal(1, symbols1.Length);
+
+            var namedType1 = symbols1.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor1 = namedType1.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol();
+            Assert.Empty(primaryConstructor1.GetAttributes());
+
+            var typeDeclaration2 = root.ChildNodes().OfType<TypeDeclarationSyntax>().Last();
+            var symbols2 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration2);
+            Assert.Equal(2, symbols2.Length);
+
+            var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor2 = symbols2.OfType<IMethodSymbol>().Single();
+            Assert.Equal(namedType1, namedType2);
+            Assert.Equal(primaryConstructor1, primaryConstructor2);
+        }
+
+        [Fact]
+        public void SemanticModel_GetDeclaredSymbols5()
+        {
+            var src1 = """
+                using System;
+
+                partial class Point(int i)
+                {
+                    public int I { get; } = i;
+                }
+                
+                [method: Obsolete("")]
+                partial class Point(int i)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (8,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                // [method: Obsolete("")]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type").WithLocation(8, 2),
+                // (9,20): error CS8863: Only a single partial type declaration may have a parameter list
+                // partial class Point(int i)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(9, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            var typeDeclaration1 = root.ChildNodes().OfType<TypeDeclarationSyntax>().First();
+
+            var symbols1 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration1);
+            Assert.Equal(2, symbols1.Length);
+
+            var namedType1 = symbols1.OfType<INamedTypeSymbol>().Single();
+            var primaryConstructor1 = symbols1.OfType<IMethodSymbol>().Single();
+
+            Assert.Same(primaryConstructor1, namedType1.GetSymbol<SourceMemberContainerTypeSymbol>().PrimaryConstructor.GetPublicSymbol());
+            Assert.Equal(0, primaryConstructor1.GetAttributes().Length);
+
+            var typeDeclaration2 = root.ChildNodes().OfType<TypeDeclarationSyntax>().Last();
+            var symbols2 = semanticModel.GetDeclaredSymbolsForNode(typeDeclaration2);
+            Assert.Equal(1, symbols2.Length);
+
+            var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
+            Assert.Equal(namedType1, namedType2);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_01_NoArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        local();
+
+        void local()
+        {
+            string a = p1; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,24): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //             string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_02_EmptyArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base()
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_03_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1, int p2) : Base(p2)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_04_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_05_WithIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base((int)p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_06_WithNonIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(long p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_07_NotFirstArgument()
+        {
+            var source = @"
+class Base(int p1, int p2)
+{
+    protected string p1 = (p1+p2).ToString();
+}
+
+class C1(int p1) : Base(0, p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_08_WithParamsArgument()
+        {
+            var source = @"
+class Base(params int[] p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_09_ColorColorResolvingToADifferentType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_10_ColorColorResolvingToTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_11_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_12_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16),
+                // (11,20): warning CS9179: Primary constructor parameter 'Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Type1 Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_13_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public static string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_14_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20),
+                // (14,20): error CS0120: An object reference is required for the non-static field, method, or property 'Base.Type1.M()'
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Type1.M").WithArguments("Base.Type1.M()").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_15_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_16_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (6,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(6, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_17_MethodVsParameter_ShadowedByMemberFromTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected string p1(int x) => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1(1); 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_18_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        int a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         int a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17),
+                // (11,17): error CS0428: Cannot convert method group 'p1' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         int a = p1; 
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "p1").WithArguments("p1", "int").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_19_MultipleReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M1()
+    {
+        string a = p1; 
+    }
+
+    void M2()
+    {
+        string b = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (16,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string b = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(16, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_20_NoReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_21_InStaticMethod()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    static void M1()
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    static void M1()
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(15, 17),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_22_InNestedType()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p1; 
+        }
+    }
+}
+
+class C2(string p2)
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p2; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (18,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(18, 17),
+                // (24,24): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //             string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(24, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_23_InOtherConstructor()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    C1() : this(1)
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    C2() : this(""1"")
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_24_OrderOfDeclarations()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(source1 + source2 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // (8,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(8, 20)
+                );
+
+            comp = CreateCompilation(source2 + source1 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20),
+                // (10,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(10, 22)
+                );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_25_OrderOfBinding()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.ReleaseDll);
+            var tree = comp.SyntaxTrees[1];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            model.GetDiagnostics().Verify(
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+
+            comp.VerifyDiagnostics(
+                // 0.cs(2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_26_PropertyVsParameterInIndirectBase()
+        {
+            var source = @"
+class Base0
+{
+    protected string p1 => """";
+}
+
+class Base1 : Base0
+{
+}
+
+class C1(int p1) : Base1
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base1
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(11, 14),
+                // (15,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_01()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,25): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_02()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_03()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(in int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(in int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped in int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped in int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
                 );
         }
     }

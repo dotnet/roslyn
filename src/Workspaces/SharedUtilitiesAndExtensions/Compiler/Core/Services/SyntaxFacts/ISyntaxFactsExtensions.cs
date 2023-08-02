@@ -518,6 +518,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
             return expression;
         }
 
+        public static SyntaxNode GetExpressionOfForeachStatement(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfForeachStatement(node, out _, out var expression, out _);
+            return expression;
+        }
+
         public static SyntaxToken GetIdentifierOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfGenericName(node, out var identifier, out _);
@@ -894,6 +900,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         public static bool IsForEachStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ForEachStatement;
+
+        public static bool IsForStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ForStatement;
 
         public static bool IsIfStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.IfStatement;

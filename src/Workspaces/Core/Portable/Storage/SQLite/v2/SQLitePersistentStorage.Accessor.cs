@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
                     this,
                     cancellationToken);
-                return optional.HasValue && checksum == optional.Value;
+                return optional.HasValue && checksum.Hash == optional.Value;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, Database database, long rowId, Checksum checksum)
             {
                 var storedChecksum = connection.ReadChecksum_MustRunInTransaction(database, Table, rowId);
-                return storedChecksum.HasValue && checksum == storedChecksum.Value;
+                return storedChecksum.HasValue && checksum.Hash == storedChecksum.Value;
             }
 
             private void BindPrimaryKey(SqlStatement statement, TDatabaseKey databaseKey, int dataNameId)

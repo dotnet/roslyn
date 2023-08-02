@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.CSharp.Symbols;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -724,6 +725,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, code, Array.Empty<object>());
         }
 
+        protected TNode AddErrorAsWarning<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
+        {
+            Debug.Assert(!node.IsMissing);
+            return AddError(node, ErrorCode.WRN_ErrorOverride, MakeError(node, code, args), (int)code);
+        }
+
         protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
         {
             if (!node.IsMissing)
@@ -1066,7 +1073,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected static SyntaxToken ConvertToIdentifier(SyntaxToken token)
         {
             Debug.Assert(!token.IsMissing);
-            return SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+
+            var identifier = SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+            if (token.ContainsDiagnostics)
+                identifier = identifier.WithDiagnosticsGreen(token.GetDiagnostics());
+
+            return identifier;
         }
 
         internal DirectiveStack Directives

@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -587,6 +589,50 @@ class C { }";
             var cancellationToken = suppressor.CancellationTokenSource.Token;
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
             Assert.Throws<OperationCanceledException>(() => compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true, cancellationToken: cancellationToken));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819603")]
+        public async Task TestSuppressionAcrossCallsIntoCompilationWithAnalyzers(bool withSuppressor)
+        {
+            string source = @"class C1 { }";
+            var compilation = CreateCompilation(new[] { source });
+            compilation.VerifyDiagnostics();
+
+            // First verify analyzer diagnostics without any suppressors
+            var analyzer1 = new SemanticModelAnalyzerWithId("ID0001");
+            var analyzer2 = new SemanticModelAnalyzerWithId("ID0002");
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1),
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1),
+            };
+
+            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer1, analyzer2 }, expectedDiagnostics);
+
+            // Verify whole compilation analyzer diagnostics including suppressors.
+            var suppressor = new DiagnosticSuppressorForMultipleIds(analyzer1.Descriptor.Id, analyzer2.Descriptor.Id);
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer1, analyzer2, suppressor };
+            expectedDiagnostics = new DiagnosticDescription[] {
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
+            };
+
+            VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
+
+            // Now, verify single file analyzer diagnostics with multiple calls using subset of analyzers.
+            var options = new CompilationWithAnalyzersOptions(AnalyzerOptions.Empty, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: true);
+            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzersAndSuppressors.ToImmutableArray(), options);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzers = withSuppressor ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, suppressor) : ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
+            var diagnostics1 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, CancellationToken.None);
+            diagnostics1.Verify(
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1));
+            analyzers = withSuppressor ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer2, suppressor) : ImmutableArray.Create<DiagnosticAnalyzer>(analyzer2);
+            var diagnostics2 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, CancellationToken.None);
+            diagnostics2.Verify(
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1));
         }
     }
 }

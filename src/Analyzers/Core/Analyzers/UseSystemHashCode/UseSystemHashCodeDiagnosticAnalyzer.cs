@@ -43,6 +43,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
 
             var owningSymbol = context.OwningSymbol;
+            var diagnosticLocation = owningSymbol.Locations[0];
+            if (!context.ShouldAnalyzeSpan(diagnosticLocation.SourceSpan))
+                return;
+
             var operation = context.OperationBlocks[0];
             var (accessesBase, hashedMembers, statements) = analyzer.GetHashedMembers(owningSymbol, operation);
             var elementCount = (accessesBase ? 1 : 0) + (hashedMembers.IsDefaultOrEmpty ? 0 : hashedMembers.Length);
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                owningSymbol.Locations[0],
+                diagnosticLocation,
                 option.Notification.Severity,
                 new[] { operationLocation, declarationLocation },
                 ImmutableDictionary<string, string?>.Empty));

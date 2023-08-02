@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -41,7 +42,7 @@ internal readonly struct RequestContext
     /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
     /// which are ordered after this one in the queue are not reflected here.
     /// </remarks>
-    private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
+    private readonly ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments;
 
     private readonly ILspServices _lspServices;
 
@@ -150,7 +151,7 @@ internal readonly struct RequestContext
         WellKnownLspServerKinds serverKind,
         Document? document,
         IDocumentChangeTracker documentChangeTracker,
-        ImmutableDictionary<Uri, SourceText> trackedDocuments,
+        ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
@@ -269,8 +270,8 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public ValueTask StartTrackingAsync(Uri uri, SourceText initialText, CancellationToken cancellationToken)
-        => _documentChangeTracker.StartTrackingAsync(uri, initialText, cancellationToken);
+    public ValueTask StartTrackingAsync(Uri uri, SourceText initialText, string languageId, CancellationToken cancellationToken)
+        => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, cancellationToken);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
@@ -282,7 +283,7 @@ internal readonly struct RequestContext
     public SourceText GetTrackedDocumentSourceText(Uri documentUri)
     {
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
-        return _trackedDocuments[documentUri];
+        return _trackedDocuments[documentUri].Text;
     }
 
     /// <summary>

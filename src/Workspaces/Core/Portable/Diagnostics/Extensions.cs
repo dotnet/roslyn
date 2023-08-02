@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (textDocument == null)
                 return Location.None;
 
-            var text = await textDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await textDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var tree = textDocument is Document { SupportsSyntaxTree: true } document
                 ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
                 : null;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else
                     {
-                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                     }
 
                 case AnalysisKind.Semantic:

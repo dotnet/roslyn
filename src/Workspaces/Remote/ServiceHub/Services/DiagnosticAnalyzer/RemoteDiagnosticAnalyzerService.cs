@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -58,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Complete RPC right away so the client can start reading from the stream.
             // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
 
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.PerformAnalysis_Summary, $"Total"))
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
             {
                 return await RunWithSolutionAsync(

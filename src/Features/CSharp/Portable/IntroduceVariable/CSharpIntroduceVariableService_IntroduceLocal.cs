@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // If we're inserting into a multi-line parent, then add a newline after the local-var
             // we're adding.  That way we don't end up having it and the starting statement be on
             // the same line (which will cause indentation to be computed incorrectly).
-            var text = await document.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
             {
                 declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
             var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
-            if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
+            if (localFunction != null && !localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
             }

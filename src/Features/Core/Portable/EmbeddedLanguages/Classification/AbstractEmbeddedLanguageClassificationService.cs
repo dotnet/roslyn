@@ -53,33 +53,22 @@ namespace Microsoft.CodeAnalysis.Classification
             worker.VisitTokens(root);
         }
 
-        private readonly ref struct Worker
+        private readonly ref struct Worker(
+            AbstractEmbeddedLanguageClassificationService service,
+            Project project,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
-            private readonly AbstractEmbeddedLanguageClassificationService _owner;
-            private readonly Project _project;
-            private readonly SemanticModel _semanticModel;
-            private readonly TextSpan _textSpan;
-            private readonly ClassificationOptions _options;
-            private readonly SegmentedList<ClassifiedSpan> _result;
-            private readonly CancellationToken _cancellationToken;
-
-            public Worker(
-                AbstractEmbeddedLanguageClassificationService service,
-                Project project,
-                SemanticModel semanticModel,
-                TextSpan textSpan,
-                ClassificationOptions options,
-                SegmentedList<ClassifiedSpan> result,
-                CancellationToken cancellationToken)
-            {
-                _owner = service;
-                _project = project;
-                _semanticModel = semanticModel;
-                _textSpan = textSpan;
-                _options = options;
-                _result = result;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly AbstractEmbeddedLanguageClassificationService _owner = service;
+            private readonly Project _project = project;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly ClassificationOptions _options = options;
+            private readonly SegmentedList<ClassifiedSpan> _result = result;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
 
             public void VisitTokens(SyntaxNode node)
             {

@@ -18,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case code
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
-                     ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+                     ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
+                     ERRID.ERR_SymbolDefinedInAssembly
                     ' Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
                     ' whenever new values are added here.
                     Return True
@@ -1357,6 +1358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected,
                      ERRID.ERR_UnsupportedCompilerFeature,
                      ERRID.ERR_DoNotUseCompilerFeatureRequired,
+                     ERRID.ERR_RequiredMemberMustBeSet,
+                     ERRID.ERR_CannotInheritFromTypeWithRequiredMembers,
+                     ERRID.ERR_RequiredMembersInvalid,
+                     ERRID.ERR_NewConstraintCannotHaveRequiredMembers,
+                     ERRID.ERR_DoNotUseRequiredMember,
+                     ERRID.ERR_UnsupportedRefReturningCallInWithStatement,
                      ERRID.ERR_NextAvailable,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,

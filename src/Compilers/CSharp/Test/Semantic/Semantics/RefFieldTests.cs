@@ -20349,12 +20349,6 @@ struct R : IEnumerable
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
-                // int x = 42;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5),
-                // (5,5): warning CS0219: The variable 'y' is assigned but its value is never used
-                // int y = 43;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(5, 5),
                 // (6,19): error CS1073: Unexpected token 'ref'
                 // var r = new R() { ref x, ref y };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 19),
@@ -28045,18 +28039,13 @@ ref struct R
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,31): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (4,27): error CS8374: Cannot ref-assign 'F(stackalloc byte[1])' to '_f1' because 'F(stackalloc byte[1])' has a narrower escape scope than '_f1'.
                 //     public ref byte _f1 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(4, 31),
-                // (4,33): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     public ref byte _f1 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 33),
-                // (5,40): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref F(stackalloc byte[1])").WithArguments("_f1", "F(stackalloc byte[1])").WithLocation(4, 27),
+                // (5,36): error CS8374: Cannot ref-assign 'F(stackalloc byte[1])' to '_f2' because 'F(stackalloc byte[1])' has a narrower escape scope than '_f2'.
                 //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(5, 40),
-                // (5,42): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 42));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref F(stackalloc byte[1])").WithArguments("_f2", "F(stackalloc byte[1])").WithLocation(5, 36)
+                );
         }
 
         // Similar to above but with scoped parameter.
@@ -28165,21 +28154,16 @@ ref struct R
                 // (4,18): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref byte _f1 = F(stackalloc byte[1]);
                 Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(4, 18),
-                // (4,20): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (4,20): error CS8374: Cannot ref-assign 'F(stackalloc byte[1])' to '_f1' because 'F(stackalloc byte[1])' has a narrower escape scope than '_f1'.
                 //     ref byte _f1 = F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(4, 20),
-                // (4,22): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     ref byte _f1 = F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 22),
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F(stackalloc byte[1])").WithArguments("_f1", "F(stackalloc byte[1])").WithLocation(4, 20),
                 // (5,27): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref readonly byte _f2 = F(stackalloc byte[1]);
                 Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(5, 27),
-                // (5,29): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (5,29): error CS8374: Cannot ref-assign 'F(stackalloc byte[1])' to '_f2' because 'F(stackalloc byte[1])' has a narrower escape scope than '_f2'.
                 //     ref readonly byte _f2 = F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(5, 29),
-                // (5,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     ref readonly byte _f2 = F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F(stackalloc byte[1])").WithArguments("_f2", "F(stackalloc byte[1])").WithLocation(5, 29)
+                );
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
@@ -28199,12 +28183,10 @@ ref struct R
                 // (4,5): error CS9050: A ref field cannot refer to a ref struct.
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
                 Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref readonly Span<int>").WithLocation(4, 5),
-                // (4,37): error CS8347: Cannot use a result of 'R.F<int>(in Span<int>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (4,33): error CS8374: Cannot ref-assign 'F(stackalloc int[1])' to '_s' because 'F(stackalloc int[1])' has a narrower escape scope than '_s'.
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc int[1])").WithArguments("R.F<int>(in System.Span<int>)", "s").WithLocation(4, 37),
-                // (4,39): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "stackalloc int[1]").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref F(stackalloc int[1])").WithArguments("_s", "F(stackalloc int[1])").WithLocation(4, 33)
+                );
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
@@ -28246,18 +28228,13 @@ ref struct R
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,24): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                // (4,20): error CS8374: Cannot ref-assign 'F<byte>(out var b1)' to '_f1' because 'F<byte>(out var b1)' has a narrower escape scope than '_f1'.
                 //     ref byte _f1 = ref F<byte>(out var b1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b1)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(4, 24),
-                // (4,36): error CS8168: Cannot return local 'b1' by reference because it is not a ref local
-                //     ref byte _f1 = ref F<byte>(out var b1); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b1").WithArguments("b1").WithLocation(4, 36),
-                // (5,33): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref F<byte>(out var b1)").WithArguments("_f1", "F<byte>(out var b1)").WithLocation(4, 20),
+                // (5,29): error CS8374: Cannot ref-assign 'F<byte>(out var b2)' to '_f2' because 'F<byte>(out var b2)' has a narrower escape scope than '_f2'.
                 //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b2)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(5, 33),
-                // (5,45): error CS8168: Cannot return local 'b2' by reference because it is not a ref local
-                //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b2").WithArguments("b2").WithLocation(5, 45));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref F<byte>(out var b2)").WithArguments("_f2", "F<byte>(out var b2)").WithLocation(5, 29)
+                );
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]

@@ -7,7 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -726,26 +726,81 @@ class C
         }
 
         [Fact]
-        public void Delete_EntireNamespace()
+        public void Delete_Entire_Namespace()
         {
             var src1 = @"
 namespace N
 {
     class C
     {
-        static void Main(String[] args)
+        static void Main()
         {
             <AS:0>Console.WriteLine(1);</AS:0>
         }
     }
 }";
-            var src2 = @"<AS:0></AS:0>";
+            var src2 = @"<AS:0/>";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "N.C")));
+                Diagnostic(RudeEditKind.Delete, "", GetResource("class", "N.C")),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "Main()")));
+        }
+
+        [Fact]
+        public void Delete_Entire_Type()
+        {
+            var src1 = @"
+namespace N
+{
+    class C
+    {
+        static void Main()
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}";
+            var src2 = @"<AS:0>namespace N</AS:0>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "namespace N", GetResource("class", "C")),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "Main()")));
+        }
+
+        [Fact]
+        public void Delete_Entire_Method()
+        {
+            var src1 = @"
+namespace N
+{
+    class C
+    {
+        static void Main()
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}";
+            var src2 = @"
+namespace N
+{
+    <AS:0>class C</AS:0>
+    {
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("method", "Main()")));
         }
 
         #endregion
@@ -1046,8 +1101,8 @@ class A
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        public void InstanceConstructorWithoutInitializer()
+        [Fact]
+        public void Constructor_Instance_ImplicitInitializer()
         {
             var src1 = @"
 class C
@@ -1080,7 +1135,26 @@ class C
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializer_Internal_Update1()
+        public void Constructor_Instance_ExplicitInitializer_Update_Subexpression()
+        {
+            var src1 = @"
+class C
+{
+    public C(int a) : base(a switch { 1 => <AS:0>1</AS:0>, _ => 2 }) {}
+}";
+            var src2 = @"
+class C
+{
+    public C(int a) : base(1) <AS:0>{</AS:0>}
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_ExplicitInitializer_Update_Internal()
         {
             var src1 = @"
 class D
@@ -1138,7 +1212,117 @@ class C : D
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializer_Internal_Update2()
+        public void Constructor_Instance_ExplicitInitializer_Update_Leaf()
+        {
+            var src1 = @"
+class D
+{
+    public D(int d) { }
+}
+
+class C : D
+{
+    public C() : <AS:0>base(1)</AS:0> {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+class D
+{
+    public D(int d) { }
+}
+
+class C : D
+{
+    public C() : <AS:0>base(2)</AS:0> {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_ImplicitInitializer_Update_ToExplicit_Leaf()
+        {
+            var src1 = @"
+class D
+{
+    public D() { }
+    public D(int d) { }
+}
+
+class C : D
+{
+    <AS:0>public C()</AS:0> {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+class D
+{
+    public D() { }
+    public D(int d) { }
+}
+
+class C : D
+{
+    public C() : <AS:0>base(2)</AS:0> {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_ImplicitInitializer_Update_ToExplicit_Internal()
+        {
+            var src1 = @"
+class D
+{
+    public D(int d) <AS:0>{</AS:0> }
+}
+
+class C : D
+{
+    <AS:1>public C()</AS:1> {}
+}";
+            var src2 = @"
+class D
+{
+    public D(int d) <AS:0>{</AS:0> }
+}
+
+class C : D
+{
+    public C() : <AS:1>base(1)</AS:1> {}
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "base(1)"));
+        }
+
+        [Fact]
+        public void Constructor_Instance_ExplicitInitializer_Update_ToImplicit_Internal()
         {
             var src1 = @"
 class D
@@ -1188,76 +1372,7 @@ class C : D
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializer_Internal_Update3()
-        {
-            var src1 = @"
-class D
-{
-    public D(int d) <AS:0>{</AS:0> }
-}
-
-class C : D
-{
-    <AS:1>public C()</AS:1> {}
-}";
-            var src2 = @"
-class D
-{
-    public D(int d) <AS:0>{</AS:0> }
-}
-
-class C : D
-{
-    public C() : <AS:1>base(1)</AS:1> {}
-}";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "base(1)"));
-        }
-
-        [Fact]
-        public void InstanceConstructorWithInitializer_Leaf_Update1()
-        {
-            var src1 = @"
-class D
-{
-    public D(int d) { }
-}
-
-class C : D
-{
-    public C() : <AS:0>base(1)</AS:0> {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
-}";
-            var src2 = @"
-class D
-{
-    public D(int d) { }
-}
-
-class C : D
-{
-    public C() : <AS:0>base(2)</AS:0> {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
-}";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifySemanticDiagnostics(active);
-        }
-
-        [Fact]
-        public void InstanceConstructorWithInitializer_Leaf_Update2()
+        public void Constructor_Instance_ExplicitInitializer_Update_ToImplicit_Leaf()
         {
             var src1 = @"
 class D
@@ -1298,48 +1413,7 @@ class C : D
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializer_Leaf_Update3()
-        {
-            var src1 = @"
-class D
-{
-    public D() { }
-    public D(int d) { }
-}
-
-class C : D
-{
-    <AS:0>public C()</AS:0> {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
-}";
-            var src2 = @"
-class D
-{
-    public D() { }
-    public D(int d) { }
-}
-
-class C : D
-{
-    public C() : <AS:0>base(2)</AS:0> {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
-}";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifySemanticDiagnostics(active);
-        }
-
-        [Fact]
-        public void InstanceConstructorWithInitializerWithLambda_Update1()
+        public void Constructor_Instance_ExplicitInitializer_WithLambda_Update1()
         {
             var src1 = @"
 class C
@@ -1358,7 +1432,7 @@ class C
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializerWithLambda_Update2()
+        public void Constructor_Instance_ExplicitInitializer_WithLambda_Update2()
         {
             var src1 = @"
 class C
@@ -1377,7 +1451,7 @@ class C
         }
 
         [Fact]
-        public void InstanceConstructorWithInitializerWithLambda_Update3()
+        public void Constructor_Instance_ExplicitInitializer_WithLambda_Update3()
         {
             var src1 = @"
 class C
@@ -1395,10 +1469,254 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
+        [Fact]
+        public void Constructor_Instance_ExplicitInitializer_Delete()
+        {
+            var src1 = @"
+class C
+{
+    public C(int a) : base(a switch { 1 => <AS:0>1</AS:0>, _ => 2 }) {}
+}";
+            var src2 = @"
+class C
+{
+    public C(int a) <AS:0>{</AS:0>}
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Instance_ImplicitInitializer_ParameterChange()
+        {
+            var src1 = "class C { <AS:0>C(int P)</AS:0>  {} }";
+            var src2 = "class C { <AS:0>C(byte P)</AS:0> {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // TODO: should be rude edit (https://github.com/dotnet/roslyn/issues/68708)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Instance_Primary_ImplicitInitializer_ParameterChange(string keyword)
+        {
+            var src1 = keyword + " <AS:0>C(int  P)</AS:0>;";
+            var src2 = keyword + " <AS:0>C(byte P)</AS:0>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // TODO: should be rude edit (https://github.com/dotnet/roslyn/issues/68708)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("record")]
+        public void Constructor_Instance_Primary_ExplicitInitializer(string keyword)
+        {
+            var src1 = keyword + " C(int P) : <AS:0>B(1)</AS:0>;";
+            var src2 = keyword + " C(int P) : <AS:0>B(2)</AS:0>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Primary_Record_Parameter_BaseInitializerChange()
+        {
+            var src1 = "record C(<AS:0>int P</AS:0>) : B(1);";
+            var src2 = "record C(<AS:0>int P</AS:0>) : B(2);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Primary_Record_Parameter_TypeAttributeChange(string keyword)
+        {
+            var src1 = "class A(int x) : System.Attribute; [A( 1)]" + keyword + " C(<AS:0>int P</AS:0>);";
+            var src2 = "class A(int x) : System.Attribute; [A(10)]" + keyword + " C(<AS:0>int P</AS:0>);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Primary_Record_Parameter_TypeParameterAttributeChange(string keyword)
+        {
+            var src1 = "class A(int x) : System.Attribute; " + keyword + " C<[A( 1)] T>(<AS:0>int P</AS:0>);";
+            var src2 = "class A(int x) : System.Attribute; " + keyword + " C<[A(10)] T>(<AS:0>int P</AS:0>);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                active,
+                diagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Copy_BaseInitializerChange()
+        {
+            var src1 = "record <AS:0>C</AS:0>(int P) : B(1);";
+            var src2 = "record <AS:0>C</AS:0>(int P) : B(2);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Copy_TypeAttributeChange(string keyword)
+        {
+            var src1 = "class A(int x) : System.Attribute; [A( 1)]" + keyword + " <AS:0>C</AS:0>(int P);";
+            var src2 = "class A(int x) : System.Attribute; [A(10)]" + keyword + " <AS:0>C</AS:0>(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Copy_TypeParameterAttributeChange(string keyword)
+        {
+            var src1 = "class A(int x) : System.Attribute; " + keyword + " <AS:0>C<[A( 1)] T></AS:0>(int P);";
+            var src2 = "class A(int x) : System.Attribute; " + keyword + " <AS:0>C<[A(10)] T></AS:0>(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                active,
+                diagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
+                },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Copy_ReplacingPrimaryWithNonPrimary()
+        {
+            var src1 = @"
+public record <AS:0>C</AS:0>(int P);";
+            var src2 = @"
+public record C
+{
+    public int P { get; init; }
+    public C(int P) { }
+    <AS:0>protected C(C original)</AS:0> { P = original.P; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Copy_ReplacingNonPrimaryWithPrimary_Initializer()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; init; }
+    public C(int P) { }
+    <AS:0>protected C(C original)</AS:0> { P = original.P; }
+}
+";
+            var src2 = @"
+public record <AS:0>C</AS:0>(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Copy_ReplacingNonPrimaryWithPrimary_Body1()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; init; }
+    public C(int P) { }
+    protected C(C original) <AS:0>{</AS:0> P = original.P; }
+}
+";
+            var src2 = @"
+public record <AS:0>C</AS:0>(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Copy_ReplacingNonPrimaryWithPrimary_Body2()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; init; }
+    public C(int P) { }
+    protected C(C original) { P = original.P; <AS:0>}</AS:0>
+}
+";
+            var src2 = @"
+public record <AS:0>C</AS:0>(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
         [Theory]
         [InlineData("class ")]
         [InlineData("struct")]
-        public void InstanceConstructor_DeleteParameterless(string typeKind)
+        public void Constructor_Instance_Delete_Parameterless(string typeKind)
         {
             var src1 = "partial " + typeKind + " C { public C() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
             var src2 = "<AS:0>partial " + typeKind + " C</AS:0> { }";
@@ -1408,6 +1726,285 @@ class C
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "partial " + typeKind + " C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Delete_Primary(string typeKind)
+        {
+            var src1 = typeKind + " <AS:0>C()</AS:0> { }";
+            var src2 = "<AS:0>" + typeKind + " C</AS:0> { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, typeKind + " C", GetResource("constructor", "C()")));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("record")]
+        public void Constructor_Instance_Delete_BaseInitializer_Internal(string typeKind)
+        {
+            var src1 = "<AS:0>var c = new C();</AS:0> " + typeKind + " C() : <AS:1>B()</AS:1> { }";
+            var src2 = "<AS:0>var c = new C();</AS:0> " + typeKind + " <AS:1>C()</AS:1> : B { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "C()"));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("record")]
+        public void Constructor_Instance_Delete_BaseInitializer_Leaf(string typeKind)
+        {
+            var src1 = typeKind + " C() : <AS:0>B()</AS:0> { }";
+            var src2 = typeKind + " <AS:0>C()</AS:0> : B { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("record")]
+        public void Constructor_Instance_Insert_BaseInitializer_Internal(string typeKind)
+        {
+            var src1 = "<AS:0>var c = new C();</AS:0> " + typeKind + " <AS:1>C()</AS:1> : B { }";
+            var src2 = "<AS:0>var c = new C();</AS:0> " + typeKind + " C() : <AS:1>B()</AS:1> { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "B()"));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("record")]
+        public void Constructor_Instance_Insert_BaseInitializer_Leaf(string typeKind)
+        {
+            var src1 = typeKind + " <AS:0>C()</AS:0> : B { }";
+            var src2 = typeKind + " C() : <AS:0>B()</AS:0> { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Constructor_Instance_Unchanged(string typeKind)
+        {
+            var src1 = "<AS:0>var c = new C(1);</AS:0> " + typeKind + " <AS:1>C(int a)</AS:1>;";
+            var src2 = "<AS:0>var c = new C(2);</AS:0> " + typeKind + " <AS:1>C(int a)</AS:1>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Primary_Record_ReplacingPrimaryWithNonPrimary()
+        {
+            var src1 = @"
+public record <AS:0>C(int P)</AS:0>;";
+            var src2 = @"
+public record C
+{
+    public int P { get; init; }
+    <AS:0>public C(int P)</AS:0> { }
+    protected C(C original) { P = original.P; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Primary_Record_ReplacingNonPrimaryWithPrimary_Initializer()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; init; }
+    <AS:0>public C(int P)</AS:0> { }
+    protected C(C original) { P = original.P; }
+}
+";
+            var src2 = @"
+public record <AS:0>C(int P)</AS:0>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_Primary_Record_ReplacingNonPrimaryWithPrimary_Body()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; init; }
+    public C(int P) { <AS:0>}</AS:0>
+    protected C(C original) { P = original.P; }
+}
+";
+            var src2 = @"
+public record <AS:0>C(int P)</AS:0>;";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_Instance_ReplacingNonPrimaryWithPrimary_Record()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { <AS:0>get;</AS:0> <AS:1>init;</AS:1> }
+    <AS:2>public C(int P)</AS:2> { }
+    protected C(C original) { <AS:3>P = original.P;</AS:3> }
+}";
+            var src2 = @"
+public record <AS:2,3>C</AS:3>(<AS:0,1>int P</AS:0,1>)</AS:2>;
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "C       (        int P         )"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "C"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "int P"));
+        }
+
+        [Fact]
+        public void Constructor_Instance_ReplacingPrimaryWithNonPrimary_Record_PrimaryConstructor2()
+        {
+            var src1 = @"
+public record <AS:1,2>C</AS:2>(<AS:0>int P</AS:0>)</AS:1>;";
+            var src2 = @"
+public record C
+{
+    public int P { <AS:0>get;</AS:0> init; }
+    <AS:1>public C(int P)</AS:1> { }
+    <AS:2>protected C(C original)</AS:2> { P = original.P; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "public C(int P)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "protected C(C original)"));
+        }
+
+        #endregion
+
+        #region Properties
+
+        [Fact]
+        public void Property_Auto_Record_ReplacingNonPrimaryWithPrimary_Getter()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { <AS:0>get;</AS:0> init; }
+    public C(int P) { }
+    protected C(C original) {P = original.P; }
+}";
+            var src2 = @"
+public record C(<AS:0>int P</AS:0>);
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Property_Auto_Record_ReplacingNonPrimaryWithPrimary_Setter()
+        {
+            var src1 = @"
+public record C
+{
+    public int P { get; <AS:0>init;</AS:0> }
+    public C(int P) { }
+    protected C(C original) {P = original.P; }
+}";
+            var src2 = @"
+public record C(<AS:0>int P</AS:0>);
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Property_Auto_Record_ReplacingPrimaryWithNonPrimary_Getter()
+        {
+            // Consider: Just looking at the span we do not know whether the active statement is in the getter of the setter.
+            // We could resolve the method token associated with the method to find out and map the statement accordingly.
+
+            var src1 = @"
+public record C(<AS:0>int P</AS:0>);
+";
+            var src2 = @"
+public record C
+{
+    public int P { <AS:0>get;</AS:0> init; }
+    public C(int P) { }
+    protected C(C original) {P = original.P; }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        public void Property_Auto_Record_ReplacingPrimaryWithNonPrimary_Setter()
+        {
+            // Consider: Just looking at the span we do not know whether the active statement is in the getter of the setter.
+            // We could resolve the method token associated with the method to find out and map the statement accordingly.
+
+            var src1 = @"
+public record C(<AS:0>int P</AS:0>);
+";
+            var src2 = @"
+public record C
+{
+    public int P { <AS:0>init;</AS:0> get; }
+    public C(int P) { }
+    protected C(C original) {P = original.P; }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
         }
 
         #endregion
@@ -2225,7 +2822,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("field", "a")),
+                Diagnostic(RudeEditKind.Delete, "class C", GetResource("field", "a")));
         }
 
         [Fact]
@@ -2359,8 +2957,9 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Move, "int c", FeaturesResources.field),
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
+                Diagnostic(RudeEditKind.Move, "int c", GetResource("field")),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("field", "a")),
+                Diagnostic(RudeEditKind.Delete, "class C", GetResource("field", "a")));
         }
 
         [Fact]
@@ -2410,7 +3009,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("field", "a")),
+                Diagnostic(RudeEditKind.Delete, "class C", GetResource("field", "a")));
         }
 
         [Fact]
@@ -4222,6 +4822,210 @@ class C
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(a => a))", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_01()
+        {
+            var src1 = @"
+class C
+{
+    static void Main()
+    {
+        var aa = new int[4];
+        var bb = new int[4];
+        
+        foreach (var a in aa)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void Main()
+    {
+        var aa = new int[4];
+        var bb = new int[4];
+        
+        foreach (var a in bb)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in bb)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_02()
+        {
+            var src1 = @"
+class C
+{
+    static void Main()
+    {
+        Buffer4 aa = default;
+        Buffer4 bb = default;
+        
+        foreach (var a in aa)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class C
+{
+    static void Main()
+    {
+        Buffer4 aa = default;
+        Buffer4 bb = default;
+        
+        foreach (var a in bb)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in bb)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_03()
+        {
+            var src1 = @"
+class C
+{
+    public readonly Buffer4 F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x, C z)
+    {
+        foreach (var y in x.F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class C
+{
+    public readonly Buffer4 F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x, C z)
+    {
+        foreach (var y in z.F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var y in z.F)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_04()
+        {
+            var src1 = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (var y in GetBuffer1())
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+
+    static Buffer4 GetBuffer1() => default;
+    static Buffer4 GetBuffer2() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (var y in GetBuffer2())
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+
+    static Buffer4 GetBuffer1() => default;
+    static Buffer4 GetBuffer2() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var y in GetBuffer2())", CSharpFeaturesResources.foreach_statement));
         }
 
         [Fact]
@@ -6332,7 +7136,7 @@ class C
     {
         return 
            from a in new[] { 1 }
-           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0>/**/</AS:1>
+           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0,1>
            select a;
     }
 }";
@@ -6343,7 +7147,7 @@ class C
     {
         return 
            from a in new[] { 2 }
-           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0>/**/</AS:1>
+           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0,1>
            select a;
     }
 }";

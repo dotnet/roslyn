@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             if (document is SourceGeneratedDocument)
             {
-                var text = await document.GetTextAsync(cancellationToken);
+                var text = await document.GetValueTextAsync(cancellationToken);
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?

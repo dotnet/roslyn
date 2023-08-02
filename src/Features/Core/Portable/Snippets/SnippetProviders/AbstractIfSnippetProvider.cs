@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsIfStatement;
 
         protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
-            => generator.IfStatement(inlineExpression ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
+            => generator.IfStatement(inlineExpression?.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
     }
 }

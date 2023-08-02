@@ -7110,7 +7110,7 @@ struct S
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""dynamic S.value""
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_000c:  brtrue.s   IL_004d
   IL_000e:  ldc.i4     0x102
   IL_0013:  ldstr      ""Add""
@@ -7132,14 +7132,14 @@ struct S
   IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_003d:  stelem.ref
   IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
-  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_005c:  ldarg.0
   IL_005d:  ldarg.1
-  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_005e:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
   IL_0063:  newobj     ""System.NotImplementedException..ctor()""
   IL_0068:  throw
 }");
@@ -7181,7 +7181,7 @@ struct S
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""dynamic S.value""
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_000c:  brtrue.s   IL_004d
   IL_000e:  ldc.i4     0x100
   IL_0013:  ldstr      ""Add""
@@ -7203,14 +7203,14 @@ struct S
   IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_003d:  stelem.ref
   IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
-  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_005c:  ldarg.0
   IL_005d:  ldarg.1
-  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_005e:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
   IL_0063:  newobj     ""System.NotImplementedException..ctor()""
   IL_0068:  throw
 }");
@@ -15401,7 +15401,7 @@ public unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,39): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (6,39): error CS1637: Iterators cannot have pointer type parameters
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
         }
 
@@ -24668,6 +24668,180 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                     // class A<T> where T : object[] {}
                     Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ArrayCreation()
+        {
+            var source = """
+                public class C {
+                    public void M0() {
+                        M1(new[] { ERROR, 1 });
+                        M2(new[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(int[] arr) { }
+                    public void M2((int, int)[] arr) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(new[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 20),
+                // (4,21): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(new[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void BestType_NestedError_StackallocArrayCreation()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        M1(stackalloc int[] { ERROR, 1 });
+                        M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(Span<int> arr) { }
+                    public void M2(Span<(int, int)> arr) { }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(stackalloc int[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 31),
+                // (6,39): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void BestType_NestedError_SwitchExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 switch
+                        {
+                            1 => ERROR,
+                            _ => 1
+                        };
+                    }
+
+                    public (int, int) M1() {
+                        return 1 switch
+                        {
+                            1 => (ERROR, 1),
+                            _ => (1, 2)
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => ERROR,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 18),
+                // (13,19): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => (ERROR, 1),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 19));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ConditionalExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 == 1 ? ERROR : 1;
+                    }
+
+                    public (int, int) M1() {
+                        return 1 == 1 ? (ERROR, 1) : (1, 2);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? ERROR : 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 25),
+                // (7,26): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? (ERROR, 1) : (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        Func<bool, int> fn1 = flag =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        Func<bool, (int, int)> fn2 = flag =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 30),
+                // (13,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns_NoTargetType()
+        {
+            var source = """
+                public class C {
+                    public void M0(bool flag) {
+                        var fn1 = () =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        var fn2 = () =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 30),
+                // (6,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(6, 20),
+                // (11,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(11, 31),
+                // (12,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return (1, 2);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
         }
     }
 }

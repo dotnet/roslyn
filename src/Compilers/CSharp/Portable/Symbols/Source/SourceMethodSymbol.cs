@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
                 }
-                else if (parameter.Type.IsUnsafe())
+                else if (parameter.Type.IsPointerOrFunctionPointer())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
                 }

@@ -9,14 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportDeclarationNameRecommenderAttribute : ExportAttribute
+    internal sealed class ExportDeclarationNameRecommenderAttribute(string name) : ExportAttribute(typeof(IDeclarationNameRecommender))
     {
-        public string Name { get; }
-
-        public ExportDeclarationNameRecommenderAttribute(string name)
-            : base(typeof(IDeclarationNameRecommender))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
     }
 }

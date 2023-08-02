@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -139,13 +141,66 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new(
                 data.Id,
                 data.Message ?? FeaturesResources.Unknown_error_occurred,
-                updateStatus == ModuleUpdateStatus.RestartRequired ?
-                    ManagedHotReloadDiagnosticSeverity.RestartRequired :
-                    (data.Severity == DiagnosticSeverity.Error) ?
-                        ManagedHotReloadDiagnosticSeverity.Error :
-                        ManagedHotReloadDiagnosticSeverity.Warning,
+                updateStatus == ModuleUpdateStatus.RestartRequired
+                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                    : (data.Severity == DiagnosticSeverity.Error)
+                        ? ManagedHotReloadDiagnosticSeverity.Error
+                        : ManagedHotReloadDiagnosticSeverity.Warning,
                 fileSpan.Path ?? "",
                 fileSpan.Span.ToSourceSpan());
         }
+
+        public static bool IsSynthesized(this ISymbol symbol)
+            => symbol.IsImplicitlyDeclared || symbol.IsSynthesizedAutoProperty();
+
+        public static bool IsSynthesizedAutoProperty(this IPropertySymbol property)
+            => property is { GetMethod.IsImplicitlyDeclared: true, SetMethod.IsImplicitlyDeclared: true };
+
+        public static bool IsSynthesizedAutoProperty(this ISymbol symbol)
+            => symbol is IPropertySymbol property && property.IsSynthesizedAutoProperty();
+
+        public static bool IsAutoProperty(this ISymbol symbol)
+            => symbol is IPropertySymbol property && IsAutoProperty(property);
+
+        public static bool IsAutoProperty(this IPropertySymbol property)
+            => property.ContainingType.GetMembers().Any(static (member, property) => member is IFieldSymbol field && field.AssociatedSymbol == property, property);
+
+        public static bool HasSynthesizedDefaultConstructor(this INamedTypeSymbol type)
+            => !type.InstanceConstructors.Any(static c => !(c.Parameters is [] || c.ContainingType.IsRecord && c.IsCopyConstructor()));
+
+        public static bool IsCopyConstructor(this ISymbol symbol)
+            => symbol is IMethodSymbol { Parameters: [var parameter] } && SymbolEqualityComparer.Default.Equals(parameter.Type, symbol.ContainingType);
+
+        public static bool HasDeconstructorSignature(this IMethodSymbol method, IMethodSymbol constructor)
+            => method.Parameters.Length > 0 &&
+               method.Parameters.Length == constructor.Parameters.Length &&
+               method.Parameters.All(
+                   static (param, constructor) => param.RefKind == RefKind.Out && param.Type.Equals(constructor.Parameters[param.Ordinal].Type, SymbolEqualityComparer.Default),
+                   constructor);
+
+        // TODO: use AssociatedSymbol to tie field to the parameter (see https://github.com/dotnet/roslyn/issues/69115)
+        public static IFieldSymbol? GetPrimaryParameterBackingField(this IParameterSymbol parameter)
+            => (IFieldSymbol?)parameter.ContainingType.GetMembers().FirstOrDefault(
+                static (member, parameter) => member is IFieldSymbol field && ParsePrimaryParameterBackingFieldName(field.Name, out var paramName) && paramName == parameter.Name, parameter);
+
+        private static bool ParsePrimaryParameterBackingFieldName(string fieldName, [NotNullWhen(true)] out string? parameterName)
+        {
+            int closing;
+            if (fieldName.StartsWith("<") && (closing = fieldName.IndexOf(">P")) > 1)
+            {
+                parameterName = fieldName.Substring(1, closing - 1);
+                return true;
+            }
+
+            parameterName = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Returns a deconstructor that matches the parameters of the given <paramref name="constructor"/>, or null if there is none.
+        /// </summary>
+        public static IMethodSymbol? GetMatchingDeconstructor(this IMethodSymbol constructor)
+            => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
+                static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor);
     }
 }

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             builder.Add(new TextChange(completionItem.Span, insertText));
 
             // Then get the combined change
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
 
             var changes = builder.ToImmutable();
@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
+                if (ImportCompletionItem.ShouldAlwaysAddMissingImport(completionItem))
+                    return false;
+
                 if (!IsAddingImportsSupported(document))
-                {
                     return true;
-                }
 
                 // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
                 // import container (e.g. namespace/class/etc. declarations).

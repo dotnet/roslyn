@@ -234,6 +234,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
 #End Region
     End Class
 End Namespace

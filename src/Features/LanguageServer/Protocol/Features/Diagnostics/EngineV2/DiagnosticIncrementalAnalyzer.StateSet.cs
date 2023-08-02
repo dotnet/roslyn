@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
-                var text = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // store analysis result to active file state:
                 var activeFileState = GetOrCreateActiveFileState(document.Id);

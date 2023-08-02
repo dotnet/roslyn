@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             Contract.ThrowIfNull(document.FilePath);
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var sourceTextVersion = (committedDocument == null) ? await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false) : default;
 
             var (maybeMatchingSourceText, maybePdbHasDocument) = await TryGetMatchingSourceTextAsync(document, sourceText, currentDocument, cancellationToken).ConfigureAwait(false);
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (currentDocument != null)
             {
-                var currentDocumentSourceText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var currentDocumentSourceText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (IsMatchingSourceText(currentDocumentSourceText, requiredChecksum, checksumAlgorithm))
                 {
                     return currentDocumentSourceText;

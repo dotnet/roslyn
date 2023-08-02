@@ -1213,11 +1213,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                 }
             }
-            else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
+            else if (refArg != refParameter &&
+                !(refArg == RefKind.None && refParameter == RefKind.In) &&
+                !(refArg == RefKind.Ref && refParameter == RefKind.In && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters)) &&
+                !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
-                if (refParameter == RefKind.None || refParameter == RefKind.In)
+                if (refArg == RefKind.Ref && refParameter == RefKind.In && !binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
                 {
-                    //  Argument {0} should not be passed with the {1} keyword
+                    //  Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadArgExtraRefLangVersion,
+                        sourceLocation,
+                        symbols,
+                        arg + 1,
+                        binder.Compilation.LanguageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureRefReadonlyParameters.RequiredVersion()));
+                }
+                else if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
+                {
+                    //  Argument {0} may not be passed with the '{1}' keyword
                     diagnostics.Add(
                         ErrorCode.ERR_BadArgExtraRef,
                         sourceLocation,

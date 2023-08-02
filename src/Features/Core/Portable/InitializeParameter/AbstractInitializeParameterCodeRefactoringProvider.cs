@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
                 return;
 
-            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
-            if (methodSymbol.IsAbstract ||
+            if (parameter.ContainingSymbol is not IMethodSymbol methodSymbol ||
+                methodSymbol.IsAbstract ||
                 methodSymbol.IsExtern ||
                 methodSymbol.PartialImplementationPart != null ||
                 methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
-                return parameter != null && parameter.Name != "";
+                return parameter is { Name: not "" };
             }
         }
 
@@ -184,10 +184,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return true;
         }
 
-        protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-        => operation.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
-           parameter.Equals(parameterReference.Parameter);
-
         protected static bool ContainsParameterReference(
             SemanticModel semanticModel,
             IOperation condition,
@@ -197,7 +193,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
                 var childOperation = semanticModel.GetOperation(child, cancellationToken);
-                if (childOperation != null && IsParameterReference(childOperation, parameter))
+                if (childOperation != null && InitializeParameterHelpersCore.IsParameterReference(childOperation, parameter))
                     return true;
             }
 

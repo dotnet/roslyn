@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // VS-LSP support nested code action, but standard LSP doesn't.
             if (hasVsLspCapability)
             {
-                var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Each suggested action set should have a unique set number, which is used for grouping code actions together.
                 var currentHighestSetNumber = 0;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
                 CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.Default => LSP.VSInternalPriorityLevel.Normal,
                 CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };

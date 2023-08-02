@@ -7,21 +7,13 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-internal sealed class TieredAnalyzerConfigOptions
+internal sealed class TieredAnalyzerConfigOptions(AnalyzerConfigOptions editorConfigOptions, IGlobalOptionService globalOptions, string language, string editorConfigFileName)
 {
-    public readonly AnalyzerConfigOptions EditorConfigOptions;
-    public readonly IGlobalOptionService GlobalOptions;
+    public readonly AnalyzerConfigOptions EditorConfigOptions = editorConfigOptions;
+    public readonly IGlobalOptionService GlobalOptions = globalOptions;
 
-    public readonly string EditorConfigFileName;
-    public readonly string Language;
-
-    public TieredAnalyzerConfigOptions(AnalyzerConfigOptions editorConfigOptions, IGlobalOptionService globalOptions, string language, string editorConfigFileName)
-    {
-        EditorConfigOptions = editorConfigOptions;
-        GlobalOptions = globalOptions;
-        Language = language;
-        EditorConfigFileName = editorConfigFileName;
-    }
+    public readonly string EditorConfigFileName = editorConfigFileName;
+    public readonly string Language = language;
 
     public void GetInitialLocationAndValue<TValue>(
         IOption2 option,

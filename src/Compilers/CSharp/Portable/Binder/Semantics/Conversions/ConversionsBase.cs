@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+
+        protected abstract bool IsAttributeArgumentBinding { get; }
+
+        protected abstract bool IsParameterDefaultValueBinding { get; }
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -591,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InlineArray:
                     return true;
                 default:
                     return false;
@@ -651,12 +656,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // We extend the definition of standard implicit conversions to include
             // all of the implicit conversions that are allowed based on an expression,
-            // with the exception of the switch expression conversion and the interpolated
-            // string builder conversion.
+            // with the exception of switch expression, interpolated string builder,
+            // and collection expression conversions.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
-                !conversion.IsInterpolatedStringHandler)
+                !conversion.IsInterpolatedStringHandler &&
+                !conversion.IsCollectionExpression)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1051,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnboundLambda:
-                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
+                    if (HasAnonymousFunctionConversion(sourceExpression, destination, this.Compilation))
                     {
                         return Conversion.AnonymousFunction;
                     }
@@ -1094,6 +1100,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
+
+                case BoundKind.UnconvertedCollectionExpression:
+                    if (GetCollectionExpressionTypeKind(Compilation, destination, out _) != CollectionExpressionTypeKind.None)
+                    {
+                        return Conversion.CollectionExpression;
+                    }
+                    break;
+            }
+
+            // Neither Span<T>, nor ReadOnlySpan<T> can be wrapped into a Nullable<T>, therefore, there is no point to check for an attempt to convert to Nullable types here. 
+            if (!IsAttributeArgumentBinding && !IsParameterDefaultValueBinding && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
+                source?.HasInlineArrayAttribute(out _) == true &&
+                source.TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType } &&
+                (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                 destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
+                HasIdentityConversionInternal(((NamedTypeSymbol)destination.OriginalDefinition).Construct(ImmutableArray.Create(elementType)), destination))
+            {
+                return Conversion.InlineArray;
             }
 
             return Conversion.NoConversion;
@@ -1389,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsConstantNumericZero(sourceConstantValue);
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, bool isTargetExpressionTree)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation, bool isTargetExpressionTree)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1437,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
+                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(delegateParameters[p].RefKind, anonymousFunction.RefKind(p), compilation) ||
                             !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
@@ -1507,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.Success;
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1535,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
             }
 
-            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
+            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, compilation, isTargetExpressionTree: true);
         }
 
         internal bool IsAssignableFromMulticastDelegate(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1545,24 +1569,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyImplicitConversionFromType(multicastDelegateType, type, ref useSiteInfo).Exists;
         }
 
-        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)
+        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
             if (type.IsDelegateType())
             {
-                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, compilation, isTargetExpressionTree: false);
             }
             else if (type.IsExpressionTree())
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type, compilation);
             }
 
             return LambdaConversionResult.BadTargetType;
         }
 
-        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination, CSharpCompilation compilation)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -1572,7 +1596,110 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
+            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
+        }
+
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        {
+            Debug.Assert(compilation is { });
+
+            if (destination is ArrayTypeSymbol arrayType)
+            {
+                if (arrayType.IsSZArray)
+                {
+                    elementType = arrayType.ElementType;
+                    return CollectionExpressionTypeKind.Array;
+                }
+            }
+            else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.Span;
+            }
+            else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+            {
+                return CollectionExpressionTypeKind.CollectionBuilder;
+            }
+            else if (implementsIEnumerable(compilation, destination))
+            {
+                elementType = null;
+                return CollectionExpressionTypeKind.CollectionInitializer;
+            }
+            else if (isListInterface(compilation, destination, out elementType))
+            {
+                return CollectionExpressionTypeKind.ListInterface;
+            }
+
+            elementType = null;
+            return CollectionExpressionTypeKind.None;
+
+            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
+                    && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+                {
+                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    return true;
+                }
+                elementType = null;
+                return false;
+            }
+
+            static bool implementsIEnumerable(CSharpCompilation compilation, TypeSymbol targetType)
+            {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        return false;
+                }
+
+                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
+                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+                return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
+            }
+
+            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { TypeKind: TypeKind.Interface, Arity: 1 } namedType)
+                {
+                    var definition = namedType.OriginalDefinition;
+                    var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T);
+                    foreach (var listInterface in listType.AllInterfacesNoUseSiteDiagnostics)
+                    {
+                        // Is the interface implemented by List<T>?
+                        if (areEqual(listInterface.OriginalDefinition, definition) &&
+                            // Is the implementation with type argument T?
+                            areEqual(listType.TypeParameters[0], listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                        {
+                            elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                            return true;
+                        }
+                    }
+                }
+                elementType = null;
+                return false;
+            }
+
+            static bool areEqual(TypeSymbol a, TypeSymbol b)
+            {
+                return a.Equals(b, TypeCompareKind.AllIgnoreOptions);
+            }
         }
 #nullable disable
 

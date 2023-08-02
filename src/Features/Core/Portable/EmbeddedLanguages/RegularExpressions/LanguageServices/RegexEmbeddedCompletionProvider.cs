@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed partial class RegexEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, Array.Empty<char>()));
 
-        private readonly RegexEmbeddedLanguage _language;
-
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
-            => _language = language;
+        private readonly RegexEmbeddedLanguage _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
             '\\', // any escape
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             context.IsExclusive = true;
         }
 
-        private void ProvideCompletions(EmbeddedCompletionContext context)
+        private static void ProvideCompletions(EmbeddedCompletionContext context)
         {
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         /// Produces completions using the previous character to determine which set of
         /// regex items to show.
         /// </summary>
-        private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
+        private static void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
         {
             var previousVirtualCharOpt = context.Tree.Text.Find(context.Position - 1);
             if (previousVirtualCharOpt == null)
@@ -247,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             context.AddIfMissing("#", Regex_end_of_line_comment_short, Regex_end_of_line_comment_long, parentOpt: null);
         }
 
-        private void ProvideOpenBraceCompletions(
+        private static void ProvideOpenBraceCompletions(
             EmbeddedCompletionContext context, RegexTree tree, VirtualChar previousVirtualChar)
         {
             // we only provide completions after `{` if the user wrote `\p{`.  In that case
@@ -392,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             context.AddIfMissing(@"\W", Regex_non_word_character_short, Regex_non_word_character_long, parentOpt);
         }
 
-        private (RegexNode parent, RegexToken Token)? FindToken(
+        private static (RegexNode parent, RegexToken Token)? FindToken(
             RegexNode parent, VirtualChar ch)
         {
             foreach (var child in parent)

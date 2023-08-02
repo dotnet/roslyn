@@ -1311,7 +1311,6 @@ End Class"
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Sub G(Of S)()", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P2", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Sub New(x As Integer)", FeaturesResources.constructor),
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Property P1(i As Integer)", GetResource("property")),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Set(value As Integer)", FeaturesResources.property_accessor)
             }
@@ -1362,24 +1361,27 @@ End Class"
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E2", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F1", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F2", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F3 As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F4 As New Object", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F3", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F4", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F5(1, 2)", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F6?", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE As Object", VBFeaturesResources.WithEvents_field),
-                Diagnostic(RudeEditKind.InsertVirtual, "WE As Object", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertVirtual, "WE", VBFeaturesResources.WithEvents_field),
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
             }, capabilities:=nonGenericCapabilities)
 
             edits.VerifySemanticDiagnostics(
             {
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P3", FeaturesResources.auto_property),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F1", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F2", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F3 As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F4 As New Object", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F3", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F4", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F5(1, 2)", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "F6?", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertVirtual, "WE As Object", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertVirtual, "WE", VBFeaturesResources.WithEvents_field),
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
             }, capabilities:=nonGenericCapabilities Or EditAndContinueCapabilities.GenericAddMethodToExistingType)
 
@@ -1389,14 +1391,14 @@ End Class"
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Property P3", FeaturesResources.auto_property),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E1(sender As Object, e As EventArgs)", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Event E2", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE As Object", VBFeaturesResources.WithEvents_field),
-                Diagnostic(RudeEditKind.InsertVirtual, "WE As Object", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "WE", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertVirtual, "WE", VBFeaturesResources.WithEvents_field),
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
             }, capabilities:=nonGenericCapabilities Or EditAndContinueCapabilities.GenericAddFieldToExistingType)
 
             edits.VerifySemanticDiagnostics(
             {
-                Diagnostic(RudeEditKind.InsertVirtual, "WE As Object", VBFeaturesResources.WithEvents_field),
+                Diagnostic(RudeEditKind.InsertVirtual, "WE", VBFeaturesResources.WithEvents_field),
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
             }, capabilities:=nonGenericCapabilities Or EditAndContinueCapabilities.GenericAddMethodToExistingType Or EditAndContinueCapabilities.GenericAddFieldToExistingType)
         End Sub
@@ -1430,8 +1432,8 @@ End Class
             edits.VerifySemanticDiagnostics(
             {
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Sub F()", FeaturesResources.method),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "X As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Y As Integer", FeaturesResources.field)
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "X", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Y", FeaturesResources.field)
             }, capabilities:=nonGenericCapabilities)
 
             edits.VerifySemanticDiagnostics(capabilities:=
@@ -3915,7 +3917,11 @@ End Class
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        }),
                     DocumentResults(
                         semanticEdits:=
                         {
@@ -4198,7 +4204,10 @@ End Class"
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    }),
                     DocumentResults(semanticEdits:=
                     {
                         SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
@@ -5515,7 +5524,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -5525,7 +5534,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -6620,7 +6629,7 @@ End Class
 Partial Class C
     ReadOnly Property B As Integer = F(<N:0.1>Function(a) a + 1</N:0.1>)
 
-    Sub New()      ' new ctor
+    Sub New(x As Integer)      ' new ctor
         F(Function(c) c + 1)
     End Sub
 End Class
@@ -6630,7 +6639,7 @@ End Class
             Dim syntaxMap = GetSyntaxMap(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New()")})
+                {Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New(x As Integer)")})
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")>
@@ -7552,7 +7561,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "F As C", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.InsertVirtual, "F", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
@@ -7572,7 +7581,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "G As C", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.InsertVirtual, "G", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
@@ -7589,8 +7598,8 @@ End Structure
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d As System.Action", FeaturesResources.event_, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b As Integer", FeaturesResources.field, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c As Integer", FeaturesResources.field, VBFeaturesResources.structure_))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.field, VBFeaturesResources.structure_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.field, VBFeaturesResources.structure_))
         End Sub
 
         <Fact>
@@ -7655,9 +7664,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -7685,9 +7694,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -7719,7 +7728,7 @@ End Class
 
             ' TODO: We don't compare the ordering currently. We could allow this edit if the ordering is preserved.
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -7749,7 +7758,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "a As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "a", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -7965,7 +7974,8 @@ End Class
                 ActiveStatementsDescription.Empty,
                 {
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single())
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single()),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
@@ -8433,7 +8443,8 @@ End Class
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
-                    DocumentResults()
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
                 })
         End Sub
 
@@ -8469,7 +8480,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a As Integer", "a"))
         End Sub
 #End Region
 
@@ -9512,7 +9523,8 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
                 })
         End Sub
 
@@ -10676,6 +10688,88 @@ End Class
                 })
         End Sub
 
+        <Fact>
+        Public Sub Event_WithHandlerDeclaration_Insert()
+            Dim src1 = "
+Class C
+End Class
+"
+            Dim src2 = "
+Class C
+    Event E(a As Integer)
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.E"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType Or EditAndContinueCapabilities.AddMethodToExistingType)
+        End Sub
+
+        <Fact>
+        Public Sub Event_WithHandlerDeclaration_Insert_NoParameters()
+            Dim src1 = "
+Class C
+End Class
+"
+            Dim src2 = "
+Class C
+    Event E()
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.E"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType Or EditAndContinueCapabilities.AddMethodToExistingType)
+        End Sub
+
+        <Fact>
+        Public Sub Event_WithHandlerDeclaration_Delete()
+            Dim src1 = "
+Class C
+    Event E(a As Integer)
+End Class
+"
+            Dim src2 = "
+Class C
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType Or EditAndContinueCapabilities.AddMethodToExistingType)
+        End Sub
+
+        <Fact>
+        Public Sub Event_WithHandlerDeclaration_Delete_NoParameters()
+            Dim src1 = "
+Class C
+    Event E()
+End Class
+"
+            Dim src2 = "
+Class C
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType Or EditAndContinueCapabilities.AddMethodToExistingType)
+        End Sub
+
 #End Region
 
 #Region "Parameters And Return Values"
@@ -10813,7 +10907,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ParameterUpdate_AsClause1()
+        Public Sub ParameterUpdate_TypeChange_AsClause1()
             Dim src1 = "Class C : " & vbLf & "Public ReadOnly Property P(a As Integer) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
             Dim src2 = "Class C : " & vbLf & "Public ReadOnly Property P(a As Object) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -10832,7 +10926,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ParameterUpdate_AsClause2()
+        Public Sub ParameterUpdate_TypeChange_AsClause2()
             Dim src1 = "Class C : " & vbLf & "Public ReadOnly Property P(a As Integer) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
             Dim src2 = "Class C : " & vbLf & "Public ReadOnly Property P(a) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -10845,6 +10939,25 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+        End Sub
+
+        <Fact>
+        Public Sub ParameterUpdate_TypeChange_Identifier()
+            Dim src1 = "Class C : " & vbLf & "Public ReadOnly Property P(a$) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public ReadOnly Property P(a%) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a$]@38 -> [a%]@38")
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_String)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
@@ -10966,7 +11079,7 @@ End Class
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M()", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M()", GetResource("parameter", "a", "method", "M(a As Integer)"))},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
@@ -10990,7 +11103,7 @@ End Class
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M(b As Integer)", GetResource("parameter", "a", "method", "M(a As Integer, b As Integer)"))},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 

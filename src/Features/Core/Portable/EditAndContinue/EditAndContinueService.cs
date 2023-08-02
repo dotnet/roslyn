@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -27,14 +27,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueService : IEditAndContinueService
     {
         [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
-        internal sealed class WorkspaceService : IEditAndContinueWorkspaceService
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
         {
-            public IEditAndContinueService Service { get; }
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public WorkspaceService(IEditAndContinueService service)
-                => Service = service;
+            public IEditAndContinueService Service { get; } = service;
         }
 
         internal static readonly TraceLog Log;
@@ -260,41 +257,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
         }
 
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
-            // We return null since there the concept of active statement only makes sense during break mode.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<LinePositionSpan?>(null);
-            }
-
-            return debuggingSession.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instructionId, cancellationToken);
-        }
-
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult<bool?>(null);
-            }
-
-            return debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId, cancellationToken);
-        }
-
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(EditAndContinueService service)
         {
-            private readonly EditAndContinueService _service;
-
-            public TestAccessor(EditAndContinueService service)
-            {
-                _service = service;
-            }
+            private readonly EditAndContinueService _service = service;
 
             public void SetOutputProvider(Func<Project, CompilationOutputs> value)
                 => _service._compilationOutputsProvider = value;

@@ -4345,6 +4345,9 @@ static class S
 }
 ";
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C<int*>()").WithLocation(7, 9),
                 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
@@ -4377,6 +4380,9 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
 
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C<int*>()").WithLocation(7, 9),
                 // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 15),
@@ -4478,12 +4484,18 @@ class C<T>
     }
 }";
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
-                // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+                // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "COfIntPtr").WithLocation(9, 13),
+                // (9,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new COfIntPtr()").WithLocation(9, 9),
                 // (10,19): error CS0306: The type 'int*' may not be used as a type argument
                 //         COfObject.F<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
@@ -4492,18 +4504,21 @@ class C<T>
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
 
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
-                // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
                 // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
                 // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         new COfIntPtr();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "COfIntPtr").WithLocation(9, 13),
+                // (9,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new COfIntPtr()").WithLocation(9, 9),
                 // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         COfObject.F<int*>();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 21),
@@ -12481,8 +12496,13 @@ class C2 : I
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (11,14): error CS0682: 'C2.I.P' cannot implement 'I.P' because it is not supported by the language
+                //     object I.P
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("C2.I.P", "I.P").WithLocation(11, 14),
+                // (14,9): warning CS9196: Reference kind modifier of parameter 'object value' doesn't match the corresponding parameter 'ref object v' in overridden or implemented member.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("object value", "ref object v").WithLocation(14, 9),
                 // (16,20): error CS0682: 'C2.I.E' cannot implement 'I.E' because it is not supported by the language
+                //     event Action I.E
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "E").WithArguments("C2.I.E", "I.E").WithLocation(16, 20));
         }
 

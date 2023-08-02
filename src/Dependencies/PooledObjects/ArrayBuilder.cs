@@ -590,6 +590,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddMany(T item, int count)
         {
+            EnsureCapacity(Count + count);
+
             for (var i = 0; i < count; i++)
             {
                 Add(item);
