@@ -13,7 +13,6 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
@@ -603,26 +602,28 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         /// <summary>
         /// Gets the value of the temporary path for the provided environment settings. This behavior
-        /// is OS specific: 
+        /// is OS specific.
         ///   - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
         ///     provided working directory.
-        ///   - On Unix it returns a directory under $XDG_RUNTIME_DIR if it is set using appropriate fall backs
-        ///     as necessary. https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
         /// </summary>
         internal static string? GetTempPath(string? workingDir)
         {
             return PlatformInformation.IsUnix
-                ? GetTempPathLinux()
-                : GetTempPathWindows(workingDir);
+                ? getTempPathLinux()
+                : getTempPathWindows(workingDir);
 
-            static string? GetTempPathLinux()
+            static string? getTempPathLinux()
             {
                 // Unix temp path is fine: it does not use the working directory
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
+                //
+                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory under
+                // $XDG_RUNTIME_DIR if it is set using appropriate fall backs as necessary.
+                // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
                 return Path.GetTempPath();
             }
 
-            static string? GetTempPathWindows(string? workingDir)
+            static string? getTempPathWindows(string? workingDir)
             {
                 var tmp = Environment.GetEnvironmentVariable("TMP");
                 if (Path.IsPathRooted(tmp))

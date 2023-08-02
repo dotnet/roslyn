@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Abstraction that allows the caller to delay the creation of the <see cref="Stream"/> values 
-        /// until they are actually needed. The <see cref="Stream"/> provided here is soley owned by 
+        /// until they are actually needed. The <see cref="Stream"/> provided here is owned by 
         /// this type and consumers should not dispose it.
         /// </summary>
         internal abstract class EmitStreamProvider

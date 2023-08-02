@@ -187,8 +187,7 @@ public class Test
         [Fact]
         public void PubKeyFromKeyFileAttribute_SigningTempPathNotAvailable()
         {
-            var x = s_keyPairFile;
-            string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
+            string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
 
             var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(s_providerNoSigningTempPath);
             Assert.Null(options.StrongNameProvider.FileSystem.GetSigningTempPath());
@@ -198,6 +197,20 @@ public class Test
             compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
             compilation.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(s_keyPairFile, CodeAnalysisResources.SigningTempPathUnavailable));
+        }
+
+        [Fact]
+        public void PubKeyFromKeyFileAttribute_SigningTempPathAvailable()
+        {
+            string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
+
+            var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
+            Assert.NotNull(options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
+            compilation.VerifyEmitDiagnostics();
+
+            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]

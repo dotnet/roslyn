@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RespectEmptyTempPath()
+        public void RespectNullTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
             Assert.Null(provider.FileSystem.GetSigningTempPath());

@@ -42,10 +42,6 @@ namespace Microsoft.CodeAnalysis
         /// a temporary file must be created on disk (at the last possible moment), emitted to, signed on disk
         /// and then copied back to the original <see cref="Stream"/>. Only when legacy signing is enabled though.
         /// </summary>
-        /// <remarks>
-        /// The <see cref="Stream"/> returned here should not be disposed by the caller. It is either owned by 
-        /// this type or the provided <see cref="EmitStreamProvider"/>.
-        /// </remarks>
         internal sealed class EmitStream
         {
             private readonly EmitStreamProvider _emitStreamProvider;
@@ -113,6 +109,10 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Create the stream which should be used for Emit. This should only be called one time.
             /// </summary>
+            /// <remarks>
+            /// The <see cref="Stream"/> returned here should not be disposed by the caller. It is either owned by 
+            /// this type or the provided <see cref="EmitStreamProvider"/>.
+            /// </remarks>
             private Stream? CreateStream(CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
                 RoslynDebug.Assert(_stream == null);
