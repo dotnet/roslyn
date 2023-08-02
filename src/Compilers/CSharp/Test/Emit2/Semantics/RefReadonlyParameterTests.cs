@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
