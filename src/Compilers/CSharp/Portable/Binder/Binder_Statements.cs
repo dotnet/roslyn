@@ -1966,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        static Location GetAnonymousFunctionLocation(SyntaxNode node)
+        private static Location GetAnonymousFunctionLocation(SyntaxNode node)
         {
             switch (node)
             {
