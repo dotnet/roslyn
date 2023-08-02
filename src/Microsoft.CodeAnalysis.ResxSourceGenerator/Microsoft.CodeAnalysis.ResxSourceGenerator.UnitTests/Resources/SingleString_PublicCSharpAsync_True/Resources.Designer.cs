@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace TestProject
 {
-    internal static partial class Resources
+    public static partial class Resources
     {
         private static global::System.Resources.ResourceManager? s_resourceManager;
         public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));
@@ -15,7 +15,7 @@ namespace TestProject
         [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("defaultValue")]
         internal static string? GetResourceString(string resourceKey, string? defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;
         /// <summary>value</summary>
-        public static string @Name => GetResourceString("Name", @"value");
+        public static string @Name => GetResourceString("Name")!;
 
     }
 }

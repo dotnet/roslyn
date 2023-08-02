@@ -9,10 +9,10 @@ namespace TestProject
     internal static partial class Resources
     {
         private static global::System.Resources.ResourceManager? s_resourceManager;
-        internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));
+        public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));
 
         /// <summary>value</summary>
-        internal static string @Name => GetResourceString("Name")!;
+        public static string @Name => GetResourceString("Name")!;
 
     }
 }
