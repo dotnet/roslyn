@@ -2848,6 +2848,11 @@ Additional information: {1}</source>
         <target state="translated">エディター ウィンドウの右端</target>
         <note />
       </trans-unit>
+      <trans-unit id="void_is_not_a_valid_type_for_a_parameter">
+        <source>'void' is not a valid type for a parameter</source>
+        <target state="new">'void' is not a valid type for a parameter</target>
+        <note>{Locked="void"} "void" represents CLR's 'System.Void' type and should not be localized</note>
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">同じ種類の他のメンバーと共に</target>

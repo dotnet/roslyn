@@ -50,5 +50,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
         Public Overrides Function GetTypeNode(typeName As String) As SyntaxNode
             Return SyntaxFactory.ParseTypeName(typeName)
         End Function
+
+        Public Overrides Function IsVoidTypeSyntax(node As SyntaxNode) As Boolean
+            ' VB doesn't have a concept of 'void' type syntax since it represents void-returning methods as 'Sub's
+            Return False
+        End Function
     End Class
 End Namespace

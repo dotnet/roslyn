@@ -18,5 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public abstract bool IsTypeNameValid(string typeName);
 
         public abstract SyntaxNode GetTypeNode(string typeName);
+
+        public abstract bool IsVoidTypeSyntax(SyntaxNode node);
     }
 }
