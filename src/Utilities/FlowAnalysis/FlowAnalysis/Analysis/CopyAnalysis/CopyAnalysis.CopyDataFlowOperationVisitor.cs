@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         continue;
                     }
 
+                    var existingValue = targetAnalysisData[key];
                     if (CurrentAnalysisData.TryGetValue(key, out var newValue))
                     {
-                        var existingValue = targetAnalysisData[key];
                         if (newValue.AnalysisEntities.Count == 1)
                         {
                             if (existingValue.AnalysisEntities.Count == 1)
@@ -422,6 +422,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         }
 
                         processedEntities.AddRange(newValue.AnalysisEntities);
+                    }
+                    else
+                    {
+                        var entitiesToExclude = existingValue.AnalysisEntities.Where(e => !CurrentAnalysisData.HasAbstractValue(e));
+                        var excludedCount = 0;
+                        foreach (var entity in entitiesToExclude)
+                        {
+                            targetAnalysisData.RemoveEntries(entity);
+                            processedEntities.Add(entity);
+                            excludedCount++;
+                        }
+
+                        if (excludedCount < existingValue.AnalysisEntities.Count)
+                        {
+                            newValue = existingValue.WithEntitiesRemoved(entitiesToExclude);
+                            targetAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssigned: null);
+                        }
                     }
                 }
             }
