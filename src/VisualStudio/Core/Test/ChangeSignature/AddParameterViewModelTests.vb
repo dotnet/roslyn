@@ -367,11 +367,11 @@ class MyClass
 
             viewModel.VerbatimTypeName = "void"
             Assert.False(viewModel.CanSubmit(message))
-            Assert.Equal(ServicesVSResources.void_is_not_a_valid_type_for_a_parameter, message)
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
 
             viewModel.VerbatimTypeName = "System.Void"
             Assert.False(viewModel.CanSubmit(message))
-            Assert.Equal(ServicesVSResources.void_is_not_a_valid_type_for_a_parameter, message)
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
         End Sub
     End Class
 End Namespace
