@@ -399,12 +399,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
-        <target state="new">There is no target type for the collection literal.</target>
+        <target state="translated">集合文本缺少目标类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <target state="translated">无法使用集合文本初始化类型“{0}”，因为该类型不可构造。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
         <source>An expression tree may not contain a collection literal.</source>
-        <target state="new">An expression tree may not contain a collection literal.</target>
+        <target state="translated">表达式树不能包含集合文本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -2039,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionLiterals">
         <source>collection literals</source>
-        <target state="new">collection literals</target>
+        <target state="translated">集合文本</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">

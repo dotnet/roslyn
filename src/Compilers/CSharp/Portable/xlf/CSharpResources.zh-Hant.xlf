@@ -399,12 +399,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
-        <target state="new">There is no target type for the collection literal.</target>
+        <target state="translated">集合常值沒有目標類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <target state="translated">無法使用集合常值將類型 '{0}' 初始化，因為該類型為不可建構。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
         <source>An expression tree may not contain a collection literal.</source>
-        <target state="new">An expression tree may not contain a collection literal.</target>
+        <target state="translated">運算式樹狀架構不得包含集合常值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -2039,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionLiterals">
         <source>collection literals</source>
-        <target state="new">collection literals</target>
+        <target state="translated">集合常值</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
