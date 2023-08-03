@@ -58,7 +58,7 @@ internal class TestDiscovery
     {
         var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
         var configuration = Directory.Exists(Path.Combine(testDiscoveryWorkerFolder, "Debug")) ? "Debug" : "Release";
-        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net7.0", "TestDiscoveryWorker.dll"),
+        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net8.0", "TestDiscoveryWorker.dll"),
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
