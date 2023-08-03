@@ -5328,15 +5328,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         EmptyArray().Report();
+                        EmptyNestedArray().Report();
                     }
                     static void*[] EmptyArray() => [];
+                    static void*[][] EmptyNestedArray() => [];
                 }
                 """;
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensions },
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.FailsPEVerify,
-                expectedOutput: "[], ");
+                expectedOutput: "[], [], ");
             verifier.VerifyIL("Program.EmptyArray",
                 """
                 {
@@ -5345,6 +5347,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0000:  ldc.i4.0
                   IL_0001:  newarr     "void*"
                   IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.EmptyNestedArray",
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "void*[][] System.Array.Empty<void*[]>()"
+                  IL_0005:  ret
                 }
                 """);
         }
