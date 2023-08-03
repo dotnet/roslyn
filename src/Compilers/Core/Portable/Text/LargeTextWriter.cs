@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private readonly ArrayBuilder<char[]> _chunks;
+        private readonly int _length;
 
         private readonly int _bufferSize;
         private char[]? _buffer;
@@ -24,12 +27,15 @@ namespace Microsoft.CodeAnalysis.Text
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
             _chunks = ArrayBuilder<char[]>.GetInstance(1 + length / LargeText.ChunkSize);
+            _length = length;
             _bufferSize = Math.Min(LargeText.ChunkSize, length);
         }
 
         public override SourceText ToSourceText()
         {
             this.Flush();
+
+            RoslynDebug.Assert(_chunks.Sum(chunk => chunk.Length) == _length);
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
@@ -53,49 +59,37 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                Write(new char[] { value }, 0, 1);
+#if NET7_0_OR_GREATER
+                WriteCore(new ReadOnlySpan<char>(in value));
+#else
+                WriteCore(stackalloc char[] { value });
+#endif
             }
         }
 
         public override void Write(string? value)
         {
-            if (value != null)
-            {
-                var count = value.Length;
-                int index = 0;
-
-                while (count > 0)
-                {
-                    EnsureBuffer();
-
-                    var remaining = _buffer!.Length - _currentUsed;
-                    var copy = Math.Min(remaining, count);
-
-                    value.CopyTo(index, _buffer, _currentUsed, copy);
-
-                    _currentUsed += copy;
-                    index += copy;
-                    count -= copy;
-
-                    if (_currentUsed == _buffer.Length)
-                    {
-                        Flush();
-                    }
-                }
-            }
+            WriteCore(value.AsSpan());
         }
 
-        public override void Write(char[] chars, int index, int count)
+        public override void Write(char[] buffer, int index, int count)
         {
-            if (index < 0 || index >= chars.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
+            ValidateWriteArguments(buffer, index, count);
 
-            if (count < 0 || count > chars.Length - index)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
+            WriteCore(buffer.AsSpan(index, count));
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<char> buffer)
+        {
+            WriteCore(buffer);
+        }
+#endif
+
+        private void WriteCore(ReadOnlySpan<char> buffer)
+        {
+            var count = buffer.Length;
+            int index = 0;
 
             while (count > 0)
             {
@@ -104,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Text
                 var remaining = _buffer!.Length - _currentUsed;
                 var copy = Math.Min(remaining, count);
 
-                Array.Copy(chars, index, _buffer, _currentUsed, copy);
+                buffer.Slice(index, copy).CopyTo(_buffer.AsSpan(_currentUsed));
+
                 _currentUsed += copy;
                 index += copy;
                 count -= copy;

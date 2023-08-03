@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -65,22 +67,35 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override string ToString(TextSpan span)
         {
-            CheckSubSpan(span);
+            if (!ValidateSubSpan(span))
+                return string.Empty;
 
             return UnderlyingText.ToString(GetCompositeSpan(span.Start, span.Length));
         }
 
         public override SourceText GetSubText(TextSpan span)
         {
-            CheckSubSpan(span);
+            if (!ValidateSubSpan(span))
+                return From(string.Empty, Encoding, ChecksumAlgorithm);
 
             return new SubText(UnderlyingText, GetCompositeSpan(span.Start, span.Length));
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
+                return;
+
             var span = GetCompositeSpan(sourceIndex, count);
             UnderlyingText.CopyTo(span.Start, destination, destinationIndex, span.Length);
+        }
+
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+        {
+            if (!ValidateWriteArguments(writer, span))
+                return;
+
+            UnderlyingText.Write(writer, GetCompositeSpan(span.Start, span.Length), cancellationToken);
         }
 
         private TextSpan GetCompositeSpan(int start, int length)

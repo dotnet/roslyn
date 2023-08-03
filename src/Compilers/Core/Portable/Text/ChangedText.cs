@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -148,6 +150,11 @@ namespace Microsoft.CodeAnalysis.Text
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             _newText.CopyTo(sourceIndex, destination, destinationIndex, count);
+        }
+
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+        {
+            _newText.Write(writer, span, cancellationToken);
         }
 
         public override SourceText WithChanges(IEnumerable<TextChange> changes)

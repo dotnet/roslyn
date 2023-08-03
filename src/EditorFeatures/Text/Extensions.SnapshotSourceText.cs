@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneService, s, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
             }
 
-            public override Encoding? Encoding
+            public sealed override Encoding? Encoding
             {
                 get { return _encoding; }
             }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Text
             public ITextSnapshot? TryFindEditorSnapshot()
                 => TryFindEditorSnapshot(this.TextImage);
 
-            public override SourceTextContainer Container
+            public sealed override SourceTextContainer Container
             {
                 get
                 {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            public override int Length
+            public sealed override int Length
             {
                 get
                 {
@@ -129,16 +129,16 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            public override char this[int position]
+            public sealed override char this[int position]
             {
                 get { return this.TextImage[position]; }
             }
 
             #region Lines
-            protected override TextLineCollection GetLinesCore()
+            protected sealed override TextLineCollection GetLinesCore()
                 => new LineInfo(this);
 
-            private class LineInfo : TextLineCollection
+            private sealed class LineInfo : TextLineCollection
             {
                 private readonly SnapshotSourceText _text;
 
@@ -173,17 +173,17 @@ namespace Microsoft.CodeAnalysis.Text
             }
             #endregion
 
-            public override string ToString()
+            public sealed override string ToString()
                 => this.TextImage.GetText();
 
-            public override string ToString(TextSpan textSpan)
+            public sealed override string ToString(TextSpan textSpan)
             {
                 var editorSpan = new Span(textSpan.Start, textSpan.Length);
                 var res = this.TextImage.GetText(editorSpan);
                 return res;
             }
 
-            public override SourceText WithChanges(IEnumerable<TextChange> changes)
+            public sealed override SourceText WithChanges(IEnumerable<TextChange> changes)
             {
                 if (changes == null)
                 {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// Perf: Optimize calls to GetChangeRanges after WithChanges by using editor snapshots
             /// </summary>
-            private class ChangedSourceText : SnapshotSourceText
+            private sealed class ChangedSourceText : SnapshotSourceText
             {
                 private readonly SnapshotSourceText _baseText;
                 private readonly ITextImage _baseSnapshot;
@@ -308,10 +308,10 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+            public sealed override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
                 => this.TextImage.CopyTo(sourceIndex, destination, destinationIndex, count);
 
-            public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken)
+            public sealed override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken)
                 => this.TextImage.Write(textWriter, span.ToSpan());
 
             #region GetChangeRangesImplementation 

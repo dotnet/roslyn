@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal const int ChunkSize = SourceText.LargeObjectHeapLimitInChars; // 40K Unicode chars is 80KB which is less than the large object heap limit.
+        internal const int ChunkSize = SourceText.LargeObjectHeapLimitInChars; // 40K
 
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
@@ -132,19 +131,12 @@ namespace Microsoft.CodeAnalysis.Text
             return chunks.ToImmutableAndFree();
         }
 
-        private int GetIndexFromPosition(int position)
-        {
-            // Binary search to find the chunk that contains the given position.
-            int idx = _chunkStartOffsets.BinarySearch(position);
-            return idx >= 0 ? idx : (~idx - 1);
-        }
-
         public override char this[int position]
         {
             get
             {
-                int i = GetIndexFromPosition(position);
-                return _chunks[i][position - _chunkStartOffsets[i]];
+                ChunkedTextUtilities.GetIndexAndOffset(_chunkStartOffsets, position, out var index, out var offset);
+                return _chunks[index][offset];
             }
         }
 
@@ -154,71 +146,44 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (count == 0)
-            {
+            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
                 return;
-            }
 
-            int chunkIndex = GetIndexFromPosition(sourceIndex);
-            int chunkStartOffset = sourceIndex - _chunkStartOffsets[chunkIndex];
-            while (true)
+            foreach (var (chunk, start, length) in ChunkedTextUtilities.EnumerateSubTextChunks<char[], ChunkHelper>(
+                _chunks,
+                _chunkStartOffsets,
+                sourceIndex,
+                count))
             {
-                var chunk = _chunks[chunkIndex];
-                int charsToCopy = Math.Min(chunk.Length - chunkStartOffset, count);
-                Array.Copy(chunk, chunkStartOffset, destination, destinationIndex, charsToCopy);
-                count -= charsToCopy;
-                if (count <= 0)
-                {
-                    break;
-                }
-
-                destinationIndex += charsToCopy;
-                chunkStartOffset = 0;
-                chunkIndex++;
+                Array.Copy(chunk, start, destination, destinationIndex, length);
+                destinationIndex += length;
             }
         }
 
-        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            if (span.Start < 0 || span.Start > _length || span.End > _length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
-
-            int count = span.Length;
-            if (count == 0)
-            {
+            if (!ValidateWriteArguments(writer, span))
                 return;
-            }
 
             var chunkWriter = writer as LargeTextWriter;
 
-            int chunkIndex = GetIndexFromPosition(span.Start);
-            int chunkStartOffset = span.Start - _chunkStartOffsets[chunkIndex];
-            while (true)
+            foreach (var (chunk, start, length) in ChunkedTextUtilities.EnumerateSubTextChunks<char[], ChunkHelper>(
+                _chunks,
+                _chunkStartOffsets,
+                span.Start,
+                span.Length))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var chunk = _chunks[chunkIndex];
-                int charsToWrite = Math.Min(chunk.Length - chunkStartOffset, count);
 
-                if (chunkWriter != null && chunkStartOffset == 0 && charsToWrite == chunk.Length)
+                if (chunkWriter != null && start == 0 && length == chunk.Length)
                 {
                     // reuse entire chunk
                     chunkWriter.AppendChunk(chunk);
                 }
                 else
                 {
-                    writer.Write(chunk, chunkStartOffset, charsToWrite);
+                    writer.Write(chunk, start, length);
                 }
-
-                count -= charsToWrite;
-                if (count <= 0)
-                {
-                    break;
-                }
-
-                chunkStartOffset = 0;
-                chunkIndex++;
             }
         }
 
@@ -285,6 +250,11 @@ line_break:
             // Create a start for the final line.  
             arrayBuilder.Add(position);
             return arrayBuilder.ToArrayAndFree();
+        }
+
+        private readonly struct ChunkHelper : ChunkedTextUtilities.IChunkHelper<char[]>
+        {
+            public int GetLength(char[] chunk) => chunk.Length;
         }
     }
 }

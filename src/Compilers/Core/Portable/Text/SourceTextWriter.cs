@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Text;
 
@@ -21,6 +22,18 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 return new LargeTextWriter(encoding, checksumAlgorithm, length);
             }
+        }
+
+        protected static void ValidateWriteArguments(char[] buffer, int index, int count)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            if (index < 0 || index >= buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            if (count < 0 || count > buffer.Length - index)
+                throw new ArgumentOutOfRangeException(nameof(count));
         }
     }
 }

@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -68,37 +67,26 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                int index;
-                int offset;
-                GetIndexAndOffset(position, out index, out offset);
+                ChunkedTextUtilities.GetIndexAndOffset(_segmentOffsets, position, out var index, out var offset);
                 return _segments[index][offset];
             }
         }
 
         public override SourceText GetSubText(TextSpan span)
         {
-            CheckSubSpan(span);
-
-            var sourceIndex = span.Start;
-            var count = span.Length;
-
-            int segIndex;
-            int segOffset;
-            GetIndexAndOffset(sourceIndex, out segIndex, out segOffset);
+            if (!ValidateSubSpan(span))
+                return From(string.Empty, Encoding, ChecksumAlgorithm);
 
             var newSegments = ArrayBuilder<SourceText>.GetInstance();
             try
             {
-                while (segIndex < _segments.Length && count > 0)
+                foreach (var (chunk, start, length) in ChunkedTextUtilities.EnumerateSubTextChunks<SourceText, ChunkHelper>(
+                    _segments,
+                    _segmentOffsets,
+                    span.Start,
+                    span.Length))
                 {
-                    var segment = _segments[segIndex];
-                    var copyLength = Math.Min(count, segment.Length - segOffset);
-
-                    AddSegments(newSegments, segment.GetSubText(new TextSpan(segOffset, copyLength)));
-
-                    count -= copyLength;
-                    segIndex++;
-                    segOffset = 0;
+                    AddSegments(newSegments, chunk.GetSubText(new TextSpan(start, length)));
                 }
 
                 return ToSourceText(newSegments, this, adjustSegments: false);
@@ -109,55 +97,36 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private void GetIndexAndOffset(int position, out int index, out int offset)
-        {
-            // Binary search to find the chunk that contains the given position.
-            int idx = _segmentOffsets.BinarySearch(position);
-            index = idx >= 0 ? idx : (~idx - 1);
-            offset = position - _segmentOffsets[index];
-        }
-
-        /// <summary>
-        /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
-        /// </summary>
-        /// <returns>True if should bother to proceed with copying.</returns>
-        private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
-        {
-            if (destination == null)
-                throw new ArgumentNullException(nameof(destination));
-
-            if (sourceIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
-
-            if (destinationIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
-
-            if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            return count > 0;
-        }
-
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!CheckCopyToArguments(sourceIndex, destination, destinationIndex, count))
+            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
                 return;
 
-            int segIndex;
-            int segOffset;
-            GetIndexAndOffset(sourceIndex, out segIndex, out segOffset);
-
-            while (segIndex < _segments.Length && count > 0)
+            foreach (var (chunk, start, length) in ChunkedTextUtilities.EnumerateSubTextChunks<SourceText, ChunkHelper>(
+                _segments,
+                _segmentOffsets,
+                sourceIndex,
+                count))
             {
-                var segment = _segments[segIndex];
-                var copyLength = Math.Min(count, segment.Length - segOffset);
+                chunk.CopyTo(start, destination, destinationIndex, length);
+                destinationIndex += length;
+            }
+        }
 
-                segment.CopyTo(segOffset, destination, destinationIndex, copyLength);
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+        {
+            if (!ValidateWriteArguments(writer, span))
+                return;
 
-                count -= copyLength;
-                destinationIndex += copyLength;
-                segIndex++;
-                segOffset = 0;
+            foreach (var (chunk, start, length) in ChunkedTextUtilities.EnumerateSubTextChunks<SourceText, ChunkHelper>(
+                _segments,
+                _segmentOffsets,
+                span.Start,
+                span.Length))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                chunk.Write(writer, new TextSpan(start, length), cancellationToken);
             }
         }
 
@@ -288,13 +257,10 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // count how many contiguous segments are reducible
                     int count = 1;
-                    for (int j = i + 1; j < segments.Count; j++)
+                    for (int j = i + 1; j < segments.Count && segments[j].Length <= segmentSize; j++)
                     {
-                        if (segments[j].Length <= segmentSize)
-                        {
-                            count++;
-                            combinedLength += segments[j].Length;
-                        }
+                        count++;
+                        combinedLength += segments[j].Length;
                     }
 
                     // if we've got at least two, then combine them into a single text
@@ -371,6 +337,11 @@ namespace Microsoft.CodeAnalysis.Text
                 segments.Clear();
                 segments.Add(writer.ToSourceText());
             }
+        }
+
+        private readonly struct ChunkHelper : ChunkedTextUtilities.IChunkHelper<SourceText>
+        {
+            public int GetLength(SourceText chunk) => chunk.Length;
         }
     }
 }

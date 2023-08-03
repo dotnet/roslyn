@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -77,17 +78,37 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
-            if (span.End > _builder.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
+            if (!ValidateSubSpan(span))
+                return string.Empty;
 
             return _builder.ToString(span.Start, span.Length);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
+                return;
+
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
+        }
+
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+        {
+            if (!ValidateWriteArguments(writer, span))
+                return;
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (span.Start == 0 && span.Length == Length)
+            {
+                writer.Write(Builder);
+            }
+            else
+            {
+                base.Write(writer, span, cancellationToken);
+            }
+#else
+            base.Write(writer, span, cancellationToken);
+#endif
         }
     }
 }
