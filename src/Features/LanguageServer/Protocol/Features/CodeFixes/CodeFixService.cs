@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
