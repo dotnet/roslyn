@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal abstract class SourceTextWriter : TextWriter
     {
+        // Unicode since the data is always stored in-memory as UTF-16 chars.
+        public override Encoding Encoding => Encoding.Unicode;
+
         public abstract SourceText ToSourceText();
 
         public static SourceTextWriter Create(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
