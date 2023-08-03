@@ -54,7 +54,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
 
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
         {
-            var expression = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             if (expression is InitializerExpressionSyntax initializer)
             {
                 RewriteInitializerExpression(initializer);

@@ -88,14 +88,14 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             : initializer;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, arrayCreationExpression, cancellationToken))
+                semanticModel, arrayCreationExpression, skipVerificationForReplacedNode: false, cancellationToken))
         {
             return;
         }
 
         if (isConcreteOrImplicitArrayCreation)
         {
-            var locations = ImmutableArray.Create(initializer.GetLocation());
+            var locations = ImmutableArray.Create(arrayCreationExpression.GetLocation());
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 arrayCreationExpression.GetFirstToken().GetLocation(),

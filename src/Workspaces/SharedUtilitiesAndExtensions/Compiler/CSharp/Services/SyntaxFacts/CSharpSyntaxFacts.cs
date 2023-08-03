@@ -1614,16 +1614,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             whenFalse = conditionalExpression.WhenFalse;
         }
 
-        public void GetPartsOfForeachStatement(SyntaxNode statement, out SyntaxToken identifier, out SyntaxNode expression, out IEnumerable<SyntaxNode> statements)
+        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode statement)
         {
             var commonForeach = (CommonForEachStatementSyntax)statement;
-            identifier = commonForeach is ForEachStatementSyntax { Identifier: var foreachIdentifier }
-                ? foreachIdentifier
-                : default;
-            expression = commonForeach.Expression;
-            statements = commonForeach.Statement is BlockSyntax block
-                ? block.Statements
-                : SpecializedCollections.SingletonEnumerable(commonForeach.Statement);
+            return commonForeach.Expression;
         }
 
         public void GetPartsOfGenericName(SyntaxNode node, out SyntaxToken identifier, out SeparatedSyntaxList<SyntaxNode> typeArguments)
