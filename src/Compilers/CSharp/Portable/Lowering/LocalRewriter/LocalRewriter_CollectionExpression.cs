@@ -163,15 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is NamedTypeSymbol);
 
             var collectionType = (NamedTypeSymbol)node.Type;
-            BoundExpression? arrayOrList;
+            BoundExpression arrayOrList;
 
-            // For [] with target type IEnumerable<T>, use Array.Empty<T>() rather than List<T>.
+            // Use Array.Empty<T>() rather than List<T> for an empty collection expression when
+            // the target type is IEnumerable<T>, IReadOnlyCollection<T>, or IReadOnlyList<T>.
             if (node.Elements.Length == 0 &&
-                collectionType.OriginalDefinition.Equals(_compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T), TypeCompareKind.AllIgnoreOptions))
+                collectionType is
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T,
+                    TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var elementType]
+                })
             {
-                var elementType = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
-                var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                arrayOrList = CreateEmptyArray(node.Syntax, arrayType);
+                arrayOrList = CreateEmptyArray(node.Syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
             }
             else
             {

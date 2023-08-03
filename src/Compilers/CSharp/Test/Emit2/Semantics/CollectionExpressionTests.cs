@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "(System.Int32[]) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], ");
+                expectedOutput: "(System.Int32[]) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Int32[]) [], (System.Int32[]) [], ");
         }
 
         [Fact]
@@ -5235,6 +5235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             verifier.VerifyIL("Program.EmptyArray<T>", expectedIL);
             verifier.VerifyIL("Program.EmptyIEnumerable<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyCollection<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyList<T>", expectedIL);
 
             expectedIL =
                 """
@@ -5247,8 +5249,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             verifier.VerifyIL("Program.EmptyICollection<T>", expectedIL);
             verifier.VerifyIL("Program.EmptyIList<T>", expectedIL);
-            verifier.VerifyIL("Program.EmptyIReadOnlyCollection<T>", expectedIL);
-            verifier.VerifyIL("Program.EmptyIReadOnlyList<T>", expectedIL);
         }
 
         [CombinatorialData]
@@ -5303,6 +5303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             verifier.VerifyIL("Program.EmptyArray", expectedIL);
             verifier.VerifyIL("Program.EmptyIEnumerable", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyCollection", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyList", expectedIL);
 
             expectedIL =
                 """
@@ -5315,8 +5317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             verifier.VerifyIL("Program.EmptyICollection", expectedIL);
             verifier.VerifyIL("Program.EmptyIList", expectedIL);
-            verifier.VerifyIL("Program.EmptyIReadOnlyCollection", expectedIL);
-            verifier.VerifyIL("Program.EmptyIReadOnlyList", expectedIL);
         }
 
         [Fact]
