@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/69364")]
         public async Task NavigateTo()
         {
             var project = ProjectName;
