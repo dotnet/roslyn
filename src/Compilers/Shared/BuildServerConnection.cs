@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string? libDirectory)
         {
             Debug.Assert(workingDirectory is object);
-            Debug.Assert(tempDirectory is object);
 
             return BuildRequest.Create(
                 language,
@@ -617,9 +616,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Unix temp path is fine: it does not use the working directory
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
                 //
-                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory under
-                // $XDG_RUNTIME_DIR if it is set using appropriate fall backs as necessary.
-                // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory 
+                // to a per user location.
                 return Path.GetTempPath();
             }
 
