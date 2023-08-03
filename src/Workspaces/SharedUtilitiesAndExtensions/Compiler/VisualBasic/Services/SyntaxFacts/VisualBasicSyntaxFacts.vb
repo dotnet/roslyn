@@ -1813,15 +1813,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             whenFalse = conditionalExpression.WhenFalse
         End Sub
 
-        Public Sub GetPartsOfForeachStatement(statement As SyntaxNode, ByRef identifier As SyntaxToken, ByRef expression As SyntaxNode, ByRef statements As IEnumerable(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfForeachStatement
-            Dim foreachStatement = DirectCast(statement, ForEachStatementSyntax)
-            Dim declarator = TryCast(foreachStatement.ControlVariable, VariableDeclaratorSyntax)
-            identifier = If(declarator Is Nothing, Nothing, declarator.Names(0).Identifier)
-            expression = foreachStatement.Expression
-
-            Dim foreachBlock = TryCast(foreachStatement.Parent, ForEachBlockSyntax)
-            statements = If(foreachBlock Is Nothing, SpecializedCollections.EmptyEnumerable(Of SyntaxNode), foreachBlock.Statements)
-        End Sub
+        Public Function GetExpressionOfForeachStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
+            Return DirectCast(statement, ForEachStatementSyntax).Expression
+        End Function
 
         Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
             Dim interpolatedStringExpression = DirectCast(node, InterpolatedStringExpressionSyntax)

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
             UseInitializerHelpers.AddExistingItems<ObjectInitializerMatch, ExpressionSyntax>(
-                objectCreation, nodesAndTokens, static (_, e) => e);
+                objectCreation, nodesAndTokens, addTrailingComma: true, static (_, e) => e);
 
             for (var i = 0; i < matches.Length; i++)
             {

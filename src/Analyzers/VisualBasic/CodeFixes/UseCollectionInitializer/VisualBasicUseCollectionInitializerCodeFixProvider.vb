@@ -24,12 +24,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
             ForEachStatementSyntax,
-            VariableDeclaratorSyntax)
+            IfStatementSyntax,
+            VariableDeclaratorSyntax,
+            VisualBasicCollectionInitializerAnalyzer)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetAnalyzer() As VisualBasicCollectionInitializerAnalyzer
+            Return VisualBasicCollectionInitializerAnalyzer.Allocate()
+        End Function
 
         Protected Overrides Function GetNewStatement(
                 sourceText As SourceText,
