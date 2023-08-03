@@ -399,12 +399,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
-        <target state="new">There is no target type for the collection literal.</target>
+        <target state="translated">컬렉션 리터럴에 대한 대상 형식이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <target state="translated">형식을 생성할 수 없으므로 컬렉션 리터럴을 사용하여 '{0}' 형식을 초기화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
         <source>An expression tree may not contain a collection literal.</source>
-        <target state="new">An expression tree may not contain a collection literal.</target>
+        <target state="translated">식 트리에는 컬렉션 리터럴이 포함될 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -2039,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionLiterals">
         <source>collection literals</source>
-        <target state="new">collection literals</target>
+        <target state="translated">컬렉션 리터럴</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
