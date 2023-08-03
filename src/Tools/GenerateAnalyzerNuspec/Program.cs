@@ -60,9 +60,7 @@ foreach (string entry in metadataList)
         result.AppendLine($"    <{name}>{value}</{name}>");
     }
 
-#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4520
     if (name == "version")
-#pragma warning restore CA1508
     {
         version = value;
     }
