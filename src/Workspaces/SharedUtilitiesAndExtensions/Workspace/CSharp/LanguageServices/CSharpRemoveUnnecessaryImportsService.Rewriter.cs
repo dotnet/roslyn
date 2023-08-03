@@ -243,6 +243,42 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
                 return resultNamespace;
             }
+
+            public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+            {
+                // Avoid recursing into a class declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+            {
+                // Avoid recursing into a delegate declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
+            {
+                // Avoid recursing into an enum declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+            {
+                // Avoid recursing into an interface declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+            {
+                // Avoid recursing into a record declaration
+                return node;
+            }
+
+            public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+            {
+                // Avoid recursing into a struct declaration
+                return node;
+            }
         }
     }
 }
