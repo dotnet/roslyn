@@ -207,7 +207,7 @@ class A { }";
 
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(completionParams.TextDocument.Uri, new System.Uri((string)resolvedItem.Command.Arguments[0]));
+        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)14, resolvedItem.Command.Arguments[3]);
