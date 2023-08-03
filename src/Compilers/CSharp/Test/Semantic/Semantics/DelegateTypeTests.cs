@@ -5462,15 +5462,15 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (6,25): error CS8917: The delegate type could not be inferred.
-                //         Report((bool b) => { if (b) return default; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 25),
-                // (7,25): error CS8917: The delegate type could not be inferred.
-                //         Report((bool b) => { if (b) return; else return default; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 25),
-                // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
-                //         Report((bool b) => { if (b) return; else return default; });
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
+                // (6,31): error CS0126: An object of a type convertible to 'object' is required
+                //         Report(object () => { return; });
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(6, 31),
+                // (7,32): error CS1643: Not all code paths return a value in lambda expression of type 'Func<bool, object>'
+                //         Report(object (bool b) => { if (b) return null; });
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<bool, object>").WithLocation(7, 32),
+                // (8,44): error CS0126: An object of a type convertible to 'object' is required
+                //         Report(object (bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(8, 44));
         }
 
         [Fact]
