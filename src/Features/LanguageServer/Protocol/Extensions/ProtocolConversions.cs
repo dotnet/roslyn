@@ -21,8 +21,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -240,6 +242,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = TextSpanToRange(textChange.Span, oldText)
             };
         }
+
+        public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
+            => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
         public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
             => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
