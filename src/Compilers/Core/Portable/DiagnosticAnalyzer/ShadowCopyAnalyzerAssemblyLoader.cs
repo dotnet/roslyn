@@ -61,7 +61,11 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
+                // https://github.com/dotnet/roslyn/issues/65415
+                // Fixing that issue will involve removing this GetTempPath call
+#pragma warning disable RS0030
                 _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
+#pragma warning restore RS0030
             }
 
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
