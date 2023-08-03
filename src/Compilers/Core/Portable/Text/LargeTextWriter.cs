@@ -15,27 +15,34 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
-        private readonly int _length;
         private readonly ArrayBuilder<char[]> _chunks;
 
         private readonly int _bufferSize;
         private char[]? _buffer;
         private int _currentUsed;
 
+#if DEBUG
+        private readonly int _length;
+#endif
+
         public LargeTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
-            _length = length;
             _chunks = ArrayBuilder<char[]>.GetInstance(1 + length / LargeText.ChunkSize);
             _bufferSize = Math.Min(LargeText.ChunkSize, length);
+#if DEBUG
+            _length = length;
+#endif
         }
 
         public override SourceText ToSourceText()
         {
             this.Flush();
 
+#if DEBUG
             RoslynDebug.Assert(_chunks.Sum(chunk => chunk.Length) == _length);
+#endif
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
