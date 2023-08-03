@@ -2161,7 +2161,7 @@ class Program
 input,
 @"using System.Runtime.InteropServices;
 
-[ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
+[assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
