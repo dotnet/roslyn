@@ -288,13 +288,10 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // count how many contiguous segments are reducible
                     int count = 1;
-                    for (int j = i + 1; j < segments.Count; j++)
+                    for (int j = i + 1; j < segments.Count && segments[j].Length <= segmentSize; j++)
                     {
-                        if (segments[j].Length <= segmentSize)
-                        {
-                            count++;
-                            combinedLength += segments[j].Length;
-                        }
+                        count++;
+                        combinedLength += segments[j].Length;
                     }
 
                     // if we've got at least two, then combine them into a single text
