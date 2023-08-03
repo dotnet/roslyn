@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal static class AddImportHelpers
     {
-        public static TRootSyntax MoveTrivia<TRootSyntax, TImportDirectiveSyntax>(
+        public static (TRootSyntax root, bool addBlankLine) MoveTrivia<TRootSyntax, TImportDirectiveSyntax>(
             ISyntaxFacts syntaxFacts,
             TRootSyntax root,
             SyntaxList<TImportDirectiveSyntax> existingImports,
@@ -20,8 +20,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             where TRootSyntax : SyntaxNode
             where TImportDirectiveSyntax : SyntaxNode
         {
+            var addBlankLine = false;
             if (existingImports.Count == 0)
             {
+                // We add a blank line after a brand new using group.
+                addBlankLine = newImports.Count > 0;
+
                 // We don't have any existing usings. Move any trivia on the first token 
                 // of the file to the first using.
                 // 
@@ -48,11 +52,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default : trailingTrivia[^1]))
                     {
                         newImports[i] = newImports[i].WithAppendedTrailingTrivia(endOfLine);
-                        if (i == newImports.Count - 1)
-                        {
-                            // Add a blank line after the last using in the new group
-                            newImports[i] = newImports[i].WithAppendedTrailingTrivia(endOfLine);
-                        }
                     }
                 }
             }
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return root;
+            return (root, addBlankLine);
         }
 
         private static bool IsDocCommentOrElastic(ISyntaxFacts syntaxFacts, SyntaxTrivia t)
