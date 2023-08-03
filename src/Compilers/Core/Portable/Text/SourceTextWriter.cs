@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal abstract class SourceTextWriter : TextWriter
     {
-        // Unicode since the data is always stored in-memory as UTF-16 chars.
-        public override Encoding Encoding => new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
+        // Unicode since the data is always stored in-memory as UTF-16 chars. This matches what StringWriter.Encoding returns.
+        public sealed override Encoding Encoding => TextEncodingKind.EncodingUnicode_LE.GetEncoding();
 
         public abstract SourceText ToSourceText();
 
