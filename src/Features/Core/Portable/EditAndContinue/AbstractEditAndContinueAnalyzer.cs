@@ -4718,6 +4718,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     return false;
                 }
+
+                if (attributeData.AttributeClass is
+                    {
+                        Name: "InlineArrayAttribute",
+                        ContainingNamespace.Name: "CompilerServices",
+                        ContainingNamespace.ContainingNamespace.Name: "Runtime",
+                        ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: "System",
+                        ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true
+                    })
+                {
+                    var node = newNode ?? GetRudeEditDiagnosticNode(newSymbol, cancellationToken);
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingAttribute, GetDiagnosticSpan(node, EditKind.Update), node, new[]
+                    {
+                        attributeData.AttributeClass.Name,
+                    }));
+
+                    return false;
+                }
             }
 
             return true;
