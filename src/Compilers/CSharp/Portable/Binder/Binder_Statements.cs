@@ -1971,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LambdaExpressionSyntax lambda => lambda.ArrowToken.GetLocation(),
                 AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.DelegateKeyword.GetLocation(),
-                _ => node.Location;
+                _ => node.Location,
             };
 
         internal void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, SyntaxNode syntax,
