@@ -257,8 +257,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => ComputeOperationsAsync(cancellationToken);
 
         /// <summary>
-        /// Computes all changes for an entire solution.
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes more than one document.
+        /// Computes all changes for an entire solution. Override this method if you want to implement a <see
+        /// cref="CodeAction"/> subclass that changes more than one document.  Override <see
+        /// cref="GetChangedSolutionAsync(IProgress{CodeActionProgress}, CancellationToken)"/> to report progress
+        /// progress while computing the operations.
         /// </summary>
         protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
@@ -271,11 +273,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        internal virtual Task<Solution?> GetChangedSolutionAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            return GetChangedSolutionAsync(cancellationToken);
-        }
+        protected virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            => GetChangedSolutionAsync(cancellationToken);
 
         /// <summary>
         /// Computes changes for a single document. Override this method if you want to implement a
@@ -293,9 +292,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution?> GetChangedSolutionInternalAsync(Solution originalSolution, bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        internal async Task<Solution?> GetChangedSolutionInternalAsync(
+            Solution originalSolution, IProgress<CodeActionProgress> progress, bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
-            var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+            var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
             {
                 return solution;
