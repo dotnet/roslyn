@@ -86,15 +86,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, cancellationToken);
 
-                if (matches == null || matches.Value.Length == 0)
-                {
+                if (matches.IsDefaultOrEmpty)
                     continue;
-                }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                var newStatement = GetNewStatement(statement, objectCreation, matches)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);

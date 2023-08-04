@@ -54,21 +54,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public NotOverridable Overrides Function ComputeMatch(newBody As DeclarationBody, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
+        Public NotOverridable Overrides Function ComputeSingleRootMatch(newBody As DeclarationBody, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
             Dim newFieldBody = DirectCast(newBody, FieldOrPropertyDeclarationBody)
 
             If TypeOf OtherActiveStatementContainer Is ExpressionSyntax Then
                 ' Dim a = <Expression>
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
-                Return New SyntaxComparer(
-                        OtherActiveStatementContainer.Parent,
-                        newFieldBody.OtherActiveStatementContainer.Parent,
-                        {OtherActiveStatementContainer},
-                        {newFieldBody.OtherActiveStatementContainer},
-                        matchingLambdas:=False,
-                        compareStatementSyntax:=True).
-                       ComputeMatch(OtherActiveStatementContainer.Parent, newFieldBody.OtherActiveStatementContainer.Parent, knownMatches)
+                Dim comparer = New SyntaxComparer(
+                    OtherActiveStatementContainer.Parent,
+                    newFieldBody.OtherActiveStatementContainer.Parent,
+                    {OtherActiveStatementContainer},
+                    {newFieldBody.OtherActiveStatementContainer},
+                    matchingLambdas:=False,
+                    compareStatementSyntax:=True)
+
+                Return comparer.ComputeMatch(OtherActiveStatementContainer.Parent, newFieldBody.OtherActiveStatementContainer.Parent, knownMatches)
             End If
 
             ' Method, accessor, operator, etc. bodies are represented by the declaring block, which is also the root.
@@ -100,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     statementPart)
         End Function
 
-        Public Overrides Function TryMatchActiveStatement(newBody As DeclarationBody, oldStatement As SyntaxNode, statementPart As Integer, <NotNullWhen(True)> ByRef newStatement As SyntaxNode) As Boolean
+        Public Overrides Function TryMatchActiveStatement(newBody As DeclarationBody, oldStatement As SyntaxNode, ByRef statementPart As Integer, <NotNullWhen(True)> ByRef newStatement As SyntaxNode) As Boolean
             If oldStatement Is InitializerActiveStatement Then
                 newStatement = DirectCast(newBody, FieldOrPropertyDeclarationBody).InitializerActiveStatement
                 Return True
@@ -116,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Envelope As ActiveStatementEnvelope
+        Public Overrides ReadOnly Property Envelope As TextSpan
             Get
                 Return InitializerActiveStatement.Span
             End Get

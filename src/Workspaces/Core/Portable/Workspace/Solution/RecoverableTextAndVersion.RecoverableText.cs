@@ -48,7 +48,7 @@ internal sealed partial class RecoverableTextAndVersion
         /// </summary>
         private WeakReference<SourceText>? _weakReference;
 
-        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
+        private SemaphoreSlim Gate => InterlockedOperations.Initialize(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
         /// <summary>
         /// Attempts to get the value, but only through the weak reference.  This will only succeed *after* the value

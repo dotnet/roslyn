@@ -19,31 +19,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal partial class TestRunner(ILoggerFactory loggerFactory)
 {
-    /// <summary>
-    /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
-    /// </summary>
-    private const string StageName = "Running tests...";
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<TestRunner>();
 
     public async Task RunTestsAsync(
         ImmutableArray<TestCase> testCases,
         BufferedProgress<RunTestsPartialResult> progress,
         VsTestConsoleWrapper vsTestConsoleWrapper,
+        bool attachDebugger,
+        IClientLanguageServerManager clientLanguageServerManager,
         CancellationToken cancellationToken)
     {
         var initialProgress = new TestProgress
         {
             TotalTests = testCases.Length
         };
-        progress.Report(new RunTestsPartialResult(StageName, $"{Environment.NewLine}Starting test run", initialProgress));
+        progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, $"{Environment.NewLine}{LanguageServerResources.Starting_test_run}", initialProgress));
 
         var handler = new TestRunHandler(progress, initialProgress, _logger);
 
-        // The async APIs for vs test are broken (current impl ends up just hanging), so we must use the sync API instead.
-        // TODO - run settings. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
-        var runTask = Task.Run(() => vsTestConsoleWrapper.RunTests(testCases, runSettings: null, handler), cancellationToken);
+        var runTask = Task.Run(() => RunTests(testCases, progress, vsTestConsoleWrapper, handler, attachDebugger, clientLanguageServerManager), cancellationToken);
         cancellationToken.Register(() => vsTestConsoleWrapper.CancelTestRun());
         await runTask;
+    }
+
+    private static void RunTests(
+        ImmutableArray<TestCase> testCases,
+        BufferedProgress<RunTestsPartialResult> progress,
+        VsTestConsoleWrapper vsTestConsoleWrapper,
+        TestRunHandler handler,
+        bool attachDebugger,
+        IClientLanguageServerManager clientLanguageServerManager)
+    {
+        if (attachDebugger)
+        {
+            // When we want to debug tests we need to use a custom test launcher so that we get called back with the process to attach to.
+            vsTestConsoleWrapper.RunTestsWithCustomTestHost(testCases, runSettings: null, handler, new DebugTestHostLauncher(progress, clientLanguageServerManager));
+        }
+        else
+        {
+            // The async APIs for vs test are broken (current impl ends up just hanging), so we must use the sync API instead.
+            // TODO - run settings. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
+            vsTestConsoleWrapper.RunTests(testCases, runSettings: null, handler);
+        }
     }
 }

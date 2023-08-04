@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer = null,
             RefKind refKind = RefKind.None)
         {
-            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false, isScoped: false);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer,
             RefKind refKind,
             bool isExtension,
-            bool isParams);
+            bool isParams,
+            bool isScoped);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
@@ -340,7 +341,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
-                symbol.IsParams);
+                symbol.IsParams,
+                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                    or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
         }
 
         private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);

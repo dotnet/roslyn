@@ -360,6 +360,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">La captura de número no puede ser cero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
+        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
         <target state="translated">Para capturar la variable "{0}" que no ha sido capturada antes, se requiere reiniciar la aplicación.</target>
@@ -370,9 +375,14 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para dejar de acceder a la variable capturada "{0}" en {1} es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
+        <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
+        <target state="new">Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
         <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Para dejar de capturar la variable "{0}" es necesario reiniciar la aplicación.</target>
+        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -593,6 +603,16 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Crear y asignar el resto como propiedades</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -3369,6 +3389,11 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">y actualizar sitios de llamada directamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_with_explicit_or_sequential_layout">
+        <source>class with explicit or sequential layout</source>
+        <target state="new">class with explicit or sequential layout</target>
         <note />
       </trans-unit>
       <trans-unit id="code">

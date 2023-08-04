@@ -378,6 +378,12 @@
   <data name="Ceasing_to_capture_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Ceasing to capture variable '{0}' requires restarting the application.</value>
   </data>
+  <data name="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</value>
+  </data>
+  <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
+    <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
+  </data>
   <data name="Deleting_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Deleting captured variable '{0}' requires restarting the application.</value>
   </data>
@@ -3117,6 +3123,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="struct_" xml:space="preserve">
     <value>struct</value>
   </data>
+  <data name="class_with_explicit_or_sequential_layout" xml:space="preserve">
+    <value>class with explicit or sequential layout</value>
+  </data>
   <data name="Inline_temporary_variable" xml:space="preserve">
     <value>Inline temporary variable</value>
   </data>
@@ -3176,5 +3185,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Run_Test" xml:space="preserve">
     <value>Run Test</value>
+  </data>
+  <data name="Debug_All_Tests" xml:space="preserve">
+    <value>Debug All Tests</value>
+  </data>
+  <data name="Debug_Test" xml:space="preserve">
+    <value>Debug Test</value>
   </data>
 </root>

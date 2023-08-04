@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: Instead of computing this again, cache the reason why the conversion failed in
             // CONSIDER: the Conversion result, and simply report that.
 
-            var reason = Conversions.IsAnonymousFunctionCompatibleWithType(anonymousFunction, targetType);
+            var reason = Conversions.IsAnonymousFunctionCompatibleWithType(anonymousFunction, targetType, this.Compilation);
 
             // It is possible that the conversion from lambda to delegate is just fine, and
             // that we ended up here because the target type, though itself is not an error
@@ -2362,10 +2362,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
-                case BoundKind.UnconvertedCollectionLiteralExpression:
+                case BoundKind.UnconvertedCollectionExpression:
                     {
                         Debug.Assert(operand.Type is null);
-                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
                         return;
                     }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():

@@ -1,6 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <!--
+            By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
+            However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
+
+            So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
+        -->
+        <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -78,6 +85,10 @@
     <ItemGroup>
         <RoslynVersionFile Include="$(OutDir)\RoslynVersion.txt" />
         <FileWrites Include="@(RoslynVersionFile)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
     </ItemGroup>
 
     <Target Name="WriteRoslynVersion" AfterTargets="Build">

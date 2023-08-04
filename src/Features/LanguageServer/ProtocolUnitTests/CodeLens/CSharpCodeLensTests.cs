@@ -233,7 +233,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestHasRunTestsCommandAsync(bool mutatingLspWorkspace)
+    public async Task TestHasTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -254,12 +254,19 @@ namespace Test
     }
 }
 ";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
-        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+            }
+        });
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
     }
 
     [Theory, CombinatorialData]
-    public async Task TestHasRunAllTestsCommandAsync(bool mutatingLspWorkspace)
+    public async Task TestHasAllTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -280,7 +287,47 @@ namespace Test
     }
 }
 ";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
-        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+            }
+        });
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests, FeaturesResources.Debug_All_Tests);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDoesNotHaveTestCommandWhenDisabledAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"using System;
+namespace Xunit
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class FactAttribute : Attribute { }
+}
+namespace Test
+{
+    using Xunit;
+    class A
+    {
+        [Fact]
+        public void {|codeLens:M|}()
+        {
+        }
+    }
+}
+";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
+            }
+        });
+        await VerifyTestCodeLensMissingAsync(testLspServer);
     }
 }
