@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod
             var markup =
 @"
 using System;
+using System.Threading.Tasks;
 namespace test;
 class A
 {
@@ -33,10 +34,10 @@ class A
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var methodInsertionLocation = testLspServer.GetLocations("caret").First();
-            var method = "private void test() => throw new System.NotImplementedException();";
+            var method = "private global::System.Threading.Tasks.Task test() => throw new global::System.NotImplementedException();";
             var expectedEdit = new TextEdit()
             {
-                NewText = "private void test() => throw new NotImplementedException();",
+                NewText = "private Task test() => throw new NotImplementedException();",
                 Range = methodInsertionLocation.Range,
             };
 

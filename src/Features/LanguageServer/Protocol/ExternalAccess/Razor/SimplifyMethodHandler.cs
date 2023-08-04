@@ -42,7 +42,6 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
 
         if (originalDocument is null)
             return null;
-        cancellationToken = CancellationToken.None;
 
         // Create a temporary syntax tree that includes the text edit.
         var originalSourceText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -54,12 +53,13 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         // Find the node that represents the text edit in the new syntax tree and annotate it for the simplifier.
         // Then create a document with a new syntax tree that has the annotated node.
         var node = newTree.FindNode(pendingChange.Span, findInTrivia: false, getInnermostNodeForTie: false, cancellationToken);
-        var annotatedNode = node.WithAdditionalAnnotations(Simplifier.Annotation);
-        var annotatedSyntaxRoot = newTree.GetRoot(cancellationToken).ReplaceNode(node, annotatedNode);
+        var annotatedSyntaxRoot = newTree.GetRoot(cancellationToken).ReplaceNode(node, node.WithAdditionalAnnotations(Simplifier.Annotation));
         var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntaxRoot);
 
         // Call to the Simplifier and pass back the edits.
-        var options = originalDocument.Project.Services.GetRequiredService<ISimplificationService>().DefaultOptions;
+        var configOptions = await originalDocument.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var simplificationService = originalDocument.Project.Services.GetRequiredService<ISimplificationService>();
+        var options = simplificationService.GetSimplifierOptions(configOptions, simplificationService.DefaultOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         return changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText)).ToArray();
