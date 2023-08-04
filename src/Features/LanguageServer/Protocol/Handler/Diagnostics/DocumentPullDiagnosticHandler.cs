@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return null;
         }
 
-        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-            => ConvertTags(diagnosticData, potentialDuplicate: false);
+        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project)
+            => ConvertTags(diagnosticData, project, potentialDuplicate: false);
 
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
             VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
