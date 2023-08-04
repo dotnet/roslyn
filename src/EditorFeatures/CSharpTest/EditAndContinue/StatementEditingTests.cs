@@ -6161,7 +6161,7 @@ class Program
         }
 
         [Fact]
-        public void Lambdas_StackAlloc()
+        public void Lambdas_StackAlloc_Update()
         {
             var src1 = @"
 using System;
@@ -6180,6 +6180,61 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_Insert()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    Delegate F() => () => { };
+}";
+            var src2 = @"
+using System;
+class C
+{
+    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_Delete()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+}";
+            var src2 = @"
+using System;
+class C
+{
+    Delegate F() => () => { };
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "()", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_UpdateAround()
+        {
+            var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
+            var src2 = "unsafe class C { void M() { F(2, () => { int* a = stackalloc int[10]; }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -9090,7 +9145,7 @@ interface I
         }
 
         [Fact]
-        public void LocalFunctions_Stackalloc()
+        public void LocalFunctions_Stackalloc_Update()
         {
             var src1 = @"
 using System;
@@ -9129,6 +9184,72 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("local function")));
+        }
+
+        [Fact]
+        public void LocalFunctions_Stackalloc_Insert()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+            Span<int> s = stackalloc int[10];
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("local function")));
+        }
+
+        [Fact]
+        public void LocalFunctions_Stackalloc_Delete()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+            Span<int> s = stackalloc int[10];
+        }
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "L1", GetResource("local function")));
         }
 
         [Fact]
@@ -9255,6 +9376,28 @@ class Test
         #endregion
 
         #region Queries
+
+        [Fact]
+        public void Queries_UpdateAround_BlockBody()
+        {
+            var src1 = "class C { void M() { F(1, from goo in bar select baz); } }";
+            var src2 = "class C { void M() { F(2, from goo in bar select baz); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_UpdateAround_ExpressionBody()
+        {
+            var src1 = "class C { void M() => F(1, from goo in bar select baz); }";
+            var src2 = "class C { void M() => F(2, from goo in bar select baz); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
 
         [Fact]
         public void Queries_Update_Signature_Select1()
