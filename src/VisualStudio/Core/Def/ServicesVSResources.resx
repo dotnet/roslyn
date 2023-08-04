@@ -2025,4 +2025,8 @@ Additional information: {1}</value>
   <data name="Prefer_collection_expression" xml:space="preserve">
     <value>Prefer collection expression</value>
   </data>
+  <data name="SystemVoid_is_not_a_valid_type_for_a_parameter" xml:space="preserve">
+    <value>'System.Void' is not a valid type for a parameter</value>
+    <comment>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</comment>
+  </data>
 </root>
