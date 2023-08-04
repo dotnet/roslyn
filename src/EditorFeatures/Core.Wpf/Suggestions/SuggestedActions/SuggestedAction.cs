@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task InvokeWorkerAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        private async Task InvokeWorkerAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
-                    operations = await GetOperationsAsync(actionWithOptions, options, progress, cancellationToken).ConfigureAwait(true);
+                    operations = await GetOperationsAsync(actionWithOptions, options, progressTracker, cancellationToken).ConfigureAwait(true);
             }
             else
             {
-                operations = await GetOperationsAsync(progress, cancellationToken).ConfigureAwait(true);
+                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             AssertIsForeground();
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
-                progress.Clear();
+                progressTracker.Clear();
 
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         document,
                         operations.ToImmutableArray(),
                         CodeAction.Title,
-                        progress,
+                        progressTracker,
                         cancellationToken).ConfigureAwait(false);
                 }
             }
