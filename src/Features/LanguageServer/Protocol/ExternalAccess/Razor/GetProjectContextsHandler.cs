@@ -49,7 +49,7 @@ internal class GetProjectContextsHandler : ILspServiceDocumentRequestHandler<Pro
             return SpecializedTasks.Null<ProjectContextList>();
         }
 
-        var idToIntermediateOutputMap = new Dictionary<string, string>();
+        var idToIntermediateOutputMap = new Dictionary<string, string?>();
         var contexts = new List<VSProjectContext>();
 
         foreach (var document in documents)
@@ -57,7 +57,7 @@ internal class GetProjectContextsHandler : ILspServiceDocumentRequestHandler<Pro
             var project = document.Project;
             var projectContext = ProtocolConversions.ProjectToProjectContext(project);
             contexts.Add(projectContext);
-            idToIntermediateOutputMap[projectContext.Id] = project.OutputFilePath ?? "";
+            idToIntermediateOutputMap[projectContext.Id] = project.CompilationOutputInfo.AssemblyPath;
         }
 
         // If the document is open, it doesn't matter which DocumentId we pass to GetDocumentIdInCurrentContext since

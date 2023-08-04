@@ -14,5 +14,5 @@ internal class ProjectContextList : VSProjectContextList
     // Summary:
     //     Gets or sets the value which maps project ids to intermediate output paths
     [DataMember(Name = "_roslyn_projectIdMap")]
-    public required Dictionary<string, string> ProjectIdToIntermediatePathMap { get; set; }
+    public required Dictionary<string, string?> ProjectIdToIntermediatePathMap { get; set; }
 }
