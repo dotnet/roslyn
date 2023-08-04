@@ -94,8 +94,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static PooledStringBuilder GetInstance(int capacity)
         {
-            var builder = s_poolInstance.Allocate();
-            Debug.Assert(builder.Builder.Length == 0);
+            var builder = GetInstance();
             builder.Builder.EnsureCapacity(capacity);
             return builder;
         }
