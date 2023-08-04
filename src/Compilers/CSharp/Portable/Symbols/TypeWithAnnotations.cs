@@ -172,13 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static TypeWithAnnotations CreateLazyNullableTypeParameter(CSharpCompilation compilation, TypeWithAnnotations underlying)
         {
-            return new TypeWithAnnotations(defaultType: underlying.DefaultType, nullableAnnotation: NullableAnnotation.Annotated, Extensions.CreateLazyNullableTypeParameter(compilation, underlying));
+            return new TypeWithAnnotations(defaultType: underlying.DefaultType, nullableAnnotation: NullableAnnotation.Annotated, new LazyNullableTypeParameter(compilation, underlying));
         }
 
-        private static TypeWithAnnotations CreateLazySubstitutedType(TypeWithAnnotations substitutedType, TypeParameterSymbol typeParameter)
+        private static TypeWithAnnotations CreateLazySubstitutedType(TypeSymbol substitutedTypeSymbol, ImmutableArray<CustomModifier> customModifiers, TypeParameterSymbol typeParameter)
         {
-            Debug.Assert((object)substitutedType.DefaultType == substitutedType.Type);
-            return new TypeWithAnnotations(defaultType: substitutedType.DefaultType, nullableAnnotation: NullableAnnotation.Ignored, Extensions.CreateLazySubstitutedType(typeParameter));
+            return new TypeWithAnnotations(defaultType: substitutedTypeSymbol, nullableAnnotation: NullableAnnotation.Ignored, new LazySubstitutedType(customModifiers, typeParameter));
         }
 
         /// <summary>
@@ -505,12 +504,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // We won't know the substituted type's nullable annotation
                         // until we bind type constraints on the type parameter.
                         // We need to delay doing this to avoid a cycle.
-                        return CreateLazySubstitutedType(newTypeWithModifiers, typeParameter);
+                        Debug.Assert((object)newTypeWithModifiers.DefaultType == newTypeWithModifiers.Type);
+                        return CreateLazySubstitutedType(newTypeWithModifiers.DefaultType, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers), typeParameter);
                     }
                 }
 
                 // Either the type parameter was "not nullable from non type constraints"
-                // or the type argument was NotAnnotated.
+                // or the type argument was also NotAnnotated.
                 newAnnotation = NullableAnnotation.NotAnnotated;
             }
             else if (newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Oblivious)
@@ -841,16 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new NonLazyType(customModifiers);
             }
 
-            internal static Extensions CreateLazyNullableTypeParameter(CSharpCompilation compilation, TypeWithAnnotations underlying)
-            {
-                return new LazyNullableTypeParameter(compilation, underlying);
-            }
-
-            internal static Extensions CreateLazySubstitutedType(TypeParameterSymbol typeParameter)
-            {
-                return new LazySubstitutedType(typeParameter);
-            }
-
             internal abstract bool IsResolved { get; }
             internal abstract TypeSymbol GetResolvedType(TypeSymbol defaultType);
             internal abstract NullableAnnotation GetResolvedAnnotation(NullableAnnotation defaultAnnotation);
@@ -954,19 +944,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class LazySubstitutedType : Extensions
         {
+            private readonly ImmutableArray<CustomModifier> _customModifiers;
             private readonly TypeParameterSymbol _typeParameter;
             private int _resolved;
 
-            public LazySubstitutedType(TypeParameterSymbol typeParameter)
+
+            public LazySubstitutedType(ImmutableArray<CustomModifier> customModifiers, TypeParameterSymbol typeParameter)
             {
+                Debug.Assert(!customModifiers.IsDefault);
+                _customModifiers = customModifiers;
                 _typeParameter = typeParameter;
                 _resolved = (int)NullableAnnotation.Ignored;
             }
 
-            internal override bool IsVoid(TypeSymbol typeSymbol) => false;
-            internal override bool IsSZArray(TypeSymbol typeSymbol) => false;
-            internal override bool IsRefLikeType(TypeSymbol typeSymbol) => false;
-            internal override bool IsStatic(TypeSymbol typeSymbol) => false;
+            internal override SpecialType GetSpecialType(TypeSymbol typeSymbol) => typeSymbol.SpecialType;
+            internal override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => typeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
+            internal override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
+            internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.IsVoidType();
+            internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
+            internal override bool IsRefLikeType(TypeSymbol typeSymbol) => typeSymbol.IsRefLikeType;
 
             internal NullableAnnotation GetResolvedAnnotationCore()
             {
@@ -993,36 +989,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
-            internal override SpecialType GetSpecialType(TypeSymbol typeSymbol) => typeSymbol.SpecialType;
-            internal override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => typeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
             internal override TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol) => typeSymbol;
             internal override bool IsResolved => _resolved != (int)NullableAnnotation.Ignored;
             internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => defaultType;
-            internal override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
+            internal override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
             internal override TypeWithAnnotations WithModifiers(TypeWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
             {
-                throw ExceptionUtilities.Unreachable();
+                return CreateNonLazyType(type.DefaultType, type.NullableAnnotation, customModifiers);
             }
 
             internal override TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
-                throw ExceptionUtilities.Unreachable();
+                return CreateNonLazyType(typeSymbol, type.NullableAnnotation, customModifiers);
             }
 
             internal override TypeWithAnnotations AsNullableReferenceType(TypeWithAnnotations type)
             {
-                throw ExceptionUtilities.Unreachable();
+                return type.AsNullableReferenceType();
             }
 
             internal override TypeWithAnnotations AsNotNullableReferenceType(TypeWithAnnotations type)
             {
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
-            {
-                return type.SubstituteTypeCore(typeMap);
+                return type.AsNotNullableReferenceType();
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
@@ -1033,6 +1022,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison)
             {
                 return type.TypeSymbolEqualsCore(other, comparison);
+            }
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
+            {
+                return type.SubstituteTypeCore(typeMap);
             }
 
             internal override void TryForceResolve(bool asValueType)
