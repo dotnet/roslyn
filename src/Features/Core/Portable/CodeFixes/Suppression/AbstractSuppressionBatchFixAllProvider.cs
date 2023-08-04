@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     /// </summary>
     internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     {
-        protected AbstractSuppressionBatchFixAllProvider() { }
-
         public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, diagnosticsAndCodeActions.Length);
                         return await TryGetMergedFixAsync(
-                            diagnosticsAndCodeActions, fixAllState, cancellationToken).ConfigureAwait(false);
+                            diagnosticsAndCodeActions, fixAllState, progress, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var progressTracker = fixAllContext.Progress;
+                var progress = fixAllContext.Progress;
 
                 using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
@@ -101,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         documentsToFix.Add(document);
                 }
 
-                progressTracker.AddItems(documentsToFix.Count);
+                progress.Report(CodeActionProgress.IncompleteItems(documentsToFix.Count));
 
                 foreach (var document in documentsToFix)
                 {
                     var diagnosticsToFix = documentsAndDiagnosticsToFixMap[document];
                     tasks.Add(AddDocumentFixesAsync(
-                        document, diagnosticsToFix, fixesBag, fixAllState, progressTracker, cancellationToken));
+                        document, diagnosticsToFix, fixesBag, fixAllState, progress, cancellationToken));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
-            FixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            FixAllState fixAllState, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
             try
             {
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
             finally
             {
-                progressTracker.ItemCompleted();
+                progress.Report(CodeActionProgress.CompletedItem());
             }
         }
 
@@ -164,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             var cancellationToken = fixAllContext.CancellationToken;
             var fixAllState = fixAllContext.State;
+            var progress = fixAllContext.Progress;
 
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, result.Length);
                         return await TryGetMergedFixAsync(
-                            result, fixAllState, cancellationToken).ConfigureAwait(false);
+                            result, fixAllState, progress, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -233,13 +231,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public virtual async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllState fixAllState, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(batchOfFixes.Any());
 
             var solution = fixAllState.Solution;
             var newSolution = await TryMergeFixesAsync(
-                solution, batchOfFixes, fixAllState, cancellationToken).ConfigureAwait(false);
+                solution, batchOfFixes, fixAllState, progress, cancellationToken).ConfigureAwait(false);
             if (newSolution != null && newSolution != solution)
             {
                 var title = GetFixAllTitle(fixAllState);
@@ -255,10 +253,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllState fixAllState,
+            IProgress<CodeActionProgress> progress,
+            CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
-                oldSolution, diagnosticsAndCodeActions, cancellationToken).ConfigureAwait(false);
+                oldSolution, diagnosticsAndCodeActions, progress, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -280,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
+            IProgress<CodeActionProgress> progress,
             CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = new ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>();
@@ -291,8 +292,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             foreach (var (_, action) in diagnosticsAndCodeActions)
             {
                 getChangedDocumentsTasks.Add(GetChangedDocumentsAsync(
-                    oldSolution, documentIdToChangedDocuments,
-                    action, cancellationToken));
+                    oldSolution, documentIdToChangedDocuments, action, progress, cancellationToken));
             }
 
             await Task.WhenAll(getChangedDocumentsTasks).ConfigureAwait(false);

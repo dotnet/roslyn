@@ -163,7 +163,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         }
 
         public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            IntentDataProvider intentDataProvider,
+            CancellationToken cancellationToken)
         {
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
