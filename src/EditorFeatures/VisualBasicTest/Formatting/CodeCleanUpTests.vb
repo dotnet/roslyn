@@ -542,7 +542,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    CodeAnalysisProgress.Null,
+                    CodeAnalysisProgress.None,
                     options,
                     CancellationToken.None)
 
@@ -594,7 +594,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    CodeAnalysisProgress.Null,
+                    CodeAnalysisProgress.None,
                     globalOptions.CreateProvider(),
                     CancellationToken.None)
 

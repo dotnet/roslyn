@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 // Intents don't current support progress.
                 var intentResult = await GetIntentProcessorResultAsync(
-                    priorDocument, action, CodeAnalysisProgress.Null, cancellationToken).ConfigureAwait(false);
+                    priorDocument, action, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 results.AddIfNotNull(intentResult);
             }
 

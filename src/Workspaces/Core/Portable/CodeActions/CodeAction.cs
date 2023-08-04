@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-            => GetOperationsAsync(originalSolution: null!, CodeAnalysisProgress.Null, cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, CodeAnalysisProgress.None, cancellationToken);
 
         internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)

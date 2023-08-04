@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             private sealed class FixAllCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution) : CodeAction.SolutionChangeAction(
                 CSharpFeaturesResources.Enable_nullable_reference_types_in_solution,
-                cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
+                (_, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
                 nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution))
             {
                 private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;

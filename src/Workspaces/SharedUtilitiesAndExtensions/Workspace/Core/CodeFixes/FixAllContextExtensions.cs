@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static IProgress<CodeAnalysisProgress> GetProgressTracker(this FixAllContext context)
         {
 #if CODE_STYLE
-            return CodeAnalysisProgress.Null;
+            return CodeAnalysisProgress.None;
 #else
             return context.ProgressTracker;
 #endif

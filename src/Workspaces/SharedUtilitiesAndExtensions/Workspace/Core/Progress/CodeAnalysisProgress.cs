@@ -20,7 +20,7 @@ internal sealed class CodeAnalysisProgress
     /// available.  This should be used sparingly.  Locations that currently do not show progress should ideally be
     /// migrated to ones that do so that long running operations are visible to the user in a coherent fashion.
     /// </summary>
-    internal static readonly IProgress<CodeAnalysisProgress> Null = NullProgress<CodeAnalysisProgress>.Instance;
+    internal static readonly IProgress<CodeAnalysisProgress> None = NullProgress<CodeAnalysisProgress>.Instance;
 
     internal bool ClearValue { get; init; }
     internal bool CompletedItemValue { get; init; }

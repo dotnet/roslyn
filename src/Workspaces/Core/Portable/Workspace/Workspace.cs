@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-            => TryApplyChanges(newSolution, CodeAnalysisProgress.Null);
+            => TryApplyChanges(newSolution, CodeAnalysisProgress.None);
 
         internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {

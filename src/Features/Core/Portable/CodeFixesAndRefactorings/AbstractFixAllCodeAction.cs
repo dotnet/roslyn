@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
 
         protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            => await ComputeOperationsAsync(CodeAnalysisProgress.Null, cancellationToken).ConfigureAwait(false);
+            => await ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
         private protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)

@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     diagnosticIds,
                     fixAllDiagnosticProvider,
                     _sharedState.CodeActionOptions),
-                  CodeAnalysisProgress.Null, cancellationToken);
+                  CodeAnalysisProgress.None, cancellationToken);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)

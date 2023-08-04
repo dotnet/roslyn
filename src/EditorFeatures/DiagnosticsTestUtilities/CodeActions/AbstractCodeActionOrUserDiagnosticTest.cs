@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             return await action.GetOperationsAsync(
-                workspace.CurrentSolution, CodeAnalysisProgress.Null, CancellationToken.None);
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
         }
 
         protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 else if (operation.ApplyDuringTests)
                 {
                     var oldSolution = workspace.CurrentSolution;
-                    await operation.TryApplyAsync(workspace, oldSolution, CodeAnalysisProgress.Null, CancellationToken.None);
+                    await operation.TryApplyAsync(workspace, oldSolution, CodeAnalysisProgress.None, CancellationToken.None);
                     var newSolution = workspace.CurrentSolution;
                     result = Tuple.Create(oldSolution, newSolution);
                 }

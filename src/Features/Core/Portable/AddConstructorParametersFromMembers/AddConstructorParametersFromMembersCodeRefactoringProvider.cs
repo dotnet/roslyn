@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 // Intents currently have no way to report progress.
                 var changedSolution = await action.GetChangedSolutionInternalAsync(
-                    priorDocument.Project.Solution, CodeAnalysisProgress.Null, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                    priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
                 var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
                 results.Add(intent);
