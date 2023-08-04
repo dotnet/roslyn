@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -75,7 +74,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         });
     }
 
-    private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -184,7 +183,8 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                                 {
                                     Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
                                     ArgumentList.Arguments: [var elementArgument],
-                                } elementAccess
+                                } elementAccess,
+                                Right: var right,
                             }
                         })
                     {
@@ -202,8 +202,9 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                         return;
                     }
 
-                    // this looks like a good statement, add to the locations list to track.
-                    locationsBuilder.Add(currentStatement.GetLocation());
+                    // this looks like a good statement, add to the right size of the assignment to track as that's what
+                    // we'll want to put in the final collection expression.
+                    locationsBuilder.Add(right.GetLocation());
                 }
             }
         }
