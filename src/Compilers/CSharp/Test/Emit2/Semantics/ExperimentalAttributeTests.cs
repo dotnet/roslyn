@@ -897,8 +897,15 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(derivedSrc, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("_ = new C();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
-        comp.VerifyDiagnostics();
+        var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        comp.VerifyDiagnostics(
+            // (1,5): warning DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // _ = new Derived();
+            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5),
+            // (1,9): warning DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+            // _ = new Derived();
+            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9)
+            );
 
         var derived = comp.GetTypeByMetadataName("Derived");
         Assert.IsType<RetargetingNamedTypeSymbol>(derived);
@@ -925,7 +932,7 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(derivedSrc, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("_ = new C();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics();
 
         var derived = comp.GetTypeByMetadataName("Derived");
@@ -955,8 +962,15 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(@base, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
-        comp.VerifyDiagnostics();
+        var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        comp.VerifyDiagnostics(
+            // (1,5): warning DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // _ = new Derived();
+            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5),
+            // (1,9): warning DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+            // _ = new Derived();
+            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9)
+            );
 
         var derived = comp.GetTypeByMetadataName("Derived");
         Assert.IsType<RetargetingNamedTypeSymbol>(derived);
@@ -983,7 +997,7 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(@base, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics();
 
         var derived = comp.GetTypeByMetadataName("Derived");

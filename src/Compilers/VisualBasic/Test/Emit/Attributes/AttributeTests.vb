@@ -5272,7 +5272,7 @@ End Class
                                      <![CDATA[
 <Assembly: System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
 
-Class Derived
+Public Class Derived
     Inherits C
 End Class
 ]]>
@@ -5287,7 +5287,7 @@ End Class
                               <![CDATA[
 Class Program
     Public Sub Main()
-        New C()
+        Dim d = New Derived()
     End Sub
 End Class
 ]]>
@@ -5295,7 +5295,14 @@ End Class
                       </compilation>
 
             Dim comp = CreateCompilation(src, references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
-            derivedComp.AssertNoDiagnostics()
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+DiagID1: 'Public Sub New()' is for evaluation purposes only and is subject to change or removal in future updates.
+        Dim d = New Derived()
+                ~~~~~~~~~~~~~
+DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+        Dim d = New Derived()
+                    ~~~~~~~
+]]></errors>)
 
             Dim derivedType = comp.GetTypeByMetadataName("Derived")
             Assert.IsType(Of RetargetingNamedTypeSymbol)(derivedType)
@@ -5323,7 +5330,7 @@ End Class
             Dim derivedSrc = <compilation>
                                  <file name="a.vb">
                                      <![CDATA[
-Class Derived
+Public Class Derived
     Inherits C
 End Class
 ]]>
@@ -5338,7 +5345,7 @@ End Class
                               <![CDATA[
 Class Program
     Public Sub Main()
-        New C()
+        Dim d = New Derived()
     End Sub
 End Class
 ]]>
@@ -5376,7 +5383,7 @@ End Class
                                      <![CDATA[
 <Module: System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
 
-Class Derived
+Public Class Derived
     Inherits C
 End Class
 ]]>
@@ -5391,7 +5398,7 @@ End Class
                               <![CDATA[
 Class Program
     Public Sub Main()
-        New C()
+        Dim d = New Derived()
     End Sub
 End Class
 ]]>
@@ -5399,7 +5406,14 @@ End Class
                       </compilation>
 
             Dim comp = CreateCompilation(src, references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
-            derivedComp.AssertNoDiagnostics()
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+DiagID1: 'Public Sub New()' is for evaluation purposes only and is subject to change or removal in future updates.
+        Dim d = New Derived()
+                ~~~~~~~~~~~~~
+DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+        Dim d = New Derived()
+                    ~~~~~~~
+]]></errors>)
 
             Dim derivedType = comp.GetTypeByMetadataName("Derived")
             Assert.IsType(Of RetargetingNamedTypeSymbol)(derivedType)
