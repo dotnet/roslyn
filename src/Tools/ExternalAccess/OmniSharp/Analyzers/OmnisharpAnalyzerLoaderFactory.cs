@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
 {
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
     {
         public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
         {
-            return new ShadowCopyAnalyzerAssemblyLoader(baseDirectory);
+            return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
         }
     }
 }

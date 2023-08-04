@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -17,14 +18,19 @@ namespace Microsoft.CodeAnalysis
     {
 #if NETCOREAPP
 
-        // Called from a netstandard2.0 project, so need to ensure a parameterless constructor is available.
         internal DefaultAnalyzerAssemblyLoader()
             : this(null)
         {
         }
 
-        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
-            : base(compilerLoadContext)
+        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk)
+            : base(compilerLoadContext, loadOption)
+        {
+        }
+
+#else
+
+        internal DefaultAnalyzerAssemblyLoader()
         {
         }
 
@@ -36,5 +42,43 @@ namespace Microsoft.CodeAnalysis
         /// <param name="fullPath"></param>
         /// <returns></returns>
         protected override string PreparePathToLoad(string fullPath) => fullPath;
+
+        /// <summary>
+        /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
+        /// most appropriate for the current platform.
+        /// </summary>
+        /// <param name="subPath">In the case a directory must be created on disk for shadow loading this 
+        /// is the suffix added to that path</param>
+        /// <returns></returns>
+        internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string? subPath = null)
+        {
+#if NETCOREAPP
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // The cost of doing stream based loading on Windows is too expensive and we must continue to 
+                // use the shadow copy loader.
+                return createShadowLoaderWindows();
+            }
+            else
+            {
+                return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream);
+            }
+#else
+            return createShadowLoaderWindows();
+#endif
+
+            ShadowCopyAnalyzerAssemblyLoader createShadowLoaderWindows()
+            {
+                // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+                // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+                // effect
+                Debug.Assert(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+                subPath ??= Path.Combine("CodeAnalysis", "AnalyzerShadowCopies");
+                var baseDirectory = Path.IsPathRooted(subPath)
+                    ? subPath
+                    : Path.Combine(Path.GetTempPath(), subPath);
+                return new ShadowCopyAnalyzerAssemblyLoader(baseDirectory);
+            }
+        }
     }
 }
