@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    originalFixAllContext.ProgressTracker,
+                    originalFixAllContext.Progress,
                     this.GetFixAllTitle(originalFixAllContext),
                     GetFixedDocumentsAsync);
 

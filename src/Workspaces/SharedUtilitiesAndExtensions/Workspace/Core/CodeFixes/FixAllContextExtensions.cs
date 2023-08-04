@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static IProgress<CodeActionProgress> GetProgressTracker(this FixAllContext context)
         {
 #if CODE_STYLE
-            return NoOpProgressTracker.Instance;
+            return NullProgress<CodeActionProgress>.Instance;
 #else
-            return context.ProgressTracker;
+            return context.Progress;
 #endif
         }
 
