@@ -10,19 +10,20 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
     internal class StringTextWriter : SourceTextWriter
     {
-        private readonly StringBuilder _builder;
+        private PooledStringBuilder _builder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
 
         public StringTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int capacity)
         {
-            _builder = new StringBuilder(capacity);
+            _builder = PooledStringBuilder.GetInstance(capacity);
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
         }
@@ -35,22 +36,33 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override SourceText ToSourceText()
         {
-            return new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
+            return new StringText(_builder.Builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
         }
 
         public override void Write(char value)
         {
-            _builder.Append(value);
+            _builder.Builder.Append(value);
         }
 
         public override void Write(string? value)
         {
-            _builder.Append(value);
+            _builder.Builder.Append(value);
         }
 
         public override void Write(char[] buffer, int index, int count)
         {
-            _builder.Append(buffer, index, count);
+            _builder.Builder.Append(buffer, index, count);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && _builder is not null)
+            {
+                _builder.Free();
+                _builder = null!;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
