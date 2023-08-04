@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument) : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
+    internal class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
+        : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
     {
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 

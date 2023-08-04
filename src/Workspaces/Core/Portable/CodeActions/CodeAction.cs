@@ -274,8 +274,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-            => GetChangedSolutionAsync(cancellationToken);
+        internal virtual async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        {
+            var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
+            if (changedDocument == null)
+            {
+                return null;
+            }
+
+            return changedDocument.Project.Solution;
+        }
+
 
         /// <summary>
         /// Computes changes for a single document. Override this method if you want to implement a
@@ -289,6 +298,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             => throw new NotSupportedException(GetType().FullName);
+
+        internal virtual Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => GetChangedDocumentAsync(cancellationToken);
 
         /// <summary>
         /// used by batch fixer engine to get new solution
@@ -442,24 +454,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey)
+            => Create(title, (_, c) => createChangedDocument(c), equivalenceKey);
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey)
             => Create(title, createChangedDocument, equivalenceKey, CodeActionPriority.Default);
 
         /// <inheritdoc cref="Create(string, Func{CancellationToken, Task{Document}}, string?)"/>
         /// <param name="priority">Code action priority</param>
         [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
+            => Create(title, (_, c) => createChangedDocument(c), equivalenceKey, priority);
+
+        internal static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
         {
             if (title == null)
-            {
                 throw new ArgumentNullException(nameof(title));
-            }
 
             if (createChangedDocument == null)
-            {
                 throw new ArgumentNullException(nameof(createChangedDocument));
-            }
 
-            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey, priority);
+            return DocumentChangeAction.New(title, createChangedDocument, equivalenceKey, priority);
         }
 
         /// <summary>
@@ -482,18 +497,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
+            => Create(title, (_, c) => createChangedSolution(c), equivalenceKey, priority);
+
+        internal static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
         {
             if (title == null)
-            {
                 throw new ArgumentNullException(nameof(title));
-            }
 
             if (createChangedSolution == null)
-            {
                 throw new ArgumentNullException(nameof(createChangedSolution));
-            }
 
-            return SolutionChangeAction.Create(title, createChangedSolution, equivalenceKey, priority);
+            return SolutionChangeAction.New(title, createChangedSolution, equivalenceKey, priority);
         }
 
         /// <summary>
@@ -597,11 +611,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class DocumentChangeAction : SimpleCodeAction
         {
-            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
+            private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> _createChangedDocument;
 
             private DocumentChangeAction(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
                 CodeActionPriority priority,
                 bool createdFromFactoryMethod)
@@ -612,31 +626,31 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             protected DocumentChangeAction(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
                 CodeActionPriority priority = CodeActionPriority.Default)
                 : this(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
             }
 
-            public static new DocumentChangeAction Create(
+            public static DocumentChangeAction New(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
                 CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-            protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                => _createChangedDocument(cancellationToken);
+            internal sealed override Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                => _createChangedDocument(progress, cancellationToken);
         }
 
         internal class SolutionChangeAction : SimpleCodeAction
         {
-            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
+            private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution;
 
             protected SolutionChangeAction(
                 string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
                 CodeActionPriority priority,
                 bool createdFromFactoryMethod)
@@ -647,22 +661,22 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             protected SolutionChangeAction(
                 string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
                 CodeActionPriority priority = CodeActionPriority.Default)
                 : this(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
             }
 
-            public static new SolutionChangeAction Create(
+            public static SolutionChangeAction New(
                 string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,
                 CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-                => _createChangedSolution(cancellationToken).AsNullable();
+            internal sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                => _createChangedSolution(progress, cancellationToken).AsNullable();
         }
 
         internal sealed class NoChangeAction : SimpleCodeAction

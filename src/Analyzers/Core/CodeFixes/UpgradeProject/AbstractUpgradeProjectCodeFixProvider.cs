@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
     {
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
-        private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        private ProjectOptionsChangeAction(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
         {
         }
 
-        public static ProjectOptionsChangeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public static ProjectOptionsChangeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
             => new(title, createChangedSolution);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
