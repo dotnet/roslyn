@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,7 +41,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// </summary>
             private readonly bool _useSubMenuName = useSubMenuName;
 
-            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            internal override Task<Solution?> GetChangedSolutionAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var services = _document.Project.Solution.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();

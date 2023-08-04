@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorC
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => throw new Exception($"Exception thrown from GetChangedDocumentAsync in {nameof(ExceptionCodeAction)}");
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            internal override Task<Solution> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => throw new Exception($"Exception thrown from GetChangedSolutionAsync in {nameof(ExceptionCodeAction)}");
 
             protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)

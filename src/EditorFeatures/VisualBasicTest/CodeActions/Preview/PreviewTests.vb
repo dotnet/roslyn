@@ -44,7 +44,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     End Get
                 End Property
 
-                Protected Overrides Function GetChangedSolutionAsync(cancellationToken As CancellationToken) As Task(Of Solution)
+                Friend Overrides Function GetChangedSolutionAsync(
+                        progress As IProgress(Of CodeAnalysisProgress),
+                        cancellationToken As CancellationToken) As Task(Of Solution)
                     Dim solution = _oldDocument.Project.Solution
 
                     ' Add a document - This will result in IWpfTextView previews.

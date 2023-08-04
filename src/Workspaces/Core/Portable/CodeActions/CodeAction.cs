@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            internal sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Solution>();
         }
 

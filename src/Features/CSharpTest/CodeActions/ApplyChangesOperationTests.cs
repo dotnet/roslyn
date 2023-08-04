@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
 
                 public override string Title => "Title";
 
-                protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                internal override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                     => Task.FromResult<Solution?>(_changedSolution);
             }
         }

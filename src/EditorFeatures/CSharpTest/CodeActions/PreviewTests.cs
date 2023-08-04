@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                     }
                 }
 
-                protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                internal override Task<Solution> GetChangedSolutionAsync(
+                    IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var solution = _oldDocument.Project.Solution;
 
