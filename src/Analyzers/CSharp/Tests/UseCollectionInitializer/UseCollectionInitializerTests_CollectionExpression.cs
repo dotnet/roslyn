@@ -29,7 +29,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
             TestState = { OutputKind = outputKind }
         }.RunAsync();
     }
@@ -1510,7 +1510,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 

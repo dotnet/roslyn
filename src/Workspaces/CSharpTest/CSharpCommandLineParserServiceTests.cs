@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System;
 using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests

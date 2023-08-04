@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CSharp.Conversion.IsInlineArray.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.AddElements(params Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken

@@ -504,7 +504,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -547,7 +547,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -591,7 +591,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -634,7 +634,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -678,7 +678,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -722,7 +722,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -767,7 +767,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -811,7 +811,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -855,7 +855,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -899,7 +899,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -953,7 +953,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1015,7 +1015,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1077,7 +1077,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1138,7 +1138,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1190,7 +1190,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -1233,7 +1233,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -1276,7 +1276,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.Regular9);
