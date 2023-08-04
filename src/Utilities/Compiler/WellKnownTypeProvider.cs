@@ -29,11 +29,10 @@ namespace Analyzer.Utilities
             _referencedAssemblies = new Lazy<ImmutableArray<IAssemblySymbol>>(
                 () =>
                 {
-                    return ImmutableHashSet.Create<IAssemblySymbol>(
-                        SymbolEqualityComparer.Default,
-                        Compilation.Assembly.Modules
-                            .SelectMany(m => m.ReferencedAssemblySymbols)
-                            .ToArray()).ToImmutableArray();
+                    return Compilation.Assembly.Modules
+                        .SelectMany(m => m.ReferencedAssemblySymbols)
+                        .Distinct<IAssemblySymbol>(SymbolEqualityComparer.Default)
+                        .ToImmutableArray();
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
