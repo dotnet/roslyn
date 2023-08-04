@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
+                // Intents currently have no way to report progress.
                 var changedSolution = await action.GetChangedSolutionInternalAsync(
                     priorDocument.Project.Solution, CodeAnalysisProgress.Null, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
