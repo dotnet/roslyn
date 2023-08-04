@@ -756,7 +756,7 @@ class C
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.Null, options, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
             Assert.Equal(expected, actual.ToString());
@@ -840,7 +840,7 @@ class C
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), globalOptions.CreateProvider(), CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.Null, globalOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

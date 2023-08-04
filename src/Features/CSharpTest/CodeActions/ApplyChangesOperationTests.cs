@@ -257,7 +257,7 @@ class Program2
             Assert.True(workspace.TryApplyChanges(changedSolution));
 
             // Now try to apply the refactoring, even though an intervening edit happened.
-            var result = await operation.TryApplyAsync(workspace, originalSolution, new ProgressTracker(), CancellationToken.None);
+            var result = await operation.TryApplyAsync(workspace, originalSolution, CodeAnalysisProgress.Null, CancellationToken.None);
 
             Assert.Equal(success, result);
         }
