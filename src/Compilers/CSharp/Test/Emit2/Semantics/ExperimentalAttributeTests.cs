@@ -897,7 +897,7 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(derivedSrc, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var comp = CreateCompilation("_ = new C();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics();
 
         var derived = comp.GetTypeByMetadataName("Derived");
@@ -925,7 +925,7 @@ public class Derived : C { }
         var derivedComp = CreateCompilation(derivedSrc, new[] { originalC.ToMetadataReference(), attrRef }, targetFramework: TargetFramework.Standard);
         derivedComp.VerifyDiagnostics();
 
-        var comp = CreateCompilation("", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var comp = CreateCompilation("_ = new C();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics();
 
         var derived = comp.GetTypeByMetadataName("Derived");

@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
                 symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
 
-                Return GetExperimentalDiagnosticKind(context, forceComplete)
+                Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
             End If
 
             Select Case symbol.ObsoleteKind
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case ObsoleteAttributeKind.WindowsExperimental
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ObsoleteAttributeKind.Experimental
-                    Return GetExperimentalDiagnosticKind(context, forceComplete)
+                    Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
                 Case ObsoleteAttributeKind.Uninitialized
                     ' If we haven't cracked attributes on the symbol at all or we haven't
                     ' cracked attribute arguments enough to be able to report diagnostics for
@@ -113,35 +113,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ObsoleteDiagnosticKind.Lazy
             End Select
 
-            Select Case GetObsoleteContextState(context, forceComplete, getStateFromSymbol:=Function(s) s.ObsoleteState)
-                Case ThreeState.False
-                    Return ObsoleteDiagnosticKind.Diagnostic
-                Case ThreeState.True
-                    ' If we are in a context that is already obsolete, there is no point reporting
-                    ' more obsolete diagnostics.
-                    Return ObsoleteDiagnosticKind.Suppressed
-                Case Else
-                    ' If the context is unknown, then store the symbol so that we can do this check at a
-                    ' later stage
-                    Return ObsoleteDiagnosticKind.LazyPotentiallySuppressed
-            End Select
+            Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ObsoleteState)
         End Function
 
         Private Shared Function IsExperimentalSymbol(namedType As NamedTypeSymbol) As Boolean
             Return namedType IsNot Nothing AndAlso
                 namedType.Arity = 0 AndAlso
-                namedType.HasNameQualifier("System.Diagnostics.CodeAnalysis", StringComparison.Ordinal) AndAlso
-                namedType.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal)
+                namedType.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal) AndAlso
+                namedType.IsCompilerServicesTopLevelType()
         End Function
 
-        Private Shared Function GetExperimentalDiagnosticKind(containingMember As Symbol, forceComplete As Boolean) As ObsoleteDiagnosticKind
+        Private Shared Function GetDiagnosticKind(containingMember As Symbol, forceComplete As Boolean, getStateFromSymbol As Func(Of Symbol, ThreeState)) As ObsoleteDiagnosticKind
 
-            Select Case GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
+            Select Case GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol)
                 Case ThreeState.False
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ThreeState.True
-                    ' If we are in a context that is already experimental, there is no point reporting
-                    ' more experimental diagnostics.
+                    ' If we are in a context that is already experimental/obsolete, there is no point reporting
+                    ' more experimental/obsolete diagnostics.
                     Return ObsoleteDiagnosticKind.Suppressed
                 Case Else
                     ' If the context is unknown, then store the symbol so that we can do this check at a

@@ -5282,7 +5282,19 @@ End Class
             Dim derivedComp = CreateCompilation(derivedSrc, references:={originalC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilation("", references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class Program
+    Public Sub Main()
+        New C()
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
             Dim derivedType = comp.GetTypeByMetadataName("Derived")
@@ -5321,7 +5333,19 @@ End Class
             Dim derivedComp = CreateCompilation(derivedSrc, references:={originalC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilation("", references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class Program
+    Public Sub Main()
+        New C()
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
             Dim derivedType = comp.GetTypeByMetadataName("Derived")
@@ -5362,7 +5386,19 @@ End Class
             Dim derivedComp = CreateCompilation(derivedSrc, references:={originalC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilation("", references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class Program
+    Public Sub Main()
+        New C()
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference(), attrRef})
             derivedComp.AssertNoDiagnostics()
 
             Dim derivedType = comp.GetTypeByMetadataName("Derived")

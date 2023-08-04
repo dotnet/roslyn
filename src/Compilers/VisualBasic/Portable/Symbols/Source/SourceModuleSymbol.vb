@@ -1229,8 +1229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Dim data = GetDecodedWellKnownAttributeData()
-                Return If(data IsNot Nothing, data.ExperimentalAttributeData, Nothing)
+                Return GetDecodedWellKnownAttributeData()?.ExperimentalAttributeData
             End Get
         End Property
 
