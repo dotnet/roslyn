@@ -187,6 +187,13 @@ namespace Microsoft.CodeAnalysis
                 // outputs of each other.
                 return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
             }
+
+            public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                // The provided run result would be out of sync with the replaced documents.
+                // Currently this is only used by razor to get the HostOutputs, which should never be used here.
+                throw new NotImplementedException();
+            }
         }
     }
 }

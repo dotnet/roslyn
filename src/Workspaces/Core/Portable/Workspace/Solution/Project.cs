@@ -350,6 +350,11 @@ namespace Microsoft.CodeAnalysis
             return _solution.State.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
         }
 
+        internal ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(CancellationToken cancellationToken)
+        {
+            return _solution.State.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
+        }
+
         internal Task<bool> ContainsSymbolsWithNameAsync(
             string name, CancellationToken cancellationToken)
         {

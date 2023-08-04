@@ -1,4 +1,5 @@
 #nullable enable
+const Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.MethodName = "razor/hostOutput" -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor.GetListener(string! featureName) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider
@@ -168,6 +169,23 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.RazorTestAna
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.RazorTestWorkspaceRegistrationService() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.Register(Microsoft.CodeAnalysis.Workspace! workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.GeneratorName.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.GeneratorName.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.HostOutputRequest() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.RequestedOutput.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.RequestedOutput.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.TextDocument.get -> Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest.TextDocument.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputResponse
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputResponse.HostOutputResponse() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputResponse.Output.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputResponse.Output.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.HandleRequestAsync(Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputRequest! request, Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.HostOutputResponse!>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.MutatesSolutionState.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.RazorHostOutputHandler() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.RequiresLSPSolution.get -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.CanHandle(string! methodName) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
@@ -411,6 +429,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.G
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! capabilities) -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.RoslynTokenTypes.get -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote.RazorHostOutputHandler.GetHostOutputAsync(Microsoft.CodeAnalysis.Project! project, string! generatorName, string! requestedOutput, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string?>!
 static readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry.Empty -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry!
 ~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.ToString() -> string
