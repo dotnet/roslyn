@@ -2863,16 +2863,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
                 // [assembly: Experimental] may have been specified in the assembly or one of the modules
-                var result = GetSourceDecodedWellKnownAttributeData()?.ExperimentalAttributeData
-                    ?? GetNetModuleDecodedWellKnownAttributeData()?.ExperimentalAttributeData;
+                var lazySourceAttributesBag = _lazySourceAttributesBag;
+                if (lazySourceAttributesBag != null && lazySourceAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazySourceAttributesBag.DecodedWellKnownAttributeData;
+                    if (data?.ExperimentalAttributeData is { } experimentalAttributeData)
+                    {
+                        return experimentalAttributeData;
+                    }
+                }
 
-                Debug.Assert(result is null || result is { Kind: ObsoleteAttributeKind.Experimental });
-                return result;
+                var lazyNetModuleAttributesBag = _lazyNetModuleAttributesBag;
+                if (lazyNetModuleAttributesBag != null && lazyNetModuleAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazyNetModuleAttributesBag.DecodedWellKnownAttributeData;
+                    return data?.ExperimentalAttributeData;
+                }
+
+                if (GetAttributeDeclarations().IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
             }
         }
 

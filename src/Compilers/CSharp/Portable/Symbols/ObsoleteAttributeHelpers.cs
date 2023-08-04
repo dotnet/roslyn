@@ -109,9 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ObsoleteDiagnosticKind.NotObsolete;
             }
 
-            Debug.Assert(symbol.ContainingModule.ObsoleteKind is not ObsoleteAttributeKind.Uninitialized);
-            Debug.Assert(symbol.ContainingAssembly.ObsoleteKind is not ObsoleteAttributeKind.Uninitialized);
-
             if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Experimental
                 || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Experimental)
             {
@@ -121,6 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.ObsoleteKind)
             {
                 case ObsoleteAttributeKind.None:
+                    if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Uninitialized
+                        || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Uninitialized)
+                    {
+                        return ObsoleteDiagnosticKind.Lazy;
+                    }
+
                     return ObsoleteDiagnosticKind.NotObsolete;
                 case ObsoleteAttributeKind.WindowsExperimental:
                     return ObsoleteDiagnosticKind.Diagnostic;

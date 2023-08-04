@@ -657,7 +657,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
+        /// </summary>
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
-            => GetDecodedWellKnownAttributeData()?.ExperimentalAttributeData;
+        {
+            get
+            {
+                var attributesBag = _lazyCustomAttributesBag;
+                if (attributesBag != null && attributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var decodedData = (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+                    return decodedData?.ExperimentalAttributeData;
+                }
+
+                var attributesDeclarations = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+                if (attributesDeclarations.IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
+            }
+        }
     }
 }

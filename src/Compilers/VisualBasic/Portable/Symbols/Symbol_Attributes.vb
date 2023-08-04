@@ -619,13 +619,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        ''' Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         ''' </summary>
         Friend Sub ForceCompleteObsoleteAttribute()
-            If Me.ObsoleteState = ThreeState.Unknown Then
+            If Me.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
                 Me.GetAttributes()
             End If
             Debug.Assert(Me.ObsoleteState <> ThreeState.Unknown, "ObsoleteState should be true or false now.")
+            Debug.Assert(Me.ExperimentalState <> ThreeState.Unknown, "ExperimentalState should be true or false now.")
+
+            Me.ContainingSymbol?.ForceCompleteObsoleteAttribute()
         End Sub
     End Class
 End Namespace

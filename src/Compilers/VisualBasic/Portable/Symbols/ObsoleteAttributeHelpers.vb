@@ -89,9 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ObsoleteDiagnosticKind.NotObsolete
             End If
 
-            Debug.Assert(symbol.ContainingModule Is Nothing OrElse symbol.ContainingModule.ObsoleteKind <> ObsoleteAttributeKind.Uninitialized)
-            Debug.Assert(symbol.ContainingAssembly Is Nothing OrElse symbol.ContainingAssembly.ObsoleteKind <> ObsoleteAttributeKind.Uninitialized)
-
             If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
                 symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
 
@@ -100,6 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
+                    If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized OrElse
+                       symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
+
+                        Return ObsoleteDiagnosticKind.Lazy
+                    End If
+
                     Return ObsoleteDiagnosticKind.NotObsolete
                 Case ObsoleteAttributeKind.WindowsExperimental
                     Return ObsoleteDiagnosticKind.Diagnostic

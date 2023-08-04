@@ -1229,7 +1229,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return GetDecodedWellKnownAttributeData()?.ExperimentalAttributeData
+                Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonModuleWellKnownAttributeData)?.ExperimentalAttributeData
+                End If
+
+                Dim mergedAttributes = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol).GetAttributeDeclarations()
+                If mergedAttributes.IsEmpty Then
+                    Return Nothing
+                End If
+
+                Return ObsoleteAttributeData.Uninitialized
             End Get
         End Property
 

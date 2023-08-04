@@ -1787,10 +1787,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' <assembly: Experimental> may have been specified in the assembly or one of the modules
-                Dim result = If(GetSourceDecodedWellKnownAttributeData()?.ExperimentalAttributeData, GetNetModuleDecodedWellKnownAttributeData()?.ExperimentalAttributeData)
+                Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazySourceAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Dim experimentalData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData)?.ExperimentalAttributeData
+                    If experimentalData IsNot Nothing Then
+                        Return experimentalData
+                    End If
+                End If
 
-                Debug.Assert(result Is Nothing OrElse result.Kind = ObsoleteAttributeKind.Experimental)
-                Return result
+                attributesBag = Me._lazyNetModuleAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData)?.ExperimentalAttributeData
+                End If
+
+                If GetAttributeDeclarations().IsEmpty Then
+                    Return Nothing
+                End If
+
+                Return ObsoleteAttributeData.Uninitialized
             End Get
         End Property
 
