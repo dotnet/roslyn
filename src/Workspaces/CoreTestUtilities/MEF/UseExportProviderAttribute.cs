@@ -9,8 +9,10 @@ using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// the test is failed.
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
+        private static readonly FatalError.ErrorReporterHandler s_FatalErrorHandler = (e, _, _) => ExceptionDispatchInfo.Capture(e).Throw();
 
         private MefHostServices? _hostServices;
 
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
             ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(true);
+            FatalError.Handler = s_FatalErrorHandler;
         }
 
         /// <summary>

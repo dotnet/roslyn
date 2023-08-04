@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -757,6 +758,10 @@ class D
                     throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
                 }
             });
+
+            // Disable any default test handler -- want the exceptions being caught to be caught, and since we're asserting diagnostics
+            // are as expected we can't be trapping other failures.
+            using var _ = FatalError.TestAccessor.OverrideTestHandler(handler: null);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
 
