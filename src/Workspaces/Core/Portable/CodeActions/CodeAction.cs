@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        protected virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        protected internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
             => GetChangedSolutionAsync(cancellationToken);
 
         /// <summary>
