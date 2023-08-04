@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// that will then apply all our sub actions in order, stopping the moment
             /// one of them fails.
             /// </summary>
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                CancellationToken cancellationToken)
+            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 

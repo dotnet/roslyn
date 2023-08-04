@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return Array.Empty<CodeActionOperation>();
             }
 
-            return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
+            return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
         /// <summary>

@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = _state.Document;
                 var solution = _state.Document.Project.Solution;
