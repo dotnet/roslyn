@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
 
             return GetFixedSolution(
-                fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);
+                fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progressTracker, cancellationToken);
         }
 
         public Solution GetFix(
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
 
             return GetFixedSolution(
-                fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);
+                fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progressTracker, cancellationToken);
         }
 
         private static Solution GetFixedSolution(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
                 newSolution = fixMultipleCodeAction.GetChangedSolutionInternalAsync(
-                    fixAllState.Solution, progress, postProcessChanges: false, cancellationToken).WaitAndGetResult(cancellationToken);
+                    fixAllState.Solution, progressTracker, postProcessChanges: false, cancellationToken).WaitAndGetResult(cancellationToken);
             });
 
             return newSolution;

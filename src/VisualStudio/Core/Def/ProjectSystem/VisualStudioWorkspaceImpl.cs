@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution, progress);
+            return base.TryApplyChanges(newSolution, progressTracker);
 
             bool CanApplyChange(DocumentId documentId)
             {

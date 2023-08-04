@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             var installed = await TryInstallPackageAsync(
                 source, packageName, version, includePrerelease,
-                projectGuid, dte, dteProject, progress, cancellationToken).ConfigureAwait(false);
+                projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var uninstalled = await TryUninstallPackageAsync(
-                packageName, projectGuid, dte, dteProject, progress, cancellationToken).ConfigureAwait(false);
+                packageName, projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
             if (uninstalled)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.

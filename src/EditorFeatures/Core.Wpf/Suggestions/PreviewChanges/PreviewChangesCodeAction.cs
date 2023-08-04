@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    return await _originalCodeAction.GetOperationsAsync(originalSolution, progress, cancellationToken).ConfigureAwait(false);
+                    return await _originalCodeAction.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

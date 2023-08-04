@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
-                            workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true);
+                            workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, originalSolution, operations, progress, cancellationToken).ConfigureAwait(true);
+                        workspace, originalSolution, operations, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 _threadingContext.ThrowIfNotOnUIThread();
-                applied &= await operation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;

@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     continue;
                 }
 
-                progress.AddItems(project.DocumentIds.Count);
+                progressTracker.AddItems(project.DocumentIds.Count);
             }
 
             foreach (var projectId in solution.ProjectIds)
@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = solution.GetRequiredProject(projectId);
-                var newProject = await FixProjectAsync(project, enabledFixIds, progress, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
+                var newProject = await FixProjectAsync(project, enabledFixIds, progressTracker, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
                 solution = newProject.Solution;
             }
 
@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
             if (addProgressItemsForDocuments)
             {
-                progress.AddItems(project.DocumentIds.Count);
+                progressTracker.AddItems(project.DocumentIds.Count);
             }
 
             var ideOptions = _globalOptions.GetCodeActionOptions(project.Services);
@@ -293,13 +293,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var document = project.GetRequiredDocument(documentId);
-                progress.Report(CodeAnalysisProgress.Description(document.Name));
+                progressTracker.Report(CodeAnalysisProgress.Description(document.Name));
 
                 // FixDocumentAsync reports progress within a document, but we limit progress reporting for a project
                 // to the current document.
                 var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.Null, ideOptions, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
-                progress.ItemCompleted();
+                progressTracker.ItemCompleted();
             }
 
             return project;
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progress, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

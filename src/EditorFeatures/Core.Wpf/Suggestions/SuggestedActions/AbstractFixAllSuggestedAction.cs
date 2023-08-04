@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
-                await base.InnerInvokeAsync(progress, cancellationToken).ConfigureAwait(false);
+                await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
     }

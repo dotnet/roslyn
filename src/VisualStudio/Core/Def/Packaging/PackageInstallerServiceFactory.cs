@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                     return await TryInstallAndAddUndoActionAsync(
                         source, packageName, version, includePrerelease, projectGuid, dte, dteProject, undoManager,
-                        progress, cancellationToken).ConfigureAwait(false);
+                        progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
-            progress.Report(CodeAnalysisProgress.Description(description));
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
-            progress.Report(CodeAnalysisProgress.Description(description));
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
