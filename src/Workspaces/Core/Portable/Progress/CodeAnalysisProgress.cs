@@ -13,8 +13,13 @@ namespace Microsoft.CodeAnalysis;
 /// Represents the progress of an operation.  Commonly used to update a UI visible to a user when a long running
 /// operation is happening.
 /// </summary>
-public sealed class CodeAnalysisProgress
+internal sealed class CodeAnalysisProgress
 {
+    /// <summary>
+    /// Used when bridging from an api that does not show progress to the user to an api that can update progress if
+    /// available.  This should be used sparingly.  Locations that currently do not show progress should ideally be
+    /// migrated to ones that do so that long running operations are visible to the user in a coherent fashion.
+    /// </summary>
     internal static readonly IProgress<CodeAnalysisProgress> Null = NullProgress<CodeAnalysisProgress>.Instance;
 
     internal bool ClearValue { get; init; }
