@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public abstract class CodeAction
     {
         private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isNonProgressGetChangedSolutionAsyncOverridden = new();
+        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isNonProgressComputeOperationsAsyncOverridden = new();
 
         /// <summary>
         /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
@@ -249,8 +250,23 @@ namespace Microsoft.CodeAnalysis.CodeActions
         private protected virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
-            return operations.ToImmutableArrayOrEmpty();
+            // If the subclass overrode `ComputeOperationsAsync(CancellationToken)` then we must call into that in
+            // order to preserve whatever logic our subclass had had for determining the new solution.
+            if (s_isNonProgressComputeOperationsAsyncOverridden.GetValue(
+                GetType(),
+                _ => new StrongBox<bool>(new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction))).Value)
+            {
+                var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+                return operations.ToImmutableArrayOrEmpty();
+            }
+
+            var changedSolution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
+            if (changedSolution == null)
+            {
+                return ImmutableArray<CodeActionOperation>.Empty;
+            }
+
+            return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
         /// <summary>
