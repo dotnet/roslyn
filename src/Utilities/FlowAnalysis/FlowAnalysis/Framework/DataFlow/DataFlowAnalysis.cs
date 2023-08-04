@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // This post pass will handle all possible operations within the control flow graph that can
                 // throw an exception and merge analysis data after all such operation analyses into the
                 // catch blocks reachable from those operations.
-                if (analysisContext.ExceptionPathsAnalysis || hasAnyTryBlock)
+                if ((analysisContext.ExceptionPathsAnalysis || hasAnyTryBlock) &&
+                    !OperationVisitor.SkipExceptionPathsAnalysisPostPass)
                 {
                     RoslynDebug.Assert(normalPathsExitBlockData != null);
 

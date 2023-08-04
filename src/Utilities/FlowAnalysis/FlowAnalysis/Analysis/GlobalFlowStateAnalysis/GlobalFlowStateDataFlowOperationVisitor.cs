@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             _globalValuesMapBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
         }
 
+        internal override bool SkipExceptionPathsAnalysisPostPass => true;
+
         protected abstract void SetAbstractValue(
             DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData, AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
 
