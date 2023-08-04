@@ -309,14 +309,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
-            => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, fallbackOptions, cancellationToken);
+        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeActionProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
+            => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progress, fallbackOptions, cancellationToken);
 
         public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
             TDocument document,
             string diagnosticId,
             DiagnosticSeverity severity,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
             where TDocument : TextDocument
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState, progress, cancellationToken)).ConfigureAwait(false);
             Contract.ThrowIfNull(solution);
 
             return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));

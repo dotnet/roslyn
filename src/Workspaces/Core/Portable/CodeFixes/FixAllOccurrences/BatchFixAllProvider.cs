@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
             // applying fixes.
-            progress.Report(CodeActionProgress.IncompleteItems(fixAllContexts.Length * 2 + 1));
+            progress.AddItems(fixAllContexts.Length * 2 + 1);
 
             // Mapping from document to the cumulative text changes created for that document.
             var docIdToTextMerger = new Dictionary<DocumentId, TextChangeMerger>();

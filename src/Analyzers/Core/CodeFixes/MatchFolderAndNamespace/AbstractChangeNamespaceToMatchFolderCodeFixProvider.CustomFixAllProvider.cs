@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
                 var newSolution = solution;
 
-                progress.Report(CodeActionProgress.IncompleteItems(documentIdToDiagnosticsMap.Count));
+                progress.AddItems(documentIdToDiagnosticsMap.Count);
 
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {

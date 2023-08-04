@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Update the progress dialog with the count of projects to actually fix. We'll update the progress
                     // bar as we get all the documents in AddDocumentDiagnosticsAsync.
 
-                    progress.Report(CodeActionProgress.IncompleteItems(projectsToFix.Length));
+                    progress.AddItems(projectsToFix.Length);
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
                     using (var _ = ArrayBuilder<Task>.GetInstance(projectsToFix.Length, out var tasks))
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 finally
                 {
-                    progress.Report(CodeActionProgress.CompletedItem());
+                    progress.ItemCompleted();
                 }
             }
 

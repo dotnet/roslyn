@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
             {
-                progress.Description = this.OrganizeImportsDescription;
+                progress.Report(CodeActionProgress.Description(this.OrganizeImportsDescription));
                 document = await RemoveSortUsingsAsync(
                     document, enabledDiagnostics.OrganizeUsings, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 progress.ItemCompleted();
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                progress.Description = FeaturesResources.Formatting_document;
+                progress.Report(CodeActionProgress.Description(FeaturesResources.Formatting_document));
                 using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
                 {
                     document = await Formatter.FormatAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                progress.Description = diagnosticSet.Description;
+                progress.Report(CodeActionProgress.Description(diagnosticSet.Description));
                 document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
                     document, diagnosticSet.DiagnosticIds, progress, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                progress.Description = string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId);
+                progress.Report(CodeActionProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
                 // Apply codefixes for diagnostics with a severity of warning or higher
                 var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                     document, diagnosticId, DiagnosticSeverity.Warning, progress, fallbackOptions, cancellationToken).ConfigureAwait(false);

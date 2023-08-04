@@ -3,14 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
 internal static class CodeActionProgressExtensions
 {
+    /// <summary>
+    /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
+    /// </summary>
     public static void AddItems(this IProgress<CodeActionProgress> progress, int count)
         => progress.Report(CodeActionProgress.IncompleteItems(count));
 
+    /// <summary>
+    /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
+    /// </summary>
     public static void ItemCompleted(this IProgress<CodeActionProgress> progress)
         => progress.Report(CodeActionProgress.CompletedItem());
 

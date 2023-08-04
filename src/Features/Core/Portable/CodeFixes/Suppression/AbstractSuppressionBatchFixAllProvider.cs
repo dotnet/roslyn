@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         documentsToFix.Add(document);
                 }
 
-                progress.Report(CodeActionProgress.IncompleteItems(documentsToFix.Count));
+                progress.AddItems(documentsToFix.Count);
 
                 foreach (var document in documentsToFix)
                 {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
             finally
             {
-                progress.Report(CodeActionProgress.CompletedItem());
+                progress.ItemCompleted();
             }
         }
 

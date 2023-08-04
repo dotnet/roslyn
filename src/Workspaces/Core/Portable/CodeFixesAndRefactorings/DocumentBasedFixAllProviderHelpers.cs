@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             // For refactorings, we have 2 pieces of work per project.  Computing refactorings, and applying refactorings.
             var fixAllKind = originalFixAllContext.State.FixAllKind;
             var workItemCount = fixAllKind == FixAllKind.CodeFix ? 3 : 2;
-            progress.Report(CodeActionProgress.IncompleteItems(fixAllContexts.Length * workItemCount));
+            progress.AddItems(fixAllContexts.Length * workItemCount);
 
             // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
             var currentSolution = solution;
