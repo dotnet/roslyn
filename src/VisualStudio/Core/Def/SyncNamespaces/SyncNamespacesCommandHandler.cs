@@ -136,10 +136,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
             Solution? solution = null;
-            var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
-            {
-                solution = _threadingContext.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
-            });
+            var status = _threadOperationExecutor.Execute(
+                ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true,
+                operationContext =>
+                {
+                    solution = _threadingContext.JoinableTaskFactory.Run(
+                        () => syncService.SyncNamespacesAsync(projects, options, operationContext.GetCodeActionProgress(), operationContext.UserCancellationToken));
+                });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)
             {

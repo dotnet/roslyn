@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
 
-            var progress = fixAllContext.GetProgress();
+            var progress = fixAllContext.Progress;
 
             switch (fixAllContext.Scope)
             {

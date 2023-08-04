@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var cancellationToken = fixAllContext.CancellationToken;
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
-                var progress = fixAllContext.GetProgress();
+                var progress = fixAllContext.Progress;
                 progress.Report(CodeActionProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
                 var fixAllState = fixAllContext.State;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var progressTracker = fixAllContext.GetProgress();
+                var progressTracker = fixAllContext.Progress;
 
                 using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
@@ -376,12 +376,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Solution oldSolution,
             ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             CodeAction codeAction,
+            IProgress<CodeActionProgress> progress,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                oldSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                oldSolution, progress, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (changedSolution is null)
             {
                 // No changed documents

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgress<CodeActionProgress> Progress { get; }
+        public IProgress<CodeActionProgress> Progress { get; }
 
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
@@ -75,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
         object IFixAllContext.Provider => this.CodeFixProvider;
-
-        IProgress<CodeActionProgress> IFixAllContext.Progress => this.Progress;
 
         string IFixAllContext.GetDefaultFixAllTitle()
             => this.GetDefaultFixAllTitle();

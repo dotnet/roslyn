@@ -74,7 +74,7 @@ public sealed class CodeActionProgress
     //}
 }
 
-internal sealed class CodeActionProgressTracker(Action<string, int, int>? updateAction) : IProgress<CodeActionProgress>
+internal sealed class CodeActionProgressTracker(Action<string?, int, int>? updateAction) : IProgress<CodeActionProgress>
 {
     private string? _description;
     private int _completedItems;
@@ -85,7 +85,7 @@ internal sealed class CodeActionProgressTracker(Action<string, int, int>? update
     {
     }
 
-    public string Description
+    public string? Description
     {
         get => _description;
         set

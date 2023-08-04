@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<FixAllContext> fixAllContexts)
         {
             var cancellationToken = originalFixAllContext.CancellationToken;
-            var progress = originalFixAllContext.GetProgress();
+            var progress = originalFixAllContext.Progress;
             progress.Report(CodeActionProgress.Description(originalFixAllContext.GetDefaultFixAllTitle()));
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
