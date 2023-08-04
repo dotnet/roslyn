@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)

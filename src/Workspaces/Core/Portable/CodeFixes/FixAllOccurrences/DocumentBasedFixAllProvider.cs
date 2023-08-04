@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
             FixAllContext fixAllContext,
-            IProgress<CodeActionProgress> progress)
+            IProgress<CodeAnalysisProgress> progress)
         {
             // First, determine the diagnostics to fix.
             var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progress).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeActionProgress> progress)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
         {
             using var _ = progress.ItemCompletedScope();
             return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgress<CodeActionProgress> progress, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 

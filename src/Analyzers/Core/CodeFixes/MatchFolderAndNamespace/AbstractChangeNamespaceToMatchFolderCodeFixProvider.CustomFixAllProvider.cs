@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             private static async Task<Solution> FixAllByDocumentAsync(
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
-                IProgress<CodeActionProgress> progress,
+                IProgress<CodeAnalysisProgress> progress,
                 CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {

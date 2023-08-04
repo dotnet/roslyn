@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public override string Title => _installPackageOperation.Title;
 
             internal override async Task<bool> TryApplyAsync(
-                Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+                Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);

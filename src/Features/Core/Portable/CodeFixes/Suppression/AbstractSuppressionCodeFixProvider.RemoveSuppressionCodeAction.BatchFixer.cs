@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public override async Task<CodeAction> TryGetMergedFixAsync(
                     ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
                     FixAllState fixAllState,
-                    IProgress<CodeActionProgress> progress,
+                    IProgress<CodeAnalysisProgress> progress,
                     CancellationToken cancellationToken)
                 {
                     // Batch all the attribute removal fixes into a single fix.

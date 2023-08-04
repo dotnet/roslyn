@@ -6,15 +6,15 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeActions;
+namespace Microsoft.CodeAnalysis.Progress;
 
 internal static class IUIThreadOperationContextExtensions
 {
-    public static IProgress<CodeActionProgress> GetCodeActionProgress(this IUIThreadOperationContext context)
-        => context.Scopes.Last().GetCodeActionProgress();
+    public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationContext context)
+        => context.Scopes.Last().GetCodeAnalysisProgress();
 
-    public static IProgress<CodeActionProgress> GetCodeActionProgress(this IUIThreadOperationScope scope)
-        => new CodeActionProgressTracker((description, completedItems, totalItems) =>
+    public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationScope scope)
+        => new CodeAnalysisProgressTracker((description, completedItems, totalItems) =>
         {
             if (description != null)
                 scope.Description = description;

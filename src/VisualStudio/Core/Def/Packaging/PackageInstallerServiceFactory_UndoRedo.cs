@@ -5,10 +5,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
@@ -18,11 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryInstallAndAddUndoActionAsync(
             string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var installed = await TryInstallPackageAsync(
                 source, packageName, version, includePrerelease,
-                projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
+                projectGuid, dte, dteProject, progress, cancellationToken).ConfigureAwait(false);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
@@ -39,10 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryUninstallAndAddRedoActionAsync(
             string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var uninstalled = await TryUninstallPackageAsync(
-                packageName, projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
+                packageName, projectGuid, dte, dteProject, progress, cancellationToken).ConfigureAwait(false);
             if (uninstalled)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
@@ -149,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await packageInstallerService.TryUninstallAndAddRedoActionAsync(
                     source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
-                    new UIThreadOperationContextProgressTracker(scope),
+                    scope.GetCodeActionProgress(),
                     context.UserCancellationToken).ConfigureAwait(false);
             }
 

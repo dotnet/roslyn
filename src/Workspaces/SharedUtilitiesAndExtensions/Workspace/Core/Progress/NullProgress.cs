@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CodeActions;
+namespace Microsoft.CodeAnalysis.Progress;
 
 internal sealed class NullProgress<T> : IProgress<T>
 {

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgress<CodeActionProgress> Progress { get; }
+        internal IProgress<CodeAnalysisProgress> Progress { get; }
 
         /// <summary>
         /// Project to fix all occurrences.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
-        IProgress<CodeActionProgress> IFixAllContext.Progress => this.Progress;
+        IProgress<CodeAnalysisProgress> IFixAllContext.Progress => this.Progress;
 
         string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal FixAllContext(
             FixAllState state,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             State = state;

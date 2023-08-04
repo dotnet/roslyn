@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 private readonly IThreadingContext _threadingContext = threadingContext;
 
                 internal override async Task<bool> TryApplyAsync(
-                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
                     if (error == null)

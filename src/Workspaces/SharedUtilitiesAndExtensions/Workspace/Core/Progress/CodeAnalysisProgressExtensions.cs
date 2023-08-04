@@ -5,44 +5,44 @@
 using System;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeActions;
+namespace Microsoft.CodeAnalysis;
 
-internal static class CodeActionProgressExtensions
+internal static class CodeAnalysisProgressExtensions
 {
     /// <summary>
     /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
     /// </summary>
-    public static void AddItems(this IProgress<CodeActionProgress> progress, int count)
-        => progress.Report(CodeActionProgress.IncompleteItems(count));
+    public static void AddItems(this IProgress<CodeAnalysisProgress> progress, int count)
+        => progress.Report(CodeAnalysisProgress.IncompleteItems(count));
 
     /// <summary>
     /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
     /// </summary>
-    public static void ItemCompleted(this IProgress<CodeActionProgress> progress)
-        => progress.Report(CodeActionProgress.CompletedItem());
+    public static void ItemCompleted(this IProgress<CodeAnalysisProgress> progress)
+        => progress.Report(CodeAnalysisProgress.CompletedItem());
 
     /// <summary>
     /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
     /// </summary>
-    public static void Clear(this IProgress<CodeActionProgress> progress)
-        => progress.Report(CodeActionProgress.Clear());
+    public static void Clear(this IProgress<CodeAnalysisProgress> progress)
+        => progress.Report(CodeAnalysisProgress.Clear());
 
     /// <summary>
     /// Opens a scope that will call <see cref="IProgress{T}.Report(T)"/> with an instance of <see
-    /// cref="CodeActionProgress.CompletedItem"/> on <paramref name="progress"/> once disposed. This is useful to easily
+    /// cref="CodeAnalysisProgress.CompletedItem"/> on <paramref name="progress"/> once disposed. This is useful to easily
     /// wrap a series of operations and now that progress will be reported no matter how it completes.
     /// </summary>
-    public static ItemCompletedDisposer ItemCompletedScope(this IProgress<CodeActionProgress> progress, string? description = null)
+    public static ItemCompletedDisposer ItemCompletedScope(this IProgress<CodeAnalysisProgress> progress, string? description = null)
     {
         if (description != null)
-            progress.Report(CodeActionProgress.Description(description));
+            progress.Report(CodeAnalysisProgress.Description(description));
 
         return new ItemCompletedDisposer(progress);
     }
 
-    public readonly struct ItemCompletedDisposer(IProgress<CodeActionProgress> progress) : IDisposable
+    public readonly struct ItemCompletedDisposer(IProgress<CodeAnalysisProgress> progress) : IDisposable
     {
         public void Dispose()
-            => progress.Report(CodeActionProgress.CompletedItem());
+            => progress.Report(CodeAnalysisProgress.CompletedItem());
     }
 }

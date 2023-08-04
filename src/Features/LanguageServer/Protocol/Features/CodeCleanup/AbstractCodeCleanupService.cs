@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public async Task<Document> CleanupAsync(
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
             {
-                progress.Report(CodeActionProgress.Description(this.OrganizeImportsDescription));
+                progress.Report(CodeAnalysisProgress.Description(this.OrganizeImportsDescription));
                 document = await RemoveSortUsingsAsync(
                     document, enabledDiagnostics.OrganizeUsings, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 progress.ItemCompleted();
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                progress.Report(CodeActionProgress.Description(FeaturesResources.Formatting_document));
+                progress.Report(CodeAnalysisProgress.Description(FeaturesResources.Formatting_document));
                 using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
                 {
                     document = await Formatter.FormatAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
@@ -137,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgress<CodeActionProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
             foreach (var diagnosticSet in enabledDiagnosticSets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                progress.Report(CodeActionProgress.Description(diagnosticSet.Description));
+                progress.Report(CodeAnalysisProgress.Description(diagnosticSet.Description));
                 document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
                     document, diagnosticSet.DiagnosticIds, progress, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgress<CodeActionProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
-            Document document, string diagnosticId, IProgress<CodeActionProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, string diagnosticId, IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> ApplyThirdPartyCodeFixesAsync(
             Document document,
             ImmutableArray<(string diagnosticId, string? title)> diagnosticIds,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                progress.Report(CodeActionProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
+                progress.Report(CodeAnalysisProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
                 // Apply codefixes for diagnostics with a severity of warning or higher
                 var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                     document, diagnosticId, DiagnosticSeverity.Warning, progress, fallbackOptions, cancellationToken).ConfigureAwait(false);

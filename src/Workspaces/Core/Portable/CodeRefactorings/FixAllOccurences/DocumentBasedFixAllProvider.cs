@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgress<CodeActionProgress> progress)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                 or FixAllScope.ContainingMember or FixAllScope.ContainingType);

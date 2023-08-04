@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        public IProgress<CodeActionProgress> Progress { get; }
+        public IProgress<CodeAnalysisProgress> Progress { get; }
 
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  CodeActionProgress.Null, cancellationToken)
+                  CodeAnalysisProgress.Null, cancellationToken)
         {
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  CodeActionProgress.Null, cancellationToken)
+                  CodeAnalysisProgress.Null, cancellationToken)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             FixAllState state,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             State = state;

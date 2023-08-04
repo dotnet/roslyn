@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
             CodeActionOptionsProvider options,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             // all projects must be of the same language
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
             CodeActionOptionsProvider options,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             var diagnosticProvider = new DiagnosticProvider(diagnosticsByProject);

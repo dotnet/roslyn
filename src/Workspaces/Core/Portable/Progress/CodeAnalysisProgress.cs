@@ -5,15 +5,17 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Progress;
 
-namespace Microsoft.CodeAnalysis.CodeActions;
+namespace Microsoft.CodeAnalysis;
 
 /// <summary>
-/// Represents the progress of a <see cref="CodeAction"/>.
+/// Represents the progress of an operation.  Commonly used to update a UI visible to a user when a long running
+/// operation is happening.
 /// </summary>
-public sealed class CodeActionProgress
+public sealed class CodeAnalysisProgress
 {
-    internal static readonly IProgress<CodeActionProgress> Null = NullProgress<CodeActionProgress>.Instance;
+    internal static readonly IProgress<CodeAnalysisProgress> Null = NullProgress<CodeAnalysisProgress>.Instance;
 
     internal bool ClearValue { get; init; }
     internal bool CompletedItemValue { get; init; }
@@ -21,30 +23,30 @@ public sealed class CodeActionProgress
     internal string? DescriptionValue { get; init; }
 
     /// <summary>
-    /// Updates the UI showing the progress of the current <see cref="CodeAction"/> to the specified <paramref name="description"/>.
+    /// Updates the UI showing the progress of the current operation to the specified <paramref name="description"/>.
     /// </summary>
-    public static CodeActionProgress Description(string description)
+    public static CodeAnalysisProgress Description(string description)
         => new() { DescriptionValue = description ?? throw new ArgumentNullException(nameof(description)) };
 
     /// <summary>
-    /// Adds the requested number of incomplete items to the UI showing the progress of the current <see
-    /// cref="CodeAction"/>.  This is commonly presented with a progress bar.
+    /// Adds the requested number of incomplete items to the UI showing the progress of the current operation.  This is
+    /// commonly presented with a progress bar.
     /// </summary>
-    public static CodeActionProgress IncompleteItems(int count)
+    public static CodeAnalysisProgress IncompleteItems(int count)
         => new() { IncompleteItemsValue = count >= 0 ? count : throw new ArgumentOutOfRangeException(nameof(count)) };
 
     /// <summary>
     /// Indicates that one item of work has transitioned from being incomplete (see <see cref="IncompleteItems"/> to
     /// complete.  This is commonly presented with a progress bar.
     /// </summary>
-    public static CodeActionProgress CompletedItem()
+    public static CodeAnalysisProgress CompletedItem()
         => new() { CompletedItemValue = true };
 
     /// <summary>
-    /// Indicates that all progress should be reset for the current <see cref="CodeAction"/>. This is normally done when
-    /// the code action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
+    /// Indicates that all progress should be reset for the current operation. This is normally done when the code
+    /// action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
     /// </summary>
-    public static CodeActionProgress Clear()
+    public static CodeAnalysisProgress Clear()
         => new() { ClearValue = true };
 
     //public CodeActionProgress(int completedItems, int totalItems)
@@ -82,13 +84,13 @@ public sealed class CodeActionProgress
     //}
 }
 
-internal sealed class CodeActionProgressTracker(Action<string?, int, int>? updateAction) : IProgress<CodeActionProgress>
+internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? updateAction) : IProgress<CodeAnalysisProgress>
 {
     private string? _description;
     private int _completedItems;
     private int _totalItems;
 
-    public CodeActionProgressTracker()
+    public CodeAnalysisProgressTracker()
         : this(null)
     {
     }
@@ -130,7 +132,7 @@ internal sealed class CodeActionProgressTracker(Action<string?, int, int>? updat
     private void Update()
         => updateAction?.Invoke(_description, _completedItems, _totalItems);
 
-    public void Report(CodeActionProgress value)
+    public void Report(CodeAnalysisProgress value)
     {
         if (value.DescriptionValue != null)
             this.Description = value.DescriptionValue;

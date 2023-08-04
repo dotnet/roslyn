@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 var progress = fixAllContext.Progress;
-                progress.Report(CodeActionProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
+                progress.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
                 var fixAllState = fixAllContext.State;
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
-            FixAllState fixAllState, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            FixAllState fixAllState, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public virtual async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
-            FixAllState fixAllState, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            FixAllState fixAllState, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(batchOfFixes.Any());
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             FixAllState fixAllState,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = new ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>();
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Solution oldSolution,
             ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             CodeAction codeAction,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

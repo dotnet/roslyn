@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool TryApplyChanges(
             Microsoft.CodeAnalysis.Solution newSolution,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progress)
         {
             if (!_foregroundObject.IsForeground())
             {
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution, progressTracker);
+            return base.TryApplyChanges(newSolution, progress);
 
             bool CanApplyChange(DocumentId documentId)
             {

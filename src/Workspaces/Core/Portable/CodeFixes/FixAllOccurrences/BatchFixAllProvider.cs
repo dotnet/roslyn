@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = originalFixAllContext.CancellationToken;
             var progress = originalFixAllContext.Progress;
-            progress.Report(CodeActionProgress.Description(originalFixAllContext.GetDefaultFixAllTitle()));
+            progress.Report(CodeAnalysisProgress.Description(originalFixAllContext.GetDefaultFixAllTitle()));
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
             // applying fixes.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task FixSingleContextAsync(
-            FixAllContext fixAllContext, IProgress<CodeActionProgress> progress, Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger)
         {
             // First, determine the diagnostics to fix for that context.
             var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext, progress).ConfigureAwait(false);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await AddDocumentChangesAsync(fixAllContext, progress, docIdToTextMerger, documentToDiagnostics).ConfigureAwait(false);
         }
 
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeActionProgress> progress)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
         {
             using var _ = progress.ItemCompletedScope();
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static async Task AddDocumentChangesAsync(
             FixAllContext fixAllContext,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
         {

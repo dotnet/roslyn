@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 // Intents don't current support progress.
                 var intentResult = await GetIntentProcessorResultAsync(
-                    priorDocument, action, CodeActionProgress.Null, cancellationToken).ConfigureAwait(false);
+                    priorDocument, action, CodeAnalysisProgress.Null, cancellationToken).ConfigureAwait(false);
                 results.AddIfNotNull(intentResult);
             }
 
             return results.ToImmutable();
 
             static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
-                Document priorDocument, CodeAction codeAction, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var operations = await GetCodeActionOperationsAsync(
                     priorDocument.Project.Solution, codeAction, progress, cancellationToken).ConfigureAwait(false);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
                 Solution originalSolution,
                 CodeAction action,
-                IProgress<CodeActionProgress> progress,
+                IProgress<CodeAnalysisProgress> progress,
                 CancellationToken cancellationToken)
             {
                 if (action is GenerateConstructorWithDialogCodeAction dialogAction)

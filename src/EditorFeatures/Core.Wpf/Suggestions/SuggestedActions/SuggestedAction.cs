@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -73,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         // NOTE: We want to avoid computing the operations on the UI thread. So we use Task.Run() to do this work on the background thread.
         protected Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => CodeAction.GetOperationsAsync(this.OriginalSolution, progress, cancellationToken), cancellationToken);
         }
 
         protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
-            CodeActionWithOptions actionWithOptions, object options, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, progress, cancellationToken), cancellationToken);
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                     EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
-                await this.InnerInvokeAsync(scope.GetCodeActionProgress(), context.UserCancellationToken).ConfigureAwait(false);
+                await this.InnerInvokeAsync(scope.GetCodeAnalysisProgress(), context.UserCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        protected virtual async Task InnerInvokeAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        protected virtual async Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task InvokeWorkerAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        private async Task InvokeWorkerAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

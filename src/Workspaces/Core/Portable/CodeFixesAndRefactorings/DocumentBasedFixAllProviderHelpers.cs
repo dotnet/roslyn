@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
             TFixAllContext originalFixAllContext,
             ImmutableArray<TFixAllContext> fixAllContexts,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             string progressTrackerDescription,
-            Func<TFixAllContext, IProgress<CodeActionProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
-            progress.Report(CodeActionProgress.Description(progressTrackerDescription));
+            progress.Report(CodeAnalysisProgress.Description(progressTrackerDescription));
 
             var solution = originalFixAllContext.Solution;
 
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
             Solution currentSolution,
             TFixAllContext fixAllContext,
-            IProgress<CodeActionProgress> progress,
-            Func<TFixAllContext, IProgress<CodeActionProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            IProgress<CodeAnalysisProgress> progress,
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
             // First, compute and apply the fixes.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// given text and apply that instead.
         /// </summary>
         private static async Task<Solution> CleanupAndApplyChangesAsync(
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,
             CancellationToken cancellationToken)

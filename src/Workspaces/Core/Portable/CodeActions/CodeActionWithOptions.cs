@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         public Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
-            => GetOperationsAsync(originalSolution: null!, options, CodeActionProgress.Null, cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, options, CodeAnalysisProgress.Null, cancellationToken);
 
         internal async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
-            Solution originalSolution, object? options, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            Solution originalSolution, object? options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             if (options == null)
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         private protected sealed override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
             var operations = await this.GetOperationsAsync(originalSolution, options, progress, cancellationToken).ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.  Override <see
-        /// cref="ComputeOperationsAsync(object, IProgress{CodeActionProgress}, CancellationToken)"/> to report progress
+        /// cref="ComputeOperationsAsync(object, IProgress{CodeAnalysisProgress}, CancellationToken)"/> to report progress
         /// progress while computing the operations.
         /// </summary>
         /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.
         /// </summary>
-        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => ComputeOperationsAsync(options, cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)

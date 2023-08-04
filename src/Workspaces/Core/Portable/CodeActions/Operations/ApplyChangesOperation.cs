@@ -39,16 +39,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => workspace.TryApplyChanges(ChangedSolution, CodeActionProgress.Null);
+            => workspace.TryApplyChanges(ChangedSolution, CodeAnalysisProgress.Null);
 
-        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progress, cancellationToken));
 
         internal static bool ApplyOrMergeChanges(
             Workspace workspace,
             Solution originalSolution,
             Solution changedSolution,
-            IProgress<CodeActionProgress> progress,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             var currentSolution = workspace.CurrentSolution;

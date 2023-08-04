@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Packaging
             Workspace workspace, DocumentId documentId,
             string source, string packageName,
             string? version, bool includePrerelease,
-            IProgress<CodeActionProgress> progress, CancellationToken cancellationToken);
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 

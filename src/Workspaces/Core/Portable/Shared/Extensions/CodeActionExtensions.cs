@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class CodeActionExtensions
     {
-        public static async Task<Solution> GetRequiredChangedSolutionAsync(this CodeAction codeAction, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        public static async Task<Solution> GetRequiredChangedSolutionAsync(this CodeAction codeAction, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var solution = await codeAction.GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
             if (solution is null)

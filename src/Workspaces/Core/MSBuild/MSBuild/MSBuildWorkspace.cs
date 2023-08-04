@@ -298,10 +298,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public override bool TryApplyChanges(Solution newSolution)
         {
-            return TryApplyChanges(newSolution, CodeActionProgress.Null);
+            return TryApplyChanges(newSolution, CodeAnalysisProgress.Null);
         }
 
-        internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeActionProgress> progress)
+        internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progress)
         {
             using (_serializationLock.DisposableWait())
             {

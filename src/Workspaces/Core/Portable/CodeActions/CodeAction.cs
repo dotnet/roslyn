@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-            => GetOperationsAsync(originalSolution: null!, CodeActionProgress.Null, cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, CodeAnalysisProgress.Null, cancellationToken);
 
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
         }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         private protected virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var operations = await this.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
-        /// cref="CodeActionOperation"/>'s.  Override <see cref="ComputeOperationsAsync(IProgress{CodeActionProgress},
+        /// cref="CodeActionOperation"/>'s.  Override <see cref="ComputeOperationsAsync(IProgress{CodeAnalysisProgress},
         /// CancellationToken)"/> to report progress progress while computing the operations.
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// cref="CodeActionOperation"/>'s.
         /// </summary>
         protected virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
-            IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             return operations.ToImmutableArrayOrEmpty();
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Computes all changes for an entire solution. Override this method if you want to implement a <see
         /// cref="CodeAction"/> subclass that changes more than one document.  Override <see
-        /// cref="GetChangedSolutionAsync(IProgress{CodeActionProgress}, CancellationToken)"/> to report progress
+        /// cref="GetChangedSolutionAsync(IProgress{CodeAnalysisProgress}, CancellationToken)"/> to report progress
         /// progress while computing the operations.
         /// </summary>
         protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        protected internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+        protected internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => GetChangedSolutionAsync(cancellationToken);
 
         /// <summary>
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// used by batch fixer engine to get new solution
         /// </summary>
         internal async Task<Solution?> GetChangedSolutionInternalAsync(
-            Solution originalSolution, IProgress<CodeActionProgress> progress, bool postProcessChanges = true, CancellationToken cancellationToken = default)
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progress, bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 public override string Title => EditorFeaturesResources.Preview_changes2;
 
                 private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-                    Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+                    Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();

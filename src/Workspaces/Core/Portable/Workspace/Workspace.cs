@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
-        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeActionProgress})"/>. 
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeAnalysisProgress})"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
@@ -1376,9 +1376,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-            => TryApplyChanges(newSolution, CodeActionProgress.Null);
+            => TryApplyChanges(newSolution, CodeAnalysisProgress.Null);
 
-        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeActionProgress> progress)
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progress)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {

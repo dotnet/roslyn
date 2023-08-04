@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             var solution = document.Project.Solution;
-            var progressTracker = new CodeActionProgressTracker();
+            var progressTracker = new CodeAnalysisProgressTracker();
             var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
             Document document,
             CodeAction codeAction,
-            CodeActionProgressTracker progressTracker,
+            CodeAnalysisProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
             CancellationToken cancellationToken)
         {
