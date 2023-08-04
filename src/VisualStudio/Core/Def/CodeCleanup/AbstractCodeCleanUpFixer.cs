@@ -295,8 +295,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 var document = project.GetRequiredDocument(documentId);
                 progressTracker.Report(CodeAnalysisProgress.Description(document.Name));
 
-                // FixDocumentAsync reports progress within a document, but we limit progress reporting for a project
-                // to the current document.
+                // FixDocumentAsync reports progress within a document, but we only want to report progress at the
+                // project granularity.  So we pass CodeAnalysisProgress.None here so that inner progress updates don't
+                // affect us.
                 var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.None, ideOptions, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
                 progressTracker.ItemCompleted();
