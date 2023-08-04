@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public abstract class CodeAction
     {
+        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isNonProgressGetChangedSolutionAsyncOverridden = new();
+
         /// <summary>
         /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
         /// cref="CodeActionPriority.High"/> priority class.
@@ -263,18 +266,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// cref="GetChangedSolutionAsync(IProgress{CodeAnalysisProgress}, CancellationToken)"/> to report progress
         /// progress while computing the operations.
         /// </summary>
-        protected virtual Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            => GetChangedSolutionAsync(CodeAnalysisProgress.Null, cancellationToken);
+        protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+        {
+            var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return changedDocument?.Project.Solution;
+        }
 
         internal virtual async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
-            if (changedDocument == null)
+            // If the subclass overrode `GetChangedSolutionAsync(CancellationToken)` then we must call into that in
+            // order to preserve whatever logic our subclass had had for determining the new solution.
+            if (s_isNonProgressGetChangedSolutionAsyncOverridden.GetValue(
+                GetType(),
+                _ => new StrongBox<bool>(new Func<CancellationToken, Task<Solution?>>(GetChangedSolutionAsync).Method.DeclaringType != typeof(CodeAction))).Value)
             {
-                return null;
+                return await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            return changedDocument.Project.Solution;
+            // Otherwise, attempt to determine the changed document (the same logic as GetChangedSolutionAsync), but
+            // this time pass the progress information along so it is not lost.
+            var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
+            return changedDocument?.Project.Solution;
         }
 
         /// <summary>
