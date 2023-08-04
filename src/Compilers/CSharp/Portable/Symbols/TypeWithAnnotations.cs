@@ -1005,12 +1005,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override TypeWithAnnotations AsNullableReferenceType(TypeWithAnnotations type)
             {
-                return type.AsNullableReferenceType();
+                return CreateNonLazyType(type.DefaultType, NullableAnnotation.Annotated, _customModifiers);
             }
 
             internal override TypeWithAnnotations AsNotNullableReferenceType(TypeWithAnnotations type)
             {
-                return type.AsNotNullableReferenceType();
+                var defaultType = type.DefaultType;
+                return CreateNonLazyType(defaultType, defaultType.IsNullableType() ? type.NullableAnnotation : NullableAnnotation.NotAnnotated, _customModifiers);
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
