@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal static class FixAllContextExtensions
     {
-        public static IProgress<CodeActionProgress> GetProgressTracker(this FixAllContext context)
+        public static IProgress<CodeActionProgress> GetProgress(this FixAllContext context)
         {
 #if CODE_STYLE
             return NullProgress<CodeActionProgress>.Instance;

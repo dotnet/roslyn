@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -16,7 +17,7 @@ public sealed class CodeActionProgress
 
     internal bool CompletedItemValue { get; init; }
     internal int? IncompleteItemsValue { get; init; }
-    internal Optional<string> DescriptionValue { get; init; }
+    internal string? DescriptionValue { get; init; }
 
     /// <summary>
     /// Updates the UI showing the progress of the current <see cref="CodeAction"/> to the specified <paramref name="description"/>.
@@ -71,6 +72,67 @@ public sealed class CodeActionProgress
     //    TotalItems = totalItems;
     //    Description = description;
     //}
+}
+
+internal sealed class CodeActionProgressTracker(Action<string, int, int>? updateAction) : IProgress<CodeActionProgress>
+{
+    private string? _description;
+    private int _completedItems;
+    private int _totalItems;
+
+    public CodeActionProgressTracker()
+        : this(null)
+    {
+    }
+
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            _description = value;
+            Update();
+        }
+    }
+
+    public int CompletedItems => _completedItems;
+
+    public int TotalItems => _totalItems;
+
+    public void AddItems(int count)
+    {
+        Interlocked.Add(ref _totalItems, count);
+        Update();
+    }
+
+    public void ItemCompleted()
+    {
+        Interlocked.Increment(ref _completedItems);
+        Update();
+    }
+
+    public void Clear()
+    {
+        _totalItems = 0;
+        _completedItems = 0;
+        _description = null;
+        Update();
+    }
+
+    private void Update()
+        => updateAction?.Invoke(_description, _completedItems, _totalItems);
+
+    public void Report(CodeActionProgress value)
+    {
+        if (value.DescriptionValue != null)
+            this.Description = value.DescriptionValue;
+
+        if (value.IncompleteItemsValue != null)
+            this.AddItems(value.IncompleteItemsValue.Value);
+
+        if (value.CompletedItemValue)
+            this.ItemCompleted();
+    }
 }
 
 internal static class CodeActionProgressExtensions

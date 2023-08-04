@@ -82,7 +82,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
-        private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyFixesAsync(
+            Document document,
+            ImmutableArray<AddImportFixData> fixes,
+            SyntaxFormattingOptions formattingOptions,
+            CancellationToken cancellationToken)
         {
             if (fixes.IsEmpty)
             {
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             var solution = document.Project.Solution;
-            var progressTracker = new ProgressTracker();
+            var progressTracker = new CodeActionProgressTracker();
             var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
             Document document,
             CodeAction codeAction,
-            ProgressTracker progressTracker,
+            CodeActionProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
             CancellationToken cancellationToken)
         {
