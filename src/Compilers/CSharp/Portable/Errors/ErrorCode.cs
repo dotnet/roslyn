@@ -2265,6 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TargetDifferentRefness = 9198,
         ERR_OutAttrOnRefReadonlyParam = 9199,
         WRN_RefReadonlyParameterDefaultValue = 9200,
+        WRN_UseDefViolationRefField = 9201,
 
         #endregion
 

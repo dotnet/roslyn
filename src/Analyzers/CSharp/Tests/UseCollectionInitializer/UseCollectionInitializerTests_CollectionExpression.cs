@@ -97,6 +97,304 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    public async Task TestOnVariableDeclarator_If1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                        c.Add(2);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1, .. {|CS0173:b ? [2] : []|}];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                        c.Add(2);
+                    else
+                        c.Add(3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1, b ? 2 : 3];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    public async Task TestOnVariableDeclarator_If3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1, .. {|CS0173:b ? [2] : []|}];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1, b ? 2 : 3];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                        c.Add(2);
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1];
+                    if (b)
+                    {
+                        c.Add(2);
+                        c.Add(3);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                        c.Add(4);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1];
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                        c.Add(4);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1];
+                    if (b)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_If8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(bool b)
+                {
+                    List<int> c = [1];
+                    if (b)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestOnVariableDeclaratorDifferentType()
     {
@@ -889,9 +1187,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestNotOnNamedArg()
+    public async Task TestOnNamedArg()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -899,7 +1197,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = new List<int>();
+                    List<int> c = [|new|] List<int>();
+                    c.Add(item: 1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
                     c.Add(item: 1);
                 }
             }
@@ -1352,9 +1662,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-    public async Task TestMissingWhenReferencedInInitializer()
+    public async Task TestWhenReferencedInInitializer()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1362,7 +1672,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 static void M()
                 {
-                    List<object> items = new List<object>();
+                    List<object> items = [|new|] List<object>();
+                    items[0] = items[0];
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void M()
+                {
+                    List<object> items = [];
                     items[0] = items[0];
                 }
             }
@@ -1481,7 +1803,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
     public async Task TestFieldReference()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1490,7 +1812,20 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 private List<int> myField;
                 void M()
                 {
-                    myField = new List<int>();
+                    myField = [|new|] List<int>();
+                    myField.Add(this.myField.Count);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private List<int> myField;
+                void M()
+                {
+                    myField = [];
                     myField.Add(this.myField.Count);
                 }
             }
@@ -1801,5 +2136,165 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             List<int> list = [1];
 
             """, OutputKind.ConsoleApplication);
+    }
+
+    [Fact]
+    public async Task TestUpdateExistingCollectionInitializerToExpression1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>();
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestUpdateExistingCollectionInitializerToExpression2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    {
+                        1
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1
+            ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestUpdateExistingCollectionInitializerToExpression3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    {
+                        1,
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1,
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestUpdateExistingCollectionInitializerToExpression4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    {
+                        1,
+                        2
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1,
+                        2
+            ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestUpdateExistingCollectionInitializerToExpression5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    {
+                        1,
+                        2,
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1,
+                        2,
+                    ];
+                }
+            }
+            """);
     }
 }
