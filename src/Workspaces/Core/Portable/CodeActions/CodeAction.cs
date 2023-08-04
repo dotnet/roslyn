@@ -177,21 +177,21 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-            => GetOperationsAsync(originalSolution: null!, new ProgressTracker(), cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, NullProgress<CodeActionProgress>.Instance, cancellationToken);
 
-        internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+            Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
-            return GetOperationsCoreAsync(originalSolution, progressTracker, cancellationToken);
+            return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
         }
 
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
-        internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        private protected virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+            Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
-            var operations = await this.ComputeOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+            var operations = await this.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
@@ -223,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         /// <summary>
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
+        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
+        /// cref="CodeActionOperation"/>'s.  Override <see cref="ComputeOperationsAsync(IProgress{CodeActionProgress},
+        /// CancellationToken)"/> to report progress progress while computing the operations.
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
@@ -236,8 +238,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
-        internal virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+        /// <summary>
+        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
+        /// cref="CodeActionOperation"/>'s.
+        /// </summary>
+        protected virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
             var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             return operations.ToImmutableArrayOrEmpty();
