@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using ICSharpCode.Decompiler.CSharp.Syntax.PatternMatching;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -416,12 +415,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         [Fact]
-        public void TestMultipleWords()
+        public void TestCachingOfPriorResult()
         {
             using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
             matcher.Matches("Go");
-            matcher.Matches("Go");
-            matcher.Matches("oGo");
+
+            // Ensure that the above call ended up caching the result.
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
+
+            matcher.Matches("DefNotAMatch");
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
         }
 
         private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)

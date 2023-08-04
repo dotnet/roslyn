@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 {
     internal partial class PatternMatcher
     {
-        private sealed partial class SimplePatternMatcher : PatternMatcher
+        internal sealed partial class SimplePatternMatcher : PatternMatcher
         {
             private PatternSegment _fullPatternSegment;
 
@@ -50,6 +51,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 return MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: false) ||
                        MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: true);
+            }
+
+            public TestAccessor GetTestAccessor()
+                => new(this);
+
+            public readonly struct TestAccessor(SimplePatternMatcher simplePatternMatcher)
+            {
+                public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
+                    => simplePatternMatcher._fullPatternSegment.TotalTextChunk.SimilarityChecker.LastCacheResultIs(areSimilar, candidateText);
             }
         }
     }
