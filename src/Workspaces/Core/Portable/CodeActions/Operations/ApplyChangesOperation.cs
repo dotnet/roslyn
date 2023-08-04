@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -41,16 +39,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => workspace.TryApplyChanges(ChangedSolution, new ProgressTracker());
+            => workspace.TryApplyChanges(ChangedSolution, CodeActionProgress.Null);
 
-        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
-            => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken));
+        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progress, cancellationToken));
 
         internal static bool ApplyOrMergeChanges(
             Workspace workspace,
             Solution originalSolution,
             Solution changedSolution,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             CancellationToken cancellationToken)
         {
             var currentSolution = workspace.CurrentSolution;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // if there was no intermediary edit, just apply the change fully.
             if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
             {
-                var result = workspace.TryApplyChanges(changedSolution, progressTracker);
+                var result = workspace.TryApplyChanges(changedSolution, progress);
 
                 Logger.Log(
                     result ? FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded : FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed,
@@ -160,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
-            return workspace.TryApplyChanges(forkedSolution, progressTracker);
+            return workspace.TryApplyChanges(forkedSolution, progress);
         }
     }
 }

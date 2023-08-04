@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,11 +71,11 @@ namespace Microsoft.CodeAnalysis.AddPackage
         internal override bool ApplyDuringTests => true;
 
         internal override Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackageAsync(
                 workspace, _document.Id, _source, _packageName,
-                _versionOpt, _includePrerelease, progressTracker, cancellationToken);
+                _versionOpt, _includePrerelease, progress, cancellationToken);
         }
     }
 }

@@ -11,10 +11,11 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 internal static class IUIThreadOperationContextExtensions
 {
     public static IProgress<CodeActionProgress> GetCodeActionProgress(this IUIThreadOperationContext context)
+        => context.Scopes.Last().GetCodeActionProgress();
+
+    public static IProgress<CodeActionProgress> GetCodeActionProgress(this IUIThreadOperationScope scope)
         => new CodeActionProgressTracker((description, completedItems, totalItems) =>
         {
-            var scope = context.Scopes.Last();
-
             if (description != null)
                 scope.Description = description;
 

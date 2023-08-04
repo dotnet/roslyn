@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -111,15 +112,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             public override string Title => _installPackageOperation.Title;
 
             internal override async Task<bool> TryApplyAsync(
-                Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);
 
                 // First make the changes to add the import to the document.
-                if (workspace.TryApplyChanges(newSolution, progressTracker))
+                if (workspace.TryApplyChanges(newSolution, progress))
                 {
-                    if (await _installPackageOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true))
+                    if (await _installPackageOperation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true))
                     {
                         return true;
                     }
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // Installing the nuget package failed.  Roll back the workspace.
                     var rolledBackSolution = workspace.CurrentSolution.WithDocumentText(
                         _changedDocumentId, _oldText);
-                    workspace.TryApplyChanges(rolledBackSolution, progressTracker);
+                    workspace.TryApplyChanges(rolledBackSolution, progress);
                 }
 
                 return false;

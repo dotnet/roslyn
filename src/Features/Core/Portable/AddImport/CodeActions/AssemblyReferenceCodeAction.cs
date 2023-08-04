@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,13 +78,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 internal override Task<bool> TryApplyAsync(
-                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                    Workspace workspace, Solution originalSolution, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
                 {
                     var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)
                         return SpecializedTasks.False;
 
-                    return operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
+                    return operation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken);
                 }
 
                 private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)

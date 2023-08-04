@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
-        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeActionProgress})"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
@@ -1375,9 +1376,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-            => TryApplyChanges(newSolution, new ProgressTracker());
+            => TryApplyChanges(newSolution, CodeActionProgress.Null);
 
-        internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeActionProgress> progress)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
@@ -1422,12 +1423,12 @@ namespace Microsoft.CodeAnalysis
 
                 // changed projects
                 var projectChangesList = solutionChanges.GetProjectChanges().ToList();
-                progressTracker.AddItems(projectChangesList.Count);
+                progress.AddItems(projectChangesList.Count);
 
                 foreach (var projectChanges in projectChangesList)
                 {
                     this.ApplyProjectChanges(projectChanges);
-                    progressTracker.ItemCompleted();
+                    progress.ItemCompleted();
                 }
 
                 // changes in mapped files outside the workspace (may span multiple projects)

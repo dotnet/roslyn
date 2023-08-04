@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-            return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+            return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, fixAllContext.Progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             return await GetFixAllOperationsAsync(
-                codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                codeAction, showPreviewChangesDialog, fixAllContext.Progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction,
             bool showPreviewChangesDialog,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             IFixAllState fixAllState,
             CancellationToken cancellationToken)
         {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             cancellationToken.ThrowIfCancellationRequested();
             var operations = await codeAction.GetOperationsAsync(
-                fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
+                fixAllState.Solution, progress, cancellationToken).ConfigureAwait(false);
             if (operations == null)
             {
                 return ImmutableArray<CodeActionOperation>.Empty;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             cancellationToken.ThrowIfCancellationRequested();
             var newSolution = await codeAction.GetChangedSolutionInternalAsync(
-                fixAllState.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                fixAllState.Solution, progress, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (showPreviewChangesDialog)
             {

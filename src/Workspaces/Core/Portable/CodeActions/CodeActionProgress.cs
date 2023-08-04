@@ -15,6 +15,7 @@ public sealed class CodeActionProgress
 {
     internal static readonly IProgress<CodeActionProgress> Null = NullProgress<CodeActionProgress>.Instance;
 
+    internal bool ClearValue { get; init; }
     internal bool CompletedItemValue { get; init; }
     internal int? IncompleteItemsValue { get; init; }
     internal string? DescriptionValue { get; init; }
@@ -38,6 +39,13 @@ public sealed class CodeActionProgress
     /// </summary>
     public static CodeActionProgress CompletedItem()
         => new() { CompletedItemValue = true };
+
+    /// <summary>
+    /// Indicates that all progress should be reset for the current <see cref="CodeAction"/>. This is normally done when
+    /// the code action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
+    /// </summary>
+    public static CodeActionProgress Clear()
+        => new() { ClearValue = true };
 
     //public CodeActionProgress(int completedItems, int totalItems)
     //    : this(description: default(Optional<string>), completedItems, totalItems)

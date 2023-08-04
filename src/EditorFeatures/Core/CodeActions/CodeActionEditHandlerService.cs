@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
-                            workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
+                            workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, originalSolution, operations, progressTracker, cancellationToken).ConfigureAwait(true);
+                        workspace, originalSolution, operations, progress, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Workspace workspace,
             Solution originalSolution,
             ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 _threadingContext.ThrowIfNotOnUIThread();
-                applied &= await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;
