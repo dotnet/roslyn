@@ -1579,14 +1579,15 @@ namespace Microsoft.CodeAnalysis
                         transformers, sourceOnlyAnalyzerOptions, analyzerConfigProvider, transformerOptions,
                         transformersDiagnostics, cancellationToken);
 
+                    compilation = transformersResult.TransformedCompilation;
+
                     if (HasUnsuppressableErrors(transformersDiagnostics))
                     {
-                        MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilationBeforeTransformation, logger);
+                        MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger);
                         logger.Error?.Log($"RunTransformers reported errors.");
                         return;
                     }
 
-                    compilation = transformersResult.TransformedCompilation;
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
