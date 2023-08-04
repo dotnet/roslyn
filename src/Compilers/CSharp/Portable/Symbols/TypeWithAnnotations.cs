@@ -948,7 +948,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly TypeParameterSymbol _typeParameter;
             private int _resolved;
 
-
             public LazySubstitutedType(ImmutableArray<CustomModifier> customModifiers, TypeParameterSymbol typeParameter)
             {
                 Debug.Assert(!customModifiers.IsDefault);
