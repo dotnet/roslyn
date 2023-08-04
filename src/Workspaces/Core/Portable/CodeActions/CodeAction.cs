@@ -263,16 +263,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// cref="GetChangedSolutionAsync(IProgress{CodeAnalysisProgress}, CancellationToken)"/> to report progress
         /// progress while computing the operations.
         /// </summary>
-        protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-        {
-            var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
-            if (changedDocument == null)
-            {
-                return null;
-            }
-
-            return changedDocument.Project.Solution;
-        }
+        protected virtual Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            => GetChangedSolutionAsync(CodeAnalysisProgress.Null, cancellationToken);
 
         internal virtual async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
@@ -284,7 +276,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             return changedDocument.Project.Solution;
         }
-
 
         /// <summary>
         /// Computes changes for a single document. Override this method if you want to implement a
