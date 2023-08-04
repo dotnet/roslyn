@@ -1967,19 +1967,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private static Location GetAnonymousFunctionLocation(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case LambdaExpressionSyntax lambda:
-                    return lambda.ArrowToken.GetLocation();
-
-                case AnonymousMethodExpressionSyntax anonymousMethod:
-                    return anonymousMethod.DelegateKeyword.GetLocation();
-
-                default:
-                    return node.Location;
-            }
-        }
+                LambdaExpressionSyntax lambda => lambda.ArrowToken.GetLocation(),
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.DelegateKeyword.GetLocation(),
+                _ => node.Location;
+            };
 
         internal void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, SyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
