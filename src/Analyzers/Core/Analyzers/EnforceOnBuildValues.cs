@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UsePrimaryConstructor = /*IDE0290*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCollectionExpressionForArray = /*IDE0300*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCollectionExpressionForEmpty = /*IDE0301*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForStackAlloc = /*IDE0302*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
