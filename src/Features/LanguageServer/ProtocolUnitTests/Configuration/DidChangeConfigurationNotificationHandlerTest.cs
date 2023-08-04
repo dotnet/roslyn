@@ -141,7 +141,9 @@ public class A { }";
                 "code_style.formatting.new_line.end_of_line",
                 "code_style.formatting.new_line.insert_final_newline",
                 "background_analysis.dotnet_analyzer_diagnostics_scope",
-                "background_analysis.dotnet_compiler_diagnostics_scope"
+                "background_analysis.dotnet_compiler_diagnostics_scope",
+                "code_lens.dotnet_enable_references_code_lens",
+                "code_lens.dotnet_enable_tests_code_lens"
             }.OrderBy(name => name);
 
             Assert.Equal(expectedNames, actualNames);
