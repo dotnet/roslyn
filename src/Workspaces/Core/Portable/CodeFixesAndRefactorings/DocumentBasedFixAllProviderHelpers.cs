@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
             TFixAllContext originalFixAllContext,
             ImmutableArray<TFixAllContext> fixAllContexts,
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             string progressTrackerDescription,
-            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            Func<TFixAllContext, IProgress<CodeActionProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
-            progressTracker.Description = progressTrackerDescription;
+            progress.Report(CodeActionProgress.Description(progressTrackerDescription));
 
             var solution = originalFixAllContext.Solution;
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             // For refactorings, we have 2 pieces of work per project.  Computing refactorings, and applying refactorings.
             var fixAllKind = originalFixAllContext.State.FixAllKind;
             var workItemCount = fixAllKind == FixAllKind.CodeFix ? 3 : 2;
-            progressTracker.AddItems(fixAllContexts.Length * workItemCount);
+            progress.Report(CodeActionProgress.IncompleteItems(fixAllContexts.Length * workItemCount));
 
             // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
             var currentSolution = solution;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             {
                 Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                     or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync).ConfigureAwait(false);
+                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progress, getFixedDocumentsAsync).ConfigureAwait(false);
             }
 
             return currentSolution;
@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
             Solution currentSolution,
             TFixAllContext fixAllContext,
-            IProgressTracker progressTracker,
-            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            IProgress<CodeActionProgress> progress,
+            Func<TFixAllContext, IProgress<CodeActionProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
             // First, compute and apply the fixes.
-            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progress).ConfigureAwait(false);
 
             // Then, cleanup the new doc roots, and apply the results to the solution.
-            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
+            currentSolution = await CleanupAndApplyChangesAsync(progress, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
 
             return currentSolution;
         }
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// given text and apply that instead.
         /// </summary>
         private static async Task<Solution> CleanupAndApplyChangesAsync(
-            IProgressTracker progressTracker,
+            IProgress<CodeActionProgress> progress,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,
             CancellationToken cancellationToken)
         {
-            using var _1 = progressTracker.ItemCompletedScope();
+            using var _1 = progress.ItemCompletedScope();
 
             if (docIdToNewRootOrText.Count > 0)
             {

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
 
-            var progressTracker = fixAllContext.GetProgressTracker();
+            var progress = fixAllContext.GetProgressTracker();
 
             switch (fixAllContext.Scope)
             {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Update the progress dialog with the count of projects to actually fix. We'll update the progress
                     // bar as we get all the documents in AddDocumentDiagnosticsAsync.
 
-                    progressTracker.AddItems(projectsToFix.Length);
+                    progress.Report(CodeActionProgress.IncompleteItems(projectsToFix.Length));
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
                     using (var _ = ArrayBuilder<Task>.GetInstance(projectsToFix.Length, out var tasks))
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 finally
                 {
-                    progressTracker.ItemCompleted();
+                    progress.Report(CodeActionProgress.CompletedItem());
                 }
             }
 

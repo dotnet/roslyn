@@ -79,21 +79,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
             FixAllContext fixAllContext,
-            IProgressTracker progressTracker)
+            IProgress<CodeActionProgress> progress)
         {
             // First, determine the diagnostics to fix.
-            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progress).ConfigureAwait(false);
 
             // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-            return await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
+            return await GetFixedDocumentsAsync(fixAllContext, progress, diagnostics).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeActionProgress> progress)
         {
-            using var _ = progressTracker.ItemCompletedScope();
+            using var _ = progress.ItemCompletedScope();
             return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
         }
 
@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgressTracker progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
+            FixAllContext fixAllContext, IProgress<CodeActionProgress> progress, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            using var _1 = progressTracker.ItemCompletedScope();
+            using var _1 = progress.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
