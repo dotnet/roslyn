@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Experimental
                 || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Experimental)
             {
-                return getExperimentalDiagnosticKind(containingMember, forceComplete);
+                return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
             }
 
             switch (symbol.ObsoleteKind)
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case ObsoleteAttributeKind.WindowsExperimental:
                     return ObsoleteDiagnosticKind.Diagnostic;
                 case ObsoleteAttributeKind.Experimental:
-                    return getExperimentalDiagnosticKind(containingMember, forceComplete);
+                    return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
                 case ObsoleteAttributeKind.Uninitialized:
                     // If we haven't cracked attributes on the symbol at all or we haven't
                     // cracked attribute arguments enough to be able to report diagnostics for
@@ -134,36 +134,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ObsoleteDiagnosticKind.Lazy;
             }
 
-            switch (GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ObsoleteState))
-            {
-                case ThreeState.False:
-                    return ObsoleteDiagnosticKind.Diagnostic;
-                case ThreeState.True:
-                    // If we are in a context that is already obsolete, there is no point reporting
-                    // more obsolete diagnostics.
-                    return ObsoleteDiagnosticKind.Suppressed;
-                default:
-                    // If the context is unknown, then store the symbol so that we can do this check at a
-                    // later stage
-                    return ObsoleteDiagnosticKind.LazyPotentiallySuppressed;
-            }
+            return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ObsoleteState);
 
             static bool isExperimentalSymbol(NamedTypeSymbol namedTypeSymbol)
             {
                 return namedTypeSymbol.Arity == 0
-                    && namedTypeSymbol.HasNameQualifier("System.Diagnostics.CodeAnalysis")
-                    && namedTypeSymbol.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal);
+                    && namedTypeSymbol.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal)
+                    && namedTypeSymbol.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
             }
 
-            static ObsoleteDiagnosticKind getExperimentalDiagnosticKind(Symbol containingMember, bool forceComplete)
+            static ObsoleteDiagnosticKind getDiagnosticKind(Symbol containingMember, bool forceComplete, Func<Symbol, ThreeState> getStateFromSymbol)
             {
-                switch (GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState))
+                switch (GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol))
                 {
                     case ThreeState.False:
                         return ObsoleteDiagnosticKind.Diagnostic;
                     case ThreeState.True:
-                        // If we are in a context that is already experimental, there is no point reporting
-                        // more obsolete diagnostics.
+                        // If we are in a context that is already experimental/obsolete, there is no point reporting
+                        // more experimental/obsolete diagnostics.
                         return ObsoleteDiagnosticKind.Suppressed;
                     default:
                         // If the context is unknown, then store the symbol so that we can do this check at a

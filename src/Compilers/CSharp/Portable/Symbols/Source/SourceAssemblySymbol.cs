@@ -2554,7 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
             {
                 var obsoleteData = attribute.DecodeExperimentalAttribute();
-                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().ExperimentalAttributeData = obsoleteData;
             }
         }
 
@@ -2868,8 +2868,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // [assembly: Experimental] may have been specified in the assembly or one of the modules
-                var result = GetSourceDecodedWellKnownAttributeData()?.ObsoleteAttributeData
-                    ?? GetNetModuleDecodedWellKnownAttributeData()?.ObsoleteAttributeData;
+                var result = GetSourceDecodedWellKnownAttributeData()?.ExperimentalAttributeData
+                    ?? GetNetModuleDecodedWellKnownAttributeData()?.ExperimentalAttributeData;
 
                 Debug.Assert(result is null || result is { Kind: ObsoleteAttributeKind.Experimental });
                 return result;

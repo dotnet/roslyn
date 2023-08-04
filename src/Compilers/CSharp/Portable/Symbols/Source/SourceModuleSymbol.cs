@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
             {
-                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ObsoleteAttributeData = attribute.DecodeExperimentalAttribute();
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
             }
         }
 
@@ -658,6 +658,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
-            => GetDecodedWellKnownAttributeData()?.ObsoleteAttributeData;
+            => GetDecodedWellKnownAttributeData()?.ExperimentalAttributeData;
     }
 }

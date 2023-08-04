@@ -1117,7 +1117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).HasDebuggableAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
-                arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).ObsoleteAttributeData = attrData.DecodeObsoleteAttribute(ObsoleteAttributeKind.Experimental)
+                arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).ExperimentalAttributeData = attrData.DecodeObsoleteAttribute(ObsoleteAttributeKind.Experimental)
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
@@ -1230,7 +1230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
-                Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
+                Return If(data IsNot Nothing, data.ExperimentalAttributeData, Nothing)
             End Get
         End Property
 

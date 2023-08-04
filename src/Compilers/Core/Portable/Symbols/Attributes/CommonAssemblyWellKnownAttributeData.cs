@@ -446,13 +446,13 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region ExperimentalAttribute
-        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        public ObsoleteAttributeData ObsoleteAttributeData
+        private ObsoleteAttributeData _experimentalAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ExperimentalAttributeData
         {
             get
             {
                 VerifySealed(expected: true);
-                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
+                return _experimentalAttributeData.IsUninitialized ? null : _experimentalAttributeData;
             }
             set
             {
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!value.IsUninitialized);
                 Debug.Assert(value.Kind == ObsoleteAttributeKind.Experimental);
 
-                _obsoleteAttributeData = value;
+                _experimentalAttributeData = value;
                 SetDataStored();
             }
         }

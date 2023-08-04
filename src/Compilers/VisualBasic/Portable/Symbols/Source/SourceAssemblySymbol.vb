@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasDebuggableAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
-                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().ObsoleteAttributeData = attrData.DecodeExperimentalAttribute()
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().ExperimentalAttributeData = attrData.DecodeExperimentalAttribute()
             Else
                 Dim signature As Integer = attrData.GetTargetAttributeSignatureIndex(Me, AttributeDescription.AssemblyAlgorithmIdAttribute)
 
@@ -1787,7 +1787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' <assembly: Experimental> may have been specified in the assembly or one of the modules
-                Dim result = If(GetSourceDecodedWellKnownAttributeData()?.ObsoleteAttributeData, GetNetModuleDecodedWellKnownAttributeData()?.ObsoleteAttributeData)
+                Dim result = If(GetSourceDecodedWellKnownAttributeData()?.ExperimentalAttributeData, GetNetModuleDecodedWellKnownAttributeData()?.ExperimentalAttributeData)
 
                 Debug.Assert(result Is Nothing OrElse result.Kind = ObsoleteAttributeKind.Experimental)
                 Return result
