@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -149,9 +150,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
-            Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
+            Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                return FixSolutionAsync(solution, context.EnabledFixIds, progressTracker, cancellationToken);
+                return FixSolutionAsync(solution, context.EnabledFixIds, progress, cancellationToken);
             }
         }
 
@@ -160,9 +161,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
-            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
+            async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, addProgressItemsForDocuments: true, cancellationToken).ConfigureAwait(true);
+                var newProject = await FixProjectAsync(project, context.EnabledFixIds, progress, addProgressItemsForDocuments: true, cancellationToken).ConfigureAwait(true);
                 return newProject.Solution;
             }
         }
@@ -172,9 +173,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context);
 
             // Local function
-            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
+            async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
+                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
                 return newDocument.Project.Solution;
             }
         }
@@ -200,20 +201,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return FixAsync(workspace, ApplyFixAsync, context);
 
             // Local function
-            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
+            async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
 
                 var options = _globalOptions.GetCodeActionOptions(document.Project.Services);
-                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
+                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
         }
 
         private async Task<bool> FixAsync(
             Workspace workspace,
-            Func<ProgressTracker, CancellationToken, Task<Solution>> applyFixAsync,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> applyFixAsync,
             ICodeCleanUpExecutionContext context)
         {
             using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
@@ -228,27 +229,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var progressTracker = new ProgressTracker((description, completed, total) =>
-                {
-                    if (scope != null)
-                    {
-                        scope.Description = description;
-                        scope.Progress.Report(new VisualStudio.Utilities.ProgressInfo(completed, total));
-                    }
-                });
+                var progress = scope.GetCodeAnalysisProgress();
 
-                var solution = await applyFixAsync(progressTracker, cancellationToken).ConfigureAwait(true);
+                var solution = await applyFixAsync(progress, cancellationToken).ConfigureAwait(true);
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                return workspace.TryApplyChanges(solution, progressTracker);
+                return workspace.TryApplyChanges(solution, progress);
             }
         }
 
         private async Task<Solution> FixSolutionAsync(
             Solution solution,
             FixIdContainer enabledFixIds,
-            ProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
             // Prepopulate the solution progress tracker with the total number of documents to process
@@ -260,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     continue;
                 }
 
-                progressTracker.AddItems(project.DocumentIds.Count);
+                progress.AddItems(project.DocumentIds.Count);
             }
 
             foreach (var projectId in solution.ProjectIds)
@@ -268,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = solution.GetRequiredProject(projectId);
-                var newProject = await FixProjectAsync(project, enabledFixIds, progressTracker, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
+                var newProject = await FixProjectAsync(project, enabledFixIds, progress, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
                 solution = newProject.Solution;
             }
 
@@ -278,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
-            ProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progress,
             bool addProgressItemsForDocuments,
             CancellationToken cancellationToken)
         {
@@ -289,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
             if (addProgressItemsForDocuments)
             {
-                progressTracker.AddItems(project.DocumentIds.Count);
+                progress.AddItems(project.DocumentIds.Count);
             }
 
             var ideOptions = _globalOptions.GetCodeActionOptions(project.Services);
@@ -299,15 +293,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var document = project.GetRequiredDocument(documentId);
-                progressTracker.Description = document.Name;
+                progress.Report(CodeAnalysisProgress.Description(document.Name));
 
                 // FixDocumentAsync reports progress within a document, but we limit progress reporting for a project
                 // to the current document.
-                var documentProgressTracker = new ProgressTracker();
-
-                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, ideOptions, cancellationToken).ConfigureAwait(false);
+                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.Null, ideOptions, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
-                progressTracker.ItemCompleted();
+                progress.ItemCompleted();
             }
 
             return project;
@@ -319,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private static async Task<Document> FixDocumentAsync(
             Document document,
             FixIdContainer enabledFixIds,
-            ProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progress,
             CodeActionOptions ideOptions,
             CancellationToken cancellationToken)
         {
@@ -359,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progress, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

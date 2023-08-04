@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OLE.Interop;
 
@@ -150,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await packageInstallerService.TryUninstallAndAddRedoActionAsync(
                     source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
-                    scope.GetCodeActionProgress(),
+                    scope.GetCodeAnalysisProgress(),
                     context.UserCancellationToken).ConfigureAwait(false);
             }
 
@@ -188,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await packageInstallerService.TryInstallAndAddUndoActionAsync(
                     source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
-                    new UIThreadOperationContextProgressTracker(scope),
+                    scope.GetCodeAnalysisProgress(),
                     context.UserCancellationToken).ConfigureAwait(false);
             }
         }

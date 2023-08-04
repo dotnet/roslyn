@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -250,7 +251,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return true;
         }
 
-        private async Task ApplySuppressionFixAsync(IEnumerable<DiagnosticData>? diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private async Task ApplySuppressionFixAsync(
+            IEnumerable<DiagnosticData>? diagnosticsToFix,
+            Func<Project, bool> shouldFixInProject,
+            bool filterStaleDiagnostics,
+            bool isAddSuppression,
+            bool isSuppressionInSource,
+            bool onlyCompilerDiagnostics,
+            bool showPreviewChangesDialog)
         {
             try
             {
@@ -277,6 +285,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 var cancellationToken = context.UserCancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
+
+                var progress = context.GetCodeAnalysisProgress();
+
                 var documentDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(
                     diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -332,6 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 equivalenceKey,
                                 title,
                                 waitDialogMessage,
+                                progress,
                                 cancellationToken);
                             if (newSolution == null)
                             {
@@ -357,6 +369,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  equivalenceKey,
                                  title,
                                  waitDialogMessage,
+                                 progress,
                                  cancellationToken);
                             if (newSolution == null)
                             {
@@ -394,10 +407,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         _workspace,
                         originalSolution,
                         fromDocument: null,
-                        operations: operations,
-                        title: title,
-                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        operations,
+                        title,
+                        scope.GetCodeAnalysisProgress(),
+                        cancellationToken).ConfigureAwait(false);
 
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
                     _ = Task.Run(() =>
