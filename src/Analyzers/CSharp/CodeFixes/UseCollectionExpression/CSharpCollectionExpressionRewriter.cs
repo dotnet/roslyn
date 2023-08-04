@@ -29,14 +29,17 @@ internal static class CSharpCollectionExpressionRewriter
 {
     /// <summary>
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
-    /// name="objectCreation"/> expression.
+    /// name="expressionToReplace"/> expression.
     /// </summary>
-    public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
+    public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression>(
         Document workspaceDocument,
         CodeActionOptionsProvider fallbackOptions,
-        BaseObjectCreationExpressionSyntax objectCreation,
+        TParentExpression expressionToReplace,
         ImmutableArray<CollectionExpressionMatch> matches,
+        Func<TParentExpression, InitializerExpressionSyntax> getInitializer,
+        Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
+        where TParentExpression : ExpressionSyntax
     {
         // This method is quite complex, but primarily because it wants to perform all the trivia handling itself.
         // We are moving nodes around in the tree in complex ways, and the formatting engine is just not sufficient
@@ -60,6 +63,8 @@ internal static class CSharpCollectionExpressionRewriter
         var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
 #endif
 
+        var initializer = getInitializer(expressionToReplace);
+
         // Determine if we want to end up with a multiline collection expression.  The general intuition is that we
         // want a multiline expression if any of the following are true:
         //
@@ -77,7 +82,6 @@ internal static class CSharpCollectionExpressionRewriter
         // If there is no existing initializer (e.g. `new List<int>();`), or the initializer has no items in it, we
         // will instead try to figure out the best form for the final collection expression based on the elements
         // we're going to add.
-        var initializer = objectCreation.Initializer;
         return initializer == null || initializer.Expressions.Count == 0
             ? CreateCollectionExpressionWithoutExistingElements()
             : CreateCollectionExpressionWithExistingElements();
@@ -102,7 +106,9 @@ internal static class CSharpCollectionExpressionRewriter
                     Token(SyntaxKind.CloseBraceToken));
 
                 // Update the doc with the new object (now with initializer).
-                var updatedRoot = document.Root.ReplaceNode(objectCreation, objectCreation.WithInitializer(initializer));
+                var updatedRoot = document.Root.ReplaceNode(
+                    expressionToReplace,
+                    withInitializer(expressionToReplace, initializer));
                 var updatedParsedDocument = document.WithChangedRoot(updatedRoot, cancellationToken);
 
                 // Find the '{' and 'null' tokens after the rewrite.
@@ -138,7 +144,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                 var collectionExpression = CollectionExpression(
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens));
-                return collectionExpression.WithTriviaFrom(objectCreation);
+                return collectionExpression.WithTriviaFrom(expressionToReplace);
             }
         }
 
@@ -146,9 +152,6 @@ internal static class CSharpCollectionExpressionRewriter
         {
             // If the object creation expression had an initializer (with at least one element in it).  Attempt to
             // preserve the formatting of the original initializer and the new collection expression.
-
-            var initializer = objectCreation.Initializer;
-            Contract.ThrowIfNull(initializer);
 
             if (!document.Text.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
             {
@@ -535,9 +538,9 @@ internal static class CSharpCollectionExpressionRewriter
         bool MakeMultiLineCollectionExpression()
         {
             var totalLength = 0;
-            if (objectCreation.Initializer != null)
+            if (initializer != null)
             {
-                foreach (var expression in objectCreation.Initializer.Expressions)
+                foreach (var expression in initializer.Expressions)
                     totalLength += expression.Span.Length;
             }
 
