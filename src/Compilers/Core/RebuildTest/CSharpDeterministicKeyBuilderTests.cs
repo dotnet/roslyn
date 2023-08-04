@@ -411,10 +411,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [ConditionalFact(typeof(WindowsOnly))]
         public void CSharpPublicKey()
         {
+            using var temp = new TempRoot();
             var keyFilePath = @"c:\windows\key.snk";
             var publicKey = TestResources.General.snPublicKey;
             var publicKeyStr = DeterministicKeyBuilder.EncodeByteArrayValue(publicKey);
-            var fileSystem = new TestStrongNameFileSystem();
+            var fileSystem = new TestStrongNameFileSystem(temp.CreateDirectory().Path);
             fileSystem.ReadAllBytesFunc = _ => publicKey;
             var options = Options
                 .WithCryptoKeyFile(keyFilePath)
