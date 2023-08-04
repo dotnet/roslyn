@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
@@ -41,37 +42,33 @@ internal class GetProjectContextsHandler : ILspServiceDocumentRequestHandler<Pro
         Contract.ThrowIfNull(context.Workspace);
         Contract.ThrowIfNull(context.Solution);
 
-        // We specifically don't use context.Document here because we want multiple
-        var documents = context.Solution.GetDocuments(request.TextDocument.Uri);
-
-        if (!documents.Any())
+        var contextList = ProjectContextHelper.GetContextList(context.Workspace, context.Solution, request.TextDocument.Uri);
+        if (contextList is null)
         {
             return SpecializedTasks.Null<ProjectContextList>();
         }
 
         var idToIntermediateOutputMap = new Dictionary<string, string?>();
-        var contexts = new List<VSProjectContext>();
-
-        foreach (var document in documents)
+        foreach (var projectContext in contextList.ProjectContexts)
         {
-            var project = document.Project;
-            var projectContext = ProtocolConversions.ProjectToProjectContext(project);
-            contexts.Add(projectContext);
-            idToIntermediateOutputMap[projectContext.Id] = project.CompilationOutputInfo.AssemblyPath;
-        }
+            if (projectContext is null)
+            {
+                continue;
+            }
 
-        // If the document is open, it doesn't matter which DocumentId we pass to GetDocumentIdInCurrentContext since
-        // all the documents are linked at that point, so we can just pass the first arbitrarily. If the document is closed
-        // GetDocumentIdInCurrentContext will just return the same ID back, which means we're going to pick the first
-        // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
-        // close documents anyways.
-        var openDocument = documents.First();
-        var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
+            var projectId = ProtocolConversions.ProjectContextToProjectId(projectContext);
+            var project = context.Solution.GetRequiredProject(projectId);
+
+            var dllOutputPath = project.CompilationOutputInfo.AssemblyPath;
+            Contract.ThrowIfNull(dllOutputPath);
+
+            var outputDirectory = Directory.GetParent(dllOutputPath)!.FullName;
+            idToIntermediateOutputMap[projectContext.Id] = outputDirectory;
+        }
 
         return Task.FromResult<ProjectContextList?>(new ProjectContextList
         {
-            ProjectContexts = contexts.ToArray(),
-            DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId),
+            ProjectContexts = contextList,
             ProjectIdToIntermediatePathMap = idToIntermediateOutputMap
         });
     }

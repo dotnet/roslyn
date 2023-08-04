@@ -8,8 +8,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
-internal class ProjectContextList : VSProjectContextList
+internal class ProjectContextList
 {
+    //
+    // Summary:
+    //     Gets or sets the value which is the VSProjectContextList
+    [DataMember(Name = "_roslyn_projectContexts")]
+    public required VSProjectContextList ProjectContexts { get; set; }
+
     //
     // Summary:
     //     Gets or sets the value which maps project ids to intermediate output paths
