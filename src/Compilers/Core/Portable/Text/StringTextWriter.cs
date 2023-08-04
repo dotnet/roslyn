@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void Write(char[] buffer, int index, int count)
         {
+            ValidateWriteArguments(buffer, index, count);
+
             _builder.Append(buffer, index, count);
         }
     }

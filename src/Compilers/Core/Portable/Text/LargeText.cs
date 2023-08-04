@@ -154,10 +154,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (count == 0)
-            {
+            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
                 return;
-            }
 
             int chunkIndex = GetIndexFromPosition(sourceIndex);
             int chunkStartOffset = sourceIndex - _chunkStartOffsets[chunkIndex];
@@ -178,21 +176,14 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            if (span.Start < 0 || span.Start > _length || span.End > _length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
-
-            int count = span.Length;
-            if (count == 0)
-            {
+            if (!ValidateWriteArguments(writer, span))
                 return;
-            }
 
             var chunkWriter = writer as LargeTextWriter;
 
+            int count = span.Length;
             int chunkIndex = GetIndexFromPosition(span.Start);
             int chunkStartOffset = span.Start - _chunkStartOffsets[chunkIndex];
             while (true)
