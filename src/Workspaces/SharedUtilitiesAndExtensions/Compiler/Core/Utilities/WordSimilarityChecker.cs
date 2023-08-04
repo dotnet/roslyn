@@ -7,7 +7,6 @@ using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
-    [NonCopyable]
     internal struct WordSimilarityChecker : IDisposable
     {
         private readonly struct CacheResult(string candidate, bool areSimilar, double similarityWeight)
