@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+internal sealed class ExportEmbeddedLanguageQuickInfoProviderAttribute
+    : ExportEmbeddedLanguageFeatureServiceAttribute
 {
-    internal class ExportEmbeddedLanguageQuickInfoProviderAttribute
-        : ExportEmbeddedLanguageFeatureServiceAttribute
+    public ExportEmbeddedLanguageQuickInfoProviderAttribute(string name, string[] languages, params string[] identifiers)
+        : base(typeof(IEmbeddedLanguageQuickInfoProvider), name, languages, identifiers)
     {
-        public ExportEmbeddedLanguageQuickInfoProviderAttribute(string name, string[] languages, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageQuickInfoProvider), name, languages, identifiers)
-        {
-        }
     }
 }

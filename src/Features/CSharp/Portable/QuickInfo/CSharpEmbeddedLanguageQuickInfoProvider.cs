@@ -11,18 +11,17 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
+namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
+
+[ExportQuickInfoProvider(QuickInfoProviderNames.EmbeddedLanguages, LanguageNames.CSharp)]
+[ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
+[Shared]
+internal sealed class CSharpEmbeddedLanguageQuickInfoProvider : AbstractEmbeddedLanguageQuickInfoProvider
 {
-    [ExportQuickInfoProvider(QuickInfoProviderNames.EmbeddedLanguages, LanguageNames.CSharp)]
-    [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
-    [Shared]
-    internal class CSharpEmbeddedLanguageQuickInfoProvider : AbstractEmbeddedLanguageQuickInfoProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpEmbeddedLanguageQuickInfoProvider([ImportMany] IEnumerable<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> services)
+        : base(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, services)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEmbeddedLanguageQuickInfoProvider([ImportMany] IEnumerable<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> services)
-            : base(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, services)
-        {
-        }
     }
 }

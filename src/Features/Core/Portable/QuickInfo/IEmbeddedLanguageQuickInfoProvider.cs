@@ -9,17 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+internal interface IEmbeddedLanguageQuickInfoProvider : IEmbeddedLanguageFeatureService
 {
-    internal interface IEmbeddedLanguageQuickInfoProvider : IEmbeddedLanguageFeatureService
-    {
-        /// <summary>
-        /// Gets the <see cref="QuickInfoItem"/> for the position in an embedded language.
-        /// </summary>
-        /// <returns>The <see cref="QuickInfoItem"/> or null if no item is available.</returns>
-        QuickInfoItem? GetQuickInfo(
-            QuickInfoContext context,
-            SemanticModel semanticModel,
-            SyntaxToken token);
-    }
+    /// <summary>
+    /// Gets the <see cref="QuickInfoItem"/> for the position in an embedded language.
+    /// </summary>
+    /// <returns>The <see cref="QuickInfoItem"/> or null if no item is available.</returns>
+    QuickInfoItem? GetQuickInfo(
+        QuickInfoContext context,
+        SemanticModel semanticModel,
+        SyntaxToken token);
 }
