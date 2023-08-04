@@ -9934,7 +9934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnostics, getErrorLocation());
 
             Location getErrorLocation()
-                => location ??= GetAnonymousFunctionLocation(node);
+                => location ?? GetAnonymousFunctionLocation(node);
         }
 
         private BoundConditionalAccess BindConditionalAccessExpression(ConditionalAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
