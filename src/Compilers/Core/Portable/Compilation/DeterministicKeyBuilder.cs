@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         private (JsonWriter, PooledStringBuilder) CreateWriter()
         {
             var builder = PooledStringBuilder.GetInstance();
-            var writer = new StringWriter(builder);
+            var writer = new StringWriter(builder, CultureInfo.InvariantCulture);
             return (new JsonWriter(writer), builder);
         }
 

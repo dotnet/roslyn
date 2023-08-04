@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilation != null);
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
-            StringWriter writer = new StringWriter(pooled.Builder);
+            StringWriter writer = new StringWriter(pooled.Builder, CultureInfo.InvariantCulture);
 
             var compiler = new DocumentationCommentCompiler(
                 assemblyName: null,

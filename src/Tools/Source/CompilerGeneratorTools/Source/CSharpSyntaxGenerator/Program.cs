@@ -8,6 +8,7 @@
 #if NETCOREAPP
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -155,7 +156,7 @@ namespace CSharpSyntaxGenerator
         private static void WriteToFile(Action<TextWriter> writeAction, string outputFile)
         {
             var stringBuilder = new StringBuilder();
-            var writer = new StringWriter(stringBuilder);
+            var writer = new StringWriter(stringBuilder, CultureInfo.InvariantCulture);
             writeAction(writer);
 
             var text = stringBuilder.ToString();

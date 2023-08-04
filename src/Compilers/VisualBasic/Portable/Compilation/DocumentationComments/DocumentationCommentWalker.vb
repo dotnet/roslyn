@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Globalization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Public Class VisualBasicCompilation
@@ -113,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim pooled As PooledStringBuilder = PooledStringBuilder.GetInstance()
 
-                    Using writer As New StringWriter(pooled.Builder)
+                    Using writer As New StringWriter(pooled.Builder, CultureInfo.InvariantCulture)
                         Dim walker = New DocumentationCommentWalker(symbol, trivia.SyntaxTree, wellKnownElementNodes, writer, diagnostics)
                         walker.WriteHeaderAndVisit(symbol, trivia)
                     End Using
