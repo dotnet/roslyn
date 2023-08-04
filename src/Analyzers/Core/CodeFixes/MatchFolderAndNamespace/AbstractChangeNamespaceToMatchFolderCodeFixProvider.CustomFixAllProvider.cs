@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
-                        fixAllContext.Progress,
+                        fixAllContext.GetProgress(),
 #if CODE_STYLE
                         CodeActionOptions.DefaultProvider,
 #else
