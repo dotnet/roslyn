@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        protected virtual async Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        protected virtual async Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
                 await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
-                    Provider, () => InvokeWorkerAsync(progress, cancellationToken)).ConfigureAwait(true);
+                    Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
             }
         }
 
