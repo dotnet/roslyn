@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +29,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
             TestState = { OutputKind = outputKind }
         }.RunAsync();
     }
@@ -1499,7 +1500,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
 
