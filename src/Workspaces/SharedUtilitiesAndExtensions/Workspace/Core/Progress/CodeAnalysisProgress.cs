@@ -53,40 +53,6 @@ internal sealed class CodeAnalysisProgress
     /// </summary>
     public static CodeAnalysisProgress Clear()
         => new() { ClearValue = true };
-
-    //public CodeActionProgress(int completedItems, int totalItems)
-    //    : this(description: default(Optional<string>), completedItems, totalItems)
-    //{
-    //}
-
-    //public CodeActionProgress(string description)
-    //    : this(description, completedItems: null, totalItems: null)
-    //{
-    //}
-
-    //public CodeActionProgress(string description, int completedItems, int totalItems)
-    //    : this(new Optional<string>(description), completedItems, totalItems)
-    //{
-    //}
-
-    //private CodeActionProgress(Optional<string> description, int? completedItems, int? totalItems)
-    //{
-    //    if (description.HasValue && description.Value is null)
-    //        throw new ArgumentNullException(nameof(description));
-
-    //    if (completedItems is < 0)
-    //        throw new ArgumentOutOfRangeException(nameof(completedItems));
-
-    //    if (totalItems is < 0)
-    //        throw new ArgumentOutOfRangeException(nameof(totalItems));
-
-    //    if (completedItems > totalItems)
-    //        throw new ArgumentOutOfRangeException(nameof(completedItems));
-
-    //    CompletedItems = completedItems;
-    //    TotalItems = totalItems;
-    //    Description = description;
-    //}
 }
 
 internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? updateAction) : IProgress<CodeAnalysisProgress>
