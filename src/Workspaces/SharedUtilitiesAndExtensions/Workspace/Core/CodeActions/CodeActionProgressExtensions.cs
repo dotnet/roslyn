@@ -8,6 +8,12 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 
 internal static class CodeActionProgressExtensions
 {
+    public static void AddItems(this IProgress<CodeActionProgress> progress, int count)
+        => progress.Report(CodeActionProgress.IncompleteItems(count));
+
+    public static void ItemCompleted(this IProgress<CodeActionProgress> progress)
+        => progress.Report(CodeActionProgress.CompletedItem());
+
     /// <summary>
     /// Opens a scope that will call <see cref="IProgress{T}.Report(T)"/> with an instance of <see
     /// cref="CodeActionProgress.CompletedItem"/> on <paramref name="progress"/> once disposed. This is useful to easily
