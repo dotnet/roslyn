@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 

@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 return SpecializedCollections.SingletonEnumerable(
                     new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
             }
+
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);

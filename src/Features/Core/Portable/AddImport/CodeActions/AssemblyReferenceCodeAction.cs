@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,13 +30,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
             }
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-                => ComputeOperationsAsync(isPreview: true, cancellationToken);
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+                => await ComputeOperationsAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => ComputeOperationsAsync(isPreview: false, cancellationToken);
 
-            private async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)
+            private async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var newProject = newDocument.Project;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     // If this is a preview, just return an ApplyChangesOperation for the updated document
                     var operation = new ApplyChangesOperation(newProject.Solution);
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                    return ImmutableArray.Create<CodeActionOperation>(operation);
                 }
                 else
                 {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         FixData.AssemblyReferenceAssemblyName,
                         FixData.AssemblyReferenceFullyQualifiedTypeName,
                         newProject);
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                    return ImmutableArray.Create<CodeActionOperation>(operation);
                 }
             }
 

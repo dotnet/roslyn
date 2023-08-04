@@ -41,13 +41,10 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return base.ComputeOperationsAsync(cancellationToken);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
-            var operationsList = operations.ToList();
-
-            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
-            return operationsList;
+            var operations = await base.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
+            return operations.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
