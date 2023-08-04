@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             => await ComputeOperationsAsync(CodeAnalysisProgress.Null, cancellationToken).ConfigureAwait(false);
 
-        protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        private protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        protected internal sealed override Task<Solution?> GetChangedSolutionAsync(
+        internal sealed override Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

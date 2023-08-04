@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override object? GetOptions(CancellationToken cancellationToken)
             => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
             {

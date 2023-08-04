@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
             => GetOperationsAsync(originalSolution: null!, CodeAnalysisProgress.Null, cancellationToken);
 
-        public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+        internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
@@ -224,8 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
-        /// cref="CodeActionOperation"/>'s.  Override <see cref="ComputeOperationsAsync(IProgress{CodeAnalysisProgress},
-        /// CancellationToken)"/> to report progress progress while computing the operations.
+        /// cref="CodeActionOperation"/>'s.
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
@@ -240,9 +239,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
-        /// cref="CodeActionOperation"/>'s.
+        /// cref="CodeActionOperation"/>'s.  Prefer overriding this method over <see
+        /// cref="ComputeOperationsAsync(CancellationToken)"/> when computation is long running and progress should be
+        /// shown to the user.
         /// </summary>
-        protected virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        private protected virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        protected internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        internal virtual Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => GetChangedSolutionAsync(cancellationToken);
 
         /// <summary>

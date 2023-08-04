@@ -60,19 +60,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         /// <summary>
-        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.  Override <see
-        /// cref="ComputeOperationsAsync(object, IProgress{CodeAnalysisProgress}, CancellationToken)"/> to report progress
-        /// progress while computing the operations.
+        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.
         /// </summary>
         /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+        protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.
+        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>. Prefer
+        /// overriding this method over <see cref="ComputeOperationsAsync(object, CancellationToken)"/> when computation
+        /// is long running and progress should be shown to the user.
         /// </summary>
-        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        private protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => ComputeOperationsAsync(options, cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
