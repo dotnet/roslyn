@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgress<CodeAnalysisProgress> Progress { get; }
+        internal IProgress<CodeAnalysisProgress> ProgressTracker { get; }
 
         /// <summary>
         /// Project to fix all occurrences.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
-        IProgress<CodeAnalysisProgress> IFixAllContext.Progress => this.Progress;
+        IProgress<CodeAnalysisProgress> IFixAllContext.ProgressTracker => this.ProgressTracker;
 
         string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
 
@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal FixAllContext(
             FixAllState state,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             State = state;
-            this.Progress = progress;
+            this.ProgressTracker = progressTracker;
             this.CancellationToken = cancellationToken;
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return this;
             }
 
-            return new FixAllContext(State, this.Progress, cancellationToken);
+            return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-            return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
+            return State == newState ? this : new FixAllContext(newState, this.ProgressTracker, CancellationToken);
         }
 
         internal string GetDefaultFixAllTitle()

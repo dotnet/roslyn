@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 => throw ExceptionUtilities.Unreachable();
 
             private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
-                return await action.GetOperationsAsync(solution, progress, cancellationToken).ConfigureAwait(false);
+                return await action.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

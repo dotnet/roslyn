@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
 
-            var progress = fixAllContext.Progress;
+            var progressTracker = fixAllContext.ProgressTracker;
 
             switch (fixAllContext.Scope)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Update the progress dialog with the count of projects to actually fix. We'll update the progress
                     // bar as we get all the documents in AddDocumentDiagnosticsAsync.
 
-                    progress.AddItems(projectsToFix.Length);
+                    progressTracker.AddItems(projectsToFix.Length);
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
                     using (var _ = ArrayBuilder<Task>.GetInstance(projectsToFix.Length, out var tasks))
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 finally
                 {
-                    progress.ItemCompleted();
+                    progressTracker.ItemCompleted();
                 }
             }
 

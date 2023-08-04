@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             string title,
             string waitDialogMessage,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var fixMultipleCodeAction = new FixMultipleCodeAction(

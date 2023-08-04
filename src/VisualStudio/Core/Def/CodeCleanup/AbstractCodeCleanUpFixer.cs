@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private async Task<Solution> FixSolutionAsync(
             Solution solution,
             FixIdContainer enabledFixIds,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // Prepopulate the solution progress tracker with the total number of documents to process
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             bool addProgressItemsForDocuments,
             CancellationToken cancellationToken)
         {
@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private static async Task<Document> FixDocumentAsync(
             Document document,
             FixIdContainer enabledFixIds,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CodeActionOptions ideOptions,
             CancellationToken cancellationToken)
         {

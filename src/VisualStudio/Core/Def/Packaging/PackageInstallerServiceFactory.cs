@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string packageName,
             string? version,
             bool includePrerelease,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
@@ -296,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Guid projectGuid,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
@@ -369,7 +369,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task<bool> TryUninstallPackageAsync(
             string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
-            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
 

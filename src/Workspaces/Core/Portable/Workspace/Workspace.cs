@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool TryApplyChanges(Solution newSolution)
             => TryApplyChanges(newSolution, CodeAnalysisProgress.Null);
 
-        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progress)
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
@@ -1423,12 +1423,12 @@ namespace Microsoft.CodeAnalysis
 
                 // changed projects
                 var projectChangesList = solutionChanges.GetProjectChanges().ToList();
-                progress.AddItems(projectChangesList.Count);
+                progressTracker.AddItems(projectChangesList.Count);
 
                 foreach (var projectChanges in projectChangesList)
                 {
                     this.ApplyProjectChanges(projectChanges);
-                    progress.ItemCompleted();
+                    progressTracker.ItemCompleted();
                 }
 
                 // changes in mapped files outside the workspace (may span multiple projects)

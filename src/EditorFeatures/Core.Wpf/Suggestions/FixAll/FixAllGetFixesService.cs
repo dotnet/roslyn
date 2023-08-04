@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction,
             bool showPreviewChangesDialog,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             IFixAllState fixAllState,
             CancellationToken cancellationToken)
         {

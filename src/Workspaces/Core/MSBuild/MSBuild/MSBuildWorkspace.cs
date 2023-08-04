@@ -301,11 +301,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return TryApplyChanges(newSolution, CodeAnalysisProgress.Null);
         }
 
-        internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progress)
+        internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using (_serializationLock.DisposableWait())
             {
-                return base.TryApplyChanges(newSolution, progress);
+                return base.TryApplyChanges(newSolution, progressTracker);
             }
         }
 

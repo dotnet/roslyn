@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         protected override async Task InnerInvokeAsync(
-            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 => throw ExceptionUtilities.Unreachable();
 
             private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
                         var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
-                        return await codeAction.GetOperationsAsync(solution, progress, cancellationToken).ConfigureAwait(false);
+                        return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                     }
 
                     var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
                         : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
 
-                    return await codeAction.GetOperationsAsync(solution, progress, cancellationToken).ConfigureAwait(false);
+                    return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

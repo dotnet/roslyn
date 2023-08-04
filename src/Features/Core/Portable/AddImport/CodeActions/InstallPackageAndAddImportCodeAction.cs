@@ -112,15 +112,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             public override string Title => _installPackageOperation.Title;
 
             internal override async Task<bool> TryApplyAsync(
-                Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);
 
                 // First make the changes to add the import to the document.
-                if (workspace.TryApplyChanges(newSolution, progress))
+                if (workspace.TryApplyChanges(newSolution, progressTracker))
                 {
-                    if (await _installPackageOperation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken).ConfigureAwait(true))
+                    if (await _installPackageOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true))
                     {
                         return true;
                     }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // Installing the nuget package failed.  Roll back the workspace.
                     var rolledBackSolution = workspace.CurrentSolution.WithDocumentText(
                         _changedDocumentId, _oldText);
-                    workspace.TryApplyChanges(rolledBackSolution, progress);
+                    workspace.TryApplyChanges(rolledBackSolution, progressTracker);
                 }
 
                 return false;

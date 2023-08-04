@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 => throw ExceptionUtilities.Unreachable();
 
             private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)

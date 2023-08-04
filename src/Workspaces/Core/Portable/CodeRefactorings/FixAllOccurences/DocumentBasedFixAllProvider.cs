@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    originalFixAllContext.Progress,
+                    originalFixAllContext.ProgressTracker,
                     this.GetFixAllTitle(originalFixAllContext),
                     GetFixedDocumentsAsync);
 
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                 or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             var cancellationToken = fixAllContext.CancellationToken;
 
-            using var _1 = progress.ItemCompletedScope();
+            using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();

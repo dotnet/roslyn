@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken);
     }
 }

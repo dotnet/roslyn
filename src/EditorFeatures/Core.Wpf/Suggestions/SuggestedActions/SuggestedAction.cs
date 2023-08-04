@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         // NOTE: We want to avoid computing the operations on the UI thread. So we use Task.Run() to do this work on the background thread.
         protected Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => CodeAction.GetOperationsAsync(this.OriginalSolution, progress, cancellationToken), cancellationToken);
         }
 
         protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
-            CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, progress, cancellationToken), cancellationToken);

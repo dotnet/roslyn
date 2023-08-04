@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public async Task<Document> CleanupAsync(
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
             foreach (var diagnosticSet in enabledDiagnosticSets)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
-            Document document, string diagnosticId, IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> ApplyThirdPartyCodeFixesAsync(
             Document document,
             ImmutableArray<(string diagnosticId, string? title)> diagnosticIds,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {

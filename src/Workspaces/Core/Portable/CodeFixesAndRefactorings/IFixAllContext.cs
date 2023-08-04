@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         FixAllScope Scope { get; }
         string? CodeActionEquivalenceKey { get; }
         CancellationToken CancellationToken { get; }
-        IProgress<CodeAnalysisProgress> Progress { get; }
+        IProgress<CodeAnalysisProgress> ProgressTracker { get; }
 
         string GetDefaultFixAllTitle();
         IFixAllContext With(

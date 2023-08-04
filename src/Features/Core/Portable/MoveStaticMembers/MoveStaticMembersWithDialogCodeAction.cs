@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             => throw ExceptionUtilities.Unreachable();
 
         private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-            object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not MoveStaticMembersOptions moveOptions || moveOptions.IsCancelled)
             {

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryInstallAndAddUndoActionAsync(
             string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var installed = await TryInstallPackageAsync(
                 source, packageName, version, includePrerelease,
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryUninstallAndAddRedoActionAsync(
             string source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var uninstalled = await TryUninstallPackageAsync(
                 packageName, projectGuid, dte, dteProject, progress, cancellationToken).ConfigureAwait(false);

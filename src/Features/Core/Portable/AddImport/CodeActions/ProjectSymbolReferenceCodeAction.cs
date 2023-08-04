@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 internal override Task<bool> TryApplyAsync(
-                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     if (!CanApply(workspace))
                         return SpecializedTasks.False;
 
-                    return _applyOperation.TryApplyAsync(workspace, originalSolution, progress, cancellationToken);
+                    return _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
                 }
 
                 private bool CanApply(Workspace workspace)

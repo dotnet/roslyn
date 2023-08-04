@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             => throw ExceptionUtilities.Unreachable();
 
         private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-            object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not ExtractClassOptions extractClassOptions)
             {

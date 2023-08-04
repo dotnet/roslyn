@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             return results.ToImmutable();
 
             static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
-                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var operations = await GetCodeActionOperationsAsync(
-                    priorDocument.Project.Solution, codeAction, progress, cancellationToken).ConfigureAwait(false);
+                    priorDocument.Project.Solution, codeAction, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
                 // We can only return edits, so we only care about the ApplyChangesOperation.
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
                 Solution originalSolution,
                 CodeAction action,
-                IProgress<CodeAnalysisProgress> progress,
+                IProgress<CodeAnalysisProgress> progressTracker,
                 CancellationToken cancellationToken)
             {
                 if (action is GenerateConstructorWithDialogCodeAction dialogAction)
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         dialogAction.ViableMembers,
                         dialogAction.PickMembersOptions,
                         selectedAll: true);
-                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progress, cancellationToken).ConfigureAwait(false);
+                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
                     return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
                 }
                 else
                 {
-                    return await action.GetOperationsAsync(originalSolution, progress, cancellationToken).ConfigureAwait(false);
+                    return await action.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

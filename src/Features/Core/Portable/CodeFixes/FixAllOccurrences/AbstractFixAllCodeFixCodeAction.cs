@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-            => new FixAllContext((FixAllState)fixAllState, progress, cancellationToken);
+        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
         protected override bool IsInternalProvider(IFixAllState fixAllState)
         {

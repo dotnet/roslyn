@@ -309,14 +309,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progress, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
+        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
             => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progress, fallbackOptions, cancellationToken);
 
         public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
             TDocument document,
             string diagnosticId,
             DiagnosticSeverity severity,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
             where TDocument : TextDocument

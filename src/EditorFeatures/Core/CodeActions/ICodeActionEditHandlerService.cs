@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken);
     }
 }

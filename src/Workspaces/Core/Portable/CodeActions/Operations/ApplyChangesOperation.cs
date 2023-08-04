@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
             => workspace.TryApplyChanges(ChangedSolution, CodeAnalysisProgress.Null);
 
-        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-            => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progress, cancellationToken));
+        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken));
 
         internal static bool ApplyOrMergeChanges(
             Workspace workspace,
             Solution originalSolution,
             Solution changedSolution,
-            IProgress<CodeAnalysisProgress> progress,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var currentSolution = workspace.CurrentSolution;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // if there was no intermediary edit, just apply the change fully.
             if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
             {
-                var result = workspace.TryApplyChanges(changedSolution, progress);
+                var result = workspace.TryApplyChanges(changedSolution, progressTracker);
 
                 Logger.Log(
                     result ? FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded : FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed,
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
-            return workspace.TryApplyChanges(forkedSolution, progress);
+            return workspace.TryApplyChanges(forkedSolution, progressTracker);
         }
     }
 }
