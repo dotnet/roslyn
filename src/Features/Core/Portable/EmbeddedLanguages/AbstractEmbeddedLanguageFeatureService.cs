@@ -52,18 +52,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             ISyntaxKinds syntaxKinds,
             IEnumerable<Lazy<TService, EmbeddedLanguageMetadata>> allServices)
         {
-            // Order the classifiers to respect the [Order] annotations.
-            var orderedClassifiers = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Languages.Contains(languageName)).ToImmutableArray();
+            // Order the feature providers to respect the [Order] annotations.
+            var orderedFeatureProviders = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Languages.Contains(languageName)).ToImmutableArray();
 
             // Grab out the services that handle unannotated literals and APIs.
-            _legacyServices = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
+            _legacyServices = orderedFeatureProviders.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
 
             using var _ = PooledDictionary<string, ArrayBuilder<Lazy<TService, EmbeddedLanguageMetadata>>>.GetInstance(out var map);
 
-            foreach (var classifier in orderedClassifiers)
+            foreach (var featureProvider in orderedFeatureProviders)
             {
-                foreach (var identifier in classifier.Metadata.Identifiers)
-                    map.MultiAdd(identifier, classifier);
+                foreach (var identifier in featureProvider.Metadata.Identifiers)
+                    map.MultiAdd(identifier, featureProvider);
             }
 
             foreach (var (_, services) in map)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             CancellationToken cancellationToken)
         {
             // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
-            // so, delegate to the first classifier we have registered for whatever language ID we find.
+            // so, delegate to the first feature provider we have registered for whatever language ID we find.
             if (this._detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var identifier, out _) &&
                 _identifierToServices.TryGetValue(identifier, out var services))
             {
