@@ -11,14 +11,17 @@ namespace Microsoft.CodeAnalysis.Progress;
 internal static class IUIThreadOperationContextExtensions
 {
     public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationContext context)
-        => context.Scopes.Last().GetCodeAnalysisProgress();
+        => context.Scopes.LastOrDefault().GetCodeAnalysisProgress();
 
-    public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationScope scope)
+    public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationScope? scope)
         => new CodeAnalysisProgressTracker((description, completedItems, totalItems) =>
         {
-            if (description != null)
-                scope.Description = description;
+            if (scope != null)
+            {
+                if (description != null)
+                    scope.Description = description;
 
-            scope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+                scope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+            }
         });
 }
