@@ -227,7 +227,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
             editor.ReplaceNode(
                 implicitArrayCreation,
-               finalCollectionExpression);
+                finalCollectionExpression);
         }
     }
 }
