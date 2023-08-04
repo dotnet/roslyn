@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  NullProgress<CodeActionProgress>.Instance, cancellationToken)
+                  CodeActionProgress.Null, cancellationToken)
         {
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  NullProgress<CodeActionProgress>.Instance, cancellationToken)
+                  CodeActionProgress.Null, cancellationToken)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {

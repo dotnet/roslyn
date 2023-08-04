@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             private static async Task<Solution> FixAllByDocumentAsync(
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
-                IProgressTracker progressTracker,
+                IProgress<CodeActionProgress> progress,
                 CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
                 var newSolution = solution;
 
-                progressTracker.AddItems(documentIdToDiagnosticsMap.Count);
+                progress.Report(CodeActionProgress.IncompleteItems(documentIdToDiagnosticsMap.Count));
 
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {
                     var document = newSolution.GetRequiredDocument(documentId);
-                    using var _ = progressTracker.ItemCompletedScope(document.Name);
+                    using var _ = progress.ItemCompletedScope(document.Name);
 
                     newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, options, cancellationToken).ConfigureAwait(false);
                 }

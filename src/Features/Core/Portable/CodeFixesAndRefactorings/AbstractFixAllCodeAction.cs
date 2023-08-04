@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
 
         protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            => await ComputeOperationsAsync(NullProgress<CodeActionProgress>.Instance, cancellationToken).ConfigureAwait(false);
+            => await ComputeOperationsAsync(CodeActionProgress.Null, cancellationToken).ConfigureAwait(false);
 
         protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
@@ -66,21 +66,21 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var fixAllContext = CreateFixAllContext(FixAllState, progress, cancellationToken);
-            progress.Report(new CodeActionProgress(fixAllContext.GetDefaultFixAllTitle()));
+            progress.Report(CodeActionProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
             return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        internal sealed override Task<Solution?> GetChangedSolutionAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+        protected internal sealed override Task<Solution?> GetChangedSolutionAsync(
+            IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(FixAllState, IsInternalProvider(FixAllState));
 
             var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
-            var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
-            progressTracker.Description = fixAllContext.GetDefaultFixAllTitle();
+            var fixAllContext = CreateFixAllContext(FixAllState, progress, cancellationToken);
+            progress.Report(CodeActionProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
             return service.GetFixAllChangedSolutionAsync(fixAllContext);
         }

@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -24,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
-            => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
+        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)
+            => new FixAllContext((FixAllState)fixAllState, progress, cancellationToken);
 
         protected override bool IsInternalProvider(IFixAllState fixAllState)
         {

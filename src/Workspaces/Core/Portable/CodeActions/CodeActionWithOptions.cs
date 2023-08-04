@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         public Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
-            => GetOperationsAsync(originalSolution: null!, options, NullProgress<CodeActionProgress>.Instance, cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, options, CodeActionProgress.Null, cancellationToken);
 
         internal async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
             Solution originalSolution, object? options, IProgress<CodeActionProgress> progress, CancellationToken cancellationToken)

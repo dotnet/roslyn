@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 /// </summary>
 public sealed class CodeActionProgress
 {
+    internal static readonly IProgress<CodeActionProgress> Null = NullProgress<CodeActionProgress>.Instance;
+
     internal bool CompletedItemValue { get; init; }
     internal int? IncompleteItemsValue { get; init; }
     internal Optional<string> DescriptionValue { get; init; }
