@@ -57,14 +57,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
-        // could be arbitrarily nested, we have to make sure that any edits we make
-        // to one Collection-Initializer are seen by any higher ones.  In order to do this
-        // we actually process each object-creation-node, one at a time, rewriting
-        // the tree for each node.  In order to do this effectively, we use the '.TrackNodes'
-        // feature to keep track of all the object creation nodes as we make edits to
-        // the tree.  If we didn't do this, then we wouldn't be able to find the 
-        // second object-creation-node after we make the edit for the first one.
+        var services = document.Project.Solution.Services;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var originalRoot = editor.OriginalRoot;
 
@@ -113,8 +106,14 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 },
                 cancellationToken).ConfigureAwait(false);
 
-            var newRoot = semanticDocument.Root.ReplaceNode(stackAllocExpression, collectionExpression);
-            semanticDocument = await semanticDocument.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false);
+            var subEditor = new SyntaxEditor(semanticDocument.Root, services);
+            subEditor.ReplaceNode(stackAllocExpression, collectionExpression);
+
+            foreach (var match in matches)
+                subEditor.RemoveNode(match.Statement);
+
+            semanticDocument = await semanticDocument.WithSyntaxRootAsync(
+                subEditor.GetChangedRoot(), cancellationToken).ConfigureAwait(false);
         }
 
         editor.ReplaceNode(originalRoot, semanticDocument.Root);
@@ -142,215 +141,3 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         }
     }
 }
-
-//        return;
-
-//        if (stackAllocExpression is ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
-//        {
-//            var collectionExpression = RewriteImplicitArrayCreationExpression(implicitArrayCreation);
-//            subEditor.ReplaceNode(implicitArrayCreation, collectionExpression);
-//        }
-//        else if (stackAllocExpression is StackAllocArrayCreationExpressionSyntax explicitArrayCreation)
-//        {
-//            var collectionExpression = RewriteExplicitArrayCreationExpression(explicitArrayCreation);
-//            subEditor.ReplaceNode(explicitArrayCreation, collectionExpression);
-//        }
-
-//        var matches = analyzer.Analyze(
-//            semanticDocument.SemanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
-
-//        if (matches.IsDefault)
-//            continue;
-
-//        var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-//        Contract.ThrowIfNull(statement);
-
-//        var newStatement = await GetNewStatementAsync(
-//            semanticDocument.Document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
-
-
-//        subEditor.ReplaceNode(statement, newStatement);
-//        foreach (var match in matches)
-//            subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-
-//        semanticDocument = await semanticDocument.WithSyntaxRootAsync(
-//            subEditor.GetChangedRoot(), cancellationToken).ConfigureAwait(false);
-//    }
-
-
-//    static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
-//            => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
-
-//        CollectionExpressionSyntax RewriteImplicitArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
-//        {
-//            Contract.ThrowIfNull(implicitArrayCreation.Initializer);
-
-//            var isOnSingleLine = IsOnSingleLine(semanticDocument.Text, implicitArrayCreation);
-//            var collectionExpression = ConvertInitializerToCollectionExpression(
-//                implicitArrayCreation.Initializer, isOnSingleLine);
-
-//            var finalCollectionExpression = ReplaceWithCollectionExpression(
-//                semanticDocument.Text, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
-
-//            return finalCollectionExpression;
-//        }
-
-//        CollectionExpressionSyntax RewriteExplicitArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
-//        {
-
-//        }
-//    }
-
-
-//    protected override async Task FixAllAsync(
-//        Document document,
-//        ImmutableArray<Diagnostic> diagnostics,
-//        SyntaxEditor editor,
-//        CodeActionOptionsProvider fallbackOptions,
-//        CancellationToken cancellationToken)
-//    {
-//        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-//        foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
-//        {
-//            var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-//            if (expression is StackAllocArrayCreationExpressionSyntax arrayCreation)
-//            {
-//                RewriteArrayCreationExpression(
-//                    arrayCreation,
-//                    diagnostic.AdditionalLocations
-//                        .Skip(1)
-//                        .Select(loc =>
-//                        {
-//                            var expression = (StatementSyntax)loc.FindNode(getInnermostNodeForTie: true, cancellationToken);
-//                            var statement = expression.FirstAncestorOrSelf<StatementSyntax>();
-//                            Contract.ThrowIfNull(statement);
-//                            return (statement, expression);
-//                        })
-//                        .ToImmutableArray());
-//            }
-//            else if (expression is ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
-//            {
-//                RewriteImplicitArrayCreationExpression(implicitArrayCreation);
-//            }
-//        }
-
-//        return;
-
-//        void RewriteArrayCreationExpression(
-//            StackAllocArrayCreationExpressionSyntax arrayCreation,
-//            ImmutableArray<(StatementSyntax statement, ExpressionSyntax expression)> matches)
-//        {
-//            var makeMultiLine = MakeMultiLineCollectionExpression(matches);
-
-//            if (arrayCreation.Initializer != null)
-//            {
-//                // If the original stacklloc had an initializer (stackalloc int[] { ... }) then just convert the
-//                // initializer over.
-//                Contract.ThrowIfNull(currentArrayCreation.Initializer);
-
-//                var isOnSingleLine = IsOnSingleLine(sourceText, arrayCreation.Initializer);
-//                var collectionExpression = ConvertInitializerToCollectionExpression(
-//                    currentArrayCreation.Initializer, isOnSingleLine);
-
-//                editor.ReplaceNode(
-//    arrayCreation,
-
-
-//                return ReplaceWithCollectionExpression(
-//                    sourceText, arrayCreation.Initializer, collectionExpression, isOnSingleLine);
-//            }
-//            else
-//            {
-//                // otherwise, we had `stackalloc int[X];` and we used the following expressions to initialize
-//                // the values.
-//                if (makeMultiLine)
-//                {
-//                    editor.ReplaceNode(
-//    arrayCreation,
-
-//                }
-//                else
-//                {
-//                    // All the elements would work on a single line.  This is a trivial case.  We can just make the
-//                    // fresh collection expression, and do a wholesale replacement of the original object creation
-//                    // expression with it.
-//                    using var _1 = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-//                    CreateAndAddElements(matches, preferredIndentation: null, nodesAndTokens);
-
-//                    var collectionExpression = CollectionExpression(
-//                        SeparatedList<CollectionElementSyntax>(nodesAndTokens));
-//                    editor.ReplaceNode(
-//    arrayCreation,
-
-//                    return collectionExpression.WithTriviaFrom(currentArrayCreation);
-//                }
-//            }
-//        }
-
-//        // Helper which produces the CollectionElementSyntax nodes and adds to the separated syntax list builder array.
-//        // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
-//        // commas are added properly to the sequence.
-//        void CreateAndAddElements(
-//            ImmutableArray<(StatementSyntax statement, ExpressionSyntax expression)> matches
-//            string? preferredIndentation,
-//            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
-//        {
-//            // If there's no requested indentation, then we want to produce the sequence as: `a, b, c, d`.  So just
-//            // a space after any comma.  If there is desired indentation for an element, then we always follow a comma
-//            // with a newline so that the element node comes on the next line indented properly.
-//            var triviaAfterComma = preferredIndentation is null
-//                ? TriviaList(Space)
-//                : TriviaList(EndOfLine(formattingOptions.NewLine));
-
-//            foreach (var match in matches)
-//            {
-//                var expression = CreateExpression(match);
-
-//                // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
-//                // from the prior node to come after that comma.  e.g. if the prior node was `x // comment` then we
-//                // end up with: `x, // comment<new-line>`
-//                if (nodesAndTokens.Count > 0)
-//                {
-//                    var lastNode = nodesAndTokens[^1];
-//                    var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(static t => t.IsWhitespaceOrSingleOrMultiLineComment());
-
-//                    nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
-
-//                    var commaToken = Token(SyntaxKind.CommaToken)
-//                        .WithoutLeadingTrivia()
-//                        .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
-//                    nodesAndTokens.Add(commaToken);
-//                }
-
-//                nodesAndTokens.Add(expression);
-//            }
-//        }
-
-//        bool MakeMultiLineCollectionExpression(
-//            ImmutableArray<(StatementSyntax statement, ExpressionSyntax expression)> matches)
-//        {
-//            var totalLength = 0;
-//            foreach (var (statement, expression) in matches)
-//            {
-//                // this must succeed since the analyzer only passed us expressions in `X[...] = expr;` statements.
-
-//                // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
-//                // appropriate place to go.
-//                if (statement.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
-//                    statement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
-//                {
-//                    return true;
-//                }
-
-//                // if any of the expressions we're adding are multiline, then make things multiline.
-//                if (!sourceText.AreOnSameLine(expression.GetFirstToken(), expression.GetLastToken()))
-//                    return true;
-
-//                totalLength += expression.Span.Length;
-//            }
-
-//            return totalLength > wrappingLength;
-//        }
-//    }
-//}
