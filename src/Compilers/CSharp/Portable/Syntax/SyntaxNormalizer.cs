@@ -691,11 +691,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.ColonToken))
-                return token.Parent?.Kind() is not SyntaxKind.InterpolationFormatClause and not SyntaxKind.XmlPrefix;
+            {
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
+                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
+            }
 
             if (next.IsKind(SyntaxKind.ColonToken))
             {
-                if (next.Parent?.Kind() is SyntaxKind.BaseList or SyntaxKind.TypeParameterConstraintClause ||
+                if (next.Parent.IsKind(SyntaxKind.BaseList) ||
+                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
                     next.Parent is ConstructorInitializerSyntax)
                 {
                     return true;
@@ -884,18 +888,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (IsKeyword(token.Kind()))
             {
-                if (next.Kind()
-                        is not SyntaxKind.ColonToken
-                        and not SyntaxKind.DotToken
-                        and not SyntaxKind.QuestionToken
-                        and not SyntaxKind.SemicolonToken
-                        and not SyntaxKind.OpenBracketToken
-                        and not SyntaxKind.CloseParenToken
-                        and not SyntaxKind.CloseBraceToken
-                        and not SyntaxKind.ColonColonToken
-                        and not SyntaxKind.GreaterThanToken
-                        and not SyntaxKind.CommaToken &&
-                        (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind()) || next.Parent.IsKind(SyntaxKind.TupleType))
+                if (!next.IsKind(SyntaxKind.ColonToken) &&
+                    !next.IsKind(SyntaxKind.DotToken) &&
+                    !next.IsKind(SyntaxKind.QuestionToken) &&
+                    !next.IsKind(SyntaxKind.SemicolonToken) &&
+                    !next.IsKind(SyntaxKind.OpenBracketToken) &&
+                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind()) || next.Parent.IsKind(SyntaxKind.TupleType)) &&
+                    !next.IsKind(SyntaxKind.CloseParenToken) &&
+                    !next.IsKind(SyntaxKind.CloseBraceToken) &&
+                    !next.IsKind(SyntaxKind.ColonColonToken) &&
+                    !next.IsKind(SyntaxKind.GreaterThanToken) &&
+                    !next.IsKind(SyntaxKind.CommaToken))
                 {
                     return true;
                 }
