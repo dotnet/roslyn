@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
@@ -59,12 +60,53 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
         {
             context.RegisterSyntaxNodeAction(
-                context => AnalyzeArrayInitializer(context),
+                context => AnalyzeArrayInitializerExpression(context),
                 SyntaxKind.ArrayInitializerExpression);
+
+            context.RegisterSyntaxNodeAction(
+                context => AnalyzeArrayCreationExpression(context),
+                SyntaxKind.ArrayCreationExpression);
         });
     }
 
-    private static void AnalyzeArrayInitializer(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeArrayCreationExpression(SyntaxNodeAnalysisContext context)
+    {
+        var semanticModel = context.SemanticModel;
+        var syntaxTree = semanticModel.SyntaxTree;
+        var arrayCreationExpression = (ArrayCreationExpressionSyntax)context.Node;
+        var cancellationToken = context.CancellationToken;
+
+        // Don't analyze arrays with initializers here, they're handled in AnalyzeArrayInitializerExpression instead.
+        if (arrayCreationExpression.Initializer != null)
+            return;
+
+        // no point in analyzing if the option is off.
+        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        if (!option.Value)
+            return;
+
+        // Analyze the statements that follow to see if they can initialize this array.
+        var matches = TryGetMatches(semanticModel, arrayCreationExpression, cancellationToken);
+        if (matches.IsDefault)
+            return;
+
+        ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
+    }
+
+    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches(
+        SemanticModel semanticModel,
+        ArrayCreationExpressionSyntax expression,
+        CancellationToken cancellationToken)
+    {
+        return UseCollectionExpressionHelpers.TryGetMatches(
+            semanticModel,
+            expression,
+            static e => e.Type,
+            static e => e.Initializer,
+            cancellationToken);
+    }
+
+    private static void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -94,27 +136,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         if (isConcreteOrImplicitArrayCreation)
         {
-            var locations = ImmutableArray.Create(arrayCreationExpression.GetLocation());
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                s_descriptor,
-                arrayCreationExpression.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
-                additionalLocations: locations,
-                properties: null));
-
-            var additionalUnnecessaryLocations = ImmutableArray.Create(
-                syntaxTree.GetLocation(TextSpan.FromBounds(
-                    arrayCreationExpression.SpanStart,
-                    arrayCreationExpression is ArrayCreationExpressionSyntax arrayCreation
-                        ? arrayCreation.Type.Span.End
-                        : ((ImplicitArrayCreationExpressionSyntax)arrayCreationExpression).CloseBracketToken.Span.End)));
-
-            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_unnecessaryCodeDescriptor,
-                additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
-                additionalLocations: locations,
-                additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+            ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
         }
         else
         {
@@ -129,5 +151,30 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: null));
         }
+    }
+
+    private static void ReportArrayCreationDiagnostics(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, CodeStyleOption2<bool> option, ExpressionSyntax expression)
+    {
+        var locations = ImmutableArray.Create(expression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            s_descriptor,
+            expression.GetFirstToken().GetLocation(),
+            option.Notification.Severity,
+            additionalLocations: locations,
+            properties: null));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
+            syntaxTree.GetLocation(TextSpan.FromBounds(
+                expression.SpanStart,
+                expression is ArrayCreationExpressionSyntax arrayCreationExpression
+                    ? arrayCreationExpression.Type.Span.End
+                    : ((ImplicitArrayCreationExpressionSyntax)expression).CloseBracketToken.Span.End)));
+
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            s_unnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            ReportDiagnostic.Default,
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 }
