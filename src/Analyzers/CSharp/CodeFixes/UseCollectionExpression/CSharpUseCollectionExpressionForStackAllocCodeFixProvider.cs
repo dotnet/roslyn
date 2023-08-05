@@ -104,6 +104,29 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
             var stackAllocExpression = currentRoot.GetCurrentNodes(originalStackAllocExpression).Single();
 
             var subEditor = new SyntaxEditor(currentRoot, solutionServices);
+
+            var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+                semanticDocument.Document,
+                fallbackOptions,
+                stackAllocExpression,
+                matches,
+                static e => e switch
+                {
+                    StackAllocArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+                    ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.Initializer,
+                    _ => throw ExceptionUtilities.Unreachable(),
+                },
+                static (e, i) => e switch
+                {
+                    StackAllocArrayCreationExpressionSyntax arrayCreation => arrayCreation.WithInitializer(i),
+                    ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.WithInitializer(i),
+                    _ => throw ExceptionUtilities.Unreachable(),
+                },
+                cancellationToken).ConfigureAwait(false);
+
+            var newRoot = currentRoot.ReplaceNode(stackAllocExpression, collectionExpression);
+            semanticDocument = await semanticDocument.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false);
+
             if (stackAllocExpression is ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
             {
                 var collectionExpression = RewriteImplicitArrayCreationExpression(implicitArrayCreation);
