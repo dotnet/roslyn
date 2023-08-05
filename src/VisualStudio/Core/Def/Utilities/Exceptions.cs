@@ -5,43 +5,37 @@
 #nullable disable
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Windows.Shapes;
 using Microsoft.VisualStudio;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
     internal static class Exceptions
     {
-        public static Exception ThrowEFail()
+        public static Exception ThrowEFail([CallerFilePath] string path = null, [CallerLineNumber] int line = 0)
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_FAIL, new IntPtr(-1));
-
-            // The return exception should be used to avoid detection of the codepath not returning a value
-            return null;
+            return new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");
         }
 
-        public static Exception ThrowEInvalidArg()
+        public static Exception ThrowEInvalidArg([CallerFilePath] string path = null, [CallerLineNumber] int line = 0)
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_INVALIDARG, new IntPtr(-1));
-
-            // The return exception should be used to avoid detection of the codepath not returning a value
-            return null;
+            return new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");
         }
 
-        public static Exception ThrowENotImpl()
+        public static Exception ThrowENotImpl([CallerFilePath] string path = null, [CallerLineNumber] int line = 0)
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_NOTIMPL, new IntPtr(-1));
-
-            // The return exception should be used to avoid detection of the codepath not returning a value
-            return null;
+            return new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");
         }
 
-        public static Exception ThrowEUnexpected()
+        public static Exception ThrowEUnexpected([CallerFilePath] string path = null, [CallerLineNumber] int line = 0)
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_UNEXPECTED, new IntPtr(-1));
-
-            // The return exception should be used to avoid detection of the codepath not returning a value
-            return null;
+            return new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");
         }
     }
 }
