@@ -296,6 +296,72 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestWithExplicitArray_ExplicitSize()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[] i = [|[|new|] string[1]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string[] i = [""];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ExplicitSizes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[1, 1];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ExplicitSizes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[1, 1] { { "" } };
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ImplicitSizes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[,] { { "" } };
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithIncompatibleImplicitArrays()
     {
         await new VerifyCS.Test
