@@ -2123,7 +2123,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void M()
                 {
                     int lastItem;
-                    List<int> list = [(lastItem = 5)];
+                    List<int> list = [lastItem = 5];
                 }
             }
             """);
@@ -2154,7 +2154,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void M()
                 {
                     int lastItem = 0;
-                    List<int> list = [(lastItem += 5)];
+                    List<int> list = [lastItem += 5];
                 }
             }
             """);

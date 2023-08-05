@@ -588,5 +588,36 @@ internal static class CSharpCollectionExpressionRewriter
 
         static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
             => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
+
+        static ExpressionSyntax ConvertExpression(
+            ExpressionSyntax expression, Func<ExpressionSyntax, ExpressionSyntax>? indent)
+        {
+            indent ??= static e => e;
+
+            // This must be called from an expression from the original tree.  Not something we're already transforming.
+            // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+            Contract.ThrowIfNull(expression.Parent);
+            return expression switch
+            {
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation, indent),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment, indent),
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        static ExpressionSyntax ConvertAssignment(
+            AssignmentExpressionSyntax assignment, Func<ExpressionSyntax, ExpressionSyntax> indent)
+        {
+            return indent(assignment.Right);
+        }
+
+        static ExpressionSyntax ConvertInvocation(
+            InvocationExpressionSyntax invocation, Func<ExpressionSyntax, ExpressionSyntax> indent)
+        {
+            var arguments = invocation.ArgumentList.Arguments;
+            Contract.ThrowIfFalse(arguments.Count == 1);
+
+            return indent(arguments[0].Expression);
+        }
     }
 }
