@@ -304,6 +304,8 @@ internal static class UseCollectionExpressionHelpers
         CancellationToken cancellationToken)
         where TArrayCreationExpressionSyntax : ExpressionSyntax
     {
+        Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
+
         // has to either be `stackalloc X[]` or `stackalloc X[const]`.
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] } rankSpecifier] } arrayType)
             return default;

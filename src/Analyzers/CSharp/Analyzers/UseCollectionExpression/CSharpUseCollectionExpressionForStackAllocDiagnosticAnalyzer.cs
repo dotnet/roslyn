@@ -43,29 +43,35 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
     }
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(OnCompilationStart);
-
-    private void OnCompilationStart(CompilationStartAnalysisContext context)
-    {
-        var compilation = context.Compilation;
-        if (!compilation.LanguageVersion().SupportsCollectionExpressions())
-            return;
-
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+        => context.RegisterCompilationStartAction(context =>
         {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeExplicitStackAllocExpression(context),
-                SyntaxKind.StackAllocArrayCreationExpression);
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeImplicitStackAllocExpression(context),
-                SyntaxKind.ImplicitStackAllocArrayCreationExpression);
+            var compilation = context.Compilation;
+            if (!compilation.LanguageVersion().SupportsCollectionExpressions())
+                return;
+
+            // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler has no good way to
+            // emit these collection expressions.
+            //
+            // TODO: add this check once the SDK test system supports referencing .Net 8.
+            //
+            // if (!compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
+            //    return;
+
+            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+            // and eventually report fading diagnostics with location outside this node.
+            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+            {
+                context.RegisterSyntaxNodeAction(
+                    context => AnalyzeExplicitStackAllocExpression(context),
+                    SyntaxKind.StackAllocArrayCreationExpression);
+                context.RegisterSyntaxNodeAction(
+                    context => AnalyzeImplicitStackAllocExpression(context),
+                    SyntaxKind.ImplicitStackAllocArrayCreationExpression);
+            });
         });
-    }
 
     private static void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
     {
