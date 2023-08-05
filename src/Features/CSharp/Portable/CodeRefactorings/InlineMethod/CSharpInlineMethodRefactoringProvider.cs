@@ -88,15 +88,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             //     ;
             var isNullConditionalInvocationExpression = IsNullConditionalInvocationExpression(expressionNode);
 
-            return expressionNode.IsKind(SyntaxKind.InvocationExpression)
-                   || isNullConditionalInvocationExpression
-                   || expressionNode.IsKind(SyntaxKind.ObjectCreationExpression)
+            return isNullConditionalInvocationExpression
                    || expressionNode is AssignmentExpressionSyntax
-                   || expressionNode.IsKind(SyntaxKind.PreIncrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PreDecrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PostIncrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PostDecrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.AwaitExpression);
+                   || expressionNode.Kind()
+                        is SyntaxKind.InvocationExpression
+                        or SyntaxKind.ObjectCreationExpression
+                        or SyntaxKind.PreIncrementExpression
+                        or SyntaxKind.PreDecrementExpression
+                        or SyntaxKind.PostIncrementExpression
+                        or SyntaxKind.PostDecrementExpression
+                        or SyntaxKind.AwaitExpression;
         }
 
         protected override bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode)

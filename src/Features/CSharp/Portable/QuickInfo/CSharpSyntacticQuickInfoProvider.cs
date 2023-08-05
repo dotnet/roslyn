@@ -95,13 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
-        {
-            var parent = node.Parent;
-            return node.IsKind(SyntaxKind.Block)
-                && (parent.IsKind(SyntaxKind.Block)
-                    || parent.IsKind(SyntaxKind.SwitchSection)
-                    || parent.IsKind(SyntaxKind.GlobalStatement));
-        }
+            => node.IsKind(SyntaxKind.Block)
+                && node.Parent?.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection or SyntaxKind.GlobalStatement;
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
