@@ -124,10 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             var memberAccess = nameNode.Parent as MemberAccessExpressionSyntax;
             var memberBinding = nameNode.Parent as MemberBindingExpressionSyntax;
-            if (memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                memberAccess.IsParentKind(SyntaxKind.ElementAccessExpression) ||
-                memberBinding.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                memberBinding.IsParentKind(SyntaxKind.ElementAccessExpression))
+            if (memberAccess?.Parent?.Kind() is SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ElementAccessExpression ||
+                memberBinding?.Parent?.Kind() is SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ElementAccessExpression)
             {
                 return false;
             }
