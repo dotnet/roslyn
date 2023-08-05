@@ -7,8 +7,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows.Shapes;
-using Microsoft.VisualStudio;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
