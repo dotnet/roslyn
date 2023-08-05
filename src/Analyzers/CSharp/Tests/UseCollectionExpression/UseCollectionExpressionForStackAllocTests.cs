@@ -64,7 +64,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> x = [];
+                        ReadOnlySpan<int> x = [1, 2, 3];
                     }
                 }
                 """,
