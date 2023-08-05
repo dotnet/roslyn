@@ -84,7 +84,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             return;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: false, cancellationToken))
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }

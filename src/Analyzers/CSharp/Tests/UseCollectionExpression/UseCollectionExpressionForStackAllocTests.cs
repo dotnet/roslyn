@@ -42,6 +42,27 @@ public class UseCollectionExpressionForStackAllocTests
     }
 
     [Fact]
+    public async Task TestNotInCSharp11_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = stackalloc[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestInCSharp12()
     {
         await new VerifyCS.Test
@@ -54,6 +75,38 @@ public class UseCollectionExpressionForStackAllocTests
                     void M()
                     {
                         ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInCSharp12_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = [|[|stackalloc|][]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -213,6 +266,27 @@ public class UseCollectionExpressionForStackAllocTests
     }
 
     [Fact]
+    public async Task TestWithPointer_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    unsafe void M()
+                    {
+                        int* x = stackalloc[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithVar()
     {
         await new VerifyCS.Test
@@ -225,6 +299,27 @@ public class UseCollectionExpressionForStackAllocTests
                     unsafe void M()
                     {
                         var x = stackalloc int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithVar_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var x = stackalloc[] { 1, 2, 3 };
                     }
                 }
                 """,
