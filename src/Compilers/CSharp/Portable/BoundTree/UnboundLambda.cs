@@ -1507,11 +1507,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterDeclaredScopes.IsDefault ? ScopedKind.None : _parameterDeclaredScopes[index];
         }
 
-        public override ParameterSyntax? ParameterSyntax(int index)
+        public override ParameterSyntax ParameterSyntax(int index)
         {
-            Debug.Assert(0 <= index);
-            Debug.Assert(_parameterSyntaxList is null || index < _parameterSyntaxList.Value.Count);
-            return _parameterSyntaxList?[index];
+            Debug.Assert(_parameterSyntaxList is not null && 0 <= index && index < _parameterSyntaxList.Value.Count);
+            return _parameterSyntaxList.Value[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)

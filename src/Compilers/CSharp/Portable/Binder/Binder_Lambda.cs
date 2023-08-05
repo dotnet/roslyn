@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
-                    namesBuilder.Add(simple.Parameter.Identifier.ValueText);
+                    parameterSyntaxList = SyntaxFactory.SingletonSeparatedList(simple.Parameter);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -356,20 +356,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < lambda.ParameterCount; i++)
             {
                 var paramSyntax = lambda.ParameterSyntax(i);
-                if (paramSyntax is not null)
+                Debug.Assert(paramSyntax is not null);
+                if (paramSyntax.Default != null && firstDefault == -1)
                 {
-                    if (paramSyntax.Default != null && firstDefault == -1)
-                    {
-                        firstDefault = i;
-                    }
-
-                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
-                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
-
-                    // UNDONE: Where do we report improper use of pointer types?
-                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
-                        lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                    firstDefault = i;
                 }
+
+                ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
+                var isParams = paramsKeyword.Kind() != SyntaxKind.None;
+
+                // UNDONE: Where do we report improper use of pointer types?
+                ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
+                    lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
             }
 
             // Parser will only have accepted static/async as allowed modifiers on this construct.
