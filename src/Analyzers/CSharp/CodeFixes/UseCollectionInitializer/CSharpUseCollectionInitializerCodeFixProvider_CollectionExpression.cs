@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 fallbackOptions,
                 objectCreation,
                 matches.SelectAsArray(m => new CollectionExpressionMatch(m.Statement, m.UseSpread)),
-                o => o.Initializer,
-                (o, i) => o.WithInitializer(i),
+                static objectCreation => objectCreation.Initializer,
+                static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
                 cancellationToken);
         }
     }
