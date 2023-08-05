@@ -41,7 +41,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, nameof(CSharpCodeFixesResources.Use_collection_expression));
+        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
         return Task.CompletedTask;
     }
 
