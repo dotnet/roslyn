@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.IsParentKind(SyntaxKind.SimpleLambdaExpression) || node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression);
+            return node.Parent?.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression;
         }
 
         public static bool IsAnonymousMethodBlock(this SyntaxNode node)

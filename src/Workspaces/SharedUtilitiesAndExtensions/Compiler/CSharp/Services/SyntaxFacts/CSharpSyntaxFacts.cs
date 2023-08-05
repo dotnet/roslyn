@@ -1168,8 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                anonObject.NameEquals == null;
 
         public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
-               node.IsParentKind(SyntaxKind.PreIncrementExpression);
+            => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
 
         public static bool IsOperandOfDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
