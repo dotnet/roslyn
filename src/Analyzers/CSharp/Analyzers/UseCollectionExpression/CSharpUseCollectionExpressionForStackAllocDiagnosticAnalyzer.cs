@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -125,24 +127,53 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!option.Value)
             return;
 
-        // has to either be `stackalloc X[]` or `stackalloc X[const]`.
-        if (expression.Type is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes.Count: <= 1 } rankSpecifier] } arrayType)
+        var matches = TryGetMatches(semanticModel, expression, cancellationToken);
+        if (matches.IsDefault)
             return;
 
-        using var _ = ArrayBuilder<Location>.GetInstance(out var locationsBuilder);
-        locationsBuilder.Add(expression.GetLocation());
+        var locations = ImmutableArray.Create(expression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            s_descriptor,
+            expression.GetFirstToken().GetLocation(),
+            option.Notification.Severity,
+            additionalLocations: locations,
+            properties: null));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
+            syntaxTree.GetLocation(TextSpan.FromBounds(
+                expression.SpanStart,
+                expression.Type.Span.End)));
+
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            s_unnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            ReportDiagnostic.Default,
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+    }
+
+    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches(
+        SemanticModel semanticModel,
+        StackAllocArrayCreationExpressionSyntax expression,
+        CancellationToken cancellationToken)
+    {
+        // has to either be `stackalloc X[]` or `stackalloc X[const]`.
+        if (expression.Type is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes.Count: <= 1 } rankSpecifier] } arrayType)
+            return default;
+
+        using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
 
         if (rankSpecifier.Sizes is [var size])
         {
             // if `stackalloc X[const]`, then it has to have a constant value for the size
-            if (semanticModel.GetConstantValue(size).Value is not int sizeValue)
-                return;
+            if (semanticModel.GetConstantValue(size, cancellationToken).Value is not int sizeValue)
+                return default;
 
             if (expression.Initializer != null)
             {
                 // if there is an initializer, then it has to have the right number of elements.
                 if (sizeValue != expression.Initializer.Expressions.Count)
-                    return;
+                    return default;
             }
             else
             {
@@ -162,7 +193,8 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                         } variableDeclarator,
                     })
                 {
-                    return;
+                    return default;
+
                 }
 
                 //// Has to be either ReadOnlySpan<T> or Span<T>
@@ -184,27 +216,26 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                                     Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
                                     ArgumentList.Arguments: [var elementArgument],
                                 } elementAccess,
-                                Right: var right,
                             }
-                        })
+                        } expressionStatement)
                     {
-                        return;
+                        return default;
                     }
 
                     // Ensure we're indexing into the variable created.
                     if (variableName != elementName)
-                        return;
+                        return default;
 
                     // The indexing value has to equal the corresponding location in the result.
-                    if (semanticModel.GetConstantValue(elementArgument.Expression).Value is not int indexValue ||
+                    if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
                         indexValue != currentIndex)
                     {
-                        return;
+                        return default;
                     }
 
                     // this looks like a good statement, add to the right size of the assignment to track as that's what
                     // we'll want to put in the final collection expression.
-                    locationsBuilder.Add(right.GetLocation());
+                    matches.Add(new(expressionStatement, UseSpread: false));
                 }
             }
         }
@@ -212,27 +243,9 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
                 semanticModel, expression, skipVerificationForReplacedNode: false, cancellationToken))
         {
-            return;
+            return default;
         }
 
-        var locations = locationsBuilder.ToImmutableAndClear();
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            s_descriptor,
-            expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
-            additionalLocations: locations,
-            properties: null));
-
-        var additionalUnnecessaryLocations = ImmutableArray.Create(
-            syntaxTree.GetLocation(TextSpan.FromBounds(
-                expression.SpanStart,
-                expression.Type.Span.End)));
-
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            s_unnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
-            additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+        return matches.ToImmutable();
     }
 }
