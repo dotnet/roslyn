@@ -91,6 +91,8 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 continue;
 
             var matches = GetMatches(semanticDocument, stackAllocExpression);
+            if (matches.IsDefault)
+                continue;
 
             var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
                 semanticDocument.Document,
@@ -120,12 +122,27 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         ImmutableArray<CollectionExpressionMatch> GetMatches(SemanticDocument document, ExpressionSyntax stackAllocExpression)
         {
-            // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come
-            // from within the initializer.
-            if (stackAllocExpression is ImplicitStackAllocArrayCreationExpressionSyntax)
-                return ImmutableArray<CollectionExpressionMatch>.Empty;
+            switch (stackAllocExpression)
+            {
+                case ImplicitStackAllocArrayCreationExpressionSyntax:
+                    // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come
+                    // from within the initializer.
+                    return ImmutableArray<CollectionExpressionMatch>.Empty;
 
+                case StackAllocArrayCreationExpressionSyntax arrayCreation:
+                    // If we have `stackalloc T[] { ... }`, then all collection elements from the initializer only.
+                    if (arrayCreation.Initializer is null)
+                        return ImmutableArray<CollectionExpressionMatch>.Empty;
 
+                    // we have `stackalloc T[...];` Have to find the elements based on what follows the creation
+                    // statement.
+                    return CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
+                        document.SemanticModel, arrayCreation, cancellationToken);
+
+                default:
+                    // We validated this is unreachable in the caller.
+                    throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 }
