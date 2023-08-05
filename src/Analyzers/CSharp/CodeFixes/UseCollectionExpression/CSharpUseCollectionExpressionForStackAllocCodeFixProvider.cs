@@ -130,12 +130,8 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                     return ImmutableArray<CollectionExpressionMatch>.Empty;
 
                 case StackAllocArrayCreationExpressionSyntax arrayCreation:
-                    // If we have `stackalloc T[] { ... }`, then all collection elements from the initializer only.
-                    if (arrayCreation.Initializer is not null)
-                        return ImmutableArray<CollectionExpressionMatch>.Empty;
-
-                    // we have `stackalloc T[...];` Have to find the elements based on what follows the creation
-                    // statement.
+                    // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
+                    // be added to the collection expression.
                     return CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
                         document.SemanticModel, arrayCreation, cancellationToken);
 
