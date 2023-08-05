@@ -25,11 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (includeOperators)
-            {
-                return
-                    node.IsParentKind(SyntaxKind.OperatorDeclaration) ||
-                    node.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
-            }
+                return node?.Parent?.Kind() is SyntaxKind.OperatorDeclaration or SyntaxKind.ConversionOperatorDeclaration;
 
             return false;
         }
