@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
@@ -54,11 +54,6 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         var compilation = context.Compilation;
         if (!compilation.LanguageVersion().SupportsCollectionExpressions())
             return;
-
-        //var spanType = compilation.GetBestTypeByMetadataName(typeof(Span<>).FullName);
-        //var readOnlySpanType = compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName);
-        //if (spanType is null || readOnlySpanType is null)
-        //    return;
 
         // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
         // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
@@ -163,8 +158,17 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
 
-        if (rankSpecifier.Sizes is [var size])
+        if (!rankSpecifier.Sizes.Any())
         {
+            // `stackalloc int[]` on its own is illegal.  Has to either have a size, or an initializer.
+            if (expression.Initializer is null)
+                return default;
+        }
+        else
+        {
+            // Is `stackalloc X[val]`
+            var size = rankSpecifier.Sizes.Single();
+
             // if `stackalloc X[const]`, then it has to have a constant value for the size
             if (semanticModel.GetConstantValue(size, cancellationToken).Value is not int sizeValue)
                 return default;
@@ -186,20 +190,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                         Parent: VariableDeclaratorSyntax
                         {
                             Identifier.ValueText: var variableName,
-                            Parent: VariableDeclarationSyntax
-                            {
-                                Parent: LocalDeclarationStatementSyntax localDeclarationStatement
-                            }
-                        } variableDeclarator,
+                            Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
+                        },
                     })
                 {
                     return default;
-
                 }
-
-                //// Has to be either ReadOnlySpan<T> or Span<T>
-                //var localVariable = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
-                //if (localVariable.Type?.OriginalDefinition.SpecialType is not SpecialType.read)
 
                 for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
                 {
