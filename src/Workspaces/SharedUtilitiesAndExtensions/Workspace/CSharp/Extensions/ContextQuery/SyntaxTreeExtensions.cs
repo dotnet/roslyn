@@ -2205,20 +2205,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // q >>= |
             // q >>>= |
             // q ??= |
-            if (token.IsKind(SyntaxKind.EqualsToken) ||
-                token.IsKind(SyntaxKind.MinusEqualsToken) ||
-                token.IsKind(SyntaxKind.AsteriskEqualsToken) ||
-                token.IsKind(SyntaxKind.PlusEqualsToken) ||
-                token.IsKind(SyntaxKind.SlashEqualsToken) ||
-                token.IsKind(SyntaxKind.ExclamationEqualsToken) ||
-                token.IsKind(SyntaxKind.CaretEqualsToken) ||
-                token.IsKind(SyntaxKind.AmpersandEqualsToken) ||
-                token.IsKind(SyntaxKind.BarEqualsToken) ||
-                token.IsKind(SyntaxKind.PercentEqualsToken) ||
-                token.IsKind(SyntaxKind.LessThanLessThanEqualsToken) ||
-                token.IsKind(SyntaxKind.GreaterThanGreaterThanEqualsToken) ||
-                token.IsKind(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken) ||
-                token.IsKind(SyntaxKind.QuestionQuestionEqualsToken))
+            if (token.Kind()
+                    is SyntaxKind.EqualsToken
+                    or SyntaxKind.MinusEqualsToken
+                    or SyntaxKind.AsteriskEqualsToken
+                    or SyntaxKind.PlusEqualsToken
+                    or SyntaxKind.SlashEqualsToken
+                    or SyntaxKind.ExclamationEqualsToken
+                    or SyntaxKind.CaretEqualsToken
+                    or SyntaxKind.AmpersandEqualsToken
+                    or SyntaxKind.BarEqualsToken
+                    or SyntaxKind.PercentEqualsToken
+                    or SyntaxKind.LessThanLessThanEqualsToken
+                    or SyntaxKind.GreaterThanGreaterThanEqualsToken
+                    or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken
+                    or SyntaxKind.QuestionQuestionEqualsToken)
             {
                 return true;
             }
@@ -2319,26 +2320,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 tokenOnLeftOfPosition.IsKind(SyntaxKind.IdentifierToken))
             {
                 var previousToken = tokenOnLeftOfPosition.GetPreviousToken(includeSkipped: true);
-                if (previousToken.IsKind(SyntaxKind.AsteriskToken) ||
-                    previousToken.IsKind(SyntaxKind.QuestionToken))
+                if (previousToken.Kind() is SyntaxKind.AsteriskToken or SyntaxKind.QuestionToken &&
+                    previousToken.Parent?.Kind() is SyntaxKind.PointerType or SyntaxKind.NullableType)
                 {
-                    if (previousToken.Parent.IsKind(SyntaxKind.PointerType) ||
-                        previousToken.Parent.IsKind(SyntaxKind.NullableType))
+                    var type = previousToken.Parent as TypeSyntax;
+                    if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                        type.Parent?.Parent is LocalDeclarationStatementSyntax declStatement)
                     {
-                        var type = previousToken.Parent as TypeSyntax;
-                        if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                            type.Parent?.Parent is LocalDeclarationStatementSyntax declStatement)
-                        {
-                            // note, this doesn't apply for cases where we know it 
-                            // absolutely is not multiplication or a conditional expression.
-                            var underlyingType = type is PointerTypeSyntax pointerType
-                                ? pointerType.ElementType
-                                : ((NullableTypeSyntax)type).ElementType;
+                        // note, this doesn't apply for cases where we know it 
+                        // absolutely is not multiplication or a conditional expression.
+                        var underlyingType = type is PointerTypeSyntax pointerType
+                            ? pointerType.ElementType
+                            : ((NullableTypeSyntax)type).ElementType;
 
-                            if (!underlyingType.IsPotentialTypeName(semanticModel, cancellationToken))
-                            {
-                                return true;
-                            }
+                        if (!underlyingType.IsPotentialTypeName(semanticModel, cancellationToken))
+                        {
+                            return true;
                         }
                     }
                 }
