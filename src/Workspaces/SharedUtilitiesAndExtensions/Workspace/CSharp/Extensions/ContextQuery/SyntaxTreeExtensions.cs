@@ -2343,13 +2343,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // new int[|
             // new int[expr, |
-            if (token.IsKind(SyntaxKind.OpenBracketToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
             {
-                if (token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // 1..|
@@ -2402,22 +2399,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // this[|
             // var t = (1, |
             // var t = (| , 2)
-            if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.OpenBracketToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken &&
+                token.Parent is (kind: SyntaxKind.ArgumentList or SyntaxKind.BracketedArgumentList or SyntaxKind.TupleExpression))
             {
-                if (token.Parent is (kind: SyntaxKind.ArgumentList or SyntaxKind.BracketedArgumentList or SyntaxKind.TupleExpression))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // [Goo(|
             // [Goo(expr, |
             if (attributes)
             {
-                if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                    token.IsKind(SyntaxKind.CommaToken))
+                if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
                 {
                     if (token.Parent.IsKind(SyntaxKind.AttributeArgumentList))
                     {
@@ -2430,9 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Goo(in |
             // Goo(out |
             // ref var x = ref |
-            if (token.IsKind(SyntaxKind.RefKeyword) ||
-                token.IsKind(SyntaxKind.InKeyword) ||
-                token.IsKind(SyntaxKind.OutKeyword))
+            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
             {
                 if (token.Parent.IsKind(SyntaxKind.Argument))
                 {
@@ -2467,8 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // new List<int> { |
             // new List<int> { expr, |
-            if (token.IsKind(SyntaxKind.OpenBraceToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken)
             {
                 if (token.Parent is InitializerExpressionSyntax)
                 {
@@ -2548,13 +2537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // join x in y on |
             // join x in y on a equals |
-            if (token.IsKind(SyntaxKind.OnKeyword) ||
-                token.IsKind(SyntaxKind.EqualsKeyword))
+            if (token.Kind() is SyntaxKind.OnKeyword or SyntaxKind.EqualsKeyword &&
+                token.Parent.IsKind(SyntaxKind.JoinClause))
             {
-                if (token.Parent.IsKind(SyntaxKind.JoinClause))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // where |
@@ -2566,13 +2552,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // orderby |
             // orderby a, |
-            if (token.IsKind(SyntaxKind.OrderByKeyword) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OrderByKeyword or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.OrderByClause))
             {
-                if (token.Parent.IsKind(SyntaxKind.OrderByClause))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // select |
@@ -2584,13 +2567,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // group |
             // group expr by |
-            if (token.IsKind(SyntaxKind.GroupKeyword) ||
-                token.IsKind(SyntaxKind.ByKeyword))
+            if (token.Kind() is SyntaxKind.GroupKeyword or SyntaxKind.ByKeyword &&
+                token.Parent.IsKind(SyntaxKind.GroupClause))
             {
-                if (token.Parent.IsKind(SyntaxKind.GroupClause))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // return |
@@ -2686,12 +2666,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // can dot into a member afterward. For example:
             //
             // var a = new { new C().Goo };
-            if (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
-                if (token.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // List patterns
