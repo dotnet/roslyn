@@ -131,7 +131,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
                 case StackAllocArrayCreationExpressionSyntax arrayCreation:
                     // If we have `stackalloc T[] { ... }`, then all collection elements from the initializer only.
-                    if (arrayCreation.Initializer is null)
+                    if (arrayCreation.Initializer is not null)
                         return ImmutableArray<CollectionExpressionMatch>.Empty;
 
                     // we have `stackalloc T[...];` Have to find the elements based on what follows the creation

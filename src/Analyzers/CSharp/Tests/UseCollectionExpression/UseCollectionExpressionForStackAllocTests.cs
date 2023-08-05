@@ -660,7 +660,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         i++;
                     }
                 }
@@ -682,7 +682,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         i = j;
                     }
                 }
@@ -706,7 +706,7 @@ public class UseCollectionExpressionForStackAllocTests
 
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         C.array[0] = j;
                     }
                 }
@@ -730,7 +730,7 @@ public class UseCollectionExpressionForStackAllocTests
 
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         array[0] = j;
                     }
                 }
@@ -754,7 +754,7 @@ public class UseCollectionExpressionForStackAllocTests
 
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         r[i] = j;
                     }
                 }
@@ -778,7 +778,7 @@ public class UseCollectionExpressionForStackAllocTests
 
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        Span<int> r = stackalloc int[1];
                         r[1] = j;
                     }
                 }
@@ -802,7 +802,7 @@ public class UseCollectionExpressionForStackAllocTests
 
                     void M(int i, int j)
                     {
-                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        Span<int> r = stackalloc int[2];
                         r[0] = i;
                         r[0] = j;
                     }
