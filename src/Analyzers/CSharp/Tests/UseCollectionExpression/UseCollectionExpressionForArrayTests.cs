@@ -2465,4 +2465,83 @@ public class UseCollectionExpressionForArrayTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+                        r[0] = null;
+                        r[1] = null;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [null, null];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+                        r[0] = [|[|new|][]|] { 1 };
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [new[] { 1 }, new int[] { 2 }];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [[1], [2]];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
 }

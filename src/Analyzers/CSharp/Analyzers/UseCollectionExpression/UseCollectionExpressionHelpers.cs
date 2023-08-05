@@ -307,7 +307,7 @@ internal static class UseCollectionExpressionHelpers
         Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
 
         // has to either be `stackalloc X[]` or `stackalloc X[const]`.
-        if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] } rankSpecifier] } arrayType)
+        if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
             return default;
 
         using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
