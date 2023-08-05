@@ -691,15 +691,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.ColonToken))
-            {
-                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
-                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
-            }
+                return token.Parent?.Kind() is not SyntaxKind.InterpolationFormatClause and not SyntaxKind.XmlPrefix;
 
             if (next.IsKind(SyntaxKind.ColonToken))
             {
-                if (next.Parent.IsKind(SyntaxKind.BaseList) ||
-                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
+                if (next.Parent?.Kind() is SyntaxKind.BaseList or SyntaxKind.TypeParameterConstraintClause ||
                     next.Parent is ConstructorInitializerSyntax)
                 {
                     return true;

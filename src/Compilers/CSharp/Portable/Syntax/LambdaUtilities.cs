@@ -252,10 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var clause in containingBody.Clauses)
             {
-                if (!clause.IsKind(SyntaxKind.WhereClause) && !clause.IsKind(SyntaxKind.OrderByClause))
-                {
+                if (clause.Kind() is not SyntaxKind.WhereClause and not SyntaxKind.OrderByClause)
                     return false;
-                }
             }
 
             return true;
