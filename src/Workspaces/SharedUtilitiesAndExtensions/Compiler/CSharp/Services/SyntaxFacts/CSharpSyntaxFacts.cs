@@ -1171,8 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
 
         public static bool IsOperandOfDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
-               node.IsParentKind(SyntaxKind.PreDecrementExpression);
+            => node?.Parent?.Kind() is SyntaxKind.PostDecrementExpression or SyntaxKind.PreDecrementExpression;
 
         public bool IsOperandOfIncrementOrDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
@@ -1255,8 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 // Because fields declarations can define multiple symbols "public int a, b;"
                 // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 case SyntaxKind.VariableDeclarator:
-                    return node.Parent.IsParentKind(SyntaxKind.FieldDeclaration) ||
-                           node.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration);
+                    return node.Parent?.Parent?.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.EventFieldDeclaration;
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
