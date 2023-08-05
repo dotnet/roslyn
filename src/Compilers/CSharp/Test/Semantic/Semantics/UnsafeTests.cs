@@ -8767,16 +8767,16 @@ unsafe class C
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,35): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         { int* p = stackalloc int[1L]; } //CS0266 (could cast), even though constant value is fine
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "int"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "int").WithLocation(7, 35),
                 // (9,35): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         { int* p = stackalloc int["hello"]; } // CS0029 (no conversion)
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(9, 35),
                 // (10,35): error CS0428: Cannot convert method group 'Main' to non-delegate type 'int'. Did you intend to invoke the method?
                 //         { int* p = stackalloc int[Main]; } //CS0428 (method group conversion)
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "int"),
-                // (11,35): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "int").WithLocation(10, 35),
+                // (11,37): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         { int* p = stackalloc int[x => x]; } //CS1660 (lambda conversion)
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "int"));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(11, 37));
         }
 
         [Fact]
