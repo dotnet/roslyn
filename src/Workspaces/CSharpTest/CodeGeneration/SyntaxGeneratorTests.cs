@@ -2542,6 +2542,39 @@ public class C { } // end").Members[0];
                 "public const global::System.Int32 F;");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")]
+        public void TestConstantDecimalFieldDeclarationFromMetadata()
+        {
+            var compilation = _emptyCompilation.
+                WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const decimal F = 8675309000000M;
+                }
+                """));
+            var reference = compilation.EmitToPortableExecutableReference();
+
+            compilation = _emptyCompilation.AddReferences(reference);
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Decimal F = 8675309000000M;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")]
+        public void TestConstantFieldDeclarationSpecialTypes()
+        {
+            var field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(nameof(UInt32.MaxValue)).Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.UInt32 MaxValue = 4294967295U;");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")]
         public void TestDestructor1()
         {

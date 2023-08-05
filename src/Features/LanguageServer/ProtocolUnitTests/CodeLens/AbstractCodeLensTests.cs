@@ -19,10 +19,8 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
     {
     }
 
-    private protected static async Task VerifyCodeLensAsync(TestLspServer testLspServer, int expectedNumberOfReferences, bool isCapped = false)
+    private protected static async Task<LSP.CodeLens[]?> GetCodeLensAsync(TestLspServer testLspServer)
     {
-        var expectedCodeLens = testLspServer.GetLocations("codeLens").Single();
-
         var textDocument = CreateTextDocumentIdentifier(testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI());
         var codeLensParams = new LSP.CodeLensParams
         {
@@ -30,6 +28,14 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
+        return actualCodeLenses;
+    }
+
+    private protected static async Task VerifyCodeLensAsync(TestLspServer testLspServer, int expectedNumberOfReferences, bool isCapped = false)
+    {
+        var expectedCodeLens = testLspServer.GetLocations("codeLens").Single();
+
+        var actualCodeLenses = await GetCodeLensAsync(testLspServer);
         AssertEx.NotNull(actualCodeLenses);
         Assert.NotEmpty(actualCodeLenses);
 

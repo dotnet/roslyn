@@ -3,20 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
     using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
-    internal class CSharpUseCollectionInitializerCodeFixProvider :
+    internal partial class CSharpUseCollectionInitializerCodeFixProvider :
         AbstractUseCollectionInitializerCodeFixProvider<
             SyntaxKind,
             ExpressionSyntax,
@@ -48,73 +46,68 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
             => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
-        protected override StatementSyntax GetNewStatement(
-            SourceText sourceText,
+        protected override async Task<StatementSyntax> GetNewStatementAsync(
+            Document document,
+            CodeActionOptionsProvider fallbackOptions,
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
-            int wrappingLength,
             bool useCollectionExpression,
-            ImmutableArray<Match<StatementSyntax>> matches)
+            ImmutableArray<Match<StatementSyntax>> matches,
+            CancellationToken cancellationToken)
         {
-            return statement.ReplaceNode(
-                objectCreation,
-                GetNewObjectCreation(sourceText, objectCreation, wrappingLength, useCollectionExpression, matches));
+            var newObjectCreation = await GetNewObjectCreationAsync(
+                document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            return statement.ReplaceNode(objectCreation, newObjectCreation);
         }
 
-        private static ExpressionSyntax GetNewObjectCreation(
-            SourceText sourceText,
+        private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
+            Document document,
+            CodeActionOptionsProvider fallbackOptions,
             BaseObjectCreationExpressionSyntax objectCreation,
-            int wrappingLength,
             bool useCollectionExpression,
-            ImmutableArray<Match<StatementSyntax>> matches)
+            ImmutableArray<Match<StatementSyntax>> matches,
+            CancellationToken cancellationToken)
         {
             return useCollectionExpression
-                ? CreateCollectionExpression(sourceText, objectCreation, wrappingLength, matches)
+                ? await CreateCollectionExpressionAsync(document, fallbackOptions, objectCreation, matches, cancellationToken).ConfigureAwait(false)
                 : CreateObjectInitializerExpression(objectCreation, matches);
         }
 
-        private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches)
+        // Helpers used both by CollectionInitializers and CollectionExpressions.
+
+        private static ExpressionSyntax ConvertExpression(
+            ExpressionSyntax expression,
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
-            var expressions = CreateElements(objectCreation, matches, static (_, e) => e);
-            var withLineBreaks = AddLineBreaks(expressions, includeFinalLineBreak: true);
-            return UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
-        }
-
-        private static CollectionExpressionSyntax CreateCollectionExpression(
-            SourceText sourceText,
-            BaseObjectCreationExpressionSyntax objectCreation,
-            int wrappingLength,
-            ImmutableArray<Match<StatementSyntax>> matches)
-        {
-            var elements = CreateElements<CollectionElementSyntax>(
-                objectCreation, matches,
-                static (match, expression) => match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression));
-
-            if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-                elements = AddLineBreaks(elements, includeFinalLineBreak: false);
-
-            return CollectionExpression(elements).WithTriviaFrom(objectCreation);
-        }
-
-        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
-            => expression switch
+            // This must be called from an expression from the original tree.  Not something we're already transforming.
+            // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+            Contract.ThrowIfNull(expression.Parent);
+            return expression switch
             {
-                InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
-                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation, indent),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment, indent),
                 _ => throw new InvalidOperationException(),
             };
+        }
 
-        private static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
+        private static AssignmentExpressionSyntax ConvertAssignment(
+            AssignmentExpressionSyntax assignment,
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
+            // Assignment is only used for collection-initializers, which *currently* do not do any special
+            // indentation handling on elements.
+            Contract.ThrowIfTrue(indent != null);
+
             var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
             return assignment.WithLeft(
                 ImplicitElementAccess(elementAccess.ArgumentList));
         }
 
-        private static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
+        private static ExpressionSyntax ConvertInvocation(
+            InvocationExpressionSyntax invocation,
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
+            indent ??= static expr => expr;
             var arguments = invocation.ArgumentList.Arguments;
 
             if (arguments.Count == 1)
@@ -123,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 // report an error.  This is because { a = b } is the form for an object initializer,
                 // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
                 // avoid the ambiguity.
-                var expression = arguments[0].Expression;
+                var expression = indent(arguments[0].Expression);
                 return SyntaxFacts.IsAssignmentExpression(expression.Kind())
                     ? ParenthesizedExpression(expression)
                     : expression;
@@ -136,157 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     arguments.Select(a => a.Expression),
                     arguments.GetSeparators()),
                 Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
-        }
-
-        private static bool MakeMultiLine(
-            SourceText sourceText,
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            int wrappingLength)
-        {
-            // If it's already multiline, keep it that way.
-            if (!sourceText.AreOnSameLine(objectCreation.GetFirstToken(), objectCreation.GetLastToken()))
-                return true;
-
-            var totalLength = "{}".Length;
-            foreach (var match in matches)
-            {
-                foreach (var component in GetElementComponents(match.Statement))
-                {
-                    // if any of the expressions we're adding are multiline, then make things multiline.
-                    if (!sourceText.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
-                        return true;
-
-                    totalLength += component.Span.Length;
-                    totalLength += ", ".Length;
-
-                    if (totalLength > wrappingLength)
-                        return true;
-                }
-            }
-
-            return false;
-
-            static IEnumerable<SyntaxNode> GetElementComponents(StatementSyntax statement)
-            {
-                if (statement is ExpressionStatementSyntax expressionStatement)
-                {
-                    yield return expressionStatement.Expression;
-                }
-                else if (statement is ForEachStatementSyntax foreachStatement)
-                {
-                    yield return foreachStatement.Expression;
-                }
-                else if (statement is IfStatementSyntax ifStatement)
-                {
-                    yield return ifStatement.Condition;
-                    yield return UnwrapEmbeddedStatement(ifStatement.Statement);
-                    if (ifStatement.Else != null)
-                        yield return UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                }
-            }
-        }
-
-        private static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
-            => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
-
-        public static SeparatedSyntaxList<TNode> AddLineBreaks<TNode>(
-            SeparatedSyntaxList<TNode> nodes, bool includeFinalLineBreak)
-            where TNode : SyntaxNode
-        {
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-
-            var nodeOrTokenList = nodes.GetWithSeparators();
-            foreach (var item in nodeOrTokenList)
-            {
-                var addLineBreak = item.IsToken || (includeFinalLineBreak && item == nodeOrTokenList.Last());
-                if (addLineBreak && item.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
-                {
-                    nodesAndTokens.Add(item.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed));
-                }
-                else
-                {
-                    nodesAndTokens.Add(item);
-                }
-            }
-
-            return SeparatedList<TNode>(nodesAndTokens);
-        }
-
-        private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            Func<Match<StatementSyntax>?, ExpressionSyntax, TElement> createElement)
-            where TElement : SyntaxNode
-        {
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-
-            UseInitializerHelpers.AddExistingItems(
-                objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, createElement);
-
-            for (var i = 0; i < matches.Length; i++)
-            {
-                var match = matches[i];
-                var statement = match.Statement;
-
-                if (statement is ExpressionStatementSyntax expressionStatement)
-                {
-                    var trivia = statement.GetLeadingTrivia();
-                    var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
-
-                    var semicolon = expressionStatement.SemicolonToken;
-                    var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
-                        ? semicolon.TrailingTrivia
-                        : default;
-
-                    var expression = createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia()).WithLeadingTrivia(leadingTrivia);
-                    if (i < matches.Length - 1)
-                    {
-                        nodesAndTokens.Add(expression);
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
-                    }
-                    else
-                    {
-                        nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
-                    }
-                }
-                else if (statement is ForEachStatementSyntax foreachStatement)
-                {
-                    nodesAndTokens.Add(createElement(match, foreachStatement.Expression.WithoutTrivia()));
-                    if (i < matches.Length - 1)
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
-                }
-                else if (statement is IfStatementSyntax ifStatement)
-                {
-                    var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
-
-                    if (ifStatement.Else is null)
-                    {
-                        // Create: x ? [y] : []
-                        var expression = ConditionalExpression(
-                            ifStatement.Condition.Parenthesize(),
-                            CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
-                            CollectionExpression());
-                        nodesAndTokens.Add(createElement(match, expression));
-                    }
-                    else
-                    {
-                        // Create: x ? y : z
-                        var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                        var expression = ConditionalExpression(ifStatement.Condition.Parenthesize(), ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
-                        nodesAndTokens.Add(createElement(match, expression));
-                    }
-
-                    if (i < matches.Length - 1)
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
-
-            return SeparatedList<TElement>(nodesAndTokens);
         }
     }
 }
