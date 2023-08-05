@@ -36,7 +36,7 @@ internal static class CSharpCollectionExpressionRewriter
         CodeActionOptionsProvider fallbackOptions,
         TParentExpression expressionToReplace,
         ImmutableArray<CollectionExpressionMatch> matches,
-        Func<TParentExpression, InitializerExpressionSyntax> getInitializer,
+        Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
         where TParentExpression : ExpressionSyntax
