@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
 
         protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
+        protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
+
         protected abstract void GetPartsOfForeachStatement(TForeachStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
         protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
 
@@ -116,15 +118,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
-                var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
+                var initializerExpressions = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer);
+                if (initializerExpressions is [var firstInit, ..])
+                {
+                    // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
+                    // this can't legally become a collection expression.
+                    if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
+                        return false;
 
-                // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
-                // this can't legally become a collection expression.
-                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
-                    return false;
-
-                seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
-                seenInvocation = !seenIndexAssignment;
+                    seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
+                    seenInvocation = !seenIndexAssignment;
+                }
             }
 
             // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
@@ -305,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool ShouldAnalyze()
         {
-            if (_syntaxFacts.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression)))
+            if (this.HasExistingInvalidInitializerForCollection(_objectCreationExpression))
                 return false;
 
             var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;

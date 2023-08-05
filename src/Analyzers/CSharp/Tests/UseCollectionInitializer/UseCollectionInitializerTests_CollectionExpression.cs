@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +29,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
             TestState = { OutputKind = outputKind }
         }.RunAsync();
     }
@@ -1242,8 +1243,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
-                        2];
+                    List<int> c =
+                    [
+                        1, 2
+                    ];
                 }
             }
             """);
@@ -1275,8 +1278,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
-                        2];
+                    List<int> c =
+                    [
+                        1, 2
+                    ];
                 }
             }
             """);
@@ -1308,8 +1313,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
-                        2];
+                    List<int> c =
+                    [
+                        1, 2,
+                    ];
                 }
             }
             """);
@@ -1342,8 +1349,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x)
                 {
-                    List<int> c = [1,
-                        .. x];
+                    List<int> c =
+                    [
+                        1, .. x
+                    ];
                 }
             }
             """);
@@ -1472,10 +1481,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [() =>
-                    {
-                        List<int> list2 = [2];
-                    }
+                    List<Action> list1 =
+                    [
+                        () => {
+                            List<int> list2 = [2];
+                        }
 
                     ];
                 }
@@ -1490,16 +1500,17 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [() =>
-                    {
-                        List<int> list2 = [2];
-                    }
+                    List<Action> list1 =
+                    [
+                        () => {
+                            List<int> list2 = [2];
+                        }
 
                     ];
                 }
             }
             """,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
 
@@ -1525,9 +1536,191 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1, // Goo
+                    List<int> c =
+                    [
+                        1, // Goo
                         2 // Bar
-            ];
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    [|foreach (var v in |]x)
+                        c.Add(v);
+
+                    // Bar
+                    [|foreach (var v in |]y)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        .. x,
+                        // Bar
+                        .. y
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    // Bar
+                    [|foreach (var v in |]x)
+                        c.Add(v);
+
+                    // Baz
+                    // Quux
+                    [|foreach (var v in |]y)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        // Bar
+                        .. x,
+                        // Baz
+                        // Quux
+                        .. y
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    if (b1)
+                        c.Add(0);
+                    else
+                        c.Add(1);
+
+                    // Bar
+                    if (b2)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        b1 ? 0 : 1,
+                        // Bar
+                        b2 ? 2 : 3
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    // Bar
+                    if (b1)
+                        c.Add(0);
+                    else
+                        c.Add(1);
+            
+                    // Baz
+                    // Quux
+                    if (b2)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                        // Bar
+                        b1 ? 0 : 1,
+                        // Baz
+                        // Quux
+                        b2 ? 2 : 3
+                    ];
                 }
             }
             """);
@@ -1560,11 +1753,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [
-                    // Goo
-                    1,
+                    List<int> c =
+                    [
+                        // Goo
+                        1,
                         // Bar
-                        2];
+                        2
+                    ];
                 }
             }
             """);
@@ -2191,8 +2386,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1
-            ];
+                    List<int> c =
+                    [
+                        1
+                    ];
                 }
             }
             """);
@@ -2223,7 +2420,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
+                    List<int> c =
+                    [
+                        1,
                     ];
                 }
             }
@@ -2256,9 +2455,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
+                    List<int> c =
+                    [
+                        1,
                         2
-            ];
+                    ];
                 }
             }
             """);
@@ -2290,8 +2491,1363 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
+                    List<int> c =
+                    [
+                        1,
                         2,
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() { };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    { };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>() { };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        { };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NoElements_ExistingInitializer8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() { 1, 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1, 2];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    { 1, 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1, 2];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                        1,
+                        2
+                    };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                        1,
+                        2
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>() { 1, 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [1, 2];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        { 1, 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [1, 2];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1,
+                            2
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1,
+                            2
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1, 2
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1, 2,
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() { 1, 2 };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1, 2, 3];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    { 1, 2 };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1, 2, 3];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                        1,
+                        2
+                    };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                        1,
+                        2,
+                        3
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>() { 1, 2 };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [1, 2, 3];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        { 1, 2 };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [1, 2, 3];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                            3,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                            3,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1,
+                            2
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1,
+                            2,
+                            3
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1, 2
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2, 3
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1, 2,
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2, 3,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() { 1, 2 };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                    [
+                        1, 2,
+                        3 +
+                            4
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                    { 1, 2 };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                    [
+                        1, 2,
+                        3 +
+                            4
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                        1,
+                        2
+                    };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                        1,
+                        2,
+                        3 +
+                            4
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>() { 1, 2 };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        { 1, 2 };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                            3 +
+                                4,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1,
+                            2,
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1,
+                            2,
+                            3 +
+                                4,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1,
+                            2
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1,
+                            2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1, 2
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1, 2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1, 2,
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1, 2,
+                            3 +
+                                4,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                    [
+                        3 +
+                            4
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1 +
+                        2);
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                    [
+                        1 +
+                            2,
+                        3 +
+                            4
                     ];
                 }
             }

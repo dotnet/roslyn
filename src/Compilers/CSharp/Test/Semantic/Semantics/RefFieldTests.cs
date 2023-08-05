@@ -16146,8 +16146,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D1' because it has one or more out parameters
                 //         D1 d1 = delegate { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D1").WithLocation(13, 17));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -16180,10 +16179,9 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
+                // (12,20): error CS1593: Delegate 'D1' does not take 0 arguments
                 //         D1 d1 = () => new R();
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "0").WithLocation(12, 20));
         }
 
         [Fact]
@@ -16208,13 +16206,12 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                // (12,19): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d1 = r => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
-                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(12, 19),
+                // (13,30): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d2 = (scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(13, 30));
         }
 
         [Fact]

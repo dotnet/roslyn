@@ -435,6 +435,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">필드를 이벤트로 변경하거나 그 반대로 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">{0} 제약 조건을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>

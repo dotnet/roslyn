@@ -969,9 +969,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
+                // (6,28): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke(in int)").WithLocation(6, 28),
                 // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
@@ -1028,9 +1028,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                // (8,20): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(8, 20),
                 // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
                 //         System.Console.WriteLine(func());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));
@@ -1421,9 +1421,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
+                // (6,28): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke(in int)").WithLocation(6, 28),
                 // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
@@ -1480,9 +1480,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                // (8,20): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(8, 20),
                 // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
                 //         System.Console.WriteLine(func());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));
@@ -2417,9 +2417,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(ref int)' is not supported by the language
+                // (6,28): error CS0570: 'D.Invoke(ref int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref int)").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke(ref int)").WithLocation(6, 28),
                 // (12,9): error CS0570: 'D.Invoke(ref int)' is not supported by the language
                 //         func(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(ref int)").WithLocation(12, 9));
@@ -2470,9 +2470,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
-                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                // (8,20): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(8, 20),
                 // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
                 //         System.Console.WriteLine(func());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));

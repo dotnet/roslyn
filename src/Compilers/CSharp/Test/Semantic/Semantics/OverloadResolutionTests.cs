@@ -7528,13 +7528,12 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
+                // (9,14): error CS0123: No overload for 'goo' matches delegate 'EventHandler'
                 //         y += goo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler"),
-                // (10,14): error CS1593: Delegate 'System.EventHandler' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler").WithLocation(9, 14),
+                // (10,16): error CS1593: Delegate 'EventHandler' does not take 1 arguments
                 //         y += x => 2;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x => 2").WithArguments("System.EventHandler", "1")
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.EventHandler", "1").WithLocation(10, 16));
         }
 
         [Fact]
