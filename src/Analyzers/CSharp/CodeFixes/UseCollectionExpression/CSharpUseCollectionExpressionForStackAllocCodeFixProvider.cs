@@ -80,7 +80,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                         .Skip(1)
                         .Select(loc =>
                         {
-                            var expression = (ExpressionSyntax)loc.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                            var expression = (StatementSyntax)loc.FindNode(getInnermostNodeForTie: true, cancellationToken);
                             var statement = expression.FirstAncestorOrSelf<StatementSyntax>();
                             Contract.ThrowIfNull(statement);
                             return (statement, expression);
