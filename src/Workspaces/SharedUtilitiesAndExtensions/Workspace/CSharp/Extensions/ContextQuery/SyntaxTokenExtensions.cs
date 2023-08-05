@@ -163,14 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 case SyntaxKind.CloseParenToken:
                     var parent = token.Parent;
-                    return parent.IsKind(SyntaxKind.ForStatement) ||
-                           parent.IsKind(SyntaxKind.ForEachStatement) ||
-                           parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                           parent.IsKind(SyntaxKind.WhileStatement) ||
-                           parent.IsKind(SyntaxKind.IfStatement) ||
-                           parent.IsKind(SyntaxKind.LockStatement) ||
-                           parent.IsKind(SyntaxKind.UsingStatement) ||
-                           parent.IsKind(SyntaxKind.FixedStatement);
+                    return parent?.Kind()
+                        is SyntaxKind.ForStatement
+                        or SyntaxKind.ForEachStatement
+                        or SyntaxKind.ForEachVariableStatement
+                        or SyntaxKind.WhileStatement
+                        or SyntaxKind.IfStatement
+                        or SyntaxKind.LockStatement
+                        or SyntaxKind.UsingStatement
+                        or SyntaxKind.FixedStatement;
 
                 case SyntaxKind.ElseKeyword:
                     return token.Parent.IsKind(SyntaxKind.ElseClause);
@@ -454,10 +455,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 targetToken.Parent.Parent.Parent.IsKind(SyntaxKind.ArgumentList))
             {
                 var owner = targetToken.Parent.Parent.Parent.Parent;
-                if (owner.IsKind(SyntaxKind.InvocationExpression) ||
-                    owner.IsKind(SyntaxKind.ObjectCreationExpression) ||
-                    owner.IsKind(SyntaxKind.BaseConstructorInitializer) ||
-                    owner.IsKind(SyntaxKind.ThisConstructorInitializer))
+                if (owner?.Kind()
+                        is SyntaxKind.InvocationExpression
+                        or SyntaxKind.ObjectCreationExpression
+                        or SyntaxKind.BaseConstructorInitializer
+                        or SyntaxKind.ThisConstructorInitializer)
                 {
                     return true;
                 }
@@ -468,9 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
                 {
-                    if (targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
-                        targetToken.Parent.IsParentKind(SyntaxKind.BaseConstructorInitializer) ||
-                        targetToken.Parent.IsParentKind(SyntaxKind.ThisConstructorInitializer))
+                    if (targetToken.Parent?.Parent?.Kind()
+                            is SyntaxKind.ObjectCreationExpression
+                            or SyntaxKind.BaseConstructorInitializer
+                            or SyntaxKind.ThisConstructorInitializer)
                     {
                         return true;
                     }
