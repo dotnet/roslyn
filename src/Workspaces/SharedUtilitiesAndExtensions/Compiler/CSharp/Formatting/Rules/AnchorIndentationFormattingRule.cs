@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke();
 
-            if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            if (node.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression)
             {
                 AddAnchorIndentationOperation(list, node);
                 return;

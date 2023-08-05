@@ -1217,10 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
         public bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node)
-        {
-            return node.IsKind(SyntaxKind.UsingDirective) ||
-                   node.IsKind(SyntaxKind.ExternAliasDirective);
-        }
+            => node?.Kind() is SyntaxKind.UsingDirective or SyntaxKind.ExternAliasDirective;
 
         public bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node)
             => IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword);
