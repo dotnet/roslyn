@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                 return true;
                             }
                         }
-                        else if (
-                            token.Parent.IsParentKind(SyntaxKind.ElseClause) ||
-                            token.Parent.IsParentKind(SyntaxKind.FinallyClause) ||
-                            token.Parent.IsParentKind(SyntaxKind.CatchClause) ||
-                            token.Parent.IsParentKind(SyntaxKind.SwitchSection))
+                        else if (token.Parent?.Parent?.Kind()
+                                is SyntaxKind.ElseClause
+                                or SyntaxKind.FinallyClause
+                                or SyntaxKind.CatchClause
+                                or SyntaxKind.SwitchSection)
                         {
                             return true;
                         }
