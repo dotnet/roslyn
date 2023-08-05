@@ -1158,13 +1158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OperatorKeyword))
+            if (token.IsKind(SyntaxKind.OperatorKeyword) &&
+                token.GetPreviousToken(includeSkipped: true).Kind() is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
             {
-                if (token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.ImplicitKeyword) ||
-                    token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.ExplicitKeyword))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
