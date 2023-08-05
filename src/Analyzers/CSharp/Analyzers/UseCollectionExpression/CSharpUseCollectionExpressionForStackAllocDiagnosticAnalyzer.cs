@@ -194,12 +194,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                     return default;
                 }
 
+                var currentStatement = localDeclarationStatement.GetNextStatement();
                 for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
                 {
                     // Each following statement needs to of the form:
                     //
                     //   x[...] =
-                    var currentStatement = localDeclarationStatement.GetNextStatement();
                     if (currentStatement is not ExpressionStatementSyntax
                         {
                             Expression: AssignmentExpressionSyntax
@@ -229,6 +229,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                     // this looks like a good statement, add to the right size of the assignment to track as that's what
                     // we'll want to put in the final collection expression.
                     matches.Add(new(expressionStatement, UseSpread: false));
+                    currentStatement = currentStatement.GetNextStatement();
                 }
             }
         }

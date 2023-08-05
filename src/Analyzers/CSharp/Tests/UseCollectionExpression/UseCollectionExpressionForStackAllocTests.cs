@@ -750,8 +750,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = stackalloc int[1];
@@ -774,8 +772,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = stackalloc int[1];
@@ -798,8 +794,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = stackalloc int[2];
@@ -823,8 +817,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = [|[|stackalloc|] int[1]|];
@@ -837,8 +829,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = [i];
@@ -860,8 +850,6 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = [|[|stackalloc|] int[1]|];
@@ -875,12 +863,617 @@ public class UseCollectionExpressionForStackAllocTests
 
                 class C
                 {
-                    static int[] array;
-
                     void M(int i, int j)
                     {
                         Span<int> r = [i];
                         r[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        r[0] = i;
+                        r[1] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [i, j];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_Constant()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        const int v = 1;
+                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        r[0] = i;
+                        r[v] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        const int v = 1;
+                        Span<int> r = [i, j];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondWrongIndex()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = stackalloc int[2];
+                        r[0] = i;
+                        r[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondNonConstant()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        var v = 1;
+                        Span<int> r = stackalloc int[2];
+                        r[0] = i;
+                        r[v] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondWrongDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    static int[] array;
+
+                    void M(int i, int j)
+                    {
+                        var v = 1;
+                        Span<int> r = stackalloc int[2];
+                        r[0] = i;
+                        array[1] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTrivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        // Leading
+                        r[0] = i;
+                        r[1] = j; // Trailing
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            // Leading
+                            i,
+                            j // Trailing
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTrivia2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        r[0] = i; // Trailing
+                        // Leading
+                        r[1] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            i, // Trailing
+                            // Leading
+                            j
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[]|]
+                        {
+                            1, 2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1, 2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[]|]
+                        {
+                            1,
+                            2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1,
+                            2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[]|] {
+                            1, 2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [
+                            1, 2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[]|] {
+                            1,
+                            2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [
+                            1,
+                            2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine1_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|][]|]
+                        {
+                            1, 2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1, 2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine2_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|][]|]
+                        {
+                            1,
+                            2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1,
+                            2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine3_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|][]|] {
+                            1, 2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [
+                            1, 2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestExistingInitializer_MultiLine4_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|][]|] {
+                            1,
+                            2
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [
+                            1,
+                            2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_MultiLine1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[1]|];
+                        r[0] = 1 +
+                            2;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1 +
+                                2
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_MultiLine2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r = [|[|stackalloc|] int[2]|];
+                        r[0] = 1 +
+                            2;
+                        r[1] = 3 +
+                            4;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        Span<int> r =
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4
+                        ];
                     }
                 }
                 """,
