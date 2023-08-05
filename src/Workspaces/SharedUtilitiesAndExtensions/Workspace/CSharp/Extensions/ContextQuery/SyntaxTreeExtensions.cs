@@ -2908,13 +2908,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 var block = token.GetAncestor<BlockSyntax>();
 
-                if (block != null && token == block.GetLastToken(includeSkipped: true))
+                if (block != null &&
+                    token == block.GetLastToken(includeSkipped: true) &&
+                    block.Parent?.Kind() is SyntaxKind.TryStatement or SyntaxKind.CatchClause)
                 {
-                    if (block.IsParentKind(SyntaxKind.TryStatement) ||
-                        block.IsParentKind(SyntaxKind.CatchClause))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
