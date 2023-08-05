@@ -1877,7 +1877,6 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundCollectionExpression" Base="BoundExpression">

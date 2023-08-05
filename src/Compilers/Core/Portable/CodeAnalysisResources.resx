@@ -777,4 +777,7 @@
   <data name="Nothing" xml:space="preserve">
     <value>Nothing</value>
   </data>
+  <data name="SigningTempPathUnavailable" xml:space="preserve">
+    <value>The temporary path for legacy file signing is unavailable.</value>
+  </data>
 </root>

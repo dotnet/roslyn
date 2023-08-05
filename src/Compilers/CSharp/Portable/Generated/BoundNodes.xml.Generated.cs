@@ -6282,29 +6282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedCollectionExpression : BoundExpression
     {
-        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, Binder binder, bool hasErrors = false)
+        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, bool hasErrors = false)
             : base(BoundKind.UnconvertedCollectionExpression, syntax, null, hasErrors || elements.HasErrors())
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Elements = elements;
-            this.Binder = binder;
         }
 
         public new TypeSymbol? Type => base.Type;
         public ImmutableArray<BoundExpression> Elements { get; }
-        public Binder Binder { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedCollectionExpression(this);
 
-        public BoundUnconvertedCollectionExpression Update(ImmutableArray<BoundExpression> elements, Binder binder)
+        public BoundUnconvertedCollectionExpression Update(ImmutableArray<BoundExpression> elements)
         {
-            if (elements != this.Elements || binder != this.Binder)
+            if (elements != this.Elements)
             {
-                var result = new BoundUnconvertedCollectionExpression(this.Syntax, elements, binder, this.HasErrors);
+                var result = new BoundUnconvertedCollectionExpression(this.Syntax, elements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11569,7 +11566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(elements, node.Binder);
+            return node.Update(elements);
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
@@ -13782,12 +13779,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(elements, node.Binder);
+                updatedNode = node.Update(elements);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(elements, node.Binder);
+                updatedNode = node.Update(elements);
             }
             return updatedNode;
         }
@@ -16196,7 +16193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node, object? arg) => new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
-            new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

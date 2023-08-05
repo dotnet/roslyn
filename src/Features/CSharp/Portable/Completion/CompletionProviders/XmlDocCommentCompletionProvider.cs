@@ -369,10 +369,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol)
             {
-                declaredParameters = primaryConstructor.Parameters;
+                if (namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
+                {
+                    declaredParameters = primaryConstructor.Parameters;
+                }
+                else if (namedTypeSymbol is { DelegateInvokeMethod.Parameters: var delegateInvokeParameters })
+                {
+                    declaredParameters = delegateInvokeParameters;
+                }
             }
 
             return declaredParameters;

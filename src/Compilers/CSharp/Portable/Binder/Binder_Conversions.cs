@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
-            var syntax = (CSharpSyntaxNode)node.Syntax;
+            var syntax = node.Syntax;
 
             switch (collectionTypeKind)
             {

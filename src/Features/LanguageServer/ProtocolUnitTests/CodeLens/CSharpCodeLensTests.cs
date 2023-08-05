@@ -233,6 +233,28 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     }
 
     [Theory, CombinatorialData]
+    public async Task TestNoCodeLensWhenReferencesDisabledAsync(bool lspMutatingWorkspace)
+    {
+        var markup =
+@"class {|codeLens:A|}
+{
+    void M(A a)
+    {
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableReferencesCodeLens, LanguageNames.CSharp, false);
+            }
+        });
+        var actualCodeLenses = await GetCodeLensAsync(testLspServer);
+        Assert.Empty(actualCodeLenses);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestHasTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -299,7 +321,7 @@ namespace Test
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDoesNotHaveTestCommandWhenDisabledAsync(bool mutatingLspWorkspace)
+    public async Task TestDoesNotHaveTestCommandWhenInDevkitAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -326,6 +348,39 @@ namespace Test
             OptionUpdater = (globalOptions) =>
             {
                 globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
+            }
+        });
+        await VerifyTestCodeLensMissingAsync(testLspServer);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDoesNotHaveTestCommandWhenDisabledAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"using System;
+namespace Xunit
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class FactAttribute : Attribute { }
+}
+namespace Test
+{
+    using Xunit;
+    class A
+    {
+        [Fact]
+        public void {|codeLens:M|}()
+        {
+        }
+    }
+}
+";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableTestsCodeLens, LanguageNames.CSharp, false);
             }
         });
         await VerifyTestCodeLensMissingAsync(testLspServer);

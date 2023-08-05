@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TIfStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -40,13 +42,27 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TForeachStatementSyntax : TStatementSyntax
+        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
+            TForeachStatementSyntax,
+            TIfStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
-        protected abstract TStatementSyntax GetNewStatement(
-            SourceText sourceText, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, int wrappingLength, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches);
+        protected abstract TAnalyzer GetAnalyzer();
+
+        protected abstract Task<TStatementSyntax> GetNewStatementAsync(
+            Document document, CodeActionOptionsProvider fallbackOptions, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
 
         protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -90,29 +106,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // the option is currently not an editorconfig option, so not available in code style layer
-            var wrappingLength =
-#if !CODE_STYLE
-                fallbackOptions.GetOptions(document.Project.Services)?.CollectionExpressionWrappingLength ??
-#endif
-                CodeActionOptions.DefaultCollectionExpressionWrappingLength;
+            using var analyzer = GetAnalyzer();
 
             while (originalObjectCreationNodes.Count > 0)
             {
                 var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-                if (matches.IsDefaultOrEmpty)
+                if (matches.IsDefault)
                     continue;
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
+                var newStatement = await GetNewStatementAsync(
+                    document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 

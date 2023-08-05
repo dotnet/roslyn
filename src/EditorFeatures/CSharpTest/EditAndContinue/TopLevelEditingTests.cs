@@ -994,6 +994,57 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Insert_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + keyword + " C { int a; }";
+            var src2 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Update_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + "[System.Runtime.CompilerServices.InlineArray(2)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Update_InlineArray_Reloadable(string keyword)
+        {
+            var attribute = ReloadableAttributeSrc + "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[CreateNewOnMetadataUpdate, InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + "[CreateNewOnMetadataUpdate, InlineArray(2)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
         [Fact]
         public void Type_Attribute_Update_NotSupportedByRuntime1()
         {
@@ -1065,6 +1116,23 @@ class C
             edits.VerifySemanticDiagnostics(
                 new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
                 capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Delete_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -2780,6 +2848,35 @@ class C
         #endregion
 
         #region Records
+
+        [Fact]
+        public void Record_Insert()
+        {
+            var src1 = "";
+            var src2 = "record C;";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [record C;]@0");
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Record_Insert_WithParameters()
+        {
+            var src1 = "";
+            var src2 = "record C(int A);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
 
         [Fact]
         public void Record_Name_Update()
@@ -18088,6 +18185,78 @@ readonly struct S
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P2").GetMethod, preserveLocalVariables: false),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P3").SetMethod, preserveLocalVariables: false)
             });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        public void Property_Rename_ShadowingPrimaryParameter()
+        {
+            var src1 = @"
+class C(int A, int B)
+{
+    public int B { get; init; }
+
+    public int F() => B;
+}
+";
+            var src2 = @"
+class C(int A, int B)
+{
+    public int D { get; init; }
+
+    public int F() => B;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/69317
+            // Update D getter/setter to use deleted B property
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69216")]
+        public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
+        {
+            var src1 = @"
+class C(int A, int B)
+{
+    public int B { get; init; } = B;
+
+    public int F() => B;
+}
+";
+            var src2 = @"
+class C(int A, int B)
+{
+    public int D { get; init; } = B;
+
+    public int F() => B;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/69317
+            // Update D getter/setter to use deleted B property
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                    //SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    //SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    //SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         #endregion
