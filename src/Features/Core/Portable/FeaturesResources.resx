@@ -381,6 +381,9 @@
   <data name="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application" xml:space="preserve">
     <value>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</value>
   </data>
+  <data name="Changing_attribute_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>

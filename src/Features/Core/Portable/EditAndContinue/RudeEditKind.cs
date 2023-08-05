@@ -142,5 +142,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdatingGenericNotSupportedByRuntime = 113,
         CapturingPrimaryConstructorParameter = 114,
         NotCapturingPrimaryConstructorParameter = 115,
+        ChangingAttribute = 116,
     }
 }

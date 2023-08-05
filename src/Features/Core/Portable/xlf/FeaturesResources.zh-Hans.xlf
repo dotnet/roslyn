@@ -435,6 +435,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将字段更改为事件或将事件更改为字段需要重启应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">更改 {0} 的约束需要重启应用程序。</target>
