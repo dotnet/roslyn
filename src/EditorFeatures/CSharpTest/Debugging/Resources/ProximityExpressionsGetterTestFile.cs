@@ -132,7 +132,8 @@ namespace Roslyn.Services.CSharp.Debugging
             // is NOT another dot/arrow.  This allows the expression 'a.b.c.d' to
             // add both 'a.b.c.d' and 'a.b.c', but not 'a.b' and 'a'.
             if ((flags & ExpressionType.ValidTerm) == ExpressionType.ValidTerm &&
-                expression.Parent?.Kind() is not SyntaxKind.MemberAccessExpression and not SyntaxKind.PointerMemberAccessExpression)
+                !expression.IsParentKind(SyntaxKind.MemberAccessExpression) &&
+                !expression.IsParentKind(SyntaxKind.PointerMemberAccessExpression))
             {
                 terms.Add(ConvertToString(memberAccess.Expression));
             }
