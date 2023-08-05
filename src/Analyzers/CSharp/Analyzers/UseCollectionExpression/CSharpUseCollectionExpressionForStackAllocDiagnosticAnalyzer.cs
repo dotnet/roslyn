@@ -153,12 +153,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         CancellationToken cancellationToken)
     {
         // has to either be `stackalloc X[]` or `stackalloc X[const]`.
-        if (expression.Type is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes.Count: <= 1 } rankSpecifier] } arrayType)
+        if (expression.Type is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] } rankSpecifier] } arrayType)
             return default;
 
         using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
 
-        if (!rankSpecifier.Sizes.Any())
+        if (size is OmittedArraySizeExpressionSyntax)
         {
             // `stackalloc int[]` on its own is illegal.  Has to either have a size, or an initializer.
             if (expression.Initializer is null)
@@ -166,10 +166,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         }
         else
         {
-            // Is `stackalloc X[val]`
-            var size = rankSpecifier.Sizes.Single();
-
-            // if `stackalloc X[const]`, then it has to have a constant value for the size
+            // if `stackalloc X[val]`, then it `val` has to be a constant value.
             if (semanticModel.GetConstantValue(size, cancellationToken).Value is not int sizeValue)
                 return default;
 
@@ -237,7 +234,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         }
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: false, cancellationToken))
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }

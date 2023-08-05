@@ -26,6 +26,8 @@ internal static class UseCollectionExpressionHelpers
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
+        var compilation = semanticModel.Compilation;
+
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return false;
@@ -47,8 +49,21 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
+        // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
+        // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
+        // but it's possible we'll end up with different types at runtime that may cause problems.
+        //
+        // Note: we can relax this on a case by case basis if we feel like it's acceptable.
         if (originalTypeInfo.Type != null && !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType))
-            return false;
+        {
+            var isOk =
+                originalTypeInfo.Type.Name == nameof(Span<int>) &&
+                originalTypeInfo.ConvertedType.Name == nameof(ReadOnlySpan<int>) &&
+                originalTypeInfo.Type.OriginalDefinition.Equals(compilation.SpanOfTType()) &&
+                originalTypeInfo.ConvertedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType());
+            if (!isOk)
+                return false;
+        }
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
         // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
@@ -207,7 +222,12 @@ internal static class UseCollectionExpressionHelpers
         CollectionExpressionSyntax newCollectionExpression,
         bool newCollectionIsSingleLine)
     {
-        Contract.ThrowIfFalse(originalInitializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax or BaseObjectCreationExpressionSyntax);
+        Contract.ThrowIfFalse(originalInitializer.Parent
+            is ArrayCreationExpressionSyntax
+            or ImplicitArrayCreationExpressionSyntax
+            or StackAllocArrayCreationExpressionSyntax
+            or ImplicitStackAllocArrayCreationExpressionSyntax
+            or BaseObjectCreationExpressionSyntax);
 
         var initializerParent = originalInitializer.GetRequiredParent();
 
