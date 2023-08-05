@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 {
                     nearbyTrivia = trivia;
                 }
-                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                else if (trivia.Kind() is not SyntaxKind.WhitespaceTrivia and not SyntaxKind.EndOfLineTrivia)
                 {
                     break;
                 }
