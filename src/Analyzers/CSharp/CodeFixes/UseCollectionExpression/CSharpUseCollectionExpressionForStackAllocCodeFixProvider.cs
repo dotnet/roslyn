@@ -109,6 +109,11 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 var collectionExpression = RewriteImplicitArrayCreationExpression(implicitArrayCreation);
                 subEditor.ReplaceNode(implicitArrayCreation, collectionExpression);
             }
+            else if (stackAllocExpression is StackAllocArrayCreationExpressionSyntax explicitArrayCreation)
+            {
+                var collectionExpression = RewriteExplicitArrayCreationExpression(explicitArrayCreation);
+                subEditor.ReplaceNode(explicitArrayCreation, collectionExpression);
+            }
 
             var matches = analyzer.Analyze(
                 semanticDocument.SemanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
@@ -132,6 +137,29 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         }
 
         editor.ReplaceNode(originalRoot, semanticDocument.Root);
+        return;
+
+        static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
+            => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
+
+        CollectionExpressionSyntax RewriteImplicitArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
+        {
+            Contract.ThrowIfNull(implicitArrayCreation.Initializer);
+
+            var isOnSingleLine = IsOnSingleLine(semanticDocument.Text, implicitArrayCreation);
+            var collectionExpression = ConvertInitializerToCollectionExpression(
+                implicitArrayCreation.Initializer, isOnSingleLine);
+
+            var finalCollectionExpression = ReplaceWithCollectionExpression(
+                semanticDocument.Text, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
+
+            return finalCollectionExpression;
+        }
+
+        CollectionExpressionSyntax RewriteExplicitArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
+        {
+
+        }
     }
 
 
@@ -169,9 +197,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         }
 
         return;
-
-        static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
-            => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
         void RewriteArrayCreationExpression(
             StackAllocArrayCreationExpressionSyntax arrayCreation,
@@ -287,22 +312,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
             }
 
             return totalLength > wrappingLength;
-        }
-
-        void RewriteImplicitArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation)
-        {
-            Contract.ThrowIfNull(implicitArrayCreation.Initializer);
-
-            var isOnSingleLine = IsOnSingleLine(sourceText, implicitArrayCreation);
-            var collectionExpression = ConvertInitializerToCollectionExpression(
-                implicitArrayCreation.Initializer, isOnSingleLine);
-
-            var finalCollectionExpression = ReplaceWithCollectionExpression(
-                sourceText, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
-
-            editor.ReplaceNode(
-                implicitArrayCreation,
-                finalCollectionExpression);
         }
     }
 }
