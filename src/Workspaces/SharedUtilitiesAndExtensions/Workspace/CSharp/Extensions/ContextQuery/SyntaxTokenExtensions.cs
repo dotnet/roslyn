@@ -132,13 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                             // There are two exceptions.
                             // try {}
                             // do {}
-                            if (!token.Parent.IsParentKind(SyntaxKind.TryStatement) &&
-                                !token.Parent.IsParentKind(SyntaxKind.DoStatement))
-                            {
+                            if (token.Parent.Parent.Kind() is not SyntaxKind.TryStatement and not SyntaxKind.DoStatement)
                                 return true;
-                            }
                         }
-                        else if (token.Parent?.Parent?.Kind()
+                        else if (token.Parent.Parent?.Kind()
                                 is SyntaxKind.ElseClause
                                 or SyntaxKind.FinallyClause
                                 or SyntaxKind.CatchClause

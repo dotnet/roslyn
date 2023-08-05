@@ -116,11 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             }
 
             nameNode = node as SimpleNameSyntax;
-            if (!nameNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !nameNode.IsParentKind(SyntaxKind.MemberBindingExpression))
-            {
+            if (nameNode?.Parent?.Kind() is not SyntaxKind.SimpleMemberAccessExpression and not SyntaxKind.MemberBindingExpression)
                 return false;
-            }
 
             var memberAccess = nameNode.Parent as MemberAccessExpressionSyntax;
             var memberBinding = nameNode.Parent as MemberBindingExpressionSyntax;
