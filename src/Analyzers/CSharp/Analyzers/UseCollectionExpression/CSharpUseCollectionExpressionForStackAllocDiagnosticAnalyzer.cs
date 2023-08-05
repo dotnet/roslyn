@@ -55,6 +55,14 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!compilation.LanguageVersion().SupportsCollectionExpressions())
             return;
 
+        // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler has no good way to
+        // emit these collection expressions.
+        //
+        // TODO: add this check once the SDK test system supports referencing .Net 8.
+        //
+        // if (!compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
+        //    return;
+
         // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
         // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
         // and eventually report fading diagnostics with location outside this node.
