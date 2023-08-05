@@ -67,9 +67,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         while (stackallocExpressions.Count > 0)
         {
-            var originalStackAllocExpression = stackallocExpressions.Pop();
-
-            var stackAllocExpression = semanticDocument.Root.GetCurrentNodes(originalStackAllocExpression).Single();
+            var stackAllocExpression = semanticDocument.Root.GetCurrentNodes(stackallocExpressions.Pop()).Single();
             if (stackAllocExpression is not StackAllocArrayCreationExpressionSyntax and not ImplicitStackAllocArrayCreationExpressionSyntax)
                 continue;
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,84 +44,188 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
         return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected sealed override async Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var services = document.Project.Solution.Services;
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var originalRoot = editor.OriginalRoot;
 
-        foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
+        var arrayExpressions = new Stack<ExpressionSyntax>();
+        foreach (var diagnostic in diagnostics)
         {
-            var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            if (expression is InitializerExpressionSyntax initializer)
-            {
-                RewriteInitializerExpression(initializer);
-            }
-            else if (expression is ArrayCreationExpressionSyntax arrayCreation)
-            {
-                RewriteArrayCreationExpression(arrayCreation);
-            }
-            else if (expression is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
-            {
-                RewriteImplicitArrayCreationExpression(implicitArrayCreation);
-            }
+            var expression = (ExpressionSyntax)originalRoot.FindNode(
+                diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+            arrayExpressions.Push(expression);
         }
 
+        // We're going to be continually editing this tree.  Track all the nodes we
+        // care about so we can find them across each edit.
+        var semanticDocument = await SemanticDocument.CreateAsync(
+            document.WithSyntaxRoot(originalRoot.TrackNodes(arrayExpressions)),
+            cancellationToken).ConfigureAwait(false);
+
+        while (arrayExpressions.Count > 0)
+        {
+            var arrayCreationExpression = semanticDocument.Root.GetCurrentNodes(arrayExpressions.Pop()).Single();
+            if (arrayCreationExpression
+                    is not ArrayCreationExpressionSyntax
+                    and not ImplicitArrayCreationExpressionSyntax
+                    and not InitializerExpressionSyntax)
+            {
+                continue;
+            }
+
+            var subEditor = new SyntaxEditor(semanticDocument.Root, services);
+
+            if (arrayCreationExpression is InitializerExpressionSyntax initializer)
+            {
+                subEditor.ReplaceNode(
+                    initializer,
+                    ConvertInitializerToCollectionExpression(
+                        initializer,
+                        IsOnSingleLine(semanticDocument.Text, initializer)));
+            }
+            else
+            {
+                var matches = GetMatches(semanticDocument, arrayCreationExpression);
+                if (matches.IsDefault)
+                    continue;
+
+                var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+                    semanticDocument.Document,
+                    fallbackOptions,
+                    arrayCreationExpression,
+                    matches,
+                    static e => e switch
+                    {
+                        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+                        ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.Initializer,
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    },
+                    static (e, i) => e switch
+                    {
+                        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.WithInitializer(i),
+                        ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.WithInitializer(i),
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                subEditor.ReplaceNode(arrayCreationExpression, collectionExpression);
+                foreach (var match in matches)
+                    subEditor.RemoveNode(match.Statement);
+            }
+
+            semanticDocument = await semanticDocument.WithSyntaxRootAsync(
+                subEditor.GetChangedRoot(), cancellationToken).ConfigureAwait(false);
+        }
+
+        editor.ReplaceNode(originalRoot, semanticDocument.Root);
         return;
 
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        void RewriteInitializerExpression(InitializerExpressionSyntax initializer)
+        ImmutableArray<CollectionExpressionMatch> GetMatches(SemanticDocument document, ExpressionSyntax expression)
         {
-            editor.ReplaceNode(
-                initializer,
-                (current, _) => ConvertInitializerToCollectionExpression(
-                    (InitializerExpressionSyntax)current,
-                    IsOnSingleLine(sourceText, initializer)));
-        }
+            switch (expression)
+            {
+                case ImplicitArrayCreationExpressionSyntax:
+                    // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
+                    // from within the initializer.
+                    return ImmutableArray<CollectionExpressionMatch>.Empty;
 
-        void RewriteArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreation)
-        {
-            Contract.ThrowIfNull(arrayCreation.Initializer);
+                case ArrayCreationExpressionSyntax arrayCreation:
+                    // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
+                    // be added to the collection expression.
+                    return CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
+                        document.SemanticModel, arrayCreation, cancellationToken);
 
-            editor.ReplaceNode(
-                arrayCreation,
-                (current, _) =>
-                {
-                    var currentArrayCreation = (ArrayCreationExpressionSyntax)current;
-                    Contract.ThrowIfNull(currentArrayCreation.Initializer);
-
-                    var isOnSingleLine = IsOnSingleLine(sourceText, arrayCreation.Initializer);
-                    var collectionExpression = ConvertInitializerToCollectionExpression(
-                        currentArrayCreation.Initializer, isOnSingleLine);
-
-                    return ReplaceWithCollectionExpression(
-                        sourceText, arrayCreation.Initializer, collectionExpression, isOnSingleLine);
-                });
-        }
-
-        void RewriteImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
-        {
-            Contract.ThrowIfNull(implicitArrayCreation.Initializer);
-
-            editor.ReplaceNode(
-                implicitArrayCreation,
-                (current, _) =>
-                {
-                    var currentArrayCreation = (ImplicitArrayCreationExpressionSyntax)current;
-                    Contract.ThrowIfNull(currentArrayCreation.Initializer);
-
-                    var isOnSingleLine = IsOnSingleLine(sourceText, implicitArrayCreation);
-                    var collectionExpression = ConvertInitializerToCollectionExpression(
-                        currentArrayCreation.Initializer, isOnSingleLine);
-
-                    return ReplaceWithCollectionExpression(
-                        sourceText, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
-                });
+                default:
+                    // We validated this is unreachable in the caller.
+                    throw ExceptionUtilities.Unreachable();
+            }
         }
     }
+
+    //protected override async Task FixAllAsync(
+    //    Document document,
+    //    ImmutableArray<Diagnostic> diagnostics,
+    //    SyntaxEditor editor,
+    //    CodeActionOptionsProvider fallbackOptions,
+    //    CancellationToken cancellationToken)
+    //{
+    //    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+    //    foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
+    //    {
+    //        var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+    //        if (expression is InitializerExpressionSyntax initializer)
+    //        {
+    //            RewriteInitializerExpression(initializer);
+    //        }
+    //        else if (expression is ArrayCreationExpressionSyntax arrayCreation)
+    //        {
+    //            RewriteArrayCreationExpression(arrayCreation);
+    //        }
+    //        else if (expression is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+    //        {
+    //            RewriteImplicitArrayCreationExpression(implicitArrayCreation);
+    //        }
+    //    }
+
+    //    return;
+    //    void RewriteInitializerExpression(InitializerExpressionSyntax initializer)
+    //    {
+    //        editor.ReplaceNode(
+    //            initializer,
+    //            (current, _) => ConvertInitializerToCollectionExpression(
+    //                (InitializerExpressionSyntax)current,
+    //                IsOnSingleLine(sourceText, initializer)));
+    //    }
+
+    //    void RewriteArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreation)
+    //    {
+    //        Contract.ThrowIfNull(arrayCreation.Initializer);
+
+    //        editor.ReplaceNode(
+    //            arrayCreation,
+    //            (current, _) =>
+    //            {
+    //                var currentArrayCreation = (ArrayCreationExpressionSyntax)current;
+    //                Contract.ThrowIfNull(currentArrayCreation.Initializer);
+
+    //                var isOnSingleLine = IsOnSingleLine(sourceText, arrayCreation.Initializer);
+    //                var collectionExpression = ConvertInitializerToCollectionExpression(
+    //                    currentArrayCreation.Initializer, isOnSingleLine);
+
+    //                return ReplaceWithCollectionExpression(
+    //                    sourceText, arrayCreation.Initializer, collectionExpression, isOnSingleLine);
+    //            });
+    //    }
+
+    //    void RewriteImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+    //    {
+    //        Contract.ThrowIfNull(implicitArrayCreation.Initializer);
+
+    //        editor.ReplaceNode(
+    //            implicitArrayCreation,
+    //            (current, _) =>
+    //            {
+    //                var currentArrayCreation = (ImplicitArrayCreationExpressionSyntax)current;
+    //                Contract.ThrowIfNull(currentArrayCreation.Initializer);
+
+    //                var isOnSingleLine = IsOnSingleLine(sourceText, implicitArrayCreation);
+    //                var collectionExpression = ConvertInitializerToCollectionExpression(
+    //                    currentArrayCreation.Initializer, isOnSingleLine);
+
+    //                return ReplaceWithCollectionExpression(
+    //                    sourceText, implicitArrayCreation.Initializer, collectionExpression, isOnSingleLine);
+    //            });
+    //    }
+    //}
 }
