@@ -879,6 +879,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0290", "csharp_style_prefer_primary_constructors", "true"),
                 ("IDE0300", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE0301", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0302", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),
