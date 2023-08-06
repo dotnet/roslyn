@@ -3852,6 +3852,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
+                    if (conversion.ConversionKind == ConversionKind.CollectionExpression)
+                    {
+                        return HasLocalScope((BoundCollectionExpression)conversion.Operand)
+                            ? scopeOfTheContainingExpression
+                            : CallingMethodScope;
+                    }
+
                     if (conversion.Conversion.IsInlineArray)
                     {
                         ImmutableArray<BoundExpression> arguments;
@@ -3959,11 +3966,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
-                case BoundKind.CollectionExpression:
-                    return HasLocalScope((BoundCollectionExpression)expr)
-                        ? scopeOfTheContainingExpression
-                        : CallingMethodScope;
-
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
@@ -3973,12 +3975,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool HasLocalScope(BoundCollectionExpression expr)
+#nullable enable
+        private bool HasLocalScope(BoundCollectionExpression expr)
         {
-            // A non-empty collection expression with span type may be stored on
-            // the stack, so the expression is assumed to have local scope.
-            return expr.Type?.IsRefLikeType == true && expr.Elements.Length > 0;
+            // A non-empty collection expression with span type may be stored
+            // on the stack. In those cases the expression may have local scope.
+            if (expr.Type?.IsRefLikeType == true && expr.Elements.Length > 0)
+            {
+                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out _);
+                switch (collectionTypeKind)
+                {
+                    case CollectionExpressionTypeKind.ReadOnlySpan:
+                    case CollectionExpressionTypeKind.Span:
+                        return true;
+                    case CollectionExpressionTypeKind.CollectionBuilder:
+                        // For a ref struct type with a builder method, the scope of the collection
+                        // expression is the scope of an invocation of the builder method with the
+                        // collection expression as the span argument.
+                        var constructMethod = expr.CollectionBuilderMethod;
+                        return constructMethod is null ||
+                            (constructMethod is { ReturnType.IsRefLikeType: true, Parameters: not [{ RefKind: RefKind.None, EffectiveScope: ScopedKind.ScopedValue }] });
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
+                }
+            }
+            return false;
         }
+#nullable disable
 
         private uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
         {
@@ -4383,6 +4406,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return CheckInterpolatedStringHandlerConversionEscape(conversion.Operand, escapeFrom, escapeTo, diagnostics);
                     }
 
+                    if (conversion.ConversionKind == ConversionKind.CollectionExpression)
+                    {
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && escapeTo < _localScopeDepth)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
+                            return false;
+                        }
+                        return true;
+                    }
+
                     if (conversion.Conversion.IsInlineArray)
                     {
                         ImmutableArray<BoundExpression> arguments;
@@ -4495,14 +4528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                     }
 
-                    return true;
-
-                case BoundKind.CollectionExpression:
-                    if (HasLocalScope((BoundCollectionExpression)expr) && escapeTo < _localScopeDepth)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
-                        return false;
-                    }
                     return true;
 
                 default:

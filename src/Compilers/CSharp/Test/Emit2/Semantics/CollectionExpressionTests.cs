@@ -9905,6 +9905,139 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [Theory]
+        public void RefSafety_RefStruct(
+            [CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework,
+            bool useScoped)
+        {
+            string sourceA = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public ref struct MyCollection<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>({{(useScoped ? "scoped" : "")}} ReadOnlySpan<T> items)
+                        => new MyCollection<T>(new List<T>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: targetFramework);
+            comp.VerifyEmitDiagnostics();
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = Empty<object>();
+                        MyCollection<object> y = ThreeItems<object>(1, 2, 3);
+                        Report(x);
+                        Report(y);
+                    }
+                    static MyCollection<T> Empty<T>() => [];
+                    static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
+                    static void Report<T>(MyCollection<T> c)
+                    {
+                        var list = new List<T>();
+                        foreach (var i in c) list.Add(i);
+                        list.Report();
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: targetFramework, options: TestOptions.ReleaseExe);
+            if (!useScoped)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(12,60): error CS9202: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                    //     static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y, z]").WithArguments("MyCollection<T>").WithLocation(12, 60));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
+                verifier.VerifyIL("Program.Empty<T>", """
+                    {
+                      // Code size       17 (0x11)
+                      .maxstack  1
+                      IL_0000:  ldc.i4.0
+                      IL_0001:  newarr     "T"
+                      IL_0006:  newobj     "System.ReadOnlySpan<T>..ctor(T[])"
+                      IL_000b:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
+                      IL_0010:  ret
+                    }
+                    """);
+                if (targetFramework == TargetFramework.Net80)
+                {
+                    verifier.VerifyIL("Program.ThreeItems<T>", """
+                        {
+                          // Code size       64 (0x40)
+                          .maxstack  2
+                          .locals init (<>y__InlineArray3<T> V_0)
+                          IL_0000:  ldloca.s   V_0
+                          IL_0002:  initobj    "<>y__InlineArray3<T>"
+                          IL_0008:  ldloca.s   V_0
+                          IL_000a:  ldc.i4.0
+                          IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_0010:  ldarg.0
+                          IL_0011:  stobj      "T"
+                          IL_0016:  ldloca.s   V_0
+                          IL_0018:  ldc.i4.1
+                          IL_0019:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_001e:  ldarg.1
+                          IL_001f:  stobj      "T"
+                          IL_0024:  ldloca.s   V_0
+                          IL_0026:  ldc.i4.2
+                          IL_0027:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_002c:  ldarg.2
+                          IL_002d:  stobj      "T"
+                          IL_0032:  ldloca.s   V_0
+                          IL_0034:  ldc.i4.3
+                          IL_0035:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<T>, T>(in <>y__InlineArray3<T>, int)"
+                          IL_003a:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
+                          IL_003f:  ret
+                        }
+                        """);
+                }
+                else
+                {
+                    verifier.VerifyIL("Program.ThreeItems<T>", """
+                        {
+                          // Code size       41 (0x29)
+                          .maxstack  4
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newarr     "T"
+                          IL_0006:  dup
+                          IL_0007:  ldc.i4.0
+                          IL_0008:  ldarg.0
+                          IL_0009:  stelem     "T"
+                          IL_000e:  dup
+                          IL_000f:  ldc.i4.1
+                          IL_0010:  ldarg.1
+                          IL_0011:  stelem     "T"
+                          IL_0016:  dup
+                          IL_0017:  ldc.i4.2
+                          IL_0018:  ldarg.2
+                          IL_0019:  stelem     "T"
+                          IL_001e:  newobj     "System.ReadOnlySpan<T>..ctor(T[])"
+                          IL_0023:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
+                          IL_0028:  ret
+                        }
+                        """);
+                }
+            }
+        }
+
+        [CombinatorialData]
+        [Theory]
         public void SpanArgument_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
         {
             string source = """
