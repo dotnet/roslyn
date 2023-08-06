@@ -652,8 +652,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _additionalLocals.Free();
                 _additionalLocals = previousLocals;
             }
-
-
         }
 
         public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
