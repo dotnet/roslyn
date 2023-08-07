@@ -74,14 +74,9 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        var result = await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
-        if (!result)
-        {
-            var message = string.Format(LanguageServerResources.There_were_problems_loading_solution_0_See_log_for_details, Path.GetFileName(solutionFilePath));
-            await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, message, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
-        }
 
-        await OpenSolutionCoreAsync(solutionFilePath);
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
+            await OpenSolutionCoreAsync(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
@@ -102,6 +97,28 @@ internal sealed class LanguageServerProjectSystem
 
                 _projectsToLoadAndReload.AddWork(project.AbsolutePath);
             }
+
+            // Wait for the in progress batch to complete and send a project initialized notification to the client.
+            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        }
+    }
+
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    {
+        if (!projectFilePaths.Any())
+            return;
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
+            await OpenProjectsCoreAsync(projectFilePaths);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            _projectsToLoadAndReload.AddWork(projectFilePaths);
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
@@ -134,6 +151,8 @@ internal sealed class LanguageServerProjectSystem
                 else
                 {
                     _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, LanguageServerResources.There_were_problems_loading_your_projects_See_log_for_details, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
+
                     return false;
                 }
             }
