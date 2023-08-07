@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                    || isNullConditionalInvocationExpression
                    || expressionNode is AssignmentExpressionSyntax
                    || expressionNode.Kind()
-                        is SyntaxKind.ObjectCreationExpression
+                        is SyntaxKind.InvocationExpression
+                        or SyntaxKind.ObjectCreationExpression
                         or SyntaxKind.PreIncrementExpression
                         or SyntaxKind.PreDecrementExpression
                         or SyntaxKind.PostIncrementExpression
