@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""CSharp11"",
+          ""languageVersion"": ""CSharp12"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": []
         }}
