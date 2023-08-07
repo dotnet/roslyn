@@ -183,13 +183,10 @@
   <data name="Test_run_error" xml:space="preserve">
     <value>Test run error: {0}</value>
   </data>
-  <data name="There_were_errors_loading_project_0_See_log_for_details" xml:space="preserve">
-    <value>There were errors loading project {0}. See log for details.</value>
+  <data name="There_were_problems_loading_project_0_See_log_for_details" xml:space="preserve">
+    <value>There were problems loading project {0}. See log for details.</value>
   </data>
-  <data name="There_were_errors_loading_solution_0_See_log_for_details" xml:space="preserve">
-    <value>There were errors loading solutution {0}. See log for details.</value>
-  </data>
-  <data name="There_were_warnings_loading_project_0_See_log_for_details" xml:space="preserve">
-    <value>There were warnings loading project {0}. See log for details.</value>
+  <data name="There_were_problems_loading_solution_0_See_log_for_details" xml:space="preserve">
+    <value>There were errors loading solution {0}. See log for details.</value>
   </data>
 </root>

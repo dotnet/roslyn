@@ -7,19 +7,16 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -80,7 +77,7 @@ internal sealed class LanguageServerProjectSystem
         var result = await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
         if (!result)
         {
-            var message = string.Format(LanguageServerResources.There_were_errors_loading_solution_0_See_log_for_details, Path.GetFileName(solutionFilePath));
+            var message = string.Format(LanguageServerResources.There_were_problems_loading_solution_0_See_log_for_details, Path.GetFileName(solutionFilePath));
             await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, message, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
         }
 
@@ -222,18 +219,9 @@ internal sealed class LanguageServerProjectSystem
                             _ => throw ExceptionUtilities.UnexpectedValue(logItem.Kind)
                         };
 
-                        if (messageType is LSP.MessageType.Error)
-                        {
-                            _logger.LogError($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
-                            var message = string.Format(LanguageServerResources.There_were_errors_loading_project_0_See_log_for_details, projectName);
-                            await ShowToastNotification.ShowToastNotificationAsync(messageType, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
-                            var message = string.Format(LanguageServerResources.There_were_warnings_loading_project_0_See_log_for_details, projectName);
-                            await ShowToastNotification.ShowToastNotificationAsync(messageType, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
-                        }
+                        _logger.Log(messageType is LSP.MessageType.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, projectName);
+                        await ShowToastNotification.ShowToastNotificationAsync(messageType, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
                     }
                 }
                 else
@@ -245,7 +233,7 @@ internal sealed class LanguageServerProjectSystem
         catch (Exception e)
         {
             _logger.LogError(e, $"Exception thrown while loading {projectPath}");
-            var message = string.Format(LanguageServerResources.There_were_errors_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
+            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
             await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
         }
     }

@@ -112,19 +112,14 @@
         <target state="new">Test run error: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="There_were_errors_loading_project_0_See_log_for_details">
-        <source>There were errors loading project {0}. See log for details.</source>
-        <target state="new">There were errors loading project {0}. See log for details.</target>
+      <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
+        <source>There were problems loading project {0}. See log for details.</source>
+        <target state="new">There were problems loading project {0}. See log for details.</target>
         <note />
       </trans-unit>
-      <trans-unit id="There_were_errors_loading_solution_0_See_log_for_details">
-        <source>There were errors loading solutution {0}. See log for details.</source>
-        <target state="new">There were errors loading solutution {0}. See log for details.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="There_were_warnings_loading_project_0_See_log_for_details">
-        <source>There were warnings loading project {0}. See log for details.</source>
-        <target state="new">There were warnings loading project {0}. See log for details.</target>
+      <trans-unit id="There_were_problems_loading_solution_0_See_log_for_details">
+        <source>There were errors loading solution {0}. See log for details.</source>
+        <target state="new">There were errors loading solution {0}. See log for details.</target>
         <note />
       </trans-unit>
     </body>

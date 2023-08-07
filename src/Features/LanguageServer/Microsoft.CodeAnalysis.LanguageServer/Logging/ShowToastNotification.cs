@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// That can be useful in certain cases, but a lot of the time we just want to show a toast with buttons that map to client side commands.
 /// This request allows us to do just that.
 /// </summary>
-internal class ShowToastNotification
+internal static class ShowToastNotification
 {
-    private const string ShowToastNotificationName = "window/showToast";
+    private const string ShowToastNotificationName = "window/_roslyn_showToast";
 
     public static readonly LSP.Command ShowCSharpLogsCommand = new()
     {
