@@ -207,7 +207,14 @@ internal sealed class LanguageServerProjectSystem
                 {
                     foreach (var logItem in loadedFile.Log)
                     {
-                        _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        if (logItem.Kind is WorkspaceDiagnosticKind.Failure)
+                        {
+                            _logger.LogError($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        }
                     }
                 }
                 else
