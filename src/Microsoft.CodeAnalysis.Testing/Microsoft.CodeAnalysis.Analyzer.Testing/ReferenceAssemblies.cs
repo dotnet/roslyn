@@ -1019,6 +1019,29 @@ namespace Microsoft.CodeAnalysis.Testing
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.tvOS.Ref", "16.0.1478"))));
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net8.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net8.0' target framework
+                        throw new NotSupportedException("The 'net8.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net8.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "8.0.0-preview.6.23329.7"),
+                        Path.Combine("ref", "net8.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "8.0.0-preview.6.23329.4"))));
+
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
             public static ReferenceAssemblies Net60 => _lazyNet60.Value;
@@ -1048,6 +1071,10 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net70MacCatalyst => _lazyNet70MacCatalyst.Value;
 
             public static ReferenceAssemblies Net70TvOS => _lazyNet70TvOS.Value;
+
+            public static ReferenceAssemblies Net80 => _lazyNet80.Value;
+
+            public static ReferenceAssemblies Net80Windows => _lazyNet80Windows.Value;
         }
 
         public static class NetStandard
