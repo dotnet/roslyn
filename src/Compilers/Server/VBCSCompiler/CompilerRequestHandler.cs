@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; } = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory: Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; } = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory: GetPerUserBaseDirectory());
 
         public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
 
@@ -162,6 +162,20 @@ Output:
                 Logger.LogException(ex, $"Running compilation for {request.RequestId}");
                 throw;
             }
+        }
+
+        private static string GetPerUserBaseDirectory()
+        {
+            string VBCSCompiler = "VBCSCompiler";
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // On Windows Path.GetTempPath() already returns a per-user path,
+                // but on Unix it's often just /tmp, so append the user name.
+                VBCSCompiler += "-" + Environment.UserName;
+            }
+
+            return Path.Combine(Path.GetTempPath(), VBCSCompiler, "AnalyzerAssemblyLoader");
         }
     }
 }
