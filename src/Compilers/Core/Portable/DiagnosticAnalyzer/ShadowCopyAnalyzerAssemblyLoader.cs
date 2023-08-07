@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (DirectoryNotFoundException)
             {
-               return;
+                return;
             }
 
             foreach (var subDirectory in subDirectories)
