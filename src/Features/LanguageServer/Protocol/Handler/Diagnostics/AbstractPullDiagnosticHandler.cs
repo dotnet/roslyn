@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Location = new LSP.Location
                     {
                         Range = GetRange(l),
-                        Uri = ProtocolConversions.GetUriFromFilePath(l.UnmappedFileSpan.Path)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
                     },
                     Message = diagnostic.Message
                 }).ToArray();
