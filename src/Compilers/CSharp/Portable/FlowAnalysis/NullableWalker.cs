@@ -10811,10 +10811,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Proper handling of this is additional work which only benefits a very uncommon scenario,
                 // so we will just use the originally bound GetResult method in this case.
                 var getResult = awaitableInfo.GetResult;
-                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
-                    ? getResult.OriginalDefinition.AsMember(taskAwaiterType)
-                    : getResult;
 
+                MethodSymbol? reinferredGetResult;
+                if (_visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType)
+                {
+                    // TODO2 crash here
+                    reinferredGetResult = getResult.OriginalDefinition.AsMember(taskAwaiterType);
+                }
+                else
+                {
+                    reinferredGetResult = getResult;
+                }
                 SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
             }
 

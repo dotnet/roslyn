@@ -2921,4 +2921,34 @@ static async ValueTask<int> m()
 }
 """);
     }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void PROTOTYPE()
+    {
+        // PROTOTYPE: crashes in NullableWalker
+        var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public static class C
+{
+    public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, ValueTask<TResult>> selector)
+    {
+        var builder = ArrayBuilder<TResult>.GetInstance();
+
+        foreach (var item in source)
+        {
+            builder.Add(await selector(item).ConfigureAwait(false)); // TODO2
+        }
+
+        return builder.ToImmutableAndFree();
+    }
+}
+""";
+
+        var comp = CreateCompilation(new[] { source, ExtensionsSource }, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics();
+    }
 }
