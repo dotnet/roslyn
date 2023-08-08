@@ -492,14 +492,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
                 Debug.Assert(NullableAnnotation == NullableAnnotation.NotAnnotated);
-                Debug.Assert(newTypeWithModifiers.NullableAnnotation is NullableAnnotation.NotAnnotated or NullableAnnotation.Oblivious);
                 if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Oblivious)
                 {
                     // When the type parameter disallows a nullable reference type as a type argument (i.e. IsNotNullable),
                     // we want to drop any Oblivious annotation from the substituted type and use NotAnnotated instead,
                     // to reflect the "stronger" claim being made by the type parameter.
                     var typeParameter = (TypeParameterSymbol)typeSymbol;
-                    if (typeParameter.CalculateIsNotNullableFromNonTypeConstraints() is null or false)
+                    if (typeParameter.CalculateIsNotNullableFromNonTypeConstraints() == true)
+                    {
+                        newAnnotation = NullableAnnotation.NotAnnotated;
+                    }
+                    else
                     {
                         // We won't know the substituted type's nullable annotation
                         // until we bind type constraints on the type parameter.
@@ -508,10 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CreateLazySubstitutedType(newTypeWithModifiers.DefaultType, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers), typeParameter);
                     }
                 }
-
-                // Either the type parameter was "not nullable from non type constraints"
-                // or the type argument was also NotAnnotated.
-                newAnnotation = NullableAnnotation.NotAnnotated;
+                else
+                {
+                    Debug.Assert(newTypeWithModifiers.NullableAnnotation is NullableAnnotation.NotAnnotated);
+                    newAnnotation = NullableAnnotation.NotAnnotated;
+                }
             }
             else if (newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Oblivious)
             {
@@ -985,7 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        Debug.Assert(_typeParameter.IsNotNullable is null);
+                        // This lazy type is only used when an Oblivious type argument is passed for a NotAnnotated type parameter.
+                        // So, the only possible annotations are NotAnnotated or Oblivious.
                         return NullableAnnotation.Oblivious;
                     }
                 }
