@@ -19,14 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             _functionId = functionId;
         }
 
-        public void Log(LogMessage logMessage)
+        public void Log(KeyValueLogMessage logMessage)
         {
             _telemetryLogger.Log(_functionId, logMessage);
         }
 
-        public IDisposable? LogBlockTime(string name, int minThresholdMs)
+        public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
         {
-            return new TimedTelemetryLogBlock(name, minThresholdMs, telemetryLog: this);
+            return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
         }
     }
 }
