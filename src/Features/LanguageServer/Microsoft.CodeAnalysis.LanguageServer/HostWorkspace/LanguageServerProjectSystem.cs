@@ -10,17 +10,15 @@ using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -76,8 +74,9 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
-        await OpenSolutionCoreAsync(solutionFilePath);
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
+            await OpenSolutionCoreAsync(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
@@ -98,6 +97,28 @@ internal sealed class LanguageServerProjectSystem
 
                 _projectsToLoadAndReload.AddWork(project.AbsolutePath);
             }
+
+            // Wait for the in progress batch to complete and send a project initialized notification to the client.
+            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        }
+    }
+
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    {
+        if (!projectFilePaths.Any())
+            return;
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
+            await OpenProjectsCoreAsync(projectFilePaths);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            _projectsToLoadAndReload.AddWork(projectFilePaths);
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
@@ -130,6 +151,8 @@ internal sealed class LanguageServerProjectSystem
                 else
                 {
                     _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, LanguageServerResources.There_were_problems_loading_your_projects_See_log_for_details, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
+
                     return false;
                 }
             }
@@ -207,7 +230,17 @@ internal sealed class LanguageServerProjectSystem
                 {
                     foreach (var logItem in loadedFile.Log)
                     {
-                        _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        var projectName = Path.GetFileName(projectPath);
+                        var messageType = logItem.Kind switch
+                        {
+                            WorkspaceDiagnosticKind.Failure => LSP.MessageType.Error,
+                            WorkspaceDiagnosticKind.Warning => LSP.MessageType.Warning,
+                            _ => throw ExceptionUtilities.UnexpectedValue(logItem.Kind)
+                        };
+
+                        _logger.Log(messageType is LSP.MessageType.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, projectName);
+                        await ShowToastNotification.ShowToastNotificationAsync(messageType, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
                     }
                 }
                 else
@@ -219,6 +252,8 @@ internal sealed class LanguageServerProjectSystem
         catch (Exception e)
         {
             _logger.LogError(e, $"Exception thrown while loading {projectPath}");
+            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
+            await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
         }
     }
 }

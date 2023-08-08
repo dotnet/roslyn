@@ -268,13 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
             // make the ++/-- now associate with the previous part of the cast expression.
-            if (parentExpression.IsKind(SyntaxKind.CastExpression))
+            if (parentExpression.IsKind(SyntaxKind.CastExpression) &&
+                expression.Kind() is SyntaxKind.PreIncrementExpression or SyntaxKind.PreDecrementExpression)
             {
-                if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
-                    expression.IsKind(SyntaxKind.PreDecrementExpression))
-                {
-                    return false;
-                }
+                return false;
             }
 
             // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
@@ -359,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                         else if (nodeOrToken.IsToken)
                         {
-                            if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                            if (nodeOrToken.Kind() is SyntaxKind.ColonToken or SyntaxKind.ColonColonToken)
                             {
                                 return true;
                             }

@@ -442,7 +442,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -484,7 +484,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -508,7 +508,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -534,7 +534,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }

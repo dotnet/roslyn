@@ -3200,9 +3200,9 @@ record class Point(int x, int y);
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
-                // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,19): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 19),
                 // (2,24): warning CS9113: Parameter 'x' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),

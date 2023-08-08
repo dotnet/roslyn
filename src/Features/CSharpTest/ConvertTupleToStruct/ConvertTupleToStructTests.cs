@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                     }
                 }
                 """;
-            await TestAsync(text, expected, languageVersion: LanguageVersionExtensions.CSharpNext, options: PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData]
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                     }
                 }
                 """;
-            await TestAsync(text, expected, languageVersion: LanguageVersionExtensions.CSharpNext, options: PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData]
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                     }
                 }
                 """;
-            await TestAsync(text, expected, languageVersion: LanguageVersionExtensions.CSharpNext, options: PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]

@@ -140,18 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp11)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,22): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,22): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         object[] x = [];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(6, 22),
-                    // (7,26): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(6, 22),
+                    // (7,26): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object> y = [1, 2, 3];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(7, 26),
-                    // (8,28): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(7, 26),
+                    // (8,28): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object[]> z = [[]];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(8, 28),
-                    // (8,29): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(8, 28),
+                    // (8,29): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object[]> z = [[]];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(8, 29));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(8, 29));
             }
             else
             {

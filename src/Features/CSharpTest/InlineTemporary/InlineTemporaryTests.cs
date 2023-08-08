@@ -4290,7 +4290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Theory]
         [InlineData(LanguageVersion.CSharp6)]
-        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp12)]
         public async Task Tuples(LanguageVersion version)
         {
             var code = """
