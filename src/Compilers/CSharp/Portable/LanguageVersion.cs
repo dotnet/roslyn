@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Inline arrays</description></item>
         /// <item><description>Collection expressions</description></item>
         /// <item><description>Ref readonly parameters</description></item>
+        /// <item><description>Lambda optional parameters</description></item>
         /// </list>
         /// </summary>
         CSharp12 = 1200,
