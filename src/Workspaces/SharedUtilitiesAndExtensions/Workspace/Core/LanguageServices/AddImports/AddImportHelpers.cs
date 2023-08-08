@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 for (var i = 0; i < newImports.Count; i++)
                 {
                     var trailingTrivia = newImports[i].GetTrailingTrivia();
-                    if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default : trailingTrivia[^1]))
+                    if (!trailingTrivia.Any() || !syntaxFacts.IsEndOfLineTrivia(trailingTrivia[^1]))
                     {
                         newImports[i] = newImports[i].WithAppendedTrailingTrivia(endOfLine);
                     }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var originalLastUsingCurrentIndex = newImports.IndexOf(originalLastUsing);
 
                 var originalFirstUsingTrailingTrivia = originalFirstUsing.GetTrailingTrivia();
-                var originalFirstUsingLineEnding = originalFirstUsingTrailingTrivia.Count > 0 && syntaxFacts.IsEndOfLineTrivia(originalFirstUsingTrailingTrivia[^1])
+                var originalFirstUsingLineEnding = originalFirstUsingTrailingTrivia.Any() && syntaxFacts.IsEndOfLineTrivia(originalFirstUsingTrailingTrivia[^1])
                     ? originalFirstUsingTrailingTrivia[^1]
                     : syntaxFacts.ElasticCarriageReturnLineFeed;
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 for (var i = 0; i < newImports.Count; i++)
                 {
                     var trailingTrivia = newImports[i].GetTrailingTrivia();
-                    if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default : trailingTrivia[^1]))
+                    if (!trailingTrivia.Any() || !syntaxFacts.IsEndOfLineTrivia(trailingTrivia[^1]))
                     {
                         newImports[i] = newImports[i].WithAppendedTrailingTrivia(originalFirstUsingLineEnding);
                     }
