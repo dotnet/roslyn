@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,10 +12,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -99,21 +97,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 originalObjectCreationNodes.Push((objectCreation, diagnostic.Properties?.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true));
             }
 
+            var solutionServices = document.Project.Solution.Services;
+
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes.Select(static t => t.objectCreationExpression)));
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticDocument = await SemanticDocument.CreateAsync(
+                document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes.Select(static t => t.objectCreationExpression))),
+                cancellationToken).ConfigureAwait(false);
 
             using var analyzer = GetAnalyzer();
 
             while (originalObjectCreationNodes.Count > 0)
             {
                 var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
+                var currentRoot = semanticDocument.Root;
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
+                var matches = analyzer.Analyze(
+                    semanticDocument.SemanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
                 if (matches.IsDefault)
                     continue;
@@ -122,21 +123,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 Contract.ThrowIfNull(statement);
 
                 var newStatement = await GetNewStatementAsync(
-                    document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+                    semanticDocument.Document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
 
-                var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
+                var subEditor = new SyntaxEditor(currentRoot, solutionServices);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
                     subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                semanticDocument = await semanticDocument.WithSyntaxRootAsync(
+                    subEditor.GetChangedRoot(), cancellationToken).ConfigureAwait(false);
             }
 
-            editor.ReplaceNode(originalRoot, currentRoot);
+            editor.ReplaceNode(originalRoot, semanticDocument.Root);
         }
     }
 }

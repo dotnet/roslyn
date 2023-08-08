@@ -14,6 +14,7 @@ IDE0280 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0290 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0290> | Use primary constructor |
 IDE0300 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0300> | Simplify collection initialization |
 IDE0301 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0301> | Simplify collection initialization |
+IDE0302 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0302> | Simplify collection initialization |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |
