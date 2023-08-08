@@ -1292,6 +1292,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var comp1v1 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
         comp1v1.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v1, "Assembly1");
         var comp1v1Ref = comp1v1.EmitToImageReference();
 
         // Consumer can use the API.
@@ -1306,6 +1307,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp2 = CreateCompilation(source2, new[] { comp1v1Ref }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        verifyModoptFromAssembly(comp2, "Assembly1");
         var comp2Ref = comp2.EmitToImageReference();
 
         var source3 = """
@@ -1318,7 +1320,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 System.Console.Write(e.Message.Contains("Void C.M(Void (Int32 ByRef))"));
             }
             """;
-        CompileAndVerify(source3, new[] { comp1v1Ref, comp2Ref }, expectedOutput: "F123").VerifyDiagnostics();
+        var verifier3v1 = CompileAndVerify(source3, new[] { comp1v1Ref, comp2Ref }, expectedOutput: "F123").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v1.Compilation, "Assembly1");
 
         // .NET runtime declares the attribute.
         var source4 = """
@@ -1330,16 +1333,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        var comp4 = CreateCompilation(source4).VerifyDiagnostics();
+        var comp4 = CreateCompilation(source4, assemblyName: "Assembly4").VerifyDiagnostics();
         var comp4Ref = comp4.EmitToImageReference();
 
         // Library is recompiled against the newest runtime.
         var comp1v2 = CreateCompilation(source1, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
         comp1v2.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v2, "Assembly4");
         var comp1v2Ref = comp1v2.EmitToImageReference();
 
         // That breaks the consumer.
-        CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+        var verifier3v2 = CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v1.Compilation, "Assembly1");
 
         // Unless the library adds type forwarding.
         var source5 = """
@@ -1348,14 +1353,26 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var comp1v3 = CreateCompilation(new[] { source1, source5 }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
         comp1v3.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v3, "Assembly4");
         var comp1v3Ref = comp1v3.EmitToImageReference();
         CompileAndVerify(source3, new[] { comp1v3Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
 
         // Or keeps the manual attribute definition.
         var comp1v4 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
         comp1v4.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v4, "Assembly1");
         var comp1v4Ref = comp1v4.EmitToImageReference();
         CompileAndVerify(source3, new[] { comp1v4Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        static void verifyModoptFromAssembly(Compilation comp, string assemblyName)
+        {
+            var f = ((CSharpCompilation)comp).GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var p = ((FunctionPointerTypeSymbol)f.Type).Signature.Parameters.Single();
+            var mod = p.RefCustomModifiers.Single();
+            Assert.True(mod.IsOptional);
+            Assert.Equal(RequiresLocationAttributeQualifiedName, mod.Modifier.ToTestDisplayString());
+            Assert.Equal(assemblyName, mod.Modifier.ContainingAssembly.Name);
+        }
     }
 
     [Fact]
