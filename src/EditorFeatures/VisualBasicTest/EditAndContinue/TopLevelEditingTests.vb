@@ -5518,32 +5518,33 @@ End Interface
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_WithStaticLocal()
+        Public Sub MethodUpdate_StaticLocal()
             Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
             Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", GetResource("method")))
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_AddingStaticLocal()
+        Public Sub MethodUpdate_StaticLocal_Insert()
             Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
             Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", GetResource("method")))
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_DeletingStaticLocal()
+        Public Sub MethodUpdate_StaticLocal_Delete()
             Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
             Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", GetResource("method")))
         End Sub
 
         <Fact>
