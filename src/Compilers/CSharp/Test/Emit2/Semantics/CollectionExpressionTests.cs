@@ -9907,7 +9907,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         public void RefSafety_RefStruct(
             [CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework,
-            bool useScoped)
+            bool useScoped,
+            bool useUnsafe)
         {
             string sourceA = $$"""
                 using System;
@@ -9930,9 +9931,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
             var refA = comp.EmitToImageReference();
 
-            string sourceB = """
+            string sourceB = $$"""
                 using System.Collections.Generic;
-                class Program
+                {{(useUnsafe ? "unsafe" : "")}} class Program
                 {
                     static void Main()
                     {
@@ -9951,7 +9952,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: targetFramework, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(
+                new[] { sourceB, s_collectionExtensions },
+                references: new[] { refA },
+                targetFramework: targetFramework,
+                options: useUnsafe ? TestOptions.UnsafeReleaseExe : TestOptions.ReleaseExe);
             if (!useScoped)
             {
                 comp.VerifyEmitDiagnostics(
@@ -10034,6 +10039,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         """);
                 }
             }
+        }
+
+        // As above, but with C#10 ref safety rules.
+        [Theory]
+        [CombinatorialData]
+        public void RefSafety_RefStruct_CSharp10Rules(bool useCompilationReference)
+        {
+            string sourceA = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public ref struct MyCollection<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                        => new MyCollection<T>(new List<T>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics();
+            Assert.False(comp.SourceModule.UseUpdatedEscapeRules);
+
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = Empty<object>();
+                        MyCollection<object> y = ThreeItems<object>(1, 2, 3);
+                        Report(x);
+                        Report(y);
+                    }
+                    static MyCollection<T> Empty<T>() => [];
+                    static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
+                    static void Report<T>(MyCollection<T> c)
+                    {
+                        var list = new List<T>();
+                        foreach (var i in c) list.Add(i);
+                        list.Report();
+                    }
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(12,60): error CS9203: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y, z]").WithArguments("MyCollection<T>").WithLocation(12, 60));
         }
 
         [CombinatorialData]
@@ -10644,6 +10705,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void SpanArgument_Nested()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F1([F1([1]) + 2]);
+                        F2([F2([2]) + 2]);
+                    }
+                    static T F1<T>(Span<T> s) { s.Report(); return s[0]; }
+                    static T F2<T>(ReadOnlySpan<T> s) { s.Report(); return s[0]; }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1], [3], [2], [4], "));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      129 (0x81)
+                  .maxstack  3
+                  .locals init (<>y__InlineArray1<int> V_0,
+                                <>y__InlineArray1<int> V_1,
+                                <>y__InlineArray1<int> V_2,
+                                <>y__InlineArray1<int> V_3)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<int>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  initobj    "<>y__InlineArray1<int>"
+                  IL_0018:  ldloca.s   V_1
+                  IL_001a:  ldc.i4.0
+                  IL_001b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0020:  ldc.i4.1
+                  IL_0021:  stind.i4
+                  IL_0022:  ldloca.s   V_1
+                  IL_0024:  ldc.i4.1
+                  IL_0025:  call       "InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_002a:  call       "int Program.F1<int>(System.Span<int>)"
+                  IL_002f:  ldc.i4.2
+                  IL_0030:  add
+                  IL_0031:  stind.i4
+                  IL_0032:  ldloca.s   V_0
+                  IL_0034:  ldc.i4.1
+                  IL_0035:  call       "InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_003a:  call       "int Program.F1<int>(System.Span<int>)"
+                  IL_003f:  pop
+                  IL_0040:  ldloca.s   V_2
+                  IL_0042:  initobj    "<>y__InlineArray1<int>"
+                  IL_0048:  ldloca.s   V_2
+                  IL_004a:  ldc.i4.0
+                  IL_004b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0050:  ldloca.s   V_3
+                  IL_0052:  initobj    "<>y__InlineArray1<int>"
+                  IL_0058:  ldloca.s   V_3
+                  IL_005a:  ldc.i4.0
+                  IL_005b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0060:  ldc.i4.2
+                  IL_0061:  stind.i4
+                  IL_0062:  ldloca.s   V_3
+                  IL_0064:  ldc.i4.1
+                  IL_0065:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int>, int>(in <>y__InlineArray1<int>, int)"
+                  IL_006a:  call       "int Program.F2<int>(System.ReadOnlySpan<int>)"
+                  IL_006f:  ldc.i4.2
+                  IL_0070:  add
+                  IL_0071:  stind.i4
+                  IL_0072:  ldloca.s   V_2
+                  IL_0074:  ldc.i4.1
+                  IL_0075:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int>, int>(in <>y__InlineArray1<int>, int)"
+                  IL_007a:  call       "int Program.F2<int>(System.ReadOnlySpan<int>)"
+                  IL_007f:  pop
+                  IL_0080:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void SpanArgument_Reordered()
         {
             string source = """
@@ -10867,10 +11010,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         scoped Span<object> x;
-                        x = [1];
-                        x.Report();
                         scoped ReadOnlySpan<object> y;
+                        x = [1];
                         y = [2];
+                        x.Report();
                         y.Report();
                     }
                 }
@@ -10902,20 +11045,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0019:  ldc.i4.1
                       IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_001f:  stloc.0
-                      IL_0020:  ldloca.s   V_0
-                      IL_0022:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
-                      IL_0027:  ldloca.s   V_3
-                      IL_0029:  initobj    "<>y__InlineArray1<object>"
-                      IL_002f:  ldloca.s   V_3
-                      IL_0031:  ldc.i4.0
-                      IL_0032:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                      IL_0037:  ldc.i4.2
-                      IL_0038:  box        "int"
-                      IL_003d:  stind.ref
-                      IL_003e:  ldloca.s   V_3
-                      IL_0040:  ldc.i4.1
-                      IL_0041:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
-                      IL_0046:  stloc.1
+                      IL_0020:  ldloca.s   V_3
+                      IL_0022:  initobj    "<>y__InlineArray1<object>"
+                      IL_0028:  ldloca.s   V_3
+                      IL_002a:  ldc.i4.0
+                      IL_002b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0030:  ldc.i4.2
+                      IL_0031:  box        "int"
+                      IL_0036:  stind.ref
+                      IL_0037:  ldloca.s   V_3
+                      IL_0039:  ldc.i4.1
+                      IL_003a:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_003f:  stloc.1
+                      IL_0040:  ldloca.s   V_0
+                      IL_0042:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
                       IL_0047:  ldloca.s   V_1
                       IL_0049:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
                       IL_004e:  ret
@@ -10939,17 +11082,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_000b:  box        "int"
                       IL_0010:  stelem.ref
                       IL_0011:  call       "System.Span<object>..ctor(object[])"
-                      IL_0016:  ldloca.s   V_0
-                      IL_0018:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
-                      IL_001d:  ldloca.s   V_1
-                      IL_001f:  ldc.i4.1
-                      IL_0020:  newarr     "object"
-                      IL_0025:  dup
-                      IL_0026:  ldc.i4.0
-                      IL_0027:  ldc.i4.2
-                      IL_0028:  box        "int"
-                      IL_002d:  stelem.ref
-                      IL_002e:  call       "System.ReadOnlySpan<object>..ctor(object[])"
+                      IL_0016:  ldloca.s   V_1
+                      IL_0018:  ldc.i4.1
+                      IL_0019:  newarr     "object"
+                      IL_001e:  dup
+                      IL_001f:  ldc.i4.0
+                      IL_0020:  ldc.i4.2
+                      IL_0021:  box        "int"
+                      IL_0026:  stelem.ref
+                      IL_0027:  call       "System.ReadOnlySpan<object>..ctor(object[])"
+                      IL_002c:  ldloca.s   V_0
+                      IL_002e:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
                       IL_0033:  ldloca.s   V_1
                       IL_0035:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
                       IL_003a:  ret
@@ -10996,9 +11139,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        scoped R<object> r = default;
-                        r.F = [1];
-                        r.F.Report();
+                        scoped R<object> x = default;
+                        scoped R<object> y = default;
+                        x.F = [1];
+                        y.F = [2];
+                        x.F.Report();
+                        y.F.Report();
                     }
                 }
                 """;
@@ -11006,32 +11152,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[1], "));
+                expectedOutput: IncludeExpectedOutput("[1], [2], "));
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       59 (0x3b)
+                  // Code size      117 (0x75)
                   .maxstack  3
-                  .locals init (R<object> V_0, //r
-                                <>y__InlineArray1<object> V_1)
+                  .locals init (R<object> V_0, //x
+                                R<object> V_1, //y
+                                <>y__InlineArray1<object> V_2,
+                                <>y__InlineArray1<object> V_3)
                   IL_0000:  ldloca.s   V_0
                   IL_0002:  initobj    "R<object>"
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  ldloca.s   V_1
-                  IL_000c:  initobj    "<>y__InlineArray1<object>"
-                  IL_0012:  ldloca.s   V_1
-                  IL_0014:  ldc.i4.0
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  box        "int"
-                  IL_0020:  stind.ref
-                  IL_0021:  ldloca.s   V_1
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
-                  IL_0029:  stfld      "System.ReadOnlySpan<object> R<object>.F"
-                  IL_002e:  ldloca.s   V_0
-                  IL_0030:  ldflda     "System.ReadOnlySpan<object> R<object>.F"
-                  IL_0035:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
-                  IL_003a:  ret
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "R<object>"
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  ldloca.s   V_2
+                  IL_0014:  initobj    "<>y__InlineArray1<object>"
+                  IL_001a:  ldloca.s   V_2
+                  IL_001c:  ldc.i4.0
+                  IL_001d:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  box        "int"
+                  IL_0028:  stind.ref
+                  IL_0029:  ldloca.s   V_2
+                  IL_002b:  ldc.i4.1
+                  IL_002c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0031:  stfld      "System.ReadOnlySpan<object> R<object>.F"
+                  IL_0036:  ldloca.s   V_1
+                  IL_0038:  ldloca.s   V_3
+                  IL_003a:  initobj    "<>y__InlineArray1<object>"
+                  IL_0040:  ldloca.s   V_3
+                  IL_0042:  ldc.i4.0
+                  IL_0043:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0048:  ldc.i4.2
+                  IL_0049:  box        "int"
+                  IL_004e:  stind.ref
+                  IL_004f:  ldloca.s   V_3
+                  IL_0051:  ldc.i4.1
+                  IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0057:  stfld      "System.ReadOnlySpan<object> R<object>.F"
+                  IL_005c:  ldloca.s   V_0
+                  IL_005e:  ldflda     "System.ReadOnlySpan<object> R<object>.F"
+                  IL_0063:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
+                  IL_0068:  ldloca.s   V_1
+                  IL_006a:  ldflda     "System.ReadOnlySpan<object> R<object>.F"
+                  IL_006f:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
+                  IL_0074:  ret
                 }
                 """);
         }

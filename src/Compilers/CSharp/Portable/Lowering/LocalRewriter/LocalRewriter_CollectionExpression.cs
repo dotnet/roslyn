@@ -231,9 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
-#if DEBUG
-            int nLocalsBefore = locals.Count;
-#endif
 
             int arrayLength = elements.Length;
             var inlineArrayType = _factory.ModuleBuilderOpt.EnsureInlineArrayTypeExists(syntax, _factory, arrayLength, _diagnostics.DiagnosticBag).Construct(ImmutableArray.Create(elementType));
@@ -279,9 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useStrictArgumentRefKinds: true);
 
             Debug.Assert(span.Type is { });
-#if DEBUG
-            Debug.Assert(locals.Count == nLocalsBefore + 1); // Should be exactly one local, for the inline array.
-#endif
             return new BoundSequence(
                 syntax,
                 locals: ImmutableArray<LocalSymbol>.Empty,
