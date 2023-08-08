@@ -987,28 +987,26 @@ class Program {
 }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,35): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (5,36): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x=>3").WithArguments("lambda expression", "object").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(5, 36),
                 // (6,43): error CS0428: Cannot convert method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(6, 43),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,35): error CS8917: The delegate type could not be inferred.
+                // (5,36): error CS8917: The delegate type could not be inferred.
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 36),
                 // (6,35): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 35),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
         }
 
         [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
@@ -8019,9 +8017,9 @@ public partial struct CustomHandler
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn(string expression)
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(TestOptions.Regular11, "ref", "in", expression,
-                // 0.cs(5,9): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // 0.cs(5,9): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 // C.M(ref i, $"");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "preview").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "12.0").WithLocation(5, 9));
         }
 
         [Theory, CombinatorialData]
@@ -15489,7 +15487,7 @@ class Program
                 readonly ref struct R
                 {
                     private readonly ref int _i;
-                    public R(ref int i) { _i = i; }
+                    public R(ref int i) { _i = ref i; }
                     public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
                         => this;
                 }
@@ -17688,10 +17686,10 @@ partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // 0.cs(5,1): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // 0.cs(5,1): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 // s.M($"text");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("3", "11.0", "preview").WithLocation(5, 1)
-            );
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("3", "11.0", "12.0").WithLocation(5, 1)
+                );
 
             var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "literal:text");

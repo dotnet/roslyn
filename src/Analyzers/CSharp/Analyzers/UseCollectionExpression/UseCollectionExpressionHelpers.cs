@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 
@@ -39,14 +40,14 @@ internal static class UseCollectionExpressionHelpers
         // First, we don't change things if X and Y are different.  That could lead to something observable at
         // runtime in the case of something like:  object[] x = new string[] ...
 
-        var typeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
-        if (typeInfo.Type is IErrorTypeSymbol)
+        var originalTypeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
+        if (originalTypeInfo.Type is IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.ConvertedType is null or IErrorTypeSymbol)
+        if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.Type != null && !typeInfo.Type.Equals(typeInfo.ConvertedType))
+        if (originalTypeInfo.Type != null && !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType))
             return false;
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
@@ -70,6 +71,12 @@ internal static class UseCollectionExpressionHelpers
         // collection type).
         var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
         if (!conversion.IsCollectionExpression)
+            return false;
+
+        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+        // converting this to some different collection type unintentionally.
+        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
             return false;
 
         return true;
@@ -168,5 +175,102 @@ internal static class UseCollectionExpressionHelpers
         {
             return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left);
         }
+    }
+
+    public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
+        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+    {
+        // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
+        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
+            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+
+        // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
+        // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
+        if (wasOnSingleLine)
+        {
+            // convert '{ ' to '['
+            if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
+                openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
+
+            if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
+                elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
+        }
+
+        return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+    }
+
+    public static CollectionExpressionSyntax ReplaceWithCollectionExpression(
+        SourceText sourceText,
+        InitializerExpressionSyntax originalInitializer,
+        CollectionExpressionSyntax newCollectionExpression,
+        bool newCollectionIsSingleLine)
+    {
+        Contract.ThrowIfFalse(originalInitializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax or BaseObjectCreationExpressionSyntax);
+
+        var initializerParent = originalInitializer.GetRequiredParent();
+
+        return ShouldReplaceExistingExpressionEntirely(sourceText, originalInitializer, newCollectionIsSingleLine)
+            ? newCollectionExpression.WithTriviaFrom(initializerParent)
+            : newCollectionExpression
+                .WithPrependedLeadingTrivia(originalInitializer.OpenBraceToken.GetPreviousToken().TrailingTrivia)
+                .WithPrependedLeadingTrivia(ElasticMarker);
+    }
+
+    private static bool ShouldReplaceExistingExpressionEntirely(
+        SourceText sourceText,
+        InitializerExpressionSyntax initializer,
+        bool newCollectionIsSingleLine)
+    {
+        // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
+        // with `[x, y, z]`.
+        if (newCollectionIsSingleLine && sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+            return true;
+
+        // initializer was on multiple lines, but started on the same line as the 'new' keyword.  e.g.:
+        //
+        //      var v = new[] {
+        //          1, 2, 3
+        //      };
+        //
+        // Just remove the `new...` section entirely, but otherwise keep the initialize multiline:
+        //
+        //      var v = [
+        //          1, 2, 3
+        //      ];
+        var parent = initializer.GetRequiredParent();
+        var newKeyword = parent.GetFirstToken();
+        if (sourceText.AreOnSameLine(newKeyword, initializer.OpenBraceToken) &&
+            !sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+        {
+            return true;
+        }
+
+        // Initializer was on multiple lines, and was not on the same line as the 'new' keyword, and the 'new' is on a newline:
+        //
+        //      var v2 =
+        //          new[]
+        //          {
+        //              1, 2, 3
+        //          };
+        //
+        // For this latter, we want to just remove the new portion and move the collection to subsume it.
+        var previousToken = newKeyword.GetPreviousToken();
+        if (previousToken == default)
+            return true;
+
+        if (!sourceText.AreOnSameLine(previousToken, newKeyword))
+            return true;
+
+        // All that is left is:
+        //
+        //      var v2 = new[]
+        //      {
+        //          1, 2, 3
+        //      };
+        //
+        // For this we want to remove the 'new' portion, but keep the collection on its own line.
+        return false;
     }
 }

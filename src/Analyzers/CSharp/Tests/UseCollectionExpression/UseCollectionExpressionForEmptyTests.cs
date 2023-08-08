@@ -48,7 +48,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -79,7 +79,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -110,7 +110,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -129,7 +129,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -150,7 +150,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -181,7 +181,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -214,7 +214,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -247,7 +247,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -280,7 +280,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -313,7 +313,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -346,7 +346,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -371,7 +371,7 @@ public class UseCollectionExpressionForEmptyTests
                 public static X Empty<T>() => default;
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -428,7 +428,7 @@ public class UseCollectionExpressionForEmptyTests
                 IEnumerator IEnumerable.GetEnumerator() => default;
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -496,7 +496,7 @@ public class UseCollectionExpressionForEmptyTests
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
             }
             """ + CollectionBuilderAttributeDefinition,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -564,7 +564,7 @@ public class UseCollectionExpressionForEmptyTests
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
             }
             """ + CollectionBuilderAttributeDefinition,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -596,7 +596,7 @@ public class UseCollectionExpressionForEmptyTests
                 }
             }
             """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

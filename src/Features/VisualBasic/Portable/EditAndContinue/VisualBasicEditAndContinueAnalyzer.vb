@@ -845,6 +845,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IsNotLambda As Func(Of SyntaxNode, Boolean)
+            Get
+                Return AddressOf LambdaUtilities.IsNotLambda
+            End Get
+        End Property
+
         Friend Overrides Function IsNestedFunction(node As SyntaxNode) As Boolean
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
@@ -1850,43 +1856,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody)
+        Friend Overrides Function HasUnsupportedOperation(nodes As IEnumerable(Of SyntaxNode), <Out> ByRef unsupportedNode As SyntaxNode, <Out> ByRef rudeEdit As RudeEditKind) As Boolean
             ' Disallow editing the body even if the change is only in trivia.
             ' The compiler might not emit equivallent IL for these constructs (e.g. different names of backing fields for static locals).
 
-            For Each root In newBody.RootNodes
-                Dim lambdaBody = TryCast(newBody, LambdaBody)
-                For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
-                    For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
-                        Dim rudeEdit = RudeEditKind.None
+            For Each node In nodes
+                Select Case node.Kind()
+                    Case SyntaxKind.AggregateClause,
+                         SyntaxKind.GroupByClause,
+                         SyntaxKind.SimpleJoinClause,
+                         SyntaxKind.GroupJoinClause
+                        unsupportedNode = node
+                        rudeEdit = RudeEditKind.ComplexQueryExpression
+                        Return True
 
-                        Select Case node.Kind()
-                            Case SyntaxKind.AggregateClause,
-                                 SyntaxKind.GroupByClause,
-                                 SyntaxKind.SimpleJoinClause,
-                                 SyntaxKind.GroupJoinClause
-                                rudeEdit = RudeEditKind.ComplexQueryExpression
-
-                            Case SyntaxKind.LocalDeclarationStatement
-                                Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                                If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                    rudeEdit = RudeEditKind.UpdateStaticLocal
-                                End If
-                        End Select
-
-                        If rudeEdit <> RudeEditKind.None Then
-                            diagnostics.Add(New RudeEditDiagnostic(
-                                rudeEdit,
-                                GetDiagnosticSpan(node, EditKind.Update),
-                                newDeclaration,
-                                {GetDisplayName(newDeclaration, EditKind.Update)}))
-
-                            Return
+                    Case SyntaxKind.LocalDeclarationStatement
+                        Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                        If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                            unsupportedNode = node
+                            rudeEdit = RudeEditKind.UpdateStaticLocal
+                            Return True
                         End If
-                    Next
-                Next
+                End Select
             Next
-        End Sub
+
+            unsupportedNode = Nothing
+            rudeEdit = RudeEditKind.None
+            Return False
+        End Function
 
 #End Region
 

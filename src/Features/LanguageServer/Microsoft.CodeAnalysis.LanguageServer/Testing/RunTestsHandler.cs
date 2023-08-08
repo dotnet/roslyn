@@ -41,9 +41,11 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
 
         var projectOutputPath = context.Document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
+        var projectOutputDirectory = Path.GetDirectoryName(projectOutputPath);
+        Contract.ThrowIfNull(projectOutputDirectory, $"Could not get project output directory from {projectOutputPath}");
 
         // Find the appropriate vstest.console.dll from the SDK.
-        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(cancellationToken);
+        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
 
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters

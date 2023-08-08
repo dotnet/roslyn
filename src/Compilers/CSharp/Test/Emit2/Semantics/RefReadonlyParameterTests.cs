@@ -181,9 +181,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(4,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M1([RequiresLocation] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 14),
-            // 0.cs(4,36): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // 0.cs(4,36): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M1([RequiresLocation] ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 36),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 36),
             // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M2([RequiresLocation] in int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 14),
@@ -210,7 +210,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14)
         };
 
-        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -692,15 +692,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (6,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
             // Expression<D> e3 = (ref readonly int p) => C.M(p);
             Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(6, 38),
-            // (6,48): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (6,48): warning CS9195: Argument 1 should be passed with the 'in' keyword
             // Expression<D> e3 = (ref readonly int p) => C.M(p);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(6, 48),
-            // (7,20): error CS1661: Cannot convert lambda expression to type 'Expression<D>' because the parameter types do not match the delegate parameter types
-            // Expression<D> e4 = (int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int p) => C.M(in p)").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 20),
             // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // Expression<D> e4 = (int p) => C.M(in p);
             Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
+            // (7,28): error CS1661: Cannot convert lambda expression to type 'Expression<D>' because the parameter types do not match the delegate parameter types
+            // Expression<D> e4 = (int p) => C.M(in p);
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 28),
             // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
             // Expression<Action<int>> e5 = (int p) => C.M(out p);
             Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
@@ -886,9 +886,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+            // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
             //         c.D(ref x);
-            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(7, 17));
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
@@ -962,9 +962,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(12,37): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<in int, void> i = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(12, 37),
-            // 0.cs(13,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // 0.cs(13,23): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         delegate*<ref readonly int, void> rr = c.D;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(13, 23),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(13, 23),
             // 0.cs(13,48): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<ref readonly int, void> rr = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<ref readonly int, void>").WithLocation(13, 48),
@@ -1496,12 +1496,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.D(x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
-            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(6, 13),
+            // (8,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.D(in x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(8, 16));
 
         var expectedDiagnostics = new[]
         {
@@ -1510,7 +1510,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1560,11 +1560,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     void M(ref readonly int p);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16));
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+            //     void M(ref readonly int p) => throw null;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         var comp = CreateCompilation(source).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
@@ -1622,9 +1622,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS1107: A parameter can only have one 'readonly' modifier
             //     void M(ref readonly readonly int p) { }
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 25));
@@ -1636,7 +1636,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1660,7 +1660,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1677,9 +1677,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-            // (3,25): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,25): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(readonly ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 25));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 25));
 
         var expectedDiagnostics = new[]
         {
@@ -1688,7 +1688,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1712,7 +1712,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1726,9 +1726,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS1107: A parameter can only have one 'ref' modifier
             //     void M(ref readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(3, 25),
@@ -1746,7 +1746,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 29)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1767,7 +1767,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1788,7 +1788,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1809,7 +1809,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1823,9 +1823,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly params int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
             //     void M(ref readonly params int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25));
@@ -1837,7 +1837,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1858,7 +1858,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1872,9 +1872,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly in int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
             //     void M(ref readonly in int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25));
@@ -1886,7 +1886,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1907,7 +1907,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1921,9 +1921,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly out int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
             //     void M(ref readonly out int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25));
@@ -1935,7 +1935,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1956,7 +1956,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1970,11 +1970,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,35): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,35): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(this ref readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 35));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 35));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -1995,7 +1995,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -2009,11 +2009,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly this int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 30));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -2027,11 +2027,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,37): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,37): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(scoped ref readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 37));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -2061,7 +2061,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -2091,7 +2091,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -2121,7 +2121,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -2135,11 +2135,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly int scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 30));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -2157,9 +2157,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
             // struct scoped { }
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
 
         var expectedDiagnostics = new[]
         {
@@ -2168,16 +2168,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
             // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // struct scoped { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
     }
 
     [Fact]
@@ -2194,9 +2194,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
             // struct scoped { }
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
 
         var expectedDiagnostics = new[]
         {
@@ -2205,16 +2205,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
             // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // struct scoped { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
     }
 
     [Fact]
@@ -2966,12 +2966,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.M(x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
-            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(6, 13),
+            // (8,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.M(in x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(8, 16));
 
         var expectedDiagnostics = new[]
         {
@@ -2980,7 +2980,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3257,7 +3257,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
         };
 
-        CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -5719,12 +5719,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
                 : Array.Empty<DiagnosticDescription>();
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedWarnings);
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedWarnings);
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedWarnings);
         }
         else
         {
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -6049,18 +6049,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (5,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // x(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(5, 6),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 6),
             // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = C.Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
             // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = C.X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5),
-            // (11,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (11,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // x(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(11, 6));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(11, 6));
 
         var expectedDiagnostics = new[]
         {
@@ -6072,7 +6072,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6125,7 +6125,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref int p", "in int p").WithLocation(9, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6269,21 +6269,21 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (4,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(4, 13),
-            // (10,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 13),
+            // (10,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(10, 13),
-            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(10, 13),
+            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<ref int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.Y2 = C.X1;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.X1").WithArguments("delegate*<ref readonly int, void>", $"delegate*<{modifier} int, void>").WithLocation(13, 12),
-            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
+            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.X2 = C.Y1;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12),
-            // (16,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (16,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(16, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(16, 13));
 
         var expectedDiagnostics = new[]
         {
@@ -6295,7 +6295,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6354,7 +6354,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics); CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6490,18 +6490,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (7,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(7, 13),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13),
             // (10,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 12),
             // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     C.X2 = &C.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12),
-            // (13,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (13,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(13, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(13, 13));
 
         var expectedDiagnostics = new[]
         {
@@ -6513,7 +6513,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
+        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
             expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
             expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
@@ -6572,7 +6572,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref int").WithLocation(11, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
+        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
             expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
             expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
@@ -6609,54 +6609,54 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void O(out int p);
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,6): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x) => throw null").WithArguments("lambda expression", "RR").WithLocation(7, 6),
             // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
+            // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
             // (8,6): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // rr = (ref int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "ref readonly int p").WithLocation(8, 6),
             // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // rr = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
-            // (10,6): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (out int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(out int x) => throw null").WithArguments("lambda expression", "RR").WithLocation(10, 6),
             // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (out int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
-            // (11,5): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
-            // v = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(ref readonly int x) => throw null").WithArguments("lambda expression", "V").WithLocation(11, 5),
+            // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
             // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
             // v = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
+            // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
+            // v = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
             // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
             // i = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
             // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
             // r = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
-            // (14,5): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
-            // o = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(ref readonly int x) => throw null").WithArguments("lambda expression", "O").WithLocation(14, 5),
             // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
             // o = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
+            // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
+            // o = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
             // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
             // r = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
             // (16,5): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
             // i = (ref int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "in int p").WithLocation(16, 5),
-            // (18,6): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x) => throw null").WithArguments("lambda expression", "RR").WithLocation(18, 6),
             // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
+            // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
             // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = x => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6));
@@ -6717,18 +6717,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,10): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // C.X((ref readonly int p) => System.Console.Write("1"));
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(1, 10),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(1, 10),
             // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"({modifier} int p) => System.Console.Write(""3"")").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(4, 5),
             // (5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // C.Y((ref readonly int p) => System.Console.Write("4"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
-            // (5,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,10): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // C.Y((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(5, 10));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 10));
 
         var expectedDiagnostics = new[]
         {
@@ -6740,7 +6740,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4").VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6770,18 +6770,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (4,5): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
-            // C.X((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @$"(in int p) => System.Console.Write(""3"")").WithArguments("lambda expression", "X").WithLocation(4, 5),
             // (4,13): error CS1676: Parameter 1 must be declared with the 'ref' keyword
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref").WithLocation(4, 13),
-            // (5,5): error CS1661: Cannot convert lambda expression to type 'Y' because the parameter types do not match the delegate parameter types
-            // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"(ref int p) => System.Console.Write(""4"")").WithArguments("lambda expression", "Y").WithLocation(5, 5),
+            // (4,16): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
+            // C.X((in int p) => System.Console.Write("3"));
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(4, 16),
             // (5,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
             // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(5, 14),
+            // (5,17): error CS1661: Cannot convert lambda expression to type 'Y' because the parameter types do not match the delegate parameter types
+            // C.Y((ref int p) => System.Console.Write("4"));
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Y").WithLocation(5, 17));
 
         var expectedDiagnostics = new[]
         {
@@ -6793,7 +6793,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref int p) => System.Console.Write(""4"")").WithArguments("ref int p", "in int p").WithLocation(5, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4").VerifyDiagnostics(expectedDiagnostics);
     }
 }
