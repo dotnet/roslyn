@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected Func<TAnalysisContext, TAnalysisResult?> TryGetOrComputeAnalysisResult
             => DataFlowAnalysisContext.TryGetOrComputeAnalysisResult;
         internal bool ExecutingExceptionPathsAnalysisPostPass { get; set; }
+        internal virtual bool SkipExceptionPathsAnalysisPostPass => false;
 
         protected TAnalysisData CurrentAnalysisData
         {
@@ -844,8 +845,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual void HandlePossibleThrowingOperation(IOperation operation)
         {
-            Debug.Assert(DataFlowAnalysisContext.ExceptionPathsAnalysis);
             Debug.Assert(ExecutingExceptionPathsAnalysisPostPass);
+            Debug.Assert(!SkipExceptionPathsAnalysisPostPass);
 
             // Bail out if we are not analyzing an interprocedural call and there is no
             // tracked analysis data.
@@ -924,8 +925,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingData, IOperation operation)
         {
-            Debug.Assert(DataFlowAnalysisContext.ExceptionPathsAnalysis);
             Debug.Assert(ExecutingExceptionPathsAnalysisPostPass);
+            Debug.Assert(!SkipExceptionPathsAnalysisPostPass);
 
             return existingData == null ?
                 GetClonedCurrentAnalysisData() :

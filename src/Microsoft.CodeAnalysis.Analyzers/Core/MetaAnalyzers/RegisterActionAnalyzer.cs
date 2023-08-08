@@ -360,9 +360,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                     {
                                         symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                         if (symbol != null &&
-#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
                                             symbol.Kind == SymbolKind.Field &&
-#pragma warning restore CA1508 // Avoid dead conditional code
                                             SymbolEqualityComparer.Default.Equals(_symbolKind, symbol.ContainingType) &&
                                             !s_supportedSymbolKinds.Contains(symbol.Name))
                                         {

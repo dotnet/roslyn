@@ -621,5 +621,63 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
                 },
             }.AddGeneratedSources().RunAsync();
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task SingleString_PublicCSharpAsync(bool publicResource)
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            await new VerifyCS.Test(identifier: publicResource.ToString())
+            {
+                TestState =
+                {
+                    AdditionalFiles = { ("/0/Resources.resx", code) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+[/0/Resources.resx]
+build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task SingleString_PublicVisualBasicAsync(bool publicResource)
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            await new VerifyVB.Test(identifier: publicResource.ToString())
+            {
+                TestState =
+                {
+                    AdditionalFiles = { ("/0/Resources.resx", code) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+[/0/Resources.resx]
+build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
     }
 }

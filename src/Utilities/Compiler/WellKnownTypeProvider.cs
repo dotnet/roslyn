@@ -26,14 +26,13 @@ namespace Analyzer.Utilities
         {
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol?>(StringComparer.Ordinal);
-            _referencedAssemblies = new Lazy<ImmutableHashSet<IAssemblySymbol>>(
+            _referencedAssemblies = new Lazy<ImmutableArray<IAssemblySymbol>>(
                 () =>
                 {
-                    return ImmutableHashSet.Create<IAssemblySymbol>(
-                        SymbolEqualityComparer.Default,
-                        Compilation.Assembly.Modules
-                            .SelectMany(m => m.ReferencedAssemblySymbols)
-                            .ToArray());
+                    return Compilation.Assembly.Modules
+                        .SelectMany(m => m.ReferencedAssemblySymbols)
+                        .Distinct<IAssemblySymbol>(SymbolEqualityComparer.Default)
+                        .ToImmutableArray();
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
@@ -56,7 +55,7 @@ namespace Analyzer.Utilities
         /// foreach (Compilation.Assembly.Modules)
         ///     foreach (Module.ReferencedAssemblySymbols)
         /// </remarks>
-        private readonly Lazy<ImmutableHashSet<IAssemblySymbol>> _referencedAssemblies;
+        private readonly Lazy<ImmutableArray<IAssemblySymbol>> _referencedAssemblies;
 
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.

@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             }
 
                             // Don't flag obsolete overloads
-                            if (overload.HasAttribute(obsoleteAttribute))
+                            if (overload.HasAnyAttribute(obsoleteAttribute))
                             {
                                 continue;
                             }

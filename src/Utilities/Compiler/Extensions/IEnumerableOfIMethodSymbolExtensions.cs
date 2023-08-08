@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.Extensions
                 return methods;
             }
 
-            return methods.Where(m => !m.HasAttribute(attributeType));
+            return methods.Where(m => !m.HasAnyAttribute(attributeType));
         }
 
         /// <summary>

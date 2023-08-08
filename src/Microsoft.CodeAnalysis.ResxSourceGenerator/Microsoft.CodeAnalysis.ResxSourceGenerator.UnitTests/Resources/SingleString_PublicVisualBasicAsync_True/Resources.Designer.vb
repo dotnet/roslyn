@@ -3,8 +3,8 @@
 Imports System.Reflection
 
 
-Namespace Global.NS
-    Friend Partial Class Resources
+Namespace Global.TestProject
+    Public Partial Class Resources
         Private Sub New
         End Sub
         
