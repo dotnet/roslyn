@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// </summary>
         private static FixAllProviderInfo? CreateWithCodeRefactoring(CodeRefactoringProvider provider)
         {
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var fixAllProvider = provider.GetFixAllProvider();
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             if (fixAllProvider == null)
             {
                 return null;

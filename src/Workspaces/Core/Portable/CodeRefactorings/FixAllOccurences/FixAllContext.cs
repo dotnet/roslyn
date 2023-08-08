@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
@@ -16,10 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    /// <remarks>
-    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
-    /// </remarks>
-    internal sealed class FixAllContext : IFixAllContext
+    [Experimental(ExperimentalApis.FixAllRefactoring)]
+    public sealed class FixAllContext : IFixAllContext
     {
         internal FixAllState State { get; }
 
@@ -79,6 +80,37 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Optional<string?> codeActionEquivalenceKey)
             => this.With(documentAndProject, scope, codeActionEquivalenceKey);
         #endregion
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/> with an associated <paramref name="selectionSpan"/> and triggering
+        /// <paramref name="codeAction"/>.
+        /// </summary>
+        /// <param name="fixAllProvider">The <see cref="FixAllProvider"/> instance handling the operation.</param>
+        /// <param name="document">Document within which fix all occurrences was triggered.</param>
+        /// <param name="selectionSpan">Selection span for the refactoring for which fix all occurrences was triggered.</param>
+        /// <param name="codeRefactoringProvider">Underlying <see cref="CodeRefactorings.CodeRefactoringProvider"/> which triggered this fix all.</param>
+        /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
+        /// <param name="codeAction">The <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        public FixAllContext(
+            FixAllProvider fixAllProvider,
+            Document document,
+            TextSpan selectionSpan,
+            CodeRefactoringProvider codeRefactoringProvider,
+            FixAllScope scope,
+            CodeAction codeAction,
+            CancellationToken cancellationToken)
+            : this(new FixAllState(
+                    fixAllProvider,
+                    document ?? throw new ArgumentNullException(nameof(document)),
+                    selectionSpan,
+                    codeRefactoringProvider ?? throw new ArgumentNullException(nameof(codeRefactoringProvider)),
+                    CodeActionOptions.DefaultProvider,
+                    scope,
+                    codeAction),
+                  new ProgressTracker(), cancellationToken)
+        {
+        }
 
         internal FixAllContext(
             FixAllState state,

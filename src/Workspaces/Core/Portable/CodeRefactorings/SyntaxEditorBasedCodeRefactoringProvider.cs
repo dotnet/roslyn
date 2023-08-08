@@ -23,17 +23,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
 
-        internal sealed override FixAllProvider? GetFixAllProvider()
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        public sealed override FixAllProvider? GetFixAllProvider()
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
             if (SupportedFixAllScopes.IsEmpty)
                 return null;
 
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             return FixAllProvider.Create(
                 async (fixAllContext, document, fixAllSpans) =>
                 {
                     return await this.FixAllAsync(document, fixAllSpans, fixAllContext.GetOptionsProvider(), fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
                 SupportedFixAllScopes);
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         protected Task<Document> FixAsync(

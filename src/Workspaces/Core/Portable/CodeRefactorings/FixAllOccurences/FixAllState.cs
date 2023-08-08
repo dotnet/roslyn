@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,7 +17,9 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, FixAllProvider, FixAllState>
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     {
         /// <summary>
         /// Original selection span from which FixAll was invoked.
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public string CodeActionTitle { get; }
 
         public FixAllState(
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             FixAllProvider fixAllProvider,
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             Document document,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
@@ -45,22 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
         }
 
-        public FixAllState(
-            FixAllProvider fixAllProvider,
-            Project project,
-            TextSpan selectionSpan,
-            CodeRefactoringProvider codeRefactoringProvider,
-            CodeActionOptionsProvider optionsProvider,
-            FixAllScope fixAllScope,
-            CodeAction codeAction)
-            : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
-                   optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
-        {
-        }
-
         private FixAllState(
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             FixAllProvider fixAllProvider,
-            Document? document,
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            Document document,
             Project project,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
@@ -78,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             return new FixAllState(
                 this.FixAllProvider,
-                document,
+                document ?? throw new ArgumentNullException(nameof(document)),
                 project,
                 _selectionSpan,
                 this.Provider,

@@ -80,12 +80,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TextSpan selectionSpan,
             FixAllScope scope)
         {
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var fixAllProvider = provider.GetFixAllProvider();
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
                 return null;
 
             var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
 

@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
             public override void HandleException(object provider, Exception exception)
             {
+#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 if (provider is CodeFixProvider or CodeFixes.FixAllProvider or CodeRefactoringProvider or CodeRefactorings.FixAllProvider)
+#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 {
                     if (!IsIgnored(provider) &&
                         _globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
