@@ -1344,7 +1344,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         // That breaks the consumer.
         var verifier3v2 = CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
-        verifyModoptFromAssembly(verifier3v1.Compilation, "Assembly1");
+        verifyModoptFromAssembly(verifier3v2.Compilation, "Assembly4");
 
         // Unless the library adds type forwarding.
         var source5 = """
