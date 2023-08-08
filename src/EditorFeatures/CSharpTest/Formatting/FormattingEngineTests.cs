@@ -2465,7 +2465,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2486,7 +2486,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2507,7 +2507,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2525,7 +2525,7 @@ interface I1
     abstract static I1 operator checked +(I1 x, I1 y);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2543,7 +2543,7 @@ interface I1
     abstract static I1 operator checked ++(I1 x);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2561,7 +2561,7 @@ interface I1<T> where T : I1<T>
     abstract static explicit operator checked string(T x);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]

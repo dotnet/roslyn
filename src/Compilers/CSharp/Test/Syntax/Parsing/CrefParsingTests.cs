@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_05(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(readonly ref B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly ref B)'
@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_06(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly B)'
@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_07(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(in readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(in readonly B)'
@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_08(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(out readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(out readonly B)'
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_09(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(ref readonly readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(ref readonly readonly B)'
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory, CombinatorialData]
         public void ParameterRefReadonly_10(
-            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingNode("A(readonly ref B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly ref B)'
