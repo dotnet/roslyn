@@ -122,6 +122,11 @@
         <target state="new">There were errors loading solution {0}. See log for details.</target>
         <note />
       </trans-unit>
+      <trans-unit id="There_were_problems_loading_your_projects_See_log_for_details">
+        <source>There were problems loading your projects. See log for details.</source>
+        <target state="new">There were problems loading your projects. See log for details.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
