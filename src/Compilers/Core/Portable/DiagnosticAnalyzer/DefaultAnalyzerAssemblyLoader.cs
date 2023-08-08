@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
-        internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string? windowsShadowPath = null)
+        internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string windowsShadowPath)
         {
 #if NETCOREAPP
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                 // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
                 // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
                 // effect
-                if (string.IsNullOrEmpty(windowsShadowPath) || !Path.IsPathRooted(windowsShadowPath))
+                if (!Path.IsPathRooted(windowsShadowPath))
                 {
                     throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
                 }
