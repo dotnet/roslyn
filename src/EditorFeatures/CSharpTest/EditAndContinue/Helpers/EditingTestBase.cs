@@ -117,7 +117,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 SourceMarkers.Clear(markedSource),
-                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                 path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)

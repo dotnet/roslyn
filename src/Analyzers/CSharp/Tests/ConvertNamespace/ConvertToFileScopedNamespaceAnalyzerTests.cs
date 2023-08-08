@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                     }
                 }
                 """",
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                     void M2(System.ReadOnlySpan<byte> x) {}
                 }
                 """",
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
 
             await new VerifyCS.Test()
             {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = code,
                 FixedCode = fixedCode,
             }.RunAsync();

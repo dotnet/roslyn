@@ -1586,7 +1586,7 @@ index: 2);
             {
                 TestCode = source.Replace("[||]", ""),
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
 
             await TestRefactoringMissingAsync(source);

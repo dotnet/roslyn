@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
         private static async Task TestInRegularAndScriptAsync(
             string testCode,
             string fixedCode,
-            LanguageVersion version = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
         {
             await new VerifyCS.Test
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
         private static Task TestMissingInRegularAndScriptAsync(
             string testCode,
-            LanguageVersion version = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
             => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }

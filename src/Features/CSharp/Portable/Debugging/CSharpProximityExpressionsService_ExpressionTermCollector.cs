@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // is NOT another dot/arrow.  This allows the expression 'a.b.c.d' to
             // add both 'a.b.c.d' and 'a.b.c', but not 'a.b' and 'a'.
             if (IsValidTerm(flags) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression))
+                memberAccessExpression.Parent?.Kind() is not SyntaxKind.SimpleMemberAccessExpression and not SyntaxKind.PointerMemberAccessExpression)
             {
                 terms.Add(ConvertToString(memberAccessExpression.Expression));
             }

@@ -140,18 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp11)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,22): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,22): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         object[] x = [];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(6, 22),
-                    // (7,26): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(6, 22),
+                    // (7,26): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object> y = [1, 2, 3];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(7, 26),
-                    // (8,28): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(7, 26),
+                    // (8,28): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object[]> z = [[]];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(8, 28),
-                    // (8,29): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(8, 28),
+                    // (8,29): error CS9058: Feature 'collection expressions' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //         List<object[]> z = [[]];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(8, 29));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "[").WithArguments("collection expressions", "12.0").WithLocation(8, 29));
             }
             else
             {
@@ -9835,10 +9835,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
-                // (4,39): error CS9202: A collection expression of type 'Span<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (4,39): error CS9203: A collection expression of type 'Span<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static Span<T> F1<T>(T x, T y) => [x, y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Span<T>").WithLocation(4, 39),
-                // (5,47): error CS9202: A collection expression of type 'ReadOnlySpan<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (5,47): error CS9203: A collection expression of type 'ReadOnlySpan<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static ReadOnlySpan<T> F2<T>(T x, T y) => [x, y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.ReadOnlySpan<T>").WithLocation(5, 47));
         }
@@ -9955,7 +9955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!useScoped)
             {
                 comp.VerifyEmitDiagnostics(
-                    // 0.cs(12,60): error CS9202: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                    // 0.cs(12,60): error CS9203: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
                     //     static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y, z]").WithArguments("MyCollection<T>").WithLocation(12, 60));
             }
@@ -10380,13 +10380,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 0.cs(12,9): error CS8350: This combination of arguments to 'R1.M(ReadOnlySpan<int?>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         r1.M([3]);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.M([3])").WithArguments("R1.M(System.ReadOnlySpan<int?>)", "s").WithLocation(12, 9),
-                // 0.cs(12,14): error CS9202: A collection expression of type 'ReadOnlySpan<int?>' cannot be used in this context because it may be exposed outside of the current scope.
+                // 0.cs(12,14): error CS9203: A collection expression of type 'ReadOnlySpan<int?>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         r1.M([3]);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[3]").WithArguments("System.ReadOnlySpan<int?>").WithLocation(12, 14),
                 // 0.cs(13,9): error CS8350: This combination of arguments to 'R1.this[ReadOnlySpan<int?>]' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         r1[[4]] = null;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "r1[[4]]").WithArguments("R1.this[System.ReadOnlySpan<int?>]", "s").WithLocation(13, 9),
-                // 0.cs(13,12): error CS9202: A collection expression of type 'ReadOnlySpan<int?>' cannot be used in this context because it may be exposed outside of the current scope.
+                // 0.cs(13,12): error CS9203: A collection expression of type 'ReadOnlySpan<int?>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         r1[[4]] = null;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[4]").WithArguments("System.ReadOnlySpan<int?>").WithLocation(13, 12));
         }
@@ -10774,7 +10774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return s2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(12, 16),
-                // (17,14): error CS9202: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (17,14): error CS9203: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         s3 = [3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[3]").WithArguments($"System.{spanType}").WithLocation(17, 14));
         }
@@ -10978,7 +10978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (11,15): error CS9202: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (11,15): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         r.F = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1]").WithArguments("System.ReadOnlySpan<object>").WithLocation(11, 15));
         }
@@ -11049,7 +11049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (4,37): error CS9202: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (4,37): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     public ReadOnlySpan<object> F = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("System.ReadOnlySpan<object>").WithLocation(4, 37));
         }
@@ -11247,7 +11247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
-                // (9,13): error CS9202: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (9,13): error CS9203: A collection expression of type 'Span<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         r = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1]").WithArguments("System.Span<object>").WithLocation(9, 13));
         }
@@ -11279,7 +11279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS9202: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
+                // (9,17): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 //             x = [2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[2]").WithArguments("System.ReadOnlySpan<object>").WithLocation(9, 17),
                 // (14,17): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope

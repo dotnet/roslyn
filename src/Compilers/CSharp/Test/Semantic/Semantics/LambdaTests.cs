@@ -7096,16 +7096,16 @@ public class DisplayAttribute : System.Attribute
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,27): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,27): error CS9058: Feature 'lambda optional parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lam1 = (int x = 7) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "=").WithArguments("lambda optional parameters", "12.0").WithLocation(5, 27));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp12)]
         public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
         {
             var source = """
@@ -8215,16 +8215,16 @@ class Program
                 """;
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'lambda params array' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS9058: Feature 'lambda params array' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // var lam = (params int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "params").WithArguments("lambda params array", "12.0").WithLocation(1, 12));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp12)]
         public void ParamsArray_Langversion_DelegateSyntax(LanguageVersion languageVersion)
         {
             var source = """

@@ -88,10 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyArgumentList([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
-            return node.IsKind(SyntaxKind.ArgumentList) ||
-                   node.IsKind(SyntaxKind.AttributeArgumentList) ||
-                   node.IsKind(SyntaxKind.BracketedArgumentList) ||
-                   node.IsKind(SyntaxKind.TypeArgumentList);
+            return node?.Kind()
+                is SyntaxKind.ArgumentList
+                or SyntaxKind.AttributeArgumentList
+                or SyntaxKind.BracketedArgumentList
+                or SyntaxKind.TypeArgumentList;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode? node)
@@ -311,11 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAnyLambda([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return
-                node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) ||
-                node.IsKind(SyntaxKind.SimpleLambdaExpression);
-        }
+            => node?.Kind() is SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression;
 
         public static bool IsAnyLambdaOrAnonymousMethod([NotNullWhen(returnValue: true)] this SyntaxNode? node)
             => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
