@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk),
                 AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream),
                 AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path),
-                _ => throw new Exception()
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             try
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(),
                 AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path),
-                _ => throw new Exception()
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             try

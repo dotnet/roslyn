@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis
 #if NETCOREAPP
 
         internal DefaultAnalyzerAssemblyLoader()
-            : this(null)
         {
         }
 

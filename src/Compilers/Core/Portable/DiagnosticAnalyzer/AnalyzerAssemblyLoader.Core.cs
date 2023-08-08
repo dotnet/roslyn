@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     internal enum AnalyzerLoadOption
     {
         /// <summary>
-        /// Once the assembly path is chosen load it directly from disk at that location
+        /// Once the assembly path is chosen, load it directly from disk at that location
         /// </summary>
         LoadFromDisk,
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// Once the assembly path is chosen, read the contents of disk and load from memory
         /// </summary>
         /// <remarks>
-        /// While Windows supports this option it comes with a significant performance penalty do 
+        /// While Windows supports this option it comes with a significant performance penalty due
         /// to anti virus scans. It can have a load time of 300-500ms while loading from disk 
         /// is generally 1-2ms. Use this with caution on Windows.
         /// </remarks>
