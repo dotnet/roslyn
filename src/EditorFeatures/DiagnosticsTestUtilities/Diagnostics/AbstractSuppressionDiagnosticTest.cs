@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+            var result = await GetDocumentAndSelectSpanOrAnnotatedSpanAsync(workspace);
+            var document = result.Document;
+            var span = result.Span;
+            var annotation = result.Annotation;
 
             var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))

@@ -158,11 +158,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+            var result = await GetDocumentAndSelectSpanOrAnnotatedSpanAsync(workspace);
 
             var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
-            var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
+            var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : result.Span;
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(result.Document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             if (fixer == null)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, fixer, testDriver, document, span, annotation, parameters.index);
+                dxs, fixer, testDriver, result.Document, result.Span, result.Annotation, parameters.index);
 
             // If we are also testing non-fixable diagnostics,
             // then the result diagnostics need to include all diagnostics,

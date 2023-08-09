@@ -47,8 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             AddAnalyzersToWorkspace(workspace);
-
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+            
+            var result = await GetDocumentAndSelectSpanOrAnnotatedSpanAsync(workspace);
+            var document = result.Document;
+            var span = result.Span;
+            var annotation = result.Annotation;
 
             // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
             var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true, parameters.includeNonLocalDocumentDiagnostics);

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             parameters ??= TestParameters.Default;
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+            var result = await GetDocumentAndSelectSpanOrAnnotatedSpanAsync(workspace);
 
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
 
-            var fixAllScope = GetFixAllScope(annotation);
+            var fixAllScope = GetFixAllScope(result.Annotation);
 
             if (fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
-                document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
+                result.Document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
             {
                 var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
-                    document, span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);
+                    result.Document, result.Span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (documentsAndSpansToFix.IsEmpty)
                 {
                     return (ImmutableArray<CodeAction>.Empty, null);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return (actions, actionToInvoke);
 
             var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-                refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
+                refactoring.Provider, refactoring.CodeActionOptionsProvider, result.Document, result.Span, fixAllScope.Value).ConfigureAwait(false);
             if (fixAllCodeAction == null)
                 return (ImmutableArray<CodeAction>.Empty, null);
 
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
-            return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
+            var result = await GetDocumentAndSelectSpanOrAnnotatedSpanAsync(workspace);
+            return await GetCodeRefactoringAsync(result.Document, result.Span, workspace, parameters).ConfigureAwait(false);
         }
 
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
