@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
         /// </summary>
         /// <returns>True if should bother to proceed with copying.</returns>
-        private protected bool ValidateCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
+        private protected void ValidateCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination is null)
                 throw new ArgumentNullException(nameof(destination));
@@ -468,8 +468,6 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (count < 0 || count > Length - sourceIndex || count > destination.Length - destinationIndex)
                 throw new ArgumentOutOfRangeException(nameof(count));
-
-            return count > 0;
         }
 
         /// <summary>
@@ -493,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private protected bool ValidateSubSpan(TextSpan span)
+        private protected void ValidateSubSpan(TextSpan span)
         {
             Debug.Assert(0 <= span.Start && span.Start <= span.End);
 
@@ -501,8 +499,6 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
             }
-
-            return span.Length > 0;
         }
 
         /// <summary>
@@ -510,11 +506,14 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public virtual SourceText GetSubText(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
+            ValidateSubSpan(span);
+
+            int spanLength = span.Length;
+            if (spanLength == 0)
             {
                 return SourceText.From(string.Empty, this.Encoding, this.ChecksumAlgorithm);
             }
-            else if (span.Length == this.Length && span.Start == 0)
+            else if (spanLength == this.Length && span.Start == 0)
             {
                 return this;
             }
@@ -544,12 +543,12 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private protected bool ValidateWriteArguments(TextWriter writer, TextSpan span)
+        private protected void ValidateWriteArguments(TextWriter writer, TextSpan span)
         {
             if (writer is null)
                 throw new ArgumentNullException(nameof(writer));
 
-            return ValidateSubSpan(span);
+            ValidateSubSpan(span);
         }
 
         /// <summary>
@@ -565,7 +564,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public virtual void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            if (!ValidateWriteArguments(writer, span))
+            ValidateWriteArguments(writer, span);
+
+            if (span.Length == 0)
                 return;
 
             var buffer = s_charArrayPool.Allocate();
@@ -638,7 +639,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public virtual string ToString(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
+            ValidateSubSpan(span);
+
+            if (span.Length == 0)
                 return string.Empty;
 
             // default implementation constructs text using CopyTo

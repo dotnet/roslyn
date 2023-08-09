@@ -75,8 +75,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override SourceText GetSubText(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
+            ValidateSubSpan(span);
+
+            if (span.Length == 0)
                 return From(string.Empty, Encoding, ChecksumAlgorithm);
+
+            if (span.Start == 0 && span.Length == Length)
+                return this;
 
             var sourceIndex = span.Start;
             var count = span.Length;
@@ -118,7 +123,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
+            if (count == 0)
                 return;
 
             int segIndex;

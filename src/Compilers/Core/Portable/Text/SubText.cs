@@ -65,24 +65,27 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override string ToString(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
-                return string.Empty;
+            ValidateSubSpan(span);
 
             return UnderlyingText.ToString(GetCompositeSpan(span.Start, span.Length));
         }
 
         public override SourceText GetSubText(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
+            ValidateSubSpan(span);
+
+            if (span.Length == 0)
                 return From(string.Empty, Encoding, ChecksumAlgorithm);
+
+            if (span.Start == 0 && span.Length == Length)
+                return this;
 
             return new SubText(UnderlyingText, GetCompositeSpan(span.Start, span.Length));
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
-                return;
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
 
             var span = GetCompositeSpan(sourceIndex, count);
             UnderlyingText.CopyTo(span.Start, destination, destinationIndex, span.Length);

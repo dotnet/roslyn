@@ -154,7 +154,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
+            if (count == 0)
                 return;
 
             int chunkIndex = GetIndexFromPosition(sourceIndex);
@@ -178,7 +180,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
-            if (!ValidateWriteArguments(writer, span))
+            ValidateWriteArguments(writer, span);
+
+            if (span.Length == 0)
                 return;
 
             var chunkWriter = writer as LargeTextWriter;

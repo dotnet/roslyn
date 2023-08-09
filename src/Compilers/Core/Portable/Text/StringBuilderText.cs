@@ -76,16 +76,14 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
-            if (!ValidateSubSpan(span))
-                return string.Empty;
+            ValidateSubSpan(span);
 
             return _builder.ToString(span.Start, span.Length);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count))
-                return;
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
 
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
