@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -37,7 +35,7 @@ public class UseCollectionExpressionForStackAllocTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp11,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -58,6 +56,59 @@ public class UseCollectionExpressionForStackAllocTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInCSharp12_Net70()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInCSharp12_Net70_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> x = [|[|stackalloc|][]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
@@ -89,8 +140,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -121,8 +172,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -153,8 +204,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -185,8 +236,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -206,8 +257,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -227,8 +278,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -248,8 +299,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -269,8 +320,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -303,8 +354,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -324,8 +375,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -345,8 +396,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -366,8 +417,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -387,8 +438,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -423,8 +474,8 @@ public class UseCollectionExpressionForStackAllocTests
                     void Goo(ReadOnlySpan<int> span) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -459,8 +510,8 @@ public class UseCollectionExpressionForStackAllocTests
                     void Goo(ReadOnlySpan<int> span) { }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -491,8 +542,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -523,8 +574,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -544,8 +595,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -576,8 +627,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -597,8 +648,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -619,8 +670,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -643,8 +694,8 @@ public class UseCollectionExpressionForStackAllocTests
                     Span<int> Goo(Span<int> input) => default;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -665,8 +716,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -687,8 +738,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -711,8 +762,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -735,8 +786,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -757,8 +808,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -779,8 +830,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -802,8 +853,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -835,8 +886,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -870,8 +921,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -904,8 +955,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -940,8 +991,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -963,8 +1014,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -987,8 +1038,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1013,8 +1064,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1053,8 +1104,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1093,8 +1144,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1131,8 +1182,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1171,8 +1222,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1207,8 +1258,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1245,8 +1296,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1283,8 +1334,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1323,8 +1374,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1359,8 +1410,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1397,8 +1448,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1435,8 +1486,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1477,8 +1528,8 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }
