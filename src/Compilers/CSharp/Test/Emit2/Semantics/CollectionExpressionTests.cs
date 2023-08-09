@@ -5361,6 +5361,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ArrayEmpty_MissingMethod()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [];
+                        IEnumerable<int> y = [];
+                        x.Report();
+                        y.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[], [], ");
+            verifier.VerifyIL("Program.Main",
+                """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //y
+                  IL_0000:  call       "int[] System.Array.Empty<int>()"
+                  IL_0005:  call       "int[] System.Array.Empty<int>()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldc.i4.0
+                  IL_000c:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0018:  ret
+                }
+                """);
+
+            comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Array__Empty);
+            verifier = CompileAndVerify(comp, expectedOutput: "[], [], ");
+            verifier.VerifyIL("Program.Main",
+                """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  3
+                  .locals init (int[] V_0) //x
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "int"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  newarr     "int"
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void Nullable_01()
         {
             string source = """

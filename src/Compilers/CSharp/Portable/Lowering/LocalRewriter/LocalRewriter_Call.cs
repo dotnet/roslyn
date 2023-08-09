@@ -1490,6 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return arrayEmpty;
             }
+            // new T[0]
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(
@@ -1511,28 +1512,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
-            if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+            if (arrayEmpty is null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
             {
-                _diagnostics.ReportUseSite(arrayEmpty, syntax);
-                // return an invocation of "Array.Empty<T>()"
-                arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
-                return new BoundCall(
-                    syntax,
-                    null,
-                    arrayEmpty,
-                    ImmutableArray<BoundExpression>.Empty,
-                    default(ImmutableArray<string>),
-                    default(ImmutableArray<RefKind>),
-                    isDelegateCall: false,
-                    expanded: false,
-                    invokedAsExtensionMethod: false,
-                    argsToParamsOpt: default(ImmutableArray<int>),
-                    defaultArguments: default(BitVector),
-                    resultKind: LookupResultKind.Viable,
-                    type: arrayEmpty.ReturnType);
+                return null;
             }
 
-            return null;
+            _diagnostics.ReportUseSite(arrayEmpty, syntax);
+            // return an invocation of "Array.Empty<T>()"
+            arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
+            return new BoundCall(
+                syntax,
+                null,
+                arrayEmpty,
+                ImmutableArray<BoundExpression>.Empty,
+                default(ImmutableArray<string>),
+                default(ImmutableArray<RefKind>),
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
+                resultKind: LookupResultKind.Viable,
+                type: arrayEmpty.ReturnType);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
