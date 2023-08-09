@@ -89,18 +89,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var matches = analyzer.Analyze(
                 semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-            if (!matches.IsDefault)
-            {
-                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                Contract.ThrowIfNull(statement);
+            if (matches.IsDefault)
+                return;
 
-                var newStatement = await GetNewStatementAsync(
-                    document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+            Contract.ThrowIfNull(statement);
 
-                editor.ReplaceNode(statement, newStatement);
-                foreach (var match in matches)
-                    editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-            }
+            var newStatement = await GetNewStatementAsync(
+                document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+
+            editor.ReplaceNode(statement, newStatement);
+            foreach (var match in matches)
+                editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
         }
     }
 }
