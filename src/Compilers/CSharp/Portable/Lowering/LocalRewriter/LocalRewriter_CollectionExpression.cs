@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -66,6 +67,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(
                     collectionTypeKind == CollectionExpressionTypeKind.Span ? WellKnownType.System_Span_T : WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(elementType.Equals(spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0], TypeCompareKind.AllIgnoreOptions));
+
+                if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
+                    ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
+                {
+                    var conversionMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array)).AsMember(spanType);
+                    return new BoundReadOnlySpanFromArray(
+                        syntax,
+                        _factory.Array(elementType.Type, elements),
+                        conversionMethod,
+                        spanType);
+                }
 
                 if (ShouldUseInlineArray(node) &&
                     _additionalLocals is { })
@@ -236,8 +248,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: constructMethod.ReturnType);
         }
 
+        internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpression node, TypeSymbol elementType)
+        {
+            Debug.Assert(node.CollectionTypeKind is
+                CollectionExpressionTypeKind.ReadOnlySpan or
+                CollectionExpressionTypeKind.CollectionBuilder);
+
+            var elements = node.Elements;
+            return elements.Length > 0 &&
+                CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType) &&
+                !elements.Any(i => i is BoundCollectionExpressionSpreadElement) &&
+                elements.All(e => e.ConstantValueOpt is { });
+        }
+
         private bool ShouldUseInlineArray(BoundCollectionExpression node)
         {
+            Debug.Assert(node.CollectionTypeKind is
+                CollectionExpressionTypeKind.ReadOnlySpan or
+                CollectionExpressionTypeKind.Span or
+                CollectionExpressionTypeKind.CollectionBuilder);
+
             var elements = node.Elements;
             return elements.Length > 0 &&
                 !elements.Any(i => i is BoundCollectionExpressionSpreadElement) &&

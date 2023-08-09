@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>Gets whether the element type of an array is appropriate for storing in a blob.</summary>
-        private static bool IsTypeAllowedInBlobWrapper(SpecialType type) => type is
+        internal static bool IsTypeAllowedInBlobWrapper(SpecialType type) => type is
             // 1 byte
             // For primitives that are a single byte in size, a span can point directly to a blob
             // containing the constant data.
