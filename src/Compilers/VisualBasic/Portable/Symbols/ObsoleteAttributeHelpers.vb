@@ -72,20 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
-            Dim kind As SymbolKind = symbol.Kind
-
-            If kind <> SymbolKind.NamedType AndAlso
-                kind <> SymbolKind.Method AndAlso
-                kind <> SymbolKind.Event AndAlso
-                kind <> SymbolKind.Field AndAlso
-                kind <> SymbolKind.Property Then
-
-                Return ObsoleteDiagnosticKind.NotObsolete
-            End If
-
-            Debug.Assert(symbol.ContainingModule IsNot Nothing)
-            Debug.Assert(symbol.ContainingAssembly IsNot Nothing)
-
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
                     Dim moduleObsoleteKind As ObsoleteAttributeKind? = symbol.ContainingModule?.ObsoleteKind
