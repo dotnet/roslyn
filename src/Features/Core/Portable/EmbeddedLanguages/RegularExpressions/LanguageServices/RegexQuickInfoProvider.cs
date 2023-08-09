@@ -27,11 +27,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 {
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
                     {
-                        new TaggedText(TextTags.Punctuation, ""),
-                        new TaggedText(TextTags.Space, " "),
-                        new TaggedText(TextTags.Text,"Click"),
-                        new TaggedText(TextTags.Text, " Here", TaggedTextStyle.None, "https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference", "https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference"),
-                        new TaggedText(TextTags.Text, " to access the Regex Documentation page.")
+                        new TaggedText(TextTags.Space, ""),
+                        new TaggedText(TextTags.Text,"This is a Regular Expression."),
+                        new TaggedText(TextTags.LineBreak, " "),
+                        new TaggedText(TextTags.Text,FeaturesResources.View_regular_expression_Documentation ,TaggedTextStyle.None, "https://aka.ms/RegexQuickRef","https://aka.ms/RegexQuickRef"),
                     }.ToImmutableArray())
                 }.ToImmutableArray());
             return item;

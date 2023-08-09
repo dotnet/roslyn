@@ -3186,4 +3186,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Run_Test" xml:space="preserve">
     <value>Run Test</value>
   </data>
+  <data name="View_regular_expression_Documentation" xml:space="preserve">
+    <value>View Regular Expression Documentation</value>
+    <comment>This supports QuickInfo in aiding the user with a Regular Expression resource page.</comment>
+  </data>
 </root>

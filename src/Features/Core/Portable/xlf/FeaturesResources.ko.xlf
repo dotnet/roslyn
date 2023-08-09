@@ -2925,6 +2925,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">값이 필요함</target>
         <note />
       </trans-unit>
+      <trans-unit id="View_regular_expression_Documentation">
+        <source>"View Regular Expression Documentation"</source>
+        <target state="new">"View Regular Expression Documentation"</target>
+        <note>This supports QuickInfo in aiding the user with a Regular Expression resource page.</note>
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">경고: 네임스페이스를 변경하면 잘못된 코드가 발생하고 코드 의미가 변경될 수 있습니다.</target>
