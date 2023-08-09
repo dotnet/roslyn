@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7375,6 +7376,52 @@ System.Console.WriteLine(typeof(G).FullName);
             var c = comp.GetTypeByMetadataName("C");
             Assert.Null(c.GetUseSiteDiagnostic());
             Assert.True(c.ContainingModule.HasUnifiedReferences);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_01()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_02()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> where T : new() { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0310: 'N' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ISetup<T>'
+                // interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Base").WithArguments("ISetup<T>", "T", "N").WithLocation(5, 11)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
     }
 }

@@ -302,6 +302,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
+        public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
+            => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
+
         public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
             => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 

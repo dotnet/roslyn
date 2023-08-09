@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForArrayCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForArray
+public class UseCollectionExpressionForArrayTests
 {
     [Fact]
     public async Task TestNotInCSharp11()
