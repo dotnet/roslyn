@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Expression Visitors
 
-        private new BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        public override BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
         {
             var statements = VisitList(node.Statements);
             BoundSpillSequenceBuilder valueBuilder = null;
@@ -738,74 +738,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             var statements = VisitList(node.Statements);
             Debug.Assert(statements == node.Statements);
 
-            int firstSpill = -1;
-            BoundSpillSequenceBuilder firstSpillNode = null;
-
-            var switchArms = node.SwitchArms;
-            for (int i = 0; i < switchArms.Length; i++)
+            var switchArms = ImmutableArray<BoundNode>.CastUp(node.SwitchArms);
+            var rewrittenArms = VisitList(switchArms);
+            if (rewrittenArms == switchArms)
             {
-                var switchArm = switchArms[i];
-                var rewrittenNode = VisitLoweredSwitchExpressionArm(switchArm);
-                if (rewrittenNode.Kind == SpillSequenceBuilderKind)
-                {
-                    firstSpill = i;
-                    firstSpillNode = (BoundSpillSequenceBuilder)rewrittenNode;
-                    break;
-                }
-
-                Debug.Assert(rewrittenNode == switchArm);
+                return node;
             }
 
-            if (firstSpillNode is null)
-            {
-                return node.Update(statements, switchArms, node.Type);
-            }
+            Debug.Assert(rewrittenArms.Length == switchArms.Length);
+            int count = rewrittenArms.Length;
 
             _F.Syntax = node.Syntax;
             var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
             var switchBuilder = new BoundSpillSequenceBuilder(node.Syntax);
-            var rewrittenArms = ArrayBuilder<BoundLoweredSwitchExpressionArm>.GetInstance(switchArms.Length);
+            var switchArmsBuilder = ArrayBuilder<BoundLoweredSwitchExpressionArm>.GetInstance(count);
 
-            for (int i = 0; i < firstSpill; i++)
+            for (int i = 0; i < count; i++)
             {
-                rewrittenArms.Add(makeAssignment(switchArms[i]));
-            }
-
-            rewrittenArms.Add(makeAssignmentAndFree(switchArms[firstSpill], firstSpillNode));
-
-            for (int i = firstSpill + 1; i < switchArms.Length; i++)
-            {
-                var switchArm = switchArms[i];
-                var rewrittenNode = VisitLoweredSwitchExpressionArm(switchArm);
-                rewrittenArms.Add(rewrittenNode switch
+                switch (rewrittenArms[i])
                 {
-                    BoundLoweredSwitchExpressionArm rewrittenArm => makeAssignment(rewrittenArm),
-                    BoundSpillSequenceBuilder newBuilder => makeAssignmentAndFree(switchArm, newBuilder),
-                    _ => throw ExceptionUtilities.Unreachable()
-                });
+                    case BoundLoweredSwitchExpressionArm visitedArm:
+                        switchArmsBuilder.Add(visitedArm.Update(
+                            visitedArm.Locals, visitedArm.Statements,
+                            _F.AssignmentExpression(_F.Local(tmp), visitedArm.Value)));
+                        break;
+
+                    case BoundSpillSequenceBuilder newBuilder:
+                        var switchArm = node.SwitchArms[i];
+                        switchBuilder.AddLocals(newBuilder.GetLocals());
+                        switchArmsBuilder.Add(switchArm.Update(
+                            switchArm.Locals, newBuilder.GetStatements(),
+                            _F.AssignmentExpression(_F.Local(tmp), newBuilder.Value)));
+                        newBuilder.Free();
+                        break;
+
+                    case var v:
+                        throw ExceptionUtilities.UnexpectedValue(v);
+                }
             }
 
-            var newNode = node.Update(statements, rewrittenArms.ToImmutableAndFree(), node.Type);
+            var newNode = node.Update(statements, switchArmsBuilder.ToImmutableAndFree(), node.Type);
             switchBuilder.AddStatement(_F.ExpressionStatement(newNode));
             switchBuilder.AddLocal(tmp);
             return switchBuilder.Update(_F.Local(tmp));
-
-            BoundLoweredSwitchExpressionArm makeAssignmentAndFree(BoundLoweredSwitchExpressionArm switchArm, BoundSpillSequenceBuilder newBuilder)
-            {
-                switchBuilder.AddLocals(newBuilder.GetLocals());
-                var result = switchArm.Update(
-                    switchArm.Locals, newBuilder.GetStatements(),
-                    _F.AssignmentExpression(_F.Local(tmp), newBuilder.Value));
-                newBuilder.Free();
-                return result;
-            }
-
-            BoundLoweredSwitchExpressionArm makeAssignment(BoundLoweredSwitchExpressionArm switchArm)
-            {
-                return switchArm.Update(
-                    switchArm.Locals, switchArm.Statements,
-                    _F.AssignmentExpression(_F.Local(tmp), switchArm.Value));
-            }
         }
 
 #if DEBUG
