@@ -72,16 +72,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
+            If symbol.Kind = SymbolKind.Namespace OrElse
+                symbol.Kind = SymbolKind.ArrayType Then
+
+                Return ObsoleteDiagnosticKind.NotObsolete
+            End If
+
+            Debug.Assert(symbol.ContainingModule IsNot Nothing)
+            Debug.Assert(symbol.ContainingAssembly IsNot Nothing)
+
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
-                    If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
-                       symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
+                    Dim moduleObsoleteKind As ObsoleteAttributeKind? = symbol.ContainingModule?.ObsoleteKind
+                    Dim assemblyObsoleteKind As ObsoleteAttributeKind? = symbol.ContainingAssembly?.ObsoleteKind
+
+                    If moduleObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Experimental OrElse
+                       assemblyObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Experimental Then
 
                         Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
                     End If
 
-                    If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized OrElse
-                       symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
+                    If moduleObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Uninitialized OrElse
+                       assemblyObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Uninitialized Then
 
                         Return ObsoleteDiagnosticKind.Lazy
                     End If
