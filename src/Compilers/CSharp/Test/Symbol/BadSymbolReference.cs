@@ -349,13 +349,13 @@ interface I1<T>
                 // (207,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.w(null);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "y.w(null)").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(207, 9),
-                // (212,20): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (212,26): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_D1 u = (uuu) => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(212, 20),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(212, 26),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-                                             };
+            };
 
             var compilation2 = CreateCompilation(a_cs, new MetadataReference[] { cl3 });
 
@@ -548,9 +548,9 @@ public interface CL3_I1 : CL2_I1
                 // (207,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         y.w(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.w(null)").WithArguments("CL2_C1").WithLocation(207, 9),
-                // (212,20): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                    // (212,26): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_D1 u = (uuu) => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1").WithLocation(212, 20),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "=>").WithArguments("CL2_C1").WithLocation(212, 26),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)

@@ -24,6 +24,17 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     protected override bool IsComplexElementInitializer(SyntaxNode expression)
         => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
 
+    protected override bool HasExistingInvalidInitializerForCollection(BaseObjectCreationExpressionSyntax objectCreation)
+    {
+        // Can't convert to a collection expression if it already has an object-initializer.  Note, we do allow
+        // conversion of empty `{ }` initializer.  So we only block if the expression count is more than zero.
+        return objectCreation.Initializer is InitializerExpressionSyntax
+        {
+            RawKind: (int)SyntaxKind.ObjectInitializerExpression,
+            Expressions.Count: > 0,
+        };
+    }
+
     protected override void GetPartsOfForeachStatement(
         ForEachStatementSyntax statement,
         out SyntaxToken identifier,

@@ -136,12 +136,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
-            if (!option.Value)
-            {
-                // not point in analyzing if the option is off.
+            var preferInitializerOption = context.GetAnalyzerOptions().PreferCollectionInitializer;
+            var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
+
+            // not point in analyzing if both options are off.
+            if (!preferInitializerOption.Value && !preferExpressionOption.Value)
                 return;
-            }
 
             // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
@@ -178,19 +178,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
+            var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
+            var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null));
+                properties));
 
-            FadeOutCode(context, matches, locations);
+            FadeOutCode(context, matches, locations, properties);
 
             return;
 
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
+                if (!preferInitializerOption.Value)
+                    return null;
+
                 var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
@@ -202,8 +207,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionExpressionMatches()
             {
+                if (!preferExpressionOption.Value)
+                    return null;
+
                 // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
-                if (!AreCollectionExpressionsSupported())
+                if (!this.AreCollectionExpressionsSupported(context.Compilation))
+                    return null;
+
+                // TODO: support updating if there is a single 'int capacity' argument provided.
+                var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
+                if (arguments.Count != 0)
                     return null;
 
                 var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
@@ -218,28 +231,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 return (matches, shouldUseCollectionExpression: true);
             }
-
-            bool AreCollectionExpressionsSupported()
-            {
-                if (!this.AreCollectionExpressionsSupported(context.Compilation))
-                    return false;
-
-                var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-                if (!option.Value)
-                    return false;
-
-                var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
-                if (arguments.Count != 0)
-                    return false;
-
-                return true;
-            }
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             ImmutableArray<Match<TStatementSyntax>> matches,
-            ImmutableArray<Location> locations)
+            ImmutableArray<Location> locations,
+            ImmutableDictionary<string, string?>? properties)
         {
             var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
@@ -264,7 +262,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                             additionalUnnecessaryLocations[0],
                             ReportDiagnostic.Default,
                             additionalLocations: locations,
-                            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                            properties));
                     }
                 }
                 else if (match is TForeachStatementSyntax)
@@ -283,7 +282,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         additionalUnnecessaryLocations[0],
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                        properties));
                 }
             }
         }

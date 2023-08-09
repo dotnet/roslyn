@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -2464,7 +2465,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2485,7 +2486,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2506,7 +2507,7 @@ class C
     }
 }";
 
-            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2524,7 +2525,7 @@ interface I1
     abstract static I1 operator checked +(I1 x, I1 y);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2542,7 +2543,7 @@ interface I1
     abstract static I1 operator checked ++(I1 x);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -2560,7 +2561,7 @@ interface I1<T> where T : I1<T>
     abstract static explicit operator checked string(T x);
 }";
 
-            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]

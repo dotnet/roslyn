@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -46,7 +47,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -74,7 +75,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -88,7 +89,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -122,7 +123,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NamespaceQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -170,7 +171,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -202,7 +203,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' This is the expected behavior until we implement support for list-patterns.
                 state.SendTypeChars("CP")
@@ -275,7 +276,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -311,7 +312,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="C3Field", isHardSelected:=False)
@@ -345,7 +346,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
@@ -372,7 +373,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("{ ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -411,7 +412,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' No second completion since already tested at top-level
                 state.SendTypeChars(", ")
@@ -440,7 +441,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -481,7 +482,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertNoCompletionSession()
@@ -522,7 +523,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -561,7 +562,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=False)
@@ -773,7 +774,7 @@ class C
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
@@ -9734,7 +9735,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" [ Co")
                 Await state.AssertSelectedCompletionItem(displayText:="Constant", isHardSelected:=True)
@@ -9782,7 +9783,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
                 Await state.AssertNoCompletionSession()
@@ -9819,7 +9820,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".. va")
                 Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
@@ -9850,7 +9851,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
                 Await state.AssertNoCompletionSession()
@@ -9879,7 +9880,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9898,7 +9899,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9917,7 +9918,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9938,7 +9939,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9959,7 +9960,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9979,7 +9980,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9999,7 +10000,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10019,7 +10020,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10039,7 +10040,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10060,7 +10061,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10080,7 +10081,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10100,7 +10101,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10120,7 +10121,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10140,7 +10141,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10161,7 +10162,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10184,7 +10185,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10207,7 +10208,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10230,7 +10231,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -11265,7 +11266,7 @@ class Program
     static bool TryParse(string s, out Program p) { }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("P")
                 Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
@@ -11291,7 +11292,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
@@ -11322,7 +11323,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11354,7 +11355,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11386,7 +11387,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
@@ -11418,7 +11419,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11450,7 +11451,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
@@ -11482,7 +11483,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11514,7 +11515,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsDoNotContainAny("first", "second")
@@ -11543,7 +11544,7 @@ public class C1
 }
 ]]>
                 </Document>,
-                languageVersion:=LanguageVersion.Preview)
+                languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property0", "Field0", "Event0")
@@ -11573,7 +11574,7 @@ public class C1
 }
 ]]>
                 </Document>,
-                languageVersion:=LanguageVersion.Preview)
+                languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")

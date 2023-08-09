@@ -11295,17 +11295,15 @@ scoped readonly ref struct C { }
                 );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void TypeScopeModifier_02(LanguageVersion langVersion)
+        [Fact]
+        public void TypeScopeModifier_02_CSharp10()
         {
             var source =
 @"scoped record A { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
             comp.VerifyDiagnostics(
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
@@ -11337,9 +11335,55 @@ readonly scoped record struct C();
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 32)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
+                );
+        }
+
+        [Fact]
+        public void TypeScopeModifier_02_CSharp11()
+        {
+            var source =
+@"scoped record A { }
+scoped readonly record struct B;
+readonly scoped record struct C();
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0118: 'record' is a variable but is used like a type
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
+                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
+                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
+                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
+                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
+                // (3,17): warning CS0168: The variable 'record' is declared but never used
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
+                // (3,24): error CS1002: ; expected
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
+                // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
                 );
         }
 
@@ -16146,8 +16190,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D1' because it has one or more out parameters
                 //         D1 d1 = delegate { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D1").WithLocation(13, 17));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -16180,10 +16223,9 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
+                // (12,20): error CS1593: Delegate 'D1' does not take 0 arguments
                 //         D1 d1 = () => new R();
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "0").WithLocation(12, 20));
         }
 
         [Fact]
@@ -16208,13 +16250,12 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                // (12,19): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d1 = r => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
-                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(12, 19),
+                // (13,30): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d2 = (scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(13, 30));
         }
 
         [Fact]

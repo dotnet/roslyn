@@ -7528,13 +7528,12 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
+                // (9,14): error CS0123: No overload for 'goo' matches delegate 'EventHandler'
                 //         y += goo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler"),
-                // (10,14): error CS1593: Delegate 'System.EventHandler' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler").WithLocation(9, 14),
+                // (10,16): error CS1593: Delegate 'EventHandler' does not take 1 arguments
                 //         y += x => 2;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x => 2").WithArguments("System.EventHandler", "1")
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.EventHandler", "1").WithLocation(10, 16));
         }
 
         [Fact]
@@ -9462,9 +9461,9 @@ public static class Program
 }";
 
             CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (11,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (11,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(11, 20));
 
             var expectedDiagnostics = new[]
             {
@@ -9473,7 +9472,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 20)
             };
 
-            CompileAndVerify(code, expectedOutput: "5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(code, expectedOutput: "5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             var verifier = CompileAndVerify(code, expectedOutput: "5").VerifyDiagnostics(expectedDiagnostics);
 
             verifier.VerifyIL("Program.Main", """
@@ -9516,7 +9515,7 @@ public static class Program
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9545,7 +9544,7 @@ public static class Program
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9584,9 +9583,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         c.M(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(7, 17));
 
             var expectedDiagnostics = new[]
             {
@@ -9595,7 +9594,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17)
             };
 
-            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9616,9 +9615,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,19): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (8,19): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         new C(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 19));
 
             var expectedDiagnostics = new[]
             {
@@ -9627,7 +9626,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 19)
             };
 
-            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9655,9 +9654,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (15,25): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (15,25): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         _ = new C()[ref x];
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(15, 25));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(15, 25));
 
             var expectedDiagnostics = new[]
             {
@@ -9666,7 +9665,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(15, 25)
             };
 
-            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9688,9 +9687,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (9,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (9,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         f(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(9, 15));
 
             var expectedDiagnostics = new[]
             {
@@ -9700,7 +9699,7 @@ public static class Program
             };
 
             CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
-                parseOptions: TestOptions.RegularNext, verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
+                parseOptions: TestOptions.Regular12, verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
 
             CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
@@ -9723,9 +9722,9 @@ public static class Program
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (8,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         M(ref x, __arglist(x));
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(8, 15));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 15));
 
             var expectedDiagnostics = new[]
             {
@@ -9734,7 +9733,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15)
             };
 
-            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9785,7 +9784,7 @@ public static class Program
                 }
                 """;
             CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
         }
 
@@ -9805,7 +9804,7 @@ public static class Program
                 }
                 """;
             CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
         }
 
@@ -9836,7 +9835,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 58)
             };
 
-            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9867,7 +9866,7 @@ public static class Program
                 Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
             };
 
-            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -9938,9 +9937,9 @@ public static class Program
                 // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
-                // (12,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (12,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(12, 20),
                 // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
                 //         Method(in x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
@@ -9964,7 +9963,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 

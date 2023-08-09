@@ -1312,6 +1312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override Func<SyntaxNode, bool> IsLambda
             => LambdaUtilities.IsLambda;
 
+        internal override Func<SyntaxNode, bool> IsNotLambda
+            => LambdaUtilities.IsNotLambda;
+
         internal override bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
@@ -2322,27 +2325,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody)
+        internal override bool HasUnsupportedOperation(IEnumerable<SyntaxNode> nodes, [NotNullWhen(true)] out SyntaxNode? unsupportedNode, out RudeEditKind rudeEdit)
         {
             // Disallow editing the body even if the change is only in trivia.
             // The compiler might emit extra temp local variables, which would change stack layout and cause the CLR to fail.
 
-            foreach (var root in newBody.RootNodes)
+            foreach (var node in nodes)
             {
-                foreach (var node in root.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
                 {
-                    if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
-                    {
-                        diagnostics.Add(new RudeEditDiagnostic(
-                            RudeEditKind.StackAllocUpdate,
-                            GetDiagnosticSpan(node, EditKind.Update),
-                            newDeclaration,
-                            arguments: new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
-
-                        return;
-                    }
+                    unsupportedNode = node;
+                    rudeEdit = RudeEditKind.StackAllocUpdate;
+                    return true;
                 }
             }
+
+            unsupportedNode = null;
+            rudeEdit = RudeEditKind.None;
+            return false;
         }
 
         #endregion
@@ -2929,7 +2929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<CommonForEachStatementSyntax>(
                 diagnostics,
                 reverseMap,
-                n => n.IsKind(SyntaxKind.ForEachStatement) || n.IsKind(SyntaxKind.ForEachVariableStatement),
+                n => n.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement,
                 oldActiveStatement,
                 oldEncompassingAncestor,
                 newActiveStatement,
