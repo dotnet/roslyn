@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-namespace Microsoft.CodeAnalysis.UseCollectionExpression;
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 /// <inheritdoc cref="Match{TStatementSyntax}"/>
 internal readonly record struct CollectionExpressionMatch(

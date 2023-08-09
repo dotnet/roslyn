@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
 
@@ -292,5 +294,107 @@ internal static class UseCollectionExpressionHelpers
         //
         // For this we want to remove the 'new' portion, but keep the collection on its own line.
         return false;
+    }
+
+    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches<TArrayCreationExpressionSyntax>(
+        SemanticModel semanticModel,
+        TArrayCreationExpressionSyntax expression,
+        Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
+        Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
+        CancellationToken cancellationToken)
+        where TArrayCreationExpressionSyntax : ExpressionSyntax
+    {
+        Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
+
+        // has to either be `stackalloc X[]` or `stackalloc X[const]`.
+        if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
+            return default;
+
+        using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
+
+        var initializer = getInitializer(expression);
+        if (size is OmittedArraySizeExpressionSyntax)
+        {
+            // `stackalloc int[]` on its own is illegal.  Has to either have a size, or an initializer.
+            if (initializer is null)
+                return default;
+        }
+        else
+        {
+            // if `stackalloc X[val]`, then it `val` has to be a constant value.
+            if (semanticModel.GetConstantValue(size, cancellationToken).Value is not int sizeValue)
+                return default;
+
+            if (initializer != null)
+            {
+                // if there is an initializer, then it has to have the right number of elements.
+                if (sizeValue != initializer.Expressions.Count)
+                    return default;
+            }
+            else
+            {
+                // if there is no initializer, we have to be followed by direct statements that initialize the right
+                // number of elements.
+
+                // This needs to be local variable like `ReadOnlySpan<T> x = stackalloc ...
+                if (expression.WalkUpParentheses().Parent is not EqualsValueClauseSyntax
+                    {
+                        Parent: VariableDeclaratorSyntax
+                        {
+                            Identifier.ValueText: var variableName,
+                            Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
+                        },
+                    })
+                {
+                    return default;
+                }
+
+                var currentStatement = localDeclarationStatement.GetNextStatement();
+                for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
+                {
+                    // Each following statement needs to of the form:
+                    //
+                    //   x[...] =
+                    if (currentStatement is not ExpressionStatementSyntax
+                        {
+                            Expression: AssignmentExpressionSyntax
+                            {
+                                Left: ElementAccessExpressionSyntax
+                                {
+                                    Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
+                                    ArgumentList.Arguments: [var elementArgument],
+                                } elementAccess,
+                            }
+                        } expressionStatement)
+                    {
+                        return default;
+                    }
+
+                    // Ensure we're indexing into the variable created.
+                    if (variableName != elementName)
+                        return default;
+
+                    // The indexing value has to equal the corresponding location in the result.
+                    if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
+                        indexValue != currentIndex)
+                    {
+                        return default;
+                    }
+
+                    // this looks like a good statement, add to the right size of the assignment to track as that's what
+                    // we'll want to put in the final collection expression.
+                    matches.Add(new(expressionStatement, UseSpread: false));
+                    currentStatement = currentStatement.GetNextStatement();
+                }
+            }
+        }
+
+        if (!CanReplaceWithCollectionExpression(
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+        {
+            return default;
+        }
+
+        return matches.ToImmutable();
     }
 }
