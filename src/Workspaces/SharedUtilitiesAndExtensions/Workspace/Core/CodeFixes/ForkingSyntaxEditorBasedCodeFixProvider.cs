@@ -18,11 +18,29 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     : SyntaxEditorBasedCodeFixProvider
     where TDiagnosticNode : SyntaxNode
 {
+    private readonly string _title;
+    private readonly string _equivalenceKey;
+
+    protected ForkingSyntaxEditorBasedCodeFixProvider(
+        string title, string equivalenceKey)
+    {
+        _title = title;
+        _equivalenceKey = equivalenceKey;
+    }
+
     protected abstract Task FixAsync(
-        Document document, Diagnostic diagnostic, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Document document, Diagnostic diagnostic, SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions, TDiagnosticNode diagnosticNode,
+        CancellationToken cancellationToken);
 
     protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
+
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, _title, _equivalenceKey);
+        return Task.CompletedTask;
+    }
 
     protected sealed override async Task FixAllAsync(
         Document document,
@@ -63,6 +81,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
                 diagnostic,
                 subEditor,
                 fallbackOptions,
+                diagnosticNode,
                 cancellationToken).ConfigureAwait(false);
 
             var changedRoot = subEditor.GetChangedRoot();
