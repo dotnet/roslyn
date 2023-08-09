@@ -3065,36 +3065,853 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         CompileAndVerify(source, expectedOutput: "c5").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void RefReadonlyParameter_OverloadResolution_04()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_01()
     {
         var source = """
             interface I1 { }
             interface I2 { }
             class C
             {
-                static string M1(I1 o, in int i) => "1" + i;
-                static string M1(I2 o, ref readonly int i) => "2" + i;
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref readonly int i) => " 2" + i;
                 static void Main()
                 {
                     int i = 5;
-                    System.Console.WriteLine(M1(null, ref i));
-                    System.Console.WriteLine(M1(null, in i));
-                    System.Console.WriteLine(M1(null, i));
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
                 }
             }
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
         CreateCompilation(source).VerifyDiagnostics(
-            // (10,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, ref i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(10, 34),
-            // (11,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, in i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(11, 34),
-            // (12,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(12, 34));
+            // (10,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(10, 30),
+            // (11,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(11, 30),
+            // (12,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(12, 30));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_02()
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, ref int i) => " 1" + i;
+                public static string M1(I2 o, ref readonly int i) => " 2" + i;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, ref i));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+            // 1.cs(2,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, ref int)' and 'C.M1(I2, ref readonly int)'
+            // System.Console.Write(C.M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, ref int)", "C.M1(I2, ref readonly int)").WithLocation(2, 24));
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, in i));
+            System.Console.Write(C.M1(null, i));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "25 25").VerifyDiagnostics(
+            // 1.cs(3,33): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+            // System.Console.Write(C.M1(null, i));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("2").WithLocation(3, 33));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_03()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                static string M1(I1 o, int i) => " 1" + i;
+                static string M1(I2 o, ref readonly int i) => " 2" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "25 25 15").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_04()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            interface I3 { }
+            class C
+            {
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref int i) => " 2" + i;
+                static string M1(I3 o, ref readonly int i) => " 3" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref int)").WithLocation(12, 30),
+            // (13,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I3, ref readonly int)'
+            //         System.Console.Write(M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I3, ref readonly int)").WithLocation(13, 30),
+            // (14,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I3, ref readonly int)'
+            //         System.Console.Write(M1(null, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I3, ref readonly int)").WithLocation(14, 30));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_05()
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            interface I3 { }
+            interface I4 { }
+            class C
+            {
+                public static string M1(I1 o, int i) => " 1" + i;
+                public static string M1(I2 o, in int i) => " 2" + i;
+                public static string M1(I3 o, ref int i) => " 3" + i;
+                public static string M1(I4 o, ref readonly int i) => " 4" + i;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, ref i));
+            System.Console.Write(C.M1(null, in i));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+            // 1.cs(2,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I2, in int)' and 'C.M1(I3, ref int)'
+            // System.Console.Write(C.M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I2, in int)", "C.M1(I3, ref int)").WithLocation(2, 24),
+            // 1.cs(3,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I2, in int)' and 'C.M1(I4, ref readonly int)'
+            // System.Console.Write(C.M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I2, in int)", "C.M1(I4, ref readonly int)").WithLocation(3, 24));
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, i));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "15").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_06()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref int i) => " 2" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "25 15 15", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref int)").WithLocation(10, 30)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_07([CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, in int i, ref int j) => " 1" + i + j;
+                public static string M1(I2 o, ref int i, in int j) => " 2" + i + j;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            int j = 6;
+            System.Console.Write(C.M1(null, ref i, ref j));
+            System.Console.Write(C.M1(null, in i, in j));
+            System.Console.Write(C.M1(null, in i, j));
+            System.Console.Write(C.M1(null, i, in j));
+            System.Console.Write(C.M1(null, i, j));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            languageVersion == LanguageVersion.CSharp11
+                // 1.cs(3,37): error CS9194: Argument 2 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                // System.Console.Write(C.M1(null, ref i, ref j));
+                ? Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("2", "11.0", "12.0").WithLocation(3, 37)
+                // 1.cs(3,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref int)' and 'C.M1(I2, ref int, in int)'
+                // System.Console.Write(C.M1(null, ref i, ref j));
+                : Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref int)", "C.M1(I2, ref int, in int)").WithLocation(3, 24),
+            // 1.cs(4,42): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, in i, in j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(4, 42),
+            // 1.cs(5,39): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, in i, j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(5, 39),
+            // 1.cs(6,39): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, i, in j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(6, 39),
+            // 1.cs(7,36): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, i, j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(7, 36));
+
+        var source3 = """
+            int i = 5;
+            int j = 6;
+            System.Console.Write(C.M1(null, ref i, in j));
+            System.Console.Write(C.M1(null, ref i, j));
+            System.Console.Write(C.M1(null, in i, ref j));
+            System.Console.Write(C.M1(null, i, ref j));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "256 256 156 156", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_08()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, in int i, ref readonly int j) => " 1" + i + j;
+                public static string M1(I2 o, ref readonly int i, in int j) => " 2" + i + j;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(C.M1(null, ref i, ref i));
+                    System.Console.Write(C.M1(null, ref i, in i));
+                    System.Console.Write(C.M1(null, ref i, i));
+                    System.Console.Write(C.M1(null, in i, ref i));
+                    System.Console.Write(C.M1(null, in i, in i));
+                    System.Console.Write(C.M1(null, in i, i));
+                    System.Console.Write(C.M1(null, i, ref i));
+                    System.Console.Write(C.M1(null, i, in i));
+                    System.Console.Write(C.M1(null, i, i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(10, 32),
+            // (11,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(11, 32),
+            // (12,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(12, 32),
+            // (13,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(13, 32),
+            // (14,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(14, 32),
+            // (15,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(15, 32),
+            // (16,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(16, 32),
+            // (17,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(17, 32),
+            // (18,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(18, 32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_09()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                string M1(I1 o, in int i, in int j, in int k) => "1";
+                string M1(I2 o, in int i, in int j, ref int k) => "2";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(null, in i, ref i, ref i));
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (10,57): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "12.0").WithLocation(10, 57),
+            // (10,64): error CS9194: Argument 4 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("4", "11.0", "12.0").WithLocation(10, 64));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,38): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, in int, in int)' and 'C.M1(I2, in int, in int, ref int)'
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, in int, in int)", "C.M1(I2, in int, in int, ref int)").WithLocation(10, 38)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_10()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                string M1(I1 o, in int i, in int j, in int k) => "1";
+                string M1(I2 o, in int i, in int j, in int k) => "2";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(null, in i, ref i, ref i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,38): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, in int, in int)' and 'C.M1(I2, in int, in int, in int)'
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, in int, in int)", "C.M1(I2, in int, in int, in int)").WithLocation(10, 38));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_01()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "ECC", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(7, 45)
+        };
+
+        CompileAndVerify(source, expectedOutput: "CCC", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_02()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, ref int i) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "YCC", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(8, 45)
+        };
+
+        CompileAndVerify(source, expectedOutput: "CCC", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_03()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, ref readonly int i) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, ref int i) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(8, 45));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_04()
+    {
+        var source1 = """
+            class C
+            {
+                public string M1(in int i, ref int j) => "C";
+            }
+            static class E
+            {
+                public static string M1(this C c, ref int i, in int j) => "E";
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(new C().M1(in i, in i));
+            System.Console.Write(new C().M1(in i, i));
+            System.Console.Write(new C().M1(i, in i));
+            System.Console.Write(new C().M1(i, i));
+            """;
+
+        var expectedDiagnostics2 = new[]
+        {
+            // 1.cs(2,42): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(in i, in i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(2, 42),
+            // 1.cs(3,39): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(in i, i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(3, 39),
+            // 1.cs(4,39): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(i, in i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(4, 39),
+            // 1.cs(5,36): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(i, i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(5, 36)
+        };
+
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics2);
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics2);
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(expectedDiagnostics2);
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(new C().M1(ref i, ref i));
+            """;
+
+        CreateCompilation(new[] { source1, source3 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // 1.cs(2,37): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            // System.Console.Write(new C().M1(ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("1", "11.0", "12.0").WithLocation(2, 37));
+
+        var expectedDiagnostics3 = new[]
+        {
+            // 1.cs(2,37): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // System.Console.Write(new C().M1(ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(2, 37)
+        };
+
+        var expectedOutput3 = "C";
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: expectedOutput3, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics3);
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: expectedOutput3).VerifyDiagnostics(expectedDiagnostics3);
+
+        var source4 = """
+            int i = 5;
+            System.Console.Write(new C().M1(ref i, i));
+            System.Console.Write(new C().M1(in i, ref i));
+            System.Console.Write(new C().M1(i, ref i));
+            """;
+
+        var expectedOutput4 = "ECC";
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_05()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, int i) => "E";
+            }
+            """;
+        var expectedOutput = "CC";
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_06()
+    {
+        var source = """
+            class C
+            {
+                string M1(int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, in int i) => "E";
+            }
+            """;
+        var expectedOutput = "EC";
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_07()
+    {
+        var source = """
+            class C
+            {
+                string M1(ref readonly int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref readonly int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,41): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         System.Console.Write(new C().M1(i));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(7, 41));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_08()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref readonly int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_09()
+    {
+        var source = """
+            namespace N1
+            {
+                namespace N2
+                {
+                    class C
+                    {
+                        string M1(in int i) => "C";
+                        static void Main()
+                        {
+                            int i = 5;
+                            System.Console.Write(new C().M1(ref i));
+                            System.Console.Write(new C().M1(in i));
+                            System.Console.Write(new C().M1(i));
+                        }
+                    }
+                    static class X
+                    {
+                        public static string M1(this C c, ref readonly int i) => "X";
+                    }
+                }
+                static class Y
+                {
+                    public static string M1(this N2.C c, int i) => "Y";
+                }
+            }
+            static class Z
+            {
+                public static string M1(this N1.N2.C c, ref int i) => "Z";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(
+            // (11,53): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //                 System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(11, 53));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_10()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, in int i, in int j, ref int k) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(7, 51),
+            // (7,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_11()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i, in int j, ref int k) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, in int i, in int j, in int k) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 51),
+            // (8,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(8, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_12()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i, in int j, in int k) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, in int i, in int j, ref int k) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 51),
+            // (8,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(8, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_13()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, in i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1<T>(this T t, in int i, in int j, ref int k) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,57): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, in i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 57)
+        };
+
+        CompileAndVerify(source, expectedOutput: "C", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_14()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1<T>(this T t, in int i, in int j, in int k) => "E";
+            }
+            """;
+        // Neither method is better than the other, so the first scope wins.
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(7, 51),
+            // (7,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 58));
     }
 
     [Fact]
@@ -5670,8 +6487,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 11));
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_ExplicitDelegateType([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_01([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
     {
         var source = $$"""
             class C
@@ -5695,7 +6512,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(ref readonly int x);
             delegate void D2({{modifier}} int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
         var verifier = CompileAndVerify(source, expectedOutput: "CC");
         if (modifier != "ref readonly")
         {
@@ -5710,8 +6526,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_ExplicitDelegateType_Inverse([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_02([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
     {
         var source = $$"""
             class C
@@ -5735,7 +6551,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1({{modifier}} int x);
             delegate void D2(ref readonly int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
         var verifier = CompileAndVerify(source, expectedOutput: "CC");
         if (modifier != "ref readonly")
         {
@@ -5750,8 +6565,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    [Fact]
-    public void Conversion_ExplicitDelegateType_MultipleArguments()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_03()
     {
         var source = """
             class C
@@ -5775,7 +6590,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(X s, ref readonly int x);
             delegate void D2(X s, ref int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
         CreateCompilation(source).VerifyDiagnostics(
             // (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
             //         D1 m1 = this.M;
@@ -5783,6 +6597,47 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
             //         D2 m2 = this.M;
             Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, ref readonly int)", "C.M(I2, ref int)").WithLocation(8, 17));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_04()
+    {
+        var source = """
+            class C
+            {
+                void M(I1 o, in int x) => System.Console.Write("1");
+                void M(I2 o, ref int x) => System.Console.Write("2");
+                void Run()
+                {
+                    D1 m1 = this.M;
+                    D2 m2 = this.M;
+
+                    var i = 1;
+                    m1(null, in i);
+                    m2(null, ref i);
+                }
+                static void Main() => new C().Run();
+            }
+            interface I1 { }
+            interface I2 { }
+            class X : I1, I2 { }
+            delegate void D1(X s, in int x);
+            delegate void D2(X s, ref int x);
+            """;
+        CompileAndVerify(source, expectedOutput: "12", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, in int)' and 'C.M(I2, ref int)'
+            //         D1 m1 = this.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, in int)", "C.M(I2, ref int)").WithLocation(7, 17),
+            // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, in int)' and 'C.M(I2, ref int)'
+            //         D2 m2 = this.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, in int)", "C.M(I2, ref int)").WithLocation(8, 17)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
