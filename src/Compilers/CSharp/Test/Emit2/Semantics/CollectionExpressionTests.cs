@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "(System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], ");
+                expectedOutput: "(System.Int32[]) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Int32[]) [], (System.Int32[]) [], ");
         }
 
         [Fact]
@@ -2457,11 +2457,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[], [1, 2], [3, 4, 5], [null, 7], ");
             verifier.VerifyIL("Program.Create1", """
                 {
-                  // Code size        7 (0x7)
+                  // Code size        6 (0x6)
                   .maxstack  1
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  newarr     "int"
-                  IL_0006:  ret
+                  IL_0000:  call       "int[] System.Array.Empty<int>()"
+                  IL_0005:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create2", """
@@ -2548,25 +2547,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             verifier.VerifyIL("Program.Create1", """
                 {
-                  // Code size        7 (0x7)
+                  // Code size        6 (0x6)
                   .maxstack  1
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  newarr     "int[]"
-                  IL_0006:  ret
+                  IL_0000:  call       "int[][] System.Array.Empty<int[]>()"
+                  IL_0005:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create2", """
                 {
-                  // Code size       16 (0x10)
+                  // Code size       15 (0xf)
                   .maxstack  4
                   IL_0000:  ldc.i4.1
                   IL_0001:  newarr     "object[]"
                   IL_0006:  dup
                   IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  newarr     "object"
-                  IL_000e:  stelem.ref
-                  IL_000f:  ret
+                  IL_0008:  call       "object[] System.Array.Empty<object>()"
+                  IL_000d:  stelem.ref
+                  IL_000e:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create3", """
@@ -2695,12 +2692,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: IncludeExpectedOutput("[], [1, 2], [3, 4, 5], [null, 7], "));
             verifier.VerifyIL("Program.Create1", $$"""
                 {
-                  // Code size       12 (0xc)
+                  // Code size       11 (0xb)
                   .maxstack  1
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  newarr     "int"
-                  IL_0006:  newobj     "System.{{spanType}}<int>..ctor(int[])"
-                  IL_000b:  ret
+                  IL_0000:  call       "int[] System.Array.Empty<int>()"
+                  IL_0005:  newobj     "System.{{spanType}}<int>..ctor(int[])"
+                  IL_000a:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create2", $$"""
@@ -3902,39 +3898,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       62 (0x3e)
+                  // Code size       61 (0x3d)
                   .maxstack  5
                   .locals init (C<int> V_0)
                   IL_0000:  newobj     "C<int>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  newarr     "int"
-                  IL_000d:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0012:  ldloc.0
-                  IL_0013:  ldc.i4.2
-                  IL_0014:  newarr     "int"
-                  IL_0019:  dup
-                  IL_001a:  ldc.i4.0
-                  IL_001b:  ldc.i4.1
-                  IL_001c:  stelem.i4
-                  IL_001d:  dup
-                  IL_001e:  ldc.i4.1
-                  IL_001f:  ldc.i4.2
-                  IL_0020:  stelem.i4
-                  IL_0021:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0026:  ldloc.0
-                  IL_0027:  ldc.i4.1
-                  IL_0028:  newarr     "int"
-                  IL_002d:  dup
-                  IL_002e:  ldc.i4.0
-                  IL_002f:  ldc.i4.3
-                  IL_0030:  stelem.i4
-                  IL_0031:  callvirt   "void C<int>.Add(params int[])"
-                  IL_0036:  ldloc.0
-                  IL_0037:  ldc.i4.0
-                  IL_0038:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_003d:  ret
+                  IL_0007:  call       "int[] System.Array.Empty<int>()"
+                  IL_000c:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldc.i4.2
+                  IL_0013:  newarr     "int"
+                  IL_0018:  dup
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  ldc.i4.1
+                  IL_001b:  stelem.i4
+                  IL_001c:  dup
+                  IL_001d:  ldc.i4.1
+                  IL_001e:  ldc.i4.2
+                  IL_001f:  stelem.i4
+                  IL_0020:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0025:  ldloc.0
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  newarr     "int"
+                  IL_002c:  dup
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  ldc.i4.3
+                  IL_002f:  stelem.i4
+                  IL_0030:  callvirt   "void C<int>.Add(params int[])"
+                  IL_0035:  ldloc.0
+                  IL_0036:  ldc.i4.0
+                  IL_0037:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003c:  ret
                 }
                 """);
         }
@@ -5188,6 +5183,244 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13));
         }
 
+        [CombinatorialData]
+        [Theory]
+        public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        {
+            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
+
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        EmptyArray<object>().Report();
+                        EmptyIEnumerable<object>().Report();
+                        EmptyICollection<object>().Report();
+                        EmptyIList<object>().Report();
+                        EmptyIReadOnlyCollection<object>().Report();
+                        EmptyIReadOnlyList<object>().Report();
+                    }
+                    static T[] EmptyArray<T>() => [];
+                    static IEnumerable<T> EmptyIEnumerable<T>() => [];
+                    static ICollection<T> EmptyICollection<T>() => [];
+                    static IList<T> EmptyIList<T>() => [];
+                    static IReadOnlyCollection<T> EmptyIReadOnlyCollection<T>() => [];
+                    static IReadOnlyList<T> EmptyIReadOnlyList<T>() => [];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: targetFramework,
+                expectedOutput: "[], [], [], [], [], [], ");
+
+            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+                """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "T"
+                  IL_0006:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "T[] System.Array.Empty<T>()"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.EmptyArray<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIEnumerable<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyCollection<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyList<T>", expectedIL);
+
+            expectedIL =
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.EmptyICollection<T>", expectedIL);
+            verifier.VerifyIL("Program.EmptyIList<T>", expectedIL);
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void ArrayEmpty_02([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        {
+            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
+
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        EmptyArray().Report();
+                        EmptyIEnumerable().Report();
+                        EmptyICollection().Report();
+                        EmptyIList().Report();
+                        EmptyIReadOnlyCollection().Report();
+                        EmptyIReadOnlyList().Report();
+                    }
+                    static string[] EmptyArray() => [];
+                    static IEnumerable<string> EmptyIEnumerable() => [];
+                    static ICollection<string> EmptyICollection() => [];
+                    static IList<string> EmptyIList() => [];
+                    static IReadOnlyCollection<string> EmptyIReadOnlyCollection() => [];
+                    static IReadOnlyList<string> EmptyIReadOnlyList() => [];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: targetFramework,
+                expectedOutput: "[], [], [], [], [], [], ");
+
+            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+                """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "string"
+                  IL_0006:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "string[] System.Array.Empty<string>()"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.EmptyArray", expectedIL);
+            verifier.VerifyIL("Program.EmptyIEnumerable", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyCollection", expectedIL);
+            verifier.VerifyIL("Program.EmptyIReadOnlyList", expectedIL);
+
+            expectedIL =
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.List<string>..ctor()"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.EmptyICollection", expectedIL);
+            verifier.VerifyIL("Program.EmptyIList", expectedIL);
+        }
+
+        [Fact]
+        public void ArrayEmpty_PointerElementType()
+        {
+            string source = """
+                unsafe class Program
+                {
+                    static void Main()
+                    {
+                        EmptyArray().Report();
+                        EmptyNestedArray().Report();
+                    }
+                    static void*[] EmptyArray() => [];
+                    static void*[][] EmptyNestedArray() => [];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: "[], [], ");
+            verifier.VerifyIL("Program.EmptyArray",
+                """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "void*"
+                  IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.EmptyNestedArray",
+                """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "void*[][] System.Array.Empty<void*[]>()"
+                  IL_0005:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ArrayEmpty_MissingMethod()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [];
+                        IEnumerable<int> y = [];
+                        x.Report();
+                        y.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[], [], ");
+            verifier.VerifyIL("Program.Main",
+                """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //y
+                  IL_0000:  call       "int[] System.Array.Empty<int>()"
+                  IL_0005:  call       "int[] System.Array.Empty<int>()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldc.i4.0
+                  IL_000c:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0018:  ret
+                }
+                """);
+
+            comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Array__Empty);
+            verifier = CompileAndVerify(comp, expectedOutput: "[], [], ");
+            verifier.VerifyIL("Program.Main",
+                """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  3
+                  .locals init (int[] V_0) //x
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "int"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  newarr     "int"
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void Nullable_01()
         {
@@ -5736,13 +5969,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.F0",
                 """
                 {
-                  // Code size       17 (0x11)
+                  // Code size       16 (0x10)
                   .maxstack  1
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  newarr     "string"
-                  IL_0006:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
-                  IL_000b:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
-                  IL_0010:  ret
+                  IL_0000:  call       "string[] System.Array.Empty<string>()"
+                  IL_0005:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+                  IL_000a:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
+                  IL_000f:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F1",
