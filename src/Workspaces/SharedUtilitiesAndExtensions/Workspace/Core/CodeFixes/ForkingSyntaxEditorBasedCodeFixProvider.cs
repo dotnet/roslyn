@@ -49,7 +49,6 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var originalRoot = editor.OriginalRoot;
 
         var originalNodes = new Stack<(TDiagnosticNode diagnosticNode, Diagnostic diagnostic)>();

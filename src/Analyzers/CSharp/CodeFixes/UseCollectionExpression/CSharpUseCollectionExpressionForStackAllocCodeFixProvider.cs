@@ -19,7 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForStackAlloc), Shared]
-internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>
+internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
+    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,10 +40,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         ExpressionSyntax stackAllocExpression,
         CancellationToken cancellationToken)
     {
-        var services = document.Project.Solution.Services;
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var originalRoot = editor.OriginalRoot;
-
         if (stackAllocExpression is not StackAllocArrayCreationExpressionSyntax and not ImplicitStackAllocArrayCreationExpressionSyntax)
             return;
 
