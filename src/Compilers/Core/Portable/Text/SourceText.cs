@@ -454,7 +454,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
         /// </summary>
-        /// <returns>True if should bother to proceed with copying.</returns>
         private protected void ValidateCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination is null)
