@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        ''' Returns data decoded from Obsolete/Experimental attribute or null if there is no Obsolete/Experimental attribute.
         ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         ''' </summary>
         Friend MustOverride ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

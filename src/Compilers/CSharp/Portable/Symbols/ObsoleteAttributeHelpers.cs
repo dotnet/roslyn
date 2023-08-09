@@ -97,27 +97,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ObsoleteDiagnosticKind GetObsoleteDiagnosticKind(Symbol symbol, Symbol containingMember, bool forceComplete = false)
         {
-            if (symbol is NamedTypeSymbol namedTypeSymbol && isExperimentalSymbol(namedTypeSymbol))
-            {
-                // Skip for System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
-                return ObsoleteDiagnosticKind.NotObsolete;
-            }
-
-            if (symbol is MethodSymbol { MethodKind: MethodKind.Constructor } method && isExperimentalSymbol(method.ContainingType))
-            {
-                // Skip for constructors of System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
-                return ObsoleteDiagnosticKind.NotObsolete;
-            }
-
-            if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Experimental
-                || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Experimental)
-            {
-                return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
-            }
-
             switch (symbol.ObsoleteKind)
             {
                 case ObsoleteAttributeKind.None:
+                    if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Experimental
+                        || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Experimental)
+                    {
+                        return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
+                    }
+
                     if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Uninitialized
                         || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Uninitialized)
                     {
@@ -138,13 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ObsoleteState);
-
-            static bool isExperimentalSymbol(NamedTypeSymbol namedTypeSymbol)
-            {
-                return namedTypeSymbol.Arity == 0
-                    && namedTypeSymbol.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal)
-                    && namedTypeSymbol.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
-            }
 
             static ObsoleteDiagnosticKind getDiagnosticKind(Symbol containingMember, bool forceComplete, Func<Symbol, ThreeState> getStateFromSymbol)
             {

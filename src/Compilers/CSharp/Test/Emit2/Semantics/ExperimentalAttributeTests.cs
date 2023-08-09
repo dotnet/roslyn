@@ -189,6 +189,42 @@ C.M();
     }
 
     [Fact]
+    public void OnAssembly_DefinedInMetadata_UsedFromMetadata_ObsoleteType()
+    {
+        var attrComp = CreateCompilation(experimentalAttributeSrc);
+        var attrRef = attrComp.EmitToImageReference();
+
+        var libSrc = """
+[assembly: System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+
+[System.Obsolete("error", true)]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+        var src = """
+C.M();
+""";
+
+        var comp = CreateCompilation(src, references: new[] { CreateCompilation(libSrc, references: new[] { attrRef }).EmitToImageReference(), attrRef });
+
+        Assert.Equal(ObsoleteAttributeKind.Obsolete, comp.GetTypeByMetadataName("C").ObsoleteKind);
+        Assert.Equal(ObsoleteAttributeKind.Experimental, comp.GetTypeByMetadataName("C").ContainingAssembly.ObsoleteKind);
+        Assert.Equal(ObsoleteAttributeKind.None, comp.GetTypeByMetadataName("C").ContainingModule.ObsoleteKind);
+
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0619: 'C' is obsolete: 'error'
+            // C.M();
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(1, 1),
+            // (1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // C.M();
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
     public void OnAssembly_DefinedInMetadata_AppliedWithinModule_UsedFromSource()
     {
         var attrComp = CreateCompilation(experimentalAttributeSrc);

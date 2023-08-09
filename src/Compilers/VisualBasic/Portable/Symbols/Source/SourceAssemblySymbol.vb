@@ -1780,10 +1780,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns data decoded from Experimental attribute or null if there is no Obsolete/Experimental/... attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' <assembly: Experimental> may have been specified in the assembly or one of the modules

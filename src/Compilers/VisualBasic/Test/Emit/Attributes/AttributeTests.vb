@@ -5188,6 +5188,50 @@ DiagID1: 'C' is for evaluation purposes only and is subject to change or removal
         End Sub
 
         <Fact>
+        Public Sub OnAssembly_UsedFromMetadata_ObsoleteType()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+            Dim attrRef = attrComp.EmitToImageReference()
+
+            Dim libSrc = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+
+<System.Obsolete("error", True)>
+Public Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim libComp = CreateCompilation(libSrc, references:={attrRef})
+            Dim libRef = libComp.EmitToImageReference()
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={libRef, attrRef})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Assert.Equal(ObsoleteAttributeKind.Obsolete, comp.GetTypeByMetadataName("C").ObsoleteKind)
+            Assert.Equal(ObsoleteAttributeKind.None, comp.GetTypeByMetadataName("C").ContainingModule.ObsoleteKind)
+            Assert.Equal(ObsoleteAttributeKind.Experimental, comp.GetTypeByMetadataName("C").ContainingAssembly.ObsoleteKind)
+        End Sub
+
+        <Fact>
         Public Sub OnAssembly_CompiledIntoModule()
             Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
             Dim attrRef = attrComp.EmitToImageReference()

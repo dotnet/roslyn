@@ -72,31 +72,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
-            Dim namedType = TryCast(symbol, NamedTypeSymbol)
-            If namedType IsNot Nothing AndAlso
-                IsExperimentalSymbol(namedType) Then
-
-                ' Skip for System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
-                Return ObsoleteDiagnosticKind.NotObsolete
-            End If
-
-            Dim method = TryCast(symbol, MethodSymbol)
-            If method IsNot Nothing AndAlso
-                    method.MethodKind = MethodKind.Constructor AndAlso
-                    IsExperimentalSymbol(method.ContainingType) Then
-
-                ' Skip for constructors of System.Diagnostics.CodeAnalysis.ExperimentalAttribute to mitigate cycles
-                Return ObsoleteDiagnosticKind.NotObsolete
-            End If
-
-            If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
-                symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
-
-                Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
-            End If
-
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
+                    If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Experimental OrElse
+                       symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Experimental Then
+
+                        Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
+                    End If
+
                     If symbol.ContainingModule?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized OrElse
                        symbol.ContainingAssembly?.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
 
@@ -117,13 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
 
             Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ObsoleteState)
-        End Function
-
-        Private Shared Function IsExperimentalSymbol(namedType As NamedTypeSymbol) As Boolean
-            Return namedType IsNot Nothing AndAlso
-                namedType.Arity = 0 AndAlso
-                namedType.Name.Equals("ExperimentalAttribute", StringComparison.Ordinal) AndAlso
-                namedType.IsCompilerServicesTopLevelType()
         End Function
 
         Private Shared Function GetDiagnosticKind(containingMember As Symbol, forceComplete As Boolean, getStateFromSymbol As Func(Of Symbol, ThreeState)) As ObsoleteDiagnosticKind
