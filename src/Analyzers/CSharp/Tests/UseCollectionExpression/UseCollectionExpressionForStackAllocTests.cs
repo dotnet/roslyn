@@ -76,17 +76,6 @@ public class UseCollectionExpressionForStackAllocTests
                     }
                 }
                 """,
-            FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        ReadOnlySpan<int> x = [1, 2, 3];
-                    }
-                }
-                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
