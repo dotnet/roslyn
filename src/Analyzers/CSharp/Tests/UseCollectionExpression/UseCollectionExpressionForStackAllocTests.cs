@@ -72,7 +72,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
+                        ReadOnlySpan<int> x = stackalloc int[] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -104,7 +104,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> x = [|[|stackalloc|][]|] { 1, 2, 3 };
+                        ReadOnlySpan<int> x = stackalloc[] { 1, 2, 3 };
                     }
                 }
                 """,
