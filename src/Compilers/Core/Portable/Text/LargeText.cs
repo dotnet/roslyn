@@ -157,7 +157,9 @@ namespace Microsoft.CodeAnalysis.Text
             ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
 
             if (count == 0)
+            {
                 return;
+            }
 
             int chunkIndex = GetIndexFromPosition(sourceIndex);
             int chunkStartOffset = sourceIndex - _chunkStartOffsets[chunkIndex];
@@ -182,12 +184,14 @@ namespace Microsoft.CodeAnalysis.Text
         {
             ValidateWriteArguments(writer, span);
 
-            if (span.Length == 0)
+            int count = span.Length;
+            if (count == 0)
+            {
                 return;
+            }
 
             var chunkWriter = writer as LargeTextWriter;
 
-            int count = span.Length;
             int chunkIndex = GetIndexFromPosition(span.Start);
             int chunkStartOffset = span.Start - _chunkStartOffsets[chunkIndex];
             while (true)
