@@ -540,6 +540,10 @@ namespace Program
         itemFromNS1.Data = completionResult.ItemDefaults.Data;
         itemFromNS2.Data = completionResult.ItemDefaults.Data;
 
+        // Remove the label details as this is the behavior of the VSCode client when resolving completion items.
+        itemFromNS1.LabelDetails = null;
+        itemFromNS2.LabelDetails = null;
+
         var resolvedItem1 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS1, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace1", resolvedItem1.LabelDetails.Description);
         Assert.Equal("~MyClass Namespace1", resolvedItem1.SortText);
