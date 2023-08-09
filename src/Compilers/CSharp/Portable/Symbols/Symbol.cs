@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/>/Experimental attribute or null if there is no <see cref="ObsoleteAttribute"/>/Experimental attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
         internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
