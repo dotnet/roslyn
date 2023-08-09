@@ -72,8 +72,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
-            If symbol.Kind = SymbolKind.Namespace OrElse
-                symbol.Kind = SymbolKind.ArrayType Then
+            Dim kind As SymbolKind = symbol.Kind
+
+            If kind <> SymbolKind.NamedType AndAlso
+                kind <> SymbolKind.Method AndAlso
+                kind <> SymbolKind.Event AndAlso
+                kind <> SymbolKind.Field AndAlso
+                kind <> SymbolKind.Property Then
 
                 Return ObsoleteDiagnosticKind.NotObsolete
             End If
