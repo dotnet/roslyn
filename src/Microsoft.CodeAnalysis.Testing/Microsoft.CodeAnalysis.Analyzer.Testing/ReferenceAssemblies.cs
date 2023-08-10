@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net8.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "8.0.0-preview.6.23329.7"),
+                            "8.0.0-preview.7.23375.6"),
                         Path.Combine("ref", "net8.0"));
                 });
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "8.0.0-preview.6.23329.4"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "8.0.0-preview.7.23376.1"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
