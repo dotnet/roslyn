@@ -25,8 +25,6 @@ using static SyntaxFactory;
 internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
     : ForkingSyntaxEditorBasedCodeFixProvider<InvocationExpressionSyntax>
 {
-    private static readonly SyntaxAnnotation s_dummyObjectAnnotation = new();
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUseCollectionExpressionForCreateCodeFixProvider()
@@ -59,13 +57,14 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         // Get the expressions that we're going to fill the new collection expression with.
         var arguments = GetArguments(invocationExpression, unwrapArgument);
 
+        var dummyObjectAnnotation = new SyntaxAnnotation();
         var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)
             .WithTriviaFrom(invocationExpression)
-            .WithAdditionalAnnotations(s_dummyObjectAnnotation);
+            .WithAdditionalAnnotations(dummyObjectAnnotation);
 
         var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
-        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(s_dummyObjectAnnotation).Single();
+        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
         var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
 
