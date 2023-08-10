@@ -748,7 +748,7 @@ public class UseCollectionExpressionForCreateTests
             FixedCode = """
                 class C
                 {
-                    MyCollection<int> i = /*leading*/ [1] /*trailing*;
+                    MyCollection<int> i = /*leading*/ [1] /*trailing*/;
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,

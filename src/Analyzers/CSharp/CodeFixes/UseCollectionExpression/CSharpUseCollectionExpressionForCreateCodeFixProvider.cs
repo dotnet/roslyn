@@ -46,10 +46,11 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
 
         // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
-        // following steps.  First, we replace `XXX.Create(...)` with `new()` (an empty object creation expression). We
-        // then call into our helper which replaces expressions with collection expressions.  The reason for the dummy
-        // object creation expression is that it serves as an actual node the rewriting code can attach an initializer
-        // to, by which it can figure out appropriate wrapping and indentation for the collection expression elements.
+        // following steps.  First, we replace `XXX.Create(a, b, c)` with `new(a, b, c)` (an dummy object creation
+        // expression). We then call into our helper which replaces expressions with collection expressions.  The reason
+        // for the dummy object creation expression is that it serves as an actual node the rewriting code can attach an
+        // initializer to, by which it can figure out appropriate wrapping and indentation for the collection expression
+        // elements.
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -77,7 +78,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             fallbackOptions,
-            dummyObjectAnnotation,
+            dummyObjectCreation,
             expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false)),
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),

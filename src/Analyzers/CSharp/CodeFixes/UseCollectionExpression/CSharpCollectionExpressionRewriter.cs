@@ -406,6 +406,7 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ExpressionSyntax expression)
             {
+                // expression.GetAncestor<StatementSyntax>()
                 return CreateCollectionElement(match, IndentExpression(parentStatement: null, expression, preferredIndentation));
             }
             else
