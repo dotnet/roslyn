@@ -572,9 +572,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
-                node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                node.IsKind(SyntaxKind.EnumMemberDeclaration))
+            if (node.Kind()
+                    is SyntaxKind.FieldDeclaration
+                    or SyntaxKind.EventDeclaration
+                    or SyntaxKind.EventFieldDeclaration
+                    or SyntaxKind.LocalDeclarationStatement
+                    or SyntaxKind.EnumMemberDeclaration)
             {
                 if (_options.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration))
                 {

@@ -239,5 +239,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+
+        public static INamedTypeSymbol? ReadOnlySpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+
+        public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
     }
 }

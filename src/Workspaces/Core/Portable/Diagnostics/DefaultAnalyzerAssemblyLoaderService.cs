@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -12,8 +13,9 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider))]
     internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new();
-        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new();
+        private readonly IAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
+        private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies"));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

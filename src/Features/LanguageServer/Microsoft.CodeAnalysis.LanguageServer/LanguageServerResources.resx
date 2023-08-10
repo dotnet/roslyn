@@ -162,6 +162,9 @@
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
   </data>
+  <data name="Show_csharp_logs" xml:space="preserve">
+    <value>Show C# logs</value>
+  </data>
   <data name="Stack_Trace" xml:space="preserve">
     <value>Stack Trace</value>
   </data>
@@ -179,5 +182,14 @@
   </data>
   <data name="Test_run_error" xml:space="preserve">
     <value>Test run error: {0}</value>
+  </data>
+  <data name="There_were_problems_loading_project_0_See_log_for_details" xml:space="preserve">
+    <value>There were problems loading project {0}. See log for details.</value>
+  </data>
+  <data name="There_were_problems_loading_solution_0_See_log_for_details" xml:space="preserve">
+    <value>There were errors loading solution {0}. See log for details.</value>
+  </data>
+  <data name="There_were_problems_loading_your_projects_See_log_for_details" xml:space="preserve">
+    <value>There were problems loading your projects. See log for details.</value>
   </data>
 </root>

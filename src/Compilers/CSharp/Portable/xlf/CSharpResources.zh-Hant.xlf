@@ -692,6 +692,11 @@
         <target state="translated">C# 11.0. 中無法使用 '{0}' 功能。請使用語言版本 {1} 或更高的版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion12">
+        <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
@@ -4990,6 +4995,16 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">使用可能未指派的自動實作屬性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField">
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="new">Ref field '{0}' should be ref-assigned before use.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField_Title">
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="new">Ref field should be ref-assigned before use.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">

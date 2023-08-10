@@ -51,6 +51,8 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         ));
     });
 
+    var logger = loggerFactory.CreateLogger<Program>();
+
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -60,7 +62,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
         else
         {
-            var logger = loggerFactory.CreateLogger<Program>();
             var timeout = TimeSpan.FromMinutes(1);
             logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
@@ -102,6 +103,8 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
+
+    logger.LogInformation("Language server initialized");
 
     try
     {

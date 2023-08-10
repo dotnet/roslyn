@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return null;
                     }
 
-                    if (((WorkspaceAnalyzerOptions)projectAndCompilationWithAnalyzers.CompilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions == ideOptions)
+                    if (((WorkspaceAnalyzerOptions)projectAndCompilationWithAnalyzers.CompilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions == ideOptions
+                        && HasAllAnalyzers(stateSets, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
                     {
                         return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
                     }
@@ -160,6 +161,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
+
+                static bool HasAllAnalyzers(IEnumerable<StateSet> stateSets, CompilationWithAnalyzers compilationWithAnalyzers)
+                {
+                    foreach (var stateSet in stateSets)
+                    {
+                        if (!compilationWithAnalyzers.Analyzers.Contains(stateSet.Analyzer))
+                            return false;
+                    }
+
+                    return true;
+                }
             }
 
             private LatestDiagnosticsForSpanGetter(

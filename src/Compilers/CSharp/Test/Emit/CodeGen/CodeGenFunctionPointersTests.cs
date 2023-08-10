@@ -7398,10 +7398,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                // (6,17): error CS1593: Delegate 'Func<string>' does not take 1 arguments
                 //         param(a => a);
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
-            );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<string>", "1").WithLocation(6, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

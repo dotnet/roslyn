@@ -1487,6 +1487,11 @@
         <target state="translated">Sincronizza le modifiche di spazi dei nomi</target>
         <note />
       </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="new">'System.Void' is not a valid type for a parameter</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">Premi due volte TAB per inserire gli argomenti (sperimentale)</target>

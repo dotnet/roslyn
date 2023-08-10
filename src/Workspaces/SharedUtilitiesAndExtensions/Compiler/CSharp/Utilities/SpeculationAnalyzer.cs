@@ -91,9 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             Debug.Assert(speculativeSemanticModel != null ||
                 nodeToSpeculate is ExpressionSyntax ||
-                this.SemanticRootOfOriginalExpression.GetAncestors().Any(node => node.IsKind(SyntaxKind.UnknownAccessorDeclaration) ||
-                    node.IsKind(SyntaxKind.IncompleteMember) ||
-                    node.IsKind(SyntaxKind.BracketedArgumentList)),
+                this.SemanticRootOfOriginalExpression.GetAncestors().Any(
+                    node => node.Kind() is SyntaxKind.UnknownAccessorDeclaration or SyntaxKind.IncompleteMember or SyntaxKind.BracketedArgumentList),
                 "SemanticModel.TryGetSpeculativeSemanticModel() API returned false.");
         }
 
@@ -648,9 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private bool ReplacementBreaksBinaryExpression(BinaryExpressionSyntax binaryExpression, BinaryExpressionSyntax newBinaryExpression)
         {
-            if ((binaryExpression.IsKind(SyntaxKind.AsExpression) ||
-                 binaryExpression.IsKind(SyntaxKind.IsExpression)) &&
-                 ReplacementBreaksIsOrAsExpression(binaryExpression, newBinaryExpression))
+            if (binaryExpression.Kind() is SyntaxKind.AsExpression or SyntaxKind.IsExpression &&
+                ReplacementBreaksIsOrAsExpression(binaryExpression, newBinaryExpression))
             {
                 return true;
             }

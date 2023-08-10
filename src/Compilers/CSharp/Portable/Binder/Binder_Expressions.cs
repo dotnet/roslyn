@@ -4729,7 +4729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(bindElement(element, diagnostics));
             }
-            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree(), this);
+            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
@@ -9933,7 +9933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol invoke = possibleDelegateType.DelegateInvokeMethod();
             if ((object)invoke == null)
             {
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), location ?? node.Location);
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), getErrorLocation());
                 return true;
             }
 
@@ -9946,18 +9946,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (location == null)
-            {
-                location = node.Location;
-            }
-
             if (diagnosticInfo.Code == (int)ErrorCode.ERR_InvalidDelegateType)
             {
-                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), location));
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_InvalidDelegateType, possibleDelegateType), getErrorLocation()));
                 return true;
             }
 
-            return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnostics, location);
+            return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnostics, getErrorLocation());
+
+            Location getErrorLocation()
+                => location ?? GetAnonymousFunctionLocation(node);
         }
 
         private BoundConditionalAccess BindConditionalAccessExpression(ConditionalAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)

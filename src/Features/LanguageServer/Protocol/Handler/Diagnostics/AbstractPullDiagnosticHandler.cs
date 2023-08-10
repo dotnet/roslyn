@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Location = new LSP.Location
                     {
                         Range = GetRange(l),
-                        Uri = ProtocolConversions.GetUriFromFilePath(l.UnmappedFileSpan.Path)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
                     },
                     Message = diagnostic.Message
                 }).ToArray();
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Code = diagnosticData.Id,
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
-                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
                     Tags = ConvertTags(diagnosticData),
                     DiagnosticRank = ConvertRank(diagnosticData),
                 };
@@ -501,13 +501,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return null;
         }
 
-        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
+        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, ClientCapabilities clientCapabilities)
             => severity switch
             {
                 // Hidden is translated in ConvertTags to pass along appropriate _ms tags
                 // that will hide the item in a client that knows about those tags.
                 DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Information,
+                // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
+                DiagnosticSeverity.Info => clientCapabilities.HasVisualStudioLspCapability() ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
                 DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
                 DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),

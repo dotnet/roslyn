@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,25 +49,23 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
     }
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(OnCompilationStart);
-
-    private void OnCompilationStart(CompilationStartAnalysisContext context)
-    {
-        if (!context.Compilation.LanguageVersion().SupportsCollectionExpressions())
-            return;
-
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+        => context.RegisterCompilationStartAction(context =>
         {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeMemberAccess(context),
-                SyntaxKind.SimpleMemberAccessExpression);
+            if (!context.Compilation.LanguageVersion().SupportsCollectionExpressions())
+                return;
+
+            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+            // and eventually report fading diagnostics with location outside this node.
+            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+            {
+                context.RegisterSyntaxNodeAction(
+                    context => AnalyzeMemberAccess(context),
+                    SyntaxKind.SimpleMemberAccessExpression);
+            });
         });
-    }
 
     private static void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
     {

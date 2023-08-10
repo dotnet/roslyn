@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -717,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                     }
                 }
                 """",
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -769,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                     void M2(System.ReadOnlySpan<byte> x) {}
                 }
                 """",
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {

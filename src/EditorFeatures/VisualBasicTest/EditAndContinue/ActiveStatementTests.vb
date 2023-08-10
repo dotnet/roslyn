@@ -4805,7 +4805,9 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifySemanticDiagnostics(active,
+            edits.VerifySemanticDiagnostics(
+                active,
+                Diagnostic(RudeEditKind.ComplexQueryExpression, "Sub Main()", GetResource("method")),
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Join_condition))
         End Sub
 

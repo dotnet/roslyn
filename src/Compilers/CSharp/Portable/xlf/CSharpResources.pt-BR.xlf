@@ -692,6 +692,11 @@
         <target state="translated">O recurso '{0}' não está disponível no C# 11.0. Use a versão do idioma {1} ou superior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion12">
+        <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">O recurso '{0}' não está disponível em C# 8.0. Use a versão de linguagem {1} ou superior.</target>
@@ -4990,6 +4995,16 @@
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">Uso de propriedade autoimplementada possivelmente não atribuída</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField">
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="new">Ref field '{0}' should be ref-assigned before use.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField_Title">
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="new">Ref field should be ref-assigned before use.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">

@@ -39,7 +39,7 @@ internal partial class CSharpUseCollectionExpressionForEmptyCodeFixProvider : Sy
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, nameof(CSharpCodeFixesResources.Use_collection_expression));
+        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId);
         return Task.CompletedTask;
     }
 
