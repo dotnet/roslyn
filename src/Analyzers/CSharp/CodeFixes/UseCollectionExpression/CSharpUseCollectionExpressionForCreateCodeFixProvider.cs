@@ -47,16 +47,6 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
     {
         var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
 
-        // the option is currently not an editorconfig option, so not available in code style layer
-#if CODE_STYLE
-        var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
-#else
-        var wrappingLength = fallbackOptions.GetOptions(document.Project.Services).CollectionExpressionWrappingLength;
-#endif
-
-        // Get the expressions that we're going to fill the new collection expression with.
-        var expressions = GetExpressions(invocationExpression, unwrapArgument);
-
         // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
         // following steps.  First, we replace `XXX.Create(...)` with `new()` (an empty object creation expression). We
         // then call into our helper which replaces expressions with collection expressions.  The reason for the dummy
@@ -66,7 +56,22 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var syntaxAnnotation = new SyntaxAnnotation();
-        var dummyObjectCreation = ImplicitObjectCreationExpression().WithAdditionalAnnotations(syntaxAnnotation);
+        var dummyObjectCreation = ImplicitObjectCreationExpression().WithTriviaFrom(invocationExpression).WithAdditionalAnnotations(syntaxAnnotation);
+
+        // Get the expressions that we're going to fill the new collection expression with.
+        var expressions = GetExpressions(invocationExpression, unwrapArgument);
+        var newDocument = document.WithSyntaxRoot(root.ReplaceNode(invocationExpression, dummyObjectCreation));
+
+        var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+            newDocument,
+            fallbackOptions,
+            dummyObjectCreation,
+            expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false)),
+            static o => o.Initializer,
+            static (o, i) => o.WithInitializer(i),
+            cancellationToken).ConfigureAwait(false);
+
+        editor.ReplaceNode(invocationExpression, collectionExpression);
     }
 
     private static ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
