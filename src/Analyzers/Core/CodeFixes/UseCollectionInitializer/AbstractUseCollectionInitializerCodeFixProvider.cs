@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // all the object creation nodes as we make edits to the tree.  If we didn't do this, then we wouldn't be
             // able to find the second object-creation-node after we make the edit for the first one.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var solutionServices = document.Project.Solution.Services;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             using var analyzer = GetAnalyzer();
