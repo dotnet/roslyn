@@ -9,11 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
+/// <summary>
+/// Helper type for <see cref="CodeFixProvider"/>s that need to provide 'fix all' support in a document, by operate by
+/// applying one fix at a time, then recomputing the work to do after that fix is applied.  While this is not generally
+/// desirable from a performance perspective (due to the costs of forking a document after each fix), it is sometimes
+/// necessary as individual fixes can impact the code so substantially that successive fixes may no longer apply, or may
+/// have dramatically different data to work with before the fix.  For example, if one fix removes statements entirely
+/// that another fix was contained in.
+/// </summary>
 internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     : SyntaxEditorBasedCodeFixProvider
     where TDiagnosticNode : SyntaxNode
@@ -28,12 +35,24 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         _equivalenceKey = equivalenceKey;
     }
 
+    /// <summary>
+    /// Subclasses must override this to actually provide the fix for a particular diagnostic.  The implementation will
+    /// be passed the <em>current</em> <paramref name="document"/> (containing the changes from all prior fixes), the
+    /// the <paramref name="diagnosticNode"/> in that document, for the current diagnostic being fixed.  And the <see
+    /// cref="Diagnostic.Properties"/> for that diagnostic.  The diagnostic itself is not passed along as it was
+    /// computed with respect to the original user document, and as such its <see cref="Diagnostic.Location"/> and <see
+    /// cref="Diagnostic.AdditionalLocations"/> will not be correct.
+    /// </summary>
     protected abstract Task FixAsync(
-        Document document, Diagnostic diagnostic, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, TDiagnosticNode diagnosticNode,
+        Document document,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions,
+        TDiagnosticNode diagnosticNode,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
 
     protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        // Never try to fix the secondary diagnostics that were produced just to fade out code.
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -77,10 +96,10 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
 
             await FixAsync(
                 semanticDocument.Document,
-                diagnostic,
                 subEditor,
                 fallbackOptions,
                 diagnosticNode,
+                diagnostic.Properties,
                 cancellationToken).ConfigureAwait(false);
 
             var changedRoot = subEditor.GetChangedRoot();
