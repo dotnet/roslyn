@@ -95,7 +95,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
 
             editor.ReplaceNode(arrayCreationExpression, collectionExpression);
             foreach (var match in matches)
-                editor.RemoveNode(match.Statement);
+                editor.RemoveNode(match.Node);
         }
 
         return;
@@ -103,13 +103,13 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
+        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
             => expression switch
             {
                 // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
                 // from within the initializer.
                 ImplicitArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch>.Empty,
+                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
 
                 // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
                 // be added to the collection expression.
