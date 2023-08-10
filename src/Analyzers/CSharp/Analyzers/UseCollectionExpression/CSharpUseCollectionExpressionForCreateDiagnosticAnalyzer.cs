@@ -84,6 +84,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         INamedTypeSymbol collectionBuilderAttribute)
     {
         var semanticModel = context.SemanticModel;
+        var compilation = semanticModel.Compilation;
         var syntaxTree = semanticModel.SyntaxTree;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
         var cancellationToken = context.CancellationToken;
@@ -132,7 +133,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         //  `Create(ReadOnlySpan<T>)` (passing as a stack-alloc with an initializer)
         //  `Create(IEnumerable<T>)` (passing as something with an initializer.
         if (!IsCompatibleSignatureAndArguments(
-                semanticModel.Compilation, invocationExpression, createMethod.OriginalDefinition,
+                compilation, invocationExpression, createMethod.OriginalDefinition,
                 out var unwrapArgument, cancellationToken))
         {
             return;
@@ -189,18 +190,34 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (originalCreateMethod.Name is CreateRangeName)
         {
             // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-            if (originalCreateMethod.Parameters is [INamedTypeSymbol
+            if (originalCreateMethod.Parameters is [
                 {
-                    Name: nameof(IEnumerable<int>),
-                    TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                } enumerableType] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+                    Type: INamedTypeSymbol
+                    {
+                        Name: nameof(IEnumerable<int>),
+                        TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                    } enumerableType
+                }] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
             {
-                if (arguments[0].Expression
+                var argExpression = arguments[0].Expression;
+                if (argExpression
                         is ArrayCreationExpressionSyntax { Initializer: not null }
-                        or ImplicitArrayCreationExpressionSyntax
-                        or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                        or ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression })
+                        or ImplicitArrayCreationExpressionSyntax)
                 {
+                    unwrapArgument = true;
+                    return true;
+                }
+
+                if (argExpression is ObjectCreationExpressionSyntax objectCreation)
+                {
+                    // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
+                    if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+                        return false;
+
+                    // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);
+                    if (objectCreation.Initializer.IsKind(SyntaxKind.ObjectCreationExpression) && objectCreation.Initializer.Expressions.Count > 0)
+                        return false;
+
                     unwrapArgument = true;
                     return true;
                 }
