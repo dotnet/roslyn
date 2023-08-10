@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal partial class EditAndContinueTest
+    using static EditAndContinueTestUtilities;
+
+    internal partial class EditAndContinueTest<TSelf> : IDisposable
     {
         internal sealed class GenerationVerifier
         {
@@ -110,6 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(
                     expected ?? Array.Empty<CustomAttributeRow>(),
                     _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+            }
+
+            public void VerifySynthesizedMembers(params string[] expected)
+            {
+                var actual = _generationInfo.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+            }
+
+            public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
+            {
+                var actual = _generationInfo.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
+                AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
             }
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)

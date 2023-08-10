@@ -31,6 +31,10 @@
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />
     <None Include="Resources/Roslyn.ico.blah" />
