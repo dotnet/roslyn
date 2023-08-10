@@ -4125,6 +4125,80 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "in dynamic", "ref readonly int").WithLocation(12, 16));
     }
 
+    [Theory, CombinatorialData]
+    public void VisualBasic_Invocation([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Module Program
+                Public Sub Main()
+                    Dim i = 123
+                    Dim c = New C()
+                    c.M(i)
+                End Sub
+            End Module
+            """;
+        var comp2 = CreateVisualBasicCompilation("Program", source2,
+            compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+            referencedCompilations: new[] { comp1 });
+        CompileAndVerify(comp2, expectedOutput: "123").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void VisualBasic_Invocation_Virtual([CombinatorialValues("in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public virtual void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Module Program
+                Public Sub Main()
+                    Dim i = 123
+                    Dim c = New C()
+                    c.M(i)
+                End Sub
+            End Module
+            """;
+        CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }).VerifyDiagnostics(
+            // (5) : error BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
+            Diagnostic(30657, "M").WithArguments("M").WithLocation(5, 11));
+    }
+
+    [Theory, CombinatorialData]
+    public void VisualBasic_Override([CombinatorialValues("in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public virtual void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Class D
+                Inherits C
+                Public Overrides Sub M(ByRef p As Integer)
+                End Sub
+            End Class
+            """;
+        CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }).VerifyDiagnostics(
+            // (3) : error BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
+            Diagnostic(30657, "M").WithArguments("M").WithLocation(3, 26));
+    }
+
     [Fact]
     public void Overridden_RefReadonly_RefReadonly()
     {
