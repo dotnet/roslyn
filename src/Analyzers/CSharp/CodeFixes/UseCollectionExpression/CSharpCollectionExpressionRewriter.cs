@@ -118,7 +118,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, preferredIndentation: elementIndentation, nodesAndTokens);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
@@ -136,7 +136,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, preferredIndentation: null, nodesAndTokens);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
                 var collectionExpression = CollectionExpression(
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens));
@@ -259,8 +259,9 @@ internal static class CSharpCollectionExpressionRewriter
         // commas are added properly to the sequence.
         void CreateAndAddElements(
             ImmutableArray<CollectionExpressionMatch> matches,
+            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
-            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+            bool forceTrailingComma)
         {
             // If there's no requested indentation, then we want to produce the sequence as: `a, b, c, d`.  So just
             // a space after any comma.  If there is desired indentation for an element, then we always follow a comma
@@ -271,12 +272,22 @@ internal static class CSharpCollectionExpressionRewriter
 
             foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
             {
+                AddCommaIfMissing();
+                nodesAndTokens.Add(element);
+            }
+
+            if (matches.Length > 0 && forceTrailingComma)
+                AddCommaIfMissing();
+
+            return;
+
+            void AddCommaIfMissing()
+            {
                 // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
                 // from the prior node to come after that comma.  e.g. if the prior node was `x // comment` then we
                 // end up with: `x, // comment<new-line>`
-                if (nodesAndTokens.Count > 0)
+                if (nodesAndTokens is [.., { IsNode: true } lastNode])
                 {
-                    var lastNode = nodesAndTokens[^1];
                     var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(static t => t.IsWhitespaceOrSingleOrMultiLineComment());
 
                     nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
@@ -286,8 +297,6 @@ internal static class CSharpCollectionExpressionRewriter
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
                     nodesAndTokens.Add(commaToken);
                 }
-
-                nodesAndTokens.Add(element);
             }
         }
 
@@ -316,7 +325,12 @@ internal static class CSharpCollectionExpressionRewriter
                 nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
             }
 
-            CreateAndAddElements(matches, preferredIndentation, nodesAndTokens);
+            // If we're wrapping to multiple lines, and we don't already have a trailing comma, then force one at the
+            // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
+            // maintain.
+            CreateAndAddElements(
+                matches, nodesAndTokens, preferredIndentation,
+                forceTrailingComma: preferredIndentation != null && trailingComma == default);
 
             if (trailingComma != default)
             {
@@ -433,31 +447,60 @@ internal static class CSharpCollectionExpressionRewriter
                     if (currentToken == expressionFirstToken)
                         return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
 
-                    // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
-                    // otherwise always consumed as trailing trivia if it comes after a token.
-                    if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
-                    {
-                        // First, figure out how much this token is indented *from the line* the first token was on.
-                        // Then adjust the preferred indentation that amount for this token.
-                        var currentTokenIndentation = GetIndentationStringForToken(currentToken);
-                        var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
-                            ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
-                            : preferredIndentation;
-
-                        // trim off the existing leading whitespace for this token if it has any, then add the new preferred indentation.
-                        var finalLeadingTrivia = currentToken.LeadingTrivia
-                            .Take(currentToken.LeadingTrivia.Count - 1)
-                            .Append(Whitespace(currentTokenPreferredIndentation));
-
-                        return currentToken.WithLeadingTrivia(finalLeadingTrivia);
-                    }
-
-                    // Any other token is unchanged.
-                    return currentToken;
+                    return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
                 });
 
             // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
             return TransferComments(parentStatement, updatedExpression, preferredIndentation);
+        }
+
+        SyntaxToken IndentToken(
+            SyntaxToken token,
+            string preferredIndentation,
+            string firstTokenOnLineIndentationString)
+        {
+            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+            // otherwise always consumed as trailing trivia if it comes after a token.
+            if (token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                return token;
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+
+            // Walk all trivia (except the final whitespace).  If we hit any comments within at the start of a line
+            // indent them as well.
+            for (int i = 0, n = token.LeadingTrivia.Count - 1; i < n; i++)
+            {
+                var currentTrivia = token.LeadingTrivia[i];
+                var nextTrivia = token.LeadingTrivia[i + 1];
+
+                var afterNewLine = i == 0 || token.LeadingTrivia[i - 1].IsEndOfLine();
+                if (afterNewLine &&
+                    currentTrivia.IsWhitespace() &&
+                    nextTrivia.IsSingleOrMultiLineComment())
+                {
+                    result.Add(GetIndentedWhitespaceTrivia(
+                        preferredIndentation, firstTokenOnLineIndentationString, nextTrivia.SpanStart));
+                }
+                else
+                {
+                    result.Add(currentTrivia);
+                }
+            }
+
+            // Finally, figure out how much this token is indented *from the line* the first token was on.
+            // Then adjust the preferred indentation that amount for this token.
+            result.Add(GetIndentedWhitespaceTrivia(
+                preferredIndentation, firstTokenOnLineIndentationString, token.SpanStart));
+
+            return token.WithLeadingTrivia(TriviaList(result));
+        }
+
+        SyntaxTrivia GetIndentedWhitespaceTrivia(string preferredIndentation, string firstTokenOnLineIndentationString, int pos)
+        {
+            var positionIndentation = GetIndentationStringForPosition(pos);
+            return Whitespace(positionIndentation.StartsWith(firstTokenOnLineIndentationString)
+                ? preferredIndentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
+                : preferredIndentation);
         }
 
         static ExpressionSyntax TransferComments(
@@ -522,9 +565,12 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         string GetIndentationStringForToken(SyntaxToken token)
+            => GetIndentationStringForPosition(token.SpanStart);
+
+        string GetIndentationStringForPosition(int position)
         {
-            var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
-            var indentation = token.SpanStart - tokenLine.Start;
+            var tokenLine = document.Text.Lines.GetLineFromPosition(position);
+            var indentation = position - tokenLine.Start;
             var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
                 document.Text, indentationOptions);
 

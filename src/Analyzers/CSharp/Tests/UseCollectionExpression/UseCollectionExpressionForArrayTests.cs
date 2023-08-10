@@ -312,7 +312,7 @@ public class UseCollectionExpressionForArrayTests
                     string[] i = [""];
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -327,7 +327,7 @@ public class UseCollectionExpressionForArrayTests
                     string[,] i = new string[1, 1];
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -342,7 +342,7 @@ public class UseCollectionExpressionForArrayTests
                     string[,] i = new string[1, 1] { { "" } };
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -357,7 +357,7 @@ public class UseCollectionExpressionForArrayTests
                     string[,] i = new string[,] { { "" } };
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1945,13 +1945,12 @@ public class UseCollectionExpressionForArrayTests
                         int[] r =
                         [
                             1 +
-                                2
+                                2,
                         ];
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1987,13 +1986,12 @@ public class UseCollectionExpressionForArrayTests
                             1 +
                                 2,
                             3 +
-                                4
+                                4,
                         ];
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2024,8 +2022,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2045,8 +2042,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2067,8 +2063,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2091,8 +2086,7 @@ public class UseCollectionExpressionForArrayTests
                     int[] Goo(int[] input) => default;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2113,8 +2107,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2135,8 +2128,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2159,8 +2151,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2183,8 +2174,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2205,8 +2195,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2227,8 +2216,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2250,8 +2238,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2283,8 +2270,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2318,8 +2304,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2352,8 +2337,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2388,8 +2372,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2411,8 +2394,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2435,8 +2417,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2461,8 +2442,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2495,8 +2475,7 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2540,8 +2519,127 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2_Trivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+
+                        // Leading
+                        r[0] = [|[|new|][]|] { 1 }; // Trailing
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            // Leading
+                            new[] { 1 }, // Trailing
+                            new int[] { 2 },
+                        ];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            // Leading
+                            [1], // Trailing
+                            [2],
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2_Trivia2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+
+                        r[0] = [|[|new|][]|]
+                        {
+                            // Leading
+                            1 // Trailing
+                        };
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            new[]
+                            {
+                                // Leading
+                                1 // Trailing
+                            },
+                            new int[] { 2 },
+                        ];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            [
+                                // Leading
+                                1 // Trailing
+                            ],
+                            [2],
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }
