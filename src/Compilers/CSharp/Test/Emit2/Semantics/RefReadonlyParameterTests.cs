@@ -3989,6 +3989,78 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Invocation_CollectionInitializer()
+    {
+        var source = """
+            struct S : System.Collections.IEnumerable
+            {
+                public int i;
+                public System.Collections.IEnumerator GetEnumerator() => throw null;
+            }
+
+            static class MyStructExtension
+            {
+                public static void Add(ref this S s, ref readonly S other)
+                {
+                    s.i += other.i;
+                }
+            }
+
+            static class Program
+            {
+                static readonly S ro = new S { i = 3 };
+                static void Main()
+                {
+                    var rw = new S { i = 2 };
+                    var s = new S
+                    {
+                        rw, // 1
+                        ro  // 2
+                    };
+                    System.Console.Write(s.i);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "5", verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Invocation_CollectionInitializer_MoreArguments()
+    {
+        var source = """
+            struct S : System.Collections.IEnumerable
+            {
+                public int i;
+                public System.Collections.IEnumerator GetEnumerator() => throw null;
+            }
+
+            static class MyStructExtension
+            {
+                public static void Add(ref this S s, ref readonly S x, ref readonly S y)
+                {
+                    s.i += x.i + y.i;
+                }
+            }
+
+            static class Program
+            {
+                static readonly S ro = new S { i = 3 };
+                static void Main()
+                {
+                    var rw = new S { i = 2 };
+                    var s = new S
+                    {
+                        { rw, ro }, // 1
+                        { ro, rw }  // 2
+                    };
+                    System.Console.Write(s.i);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "10", verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Invocation_Delegate()
     {
         var source = """
