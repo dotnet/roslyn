@@ -118,7 +118,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, preferredIndentation: elementIndentation, nodesAndTokens);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
@@ -136,7 +136,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, preferredIndentation: null, nodesAndTokens);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
                 var collectionExpression = CollectionExpression(
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens));
@@ -259,8 +259,9 @@ internal static class CSharpCollectionExpressionRewriter
         // commas are added properly to the sequence.
         void CreateAndAddElements(
             ImmutableArray<CollectionExpressionMatch> matches,
+            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
-            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+            bool forceTrailingComma)
         {
             // If there's no requested indentation, then we want to produce the sequence as: `a, b, c, d`.  So just
             // a space after any comma.  If there is desired indentation for an element, then we always follow a comma
@@ -271,12 +272,22 @@ internal static class CSharpCollectionExpressionRewriter
 
             foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
             {
+                AddCommaIfMissing();
+                nodesAndTokens.Add(element);
+            }
+
+            if (matches.Length > 0 && forceTrailingComma)
+                AddCommaIfMissing();
+
+            return;
+
+            void AddCommaIfMissing()
+            {
                 // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
                 // from the prior node to come after that comma.  e.g. if the prior node was `x // comment` then we
                 // end up with: `x, // comment<new-line>`
-                if (nodesAndTokens.Count > 0)
+                if (nodesAndTokens is [.., { IsNode: true } lastNode])
                 {
-                    var lastNode = nodesAndTokens[^1];
                     var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(static t => t.IsWhitespaceOrSingleOrMultiLineComment());
 
                     nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
@@ -286,8 +297,6 @@ internal static class CSharpCollectionExpressionRewriter
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
                     nodesAndTokens.Add(commaToken);
                 }
-
-                nodesAndTokens.Add(element);
             }
         }
 
@@ -316,7 +325,12 @@ internal static class CSharpCollectionExpressionRewriter
                 nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
             }
 
-            CreateAndAddElements(matches, preferredIndentation, nodesAndTokens);
+            // If we're wrapping to multiple lines, and we don't already have a trailing comma, then force one at the
+            // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
+            // maintain.
+            CreateAndAddElements(
+                matches, nodesAndTokens, preferredIndentation,
+                forceTrailingComma: preferredIndentation != null && trailingComma == default);
 
             if (trailingComma != default)
             {

@@ -1945,7 +1945,7 @@ public class UseCollectionExpressionForArrayTests
                         int[] r =
                         [
                             1 +
-                                2
+                                2,
                         ];
                     }
                 }
@@ -1986,7 +1986,7 @@ public class UseCollectionExpressionForArrayTests
                             1 +
                                 2,
                             3 +
-                                4
+                                4,
                         ];
                     }
                 }
@@ -2554,7 +2554,7 @@ public class UseCollectionExpressionForArrayTests
                         [
                             // Leading
                             new[] { 1 }, // Trailing
-                            new int[] { 2 }
+                            new int[] { 2 },
                         ];
                     }
                 }
@@ -2570,7 +2570,7 @@ public class UseCollectionExpressionForArrayTests
                         [
                             // Leading
                             [1], // Trailing
-                            [2]
+                            [2],
                         ];
                     }
                 }
@@ -2616,7 +2616,7 @@ public class UseCollectionExpressionForArrayTests
                                 // Leading
                                 1 // Trailing
                             },
-                            new int[] { 2 }
+                            new int[] { 2 },
                         ];
                     }
                 }
@@ -2634,7 +2634,7 @@ public class UseCollectionExpressionForArrayTests
                                 // Leading
                                 1 // Trailing
                             ],
-                            [2]
+                            [2],
                         ];
                     }
                 }

@@ -1048,7 +1048,7 @@ public class UseCollectionExpressionForStackAllocTests
                         [
                             // Leading
                             i,
-                            j // Trailing
+                            j, // Trailing
                         ];
                     }
                 }
@@ -1088,7 +1088,7 @@ public class UseCollectionExpressionForStackAllocTests
                         [
                             i, // Trailing
                             // Leading
-                            j
+                            j,
                         ];
                     }
                 }
@@ -1430,7 +1430,7 @@ public class UseCollectionExpressionForStackAllocTests
                         Span<int> r =
                         [
                             1 +
-                                2
+                                2,
                         ];
                     }
                 }
@@ -1472,7 +1472,7 @@ public class UseCollectionExpressionForStackAllocTests
                             1 +
                                 2,
                             3 +
-                                4
+                                4,
                         ];
                     }
                 }
