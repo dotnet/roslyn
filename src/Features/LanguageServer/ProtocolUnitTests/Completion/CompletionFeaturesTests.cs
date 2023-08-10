@@ -306,6 +306,8 @@ class A
             extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
+        mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
+
         // return 10 items, all use default commit characters
         mockService.ItemCounts = (10, 0);
 
@@ -351,6 +353,7 @@ class A
             extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
+        mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
         mockService.ItemCounts = shouldPromoteDefaultCommitCharsToList ? (20, 10) : (10, 20);
 
         var caret = testLspServer.GetLocations("caret").Single();
@@ -424,7 +427,7 @@ class A
             return true;
         }
 
-        public CompletionItemRules NonDefaultRule { get; } = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
+        public CompletionItemRules NonDefaultRule { get; set; } = CompletionItemRules.Default;
 
         public (int defaultItemCount, int nonDefaultItemCount) ItemCounts { get; set; }
 
@@ -590,5 +593,56 @@ public class C
         Assert.NotEmpty(results.Items);
         Assert.Empty(results.ItemDefaults.CommitCharacters);
         Assert.True(results.Items.All(item => item.CommitCharacters is null));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5988")]
+    public async Task TestSoftSelectionWhenFilterTextIsEmptyForPreselectItemAsync(bool mutatingLspWorkspace)
+    {
+        var markup = "{|caret:|}";
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
+            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+
+        var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
+        mockService.NonDefaultRule = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
+        mockService.ItemCounts = (10, 10);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caret.Uri);
+
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.True(results.IsIncomplete);
+        AssertEx.Empty(results.ItemDefaults.CommitCharacters);
+
+        foreach (var item in results.Items)
+            Assert.Null(item.CommitCharacters);
+
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "i"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caret),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "i",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        Assert.False(results.IsIncomplete);
+        var defaultCharArray = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+        AssertEx.SetEqual(defaultCharArray, results.ItemDefaults.CommitCharacters);
+
+        foreach (var item in results.Items)
+            Assert.Null(item.CommitCharacters);
     }
 }
