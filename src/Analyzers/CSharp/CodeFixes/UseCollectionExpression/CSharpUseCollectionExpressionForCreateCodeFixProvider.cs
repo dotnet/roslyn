@@ -25,6 +25,8 @@ using static SyntaxFactory;
 internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
     : ForkingSyntaxEditorBasedCodeFixProvider<InvocationExpressionSyntax>
 {
+    private static readonly SyntaxAnnotation s_dummyObjectAnnotation = new();
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUseCollectionExpressionForCreateCodeFixProvider()
@@ -54,32 +56,24 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var dummyObjectAnnotation = new SyntaxAnnotation();
-        var expressionAnnotation = new SyntaxAnnotation();
-
         // Get the expressions that we're going to fill the new collection expression with.
-        var expressions = GetExpressions(invocationExpression, unwrapArgument);
+        var arguments = GetArguments(invocationExpression, unwrapArgument);
 
-        var dummyObjectCreation =
-            ImplicitObjectCreationExpression(
-                ArgumentList(SeparatedList(expressions.Select(e => Argument(e.WithAdditionalAnnotations(expressionAnnotation))))),
-                initializer: null)
-                .WithTriviaFrom(invocationExpression)
-                .WithAdditionalAnnotations(dummyObjectAnnotation);
+        var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)
+            .WithTriviaFrom(invocationExpression)
+            .WithAdditionalAnnotations(s_dummyObjectAnnotation);
 
         var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
-        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
-        expressions = newSemanticDocument.Root
-            .GetAnnotatedNodes(expressionAnnotation)
-            .OfType<ExpressionSyntax>()
-            .ToImmutableArray();
+        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(s_dummyObjectAnnotation).Single();
+        var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
+        var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             fallbackOptions,
             dummyObjectCreation,
-            expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false)),
+            matches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
@@ -87,14 +81,14 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         editor.ReplaceNode(invocationExpression, collectionExpression);
     }
 
-    private static ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
+    private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
     {
         var arguments = invocationExpression.ArgumentList.Arguments;
 
         // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
         // expressions the user wrote out.
         if (!unwrapArgument)
-            return arguments.SelectAsArray(static a => a.Expression);
+            return arguments;
 
         Contract.ThrowIfTrue(arguments.Count != 1);
         var expression = arguments.Single().Expression;
@@ -111,7 +105,8 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         };
 
         return initializer is null
-            ? ImmutableArray<ExpressionSyntax>.Empty
-            : initializer.Expressions.ToImmutableArray();
+            ? default
+            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
+                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
 }
