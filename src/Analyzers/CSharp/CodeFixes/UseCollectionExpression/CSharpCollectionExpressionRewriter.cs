@@ -27,15 +27,16 @@ internal static class CSharpCollectionExpressionRewriter
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
     /// name="expressionToReplace"/> expression.
     /// </summary>
-    public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression>(
+    public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
         CodeActionOptionsProvider fallbackOptions,
         TParentExpression expressionToReplace,
-        ImmutableArray<CollectionExpressionMatch> matches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
         where TParentExpression : ExpressionSyntax
+        where TMatchNode : SyntaxNode
     {
         // This method is quite complex, but primarily because it wants to perform all the trivia handling itself.
         // We are moving nodes around in the tree in complex ways, and the formatting engine is just not sufficient
@@ -258,7 +259,7 @@ internal static class CSharpCollectionExpressionRewriter
         // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
         // commas are added properly to the sequence.
         void CreateAndAddElements(
-            ImmutableArray<CollectionExpressionMatch> matches,
+            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
             bool forceTrailingComma)
@@ -349,7 +350,7 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         static CollectionElementSyntax CreateCollectionElement(
-            CollectionExpressionMatch? match, ExpressionSyntax expression)
+            CollectionExpressionMatch<TMatchNode>? match, ExpressionSyntax expression)
         {
             return match?.UseSpread is true
                 ? SpreadElement(
@@ -359,9 +360,9 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         CollectionElementSyntax CreateElement(
-            CollectionExpressionMatch match, string? preferredIndentation)
+            CollectionExpressionMatch<TMatchNode> match, string? preferredIndentation)
         {
-            var statement = match.Statement;
+            var statement = match.Node;
 
             if (statement is ExpressionStatementSyntax expressionStatement)
             {
@@ -609,22 +610,26 @@ internal static class CSharpCollectionExpressionRewriter
             return totalLength > wrappingLength;
         }
 
-        static IEnumerable<SyntaxNode> GetElementComponents(StatementSyntax statement)
+        static IEnumerable<SyntaxNode> GetElementComponents(TMatchNode node)
         {
-            if (statement is ExpressionStatementSyntax expressionStatement)
+            if (node is ExpressionStatementSyntax expressionStatement)
             {
                 yield return expressionStatement.Expression;
             }
-            else if (statement is ForEachStatementSyntax foreachStatement)
+            else if (node is ForEachStatementSyntax foreachStatement)
             {
                 yield return foreachStatement.Expression;
             }
-            else if (statement is IfStatementSyntax ifStatement)
+            else if (node is IfStatementSyntax ifStatement)
             {
                 yield return ifStatement.Condition;
                 yield return UnwrapEmbeddedStatement(ifStatement.Statement);
                 if (ifStatement.Else != null)
                     yield return UnwrapEmbeddedStatement(ifStatement.Else.Statement);
+            }
+            else if (node is ExpressionSyntax expression)
+            {
+                yield return expression;
             }
         }
 

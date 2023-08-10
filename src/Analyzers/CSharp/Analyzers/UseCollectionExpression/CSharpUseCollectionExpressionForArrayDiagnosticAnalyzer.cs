@@ -91,7 +91,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
     }
 
-    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches(
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ArrayCreationExpressionSyntax expression,
         CancellationToken cancellationToken)
