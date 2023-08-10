@@ -10,4 +10,9 @@ internal static class PrivateDiagnosticIds
     /// Target-typed new is not allowed by code style policy in the compiler layer.
     /// </summary>
     public const string AvoidImplicitObjectCreation = "RP0001";
+
+    /// <summary>
+    /// Prefer <c>argument: value</c> syntax to <c>value /*argument*/</c>.
+    /// </summary>
+    public const string UseNamedArguments = "RP0002";
 }
