@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -21,12 +20,12 @@ internal sealed class LinkedFileReferenceLocationEqualityComparer : IEqualityCom
     {
     }
 
-    public bool Equals([AllowNull] ReferenceLocation x, [AllowNull] ReferenceLocation y)
+    public bool Equals(ReferenceLocation x, ReferenceLocation y)
     {
         Contract.ThrowIfFalse(x.Document == y.Document);
         return x.Location.SourceSpan == y.Location.SourceSpan;
     }
 
-    public int GetHashCode([DisallowNull] ReferenceLocation obj)
+    public int GetHashCode(ReferenceLocation obj)
         => obj.Location.SourceSpan.GetHashCode();
 }
