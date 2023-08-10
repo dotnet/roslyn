@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SuppressOption RemoveFlag(this SuppressOption option, SuppressOption flag)
             => option & ~flag;
 
-
         public static string CreateIndentationString(this int desiredIndentation, bool useTab, int tabSize)
         {
             var numberOfTabs = 0;
