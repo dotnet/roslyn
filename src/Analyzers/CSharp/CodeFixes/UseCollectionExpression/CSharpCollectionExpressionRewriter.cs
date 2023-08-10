@@ -433,31 +433,62 @@ internal static class CSharpCollectionExpressionRewriter
                     if (currentToken == expressionFirstToken)
                         return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
 
-                    // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
-                    // otherwise always consumed as trailing trivia if it comes after a token.
-                    if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
-                    {
-                        // First, figure out how much this token is indented *from the line* the first token was on.
-                        // Then adjust the preferred indentation that amount for this token.
-                        var currentTokenIndentation = GetIndentationStringForToken(currentToken);
-                        var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
-                            ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
-                            : preferredIndentation;
-
-                        // trim off the existing leading whitespace for this token if it has any, then add the new preferred indentation.
-                        var finalLeadingTrivia = currentToken.LeadingTrivia
-                            .Take(currentToken.LeadingTrivia.Count - 1)
-                            .Append(Whitespace(currentTokenPreferredIndentation));
-
-                        return currentToken.WithLeadingTrivia(finalLeadingTrivia);
-                    }
-
-                    // Any other token is unchanged.
-                    return currentToken;
+                    return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
                 });
 
             // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
             return TransferComments(parentStatement, updatedExpression, preferredIndentation);
+        }
+
+        SyntaxToken IndentToken(
+            SyntaxToken token,
+            string preferredIndentation,
+            string firstTokenOnLineIndentationString)
+        {
+            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+            // otherwise always consumed as trailing trivia if it comes after a token.
+            if (token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                return token;
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+
+            // Walk all trivia (except the final whitespace).  If we hit any comments within at the start of a line
+            // indent them as well.
+            for (int i = 0, n = token.LeadingTrivia.Count - 1; i < n; i++)
+            {
+                var currentTrivia = token.LeadingTrivia[i];
+                var nextTrivia = token.LeadingTrivia[i + 1];
+
+                var afterNewLine = i == 0 || token.LeadingTrivia[i - 1].IsEndOfLine();
+                if (afterNewLine &&
+                    currentTrivia.IsWhitespace() &&
+                    nextTrivia.IsSingleOrMultiLineComment())
+                {
+                    result.Add(GetIndentedWhitespaceTrivia(
+                        preferredIndentation, firstTokenOnLineIndentationString, nextTrivia.SpanStart));
+                }
+                else
+                {
+                    result.Add(currentTrivia);
+                }
+            }
+
+            // Finally, figure out how much this token is indented *from the line* the first token was on.
+            // Then adjust the preferred indentation that amount for this token.
+            result.Add(GetIndentedWhitespaceTrivia(
+                preferredIndentation, firstTokenOnLineIndentationString, token.SpanStart));
+
+            return token.WithLeadingTrivia(TriviaList(result));
+        }
+
+        SyntaxTrivia GetIndentedWhitespaceTrivia(string preferredIndentation, string firstTokenOnLineIndentationString, int pos)
+        {
+            var currentTokenIndentation = GetIndentationStringForPosition(pos);
+            var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
+                ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
+                : preferredIndentation;
+            var whitespace = Whitespace(currentTokenPreferredIndentation);
+            return whitespace;
         }
 
         static ExpressionSyntax TransferComments(
@@ -522,9 +553,12 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         string GetIndentationStringForToken(SyntaxToken token)
+            => GetIndentationStringForPosition(token.SpanStart);
+
+        string GetIndentationStringForPosition(int position)
         {
-            var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
-            var indentation = token.SpanStart - tokenLine.Start;
+            var tokenLine = document.Text.Lines.GetLineFromPosition(position);
+            var indentation = position - tokenLine.Start;
             var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
                 document.Text, indentationOptions);
 

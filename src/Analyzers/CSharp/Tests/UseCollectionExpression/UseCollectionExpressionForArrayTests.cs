@@ -2578,4 +2578,68 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2_Trivia2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+
+                        r[0] = [|[|new|][]|]
+                        {
+                            // Leading
+                            1 // Trailing
+                        };
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            new[]
+                            {
+                                // Leading
+                                1 // Trailing
+                            },
+                            new int[] { 2 }
+                        ];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            [
+                                // Leading
+                                1 // Trailing
+                            ],
+                            [2]
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
