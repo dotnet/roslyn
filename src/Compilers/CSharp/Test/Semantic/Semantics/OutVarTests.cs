@@ -36336,13 +36336,12 @@ public class MyAttribute : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,13): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (6,16): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 //         [My(() => { [My(M2(out var x))] static string M2(out int x) => throw null; })]
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { [My(M2(out var x))] static string M2(out int x) => throw null; }").WithArguments("lambda expression", "string").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(6, 16),
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

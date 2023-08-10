@@ -155,6 +155,122 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         }
 
         [Fact]
+        public async Task TestOnVariableDeclarator_If1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                            c.Add(2);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                            c.Add(2);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_If2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                            c.Add(2);
+                        else
+                            c.Add(3);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                            c.Add(2);
+                        else
+                            c.Add(3);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_If3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                        {
+                            c.Add(2);
+                        }
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                        {
+                            c.Add(2);
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestIndexAccess1()
         {
             await TestInRegularAndScriptAsync(

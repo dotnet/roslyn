@@ -442,7 +442,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -484,7 +484,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -508,7 +508,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -534,7 +534,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -563,8 +563,8 @@ namespace A
             var expectedNumberOfUnsupportedDiagnosticIds =
                 language switch
                 {
-                    LanguageNames.CSharp => 44,
-                    LanguageNames.VisualBasic => 81,
+                    LanguageNames.CSharp => 45,
+                    LanguageNames.VisualBasic => 82,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 

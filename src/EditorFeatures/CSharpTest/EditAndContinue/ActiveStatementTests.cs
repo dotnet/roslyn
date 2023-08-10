@@ -2333,6 +2333,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69249")]
         public void InstanceFieldInitializer_Internal_Delete2()
         {
             var src1 = @"
@@ -2340,34 +2341,14 @@ class C
 {
     int a = F(1), <AS:1>b = F(2)</AS:1>;
 
-    public C() {}
-
-    public static int F(int a)
-    {
-        <AS:0>return a;</AS:0> 
-    }
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
+    public static int F(int a) => <AS:0>1</AS:0>;
 }";
             var src2 = @"
 class C
 {
     <AS:1>int a, b;</AS:1>
 
-    public C() {}
-
-    public static int F(int a)
-    {
-        <AS:0>return a;</AS:0> 
-    }
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
+    public static int F(int a) => <AS:0>1</AS:0>;
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);

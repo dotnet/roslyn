@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         public static void AddExistingItems<TMatch, TElementSyntax>(
             BaseObjectCreationExpressionSyntax objectCreation,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
+            bool addTrailingComma,
             Func<TMatch?, ExpressionSyntax, TElementSyntax> createElement)
             where TMatch : struct
             where TElementSyntax : SyntaxNode
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 
             // If we have an odd number of elements already, add a comma at the end so that we can add the rest of the
             // items afterwards without a syntax issue.
-            if (nodesAndTokens.Count % 2 == 1)
+            if (addTrailingComma && nodesAndTokens.Count % 2 == 1)
             {
                 var last = nodesAndTokens.Last();
                 nodesAndTokens.RemoveLast();

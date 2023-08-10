@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 TextDocument = new TextDocumentItem
                 {
                     Text = "sometext",
-                    Uri = new Uri("C:\\location\\file.json"),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
                 }
             };
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 TextDocument = new TextDocumentItem
                 {
                     Text = "sometext",
-                    Uri = new Uri("C:\\location\\file.json"),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
                 }
             };
             var ex = await Assert.ThrowsAsync<RemoteInvocationException>(async () => await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None));

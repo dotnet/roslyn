@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        internal ObsoleteAttributeData DecodeExperimentalAttribute()
         {
             // ExperimentalAttribute(string diagnosticId)
             Debug.Assert(this.CommonConstructorArguments.Length == 1);

@@ -6634,6 +6634,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion12" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -7783,5 +7786,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_TargetDifferentRefness_Title" xml:space="preserve">
     <value>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</value>
+  </data>
+  <data name="WRN_UseDefViolationRefField" xml:space="preserve">
+    <value>Ref field '{0}' should be ref-assigned before use.</value>
+  </data>
+  <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
+    <value>Ref field should be ref-assigned before use.</value>
   </data>
 </root>

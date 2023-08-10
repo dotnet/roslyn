@@ -3,15 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
 
@@ -25,6 +28,8 @@ internal static class UseCollectionExpressionHelpers
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
+        var compilation = semanticModel.Compilation;
+
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return false;
@@ -39,15 +44,28 @@ internal static class UseCollectionExpressionHelpers
         // First, we don't change things if X and Y are different.  That could lead to something observable at
         // runtime in the case of something like:  object[] x = new string[] ...
 
-        var typeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
-        if (typeInfo.Type is IErrorTypeSymbol)
+        var originalTypeInfo = semanticModel.GetTypeInfo(topMostExpression, cancellationToken);
+        if (originalTypeInfo.Type is IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.ConvertedType is null or IErrorTypeSymbol)
+        if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (typeInfo.Type != null && !typeInfo.Type.Equals(typeInfo.ConvertedType))
-            return false;
+        // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
+        // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
+        // but it's possible we'll end up with different types at runtime that may cause problems.
+        //
+        // Note: we can relax this on a case by case basis if we feel like it's acceptable.
+        if (originalTypeInfo.Type != null && !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType))
+        {
+            var isOk =
+                originalTypeInfo.Type.Name == nameof(Span<int>) &&
+                originalTypeInfo.ConvertedType.Name == nameof(ReadOnlySpan<int>) &&
+                originalTypeInfo.Type.OriginalDefinition.Equals(compilation.SpanOfTType()) &&
+                originalTypeInfo.ConvertedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType());
+            if (!isOk)
+                return false;
+        }
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
         // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
@@ -70,6 +88,12 @@ internal static class UseCollectionExpressionHelpers
         // collection type).
         var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
         if (!conversion.IsCollectionExpression)
+            return false;
+
+        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+        // converting this to some different collection type unintentionally.
+        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
             return false;
 
         return true;
@@ -168,5 +192,209 @@ internal static class UseCollectionExpressionHelpers
         {
             return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left);
         }
+    }
+
+    public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
+        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+    {
+        // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
+        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
+            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+
+        // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
+        // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
+        if (wasOnSingleLine)
+        {
+            // convert '{ ' to '['
+            if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
+                openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
+
+            if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
+                elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
+        }
+
+        return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+    }
+
+    public static CollectionExpressionSyntax ReplaceWithCollectionExpression(
+        SourceText sourceText,
+        InitializerExpressionSyntax originalInitializer,
+        CollectionExpressionSyntax newCollectionExpression,
+        bool newCollectionIsSingleLine)
+    {
+        Contract.ThrowIfFalse(originalInitializer.Parent
+            is ArrayCreationExpressionSyntax
+            or ImplicitArrayCreationExpressionSyntax
+            or StackAllocArrayCreationExpressionSyntax
+            or ImplicitStackAllocArrayCreationExpressionSyntax
+            or BaseObjectCreationExpressionSyntax);
+
+        var initializerParent = originalInitializer.GetRequiredParent();
+
+        return ShouldReplaceExistingExpressionEntirely(sourceText, originalInitializer, newCollectionIsSingleLine)
+            ? newCollectionExpression.WithTriviaFrom(initializerParent)
+            : newCollectionExpression
+                .WithPrependedLeadingTrivia(originalInitializer.OpenBraceToken.GetPreviousToken().TrailingTrivia)
+                .WithPrependedLeadingTrivia(ElasticMarker);
+    }
+
+    private static bool ShouldReplaceExistingExpressionEntirely(
+        SourceText sourceText,
+        InitializerExpressionSyntax initializer,
+        bool newCollectionIsSingleLine)
+    {
+        // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
+        // with `[x, y, z]`.
+        if (newCollectionIsSingleLine && sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+            return true;
+
+        // initializer was on multiple lines, but started on the same line as the 'new' keyword.  e.g.:
+        //
+        //      var v = new[] {
+        //          1, 2, 3
+        //      };
+        //
+        // Just remove the `new...` section entirely, but otherwise keep the initialize multiline:
+        //
+        //      var v = [
+        //          1, 2, 3
+        //      ];
+        var parent = initializer.GetRequiredParent();
+        var newKeyword = parent.GetFirstToken();
+        if (sourceText.AreOnSameLine(newKeyword, initializer.OpenBraceToken) &&
+            !sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
+        {
+            return true;
+        }
+
+        // Initializer was on multiple lines, and was not on the same line as the 'new' keyword, and the 'new' is on a newline:
+        //
+        //      var v2 =
+        //          new[]
+        //          {
+        //              1, 2, 3
+        //          };
+        //
+        // For this latter, we want to just remove the new portion and move the collection to subsume it.
+        var previousToken = newKeyword.GetPreviousToken();
+        if (previousToken == default)
+            return true;
+
+        if (!sourceText.AreOnSameLine(previousToken, newKeyword))
+            return true;
+
+        // All that is left is:
+        //
+        //      var v2 = new[]
+        //      {
+        //          1, 2, 3
+        //      };
+        //
+        // For this we want to remove the 'new' portion, but keep the collection on its own line.
+        return false;
+    }
+
+    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches<TArrayCreationExpressionSyntax>(
+        SemanticModel semanticModel,
+        TArrayCreationExpressionSyntax expression,
+        Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
+        Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
+        CancellationToken cancellationToken)
+        where TArrayCreationExpressionSyntax : ExpressionSyntax
+    {
+        Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
+
+        // has to either be `stackalloc X[]` or `stackalloc X[const]`.
+        if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
+            return default;
+
+        using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
+
+        var initializer = getInitializer(expression);
+        if (size is OmittedArraySizeExpressionSyntax)
+        {
+            // `stackalloc int[]` on its own is illegal.  Has to either have a size, or an initializer.
+            if (initializer is null)
+                return default;
+        }
+        else
+        {
+            // if `stackalloc X[val]`, then it `val` has to be a constant value.
+            if (semanticModel.GetConstantValue(size, cancellationToken).Value is not int sizeValue)
+                return default;
+
+            if (initializer != null)
+            {
+                // if there is an initializer, then it has to have the right number of elements.
+                if (sizeValue != initializer.Expressions.Count)
+                    return default;
+            }
+            else
+            {
+                // if there is no initializer, we have to be followed by direct statements that initialize the right
+                // number of elements.
+
+                // This needs to be local variable like `ReadOnlySpan<T> x = stackalloc ...
+                if (expression.WalkUpParentheses().Parent is not EqualsValueClauseSyntax
+                    {
+                        Parent: VariableDeclaratorSyntax
+                        {
+                            Identifier.ValueText: var variableName,
+                            Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
+                        },
+                    })
+                {
+                    return default;
+                }
+
+                var currentStatement = localDeclarationStatement.GetNextStatement();
+                for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
+                {
+                    // Each following statement needs to of the form:
+                    //
+                    //   x[...] =
+                    if (currentStatement is not ExpressionStatementSyntax
+                        {
+                            Expression: AssignmentExpressionSyntax
+                            {
+                                Left: ElementAccessExpressionSyntax
+                                {
+                                    Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
+                                    ArgumentList.Arguments: [var elementArgument],
+                                } elementAccess,
+                            }
+                        } expressionStatement)
+                    {
+                        return default;
+                    }
+
+                    // Ensure we're indexing into the variable created.
+                    if (variableName != elementName)
+                        return default;
+
+                    // The indexing value has to equal the corresponding location in the result.
+                    if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
+                        indexValue != currentIndex)
+                    {
+                        return default;
+                    }
+
+                    // this looks like a good statement, add to the right size of the assignment to track as that's what
+                    // we'll want to put in the final collection expression.
+                    matches.Add(new(expressionStatement, UseSpread: false));
+                    currentStatement = currentStatement.GetNextStatement();
+                }
+            }
+        }
+
+        if (!CanReplaceWithCollectionExpression(
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+        {
+            return default;
+        }
+
+        return matches.ToImmutable();
     }
 }

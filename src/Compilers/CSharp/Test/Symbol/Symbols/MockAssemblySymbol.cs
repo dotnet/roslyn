@@ -122,5 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             throw new NotImplementedException();
         }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => null;
     }
 }
