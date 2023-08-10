@@ -5007,7 +5007,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var newDiagnosticSymbol = newSymbol;
-                
                 if (newDiagnosticSymbol == null)
                 {
                     Debug.Assert(oldSymbol != null);
@@ -6288,7 +6287,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract SyntaxNode? GetSymbolDeclarationSyntax(ISymbol symbol, Func<ImmutableArray<SyntaxReference>, SyntaxReference?> selector, CancellationToken cancellationToken);
 
         protected SyntaxNode GetSymbolDeclarationSyntax(ISymbol symbol, CancellationToken cancellationToken)
-            => GetSymbolDeclarationSyntax(symbol, selector: System.Linq.ImmutableArrayExtensions.First, cancellationToken);
+            => GetSymbolDeclarationSyntax(symbol, selector: System.Linq.ImmutableArrayExtensions.First, cancellationToken)!;
 
         protected abstract ISymbol? GetDeclaredSymbol(SemanticModel model, SyntaxNode declaration, CancellationToken cancellationToken);
 
