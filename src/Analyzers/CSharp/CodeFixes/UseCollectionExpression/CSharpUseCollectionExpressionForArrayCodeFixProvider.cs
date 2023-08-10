@@ -25,130 +25,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static UseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForArray), Shared]
-internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
+    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUseCollectionExpressionForArrayCodeFixProvider()
+        : base(CSharpCodeFixesResources.Use_collection_expression,
+               IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
     {
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
-        return Task.CompletedTask;
-    }
-
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task FixAsync(
         Document document,
-        ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
+        ExpressionSyntax arrayCreationExpression,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
         var services = document.Project.Solution.Services;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var originalRoot = editor.OriginalRoot;
 
-        var arrayExpressions = new Stack<ExpressionSyntax>();
-        foreach (var diagnostic in diagnostics)
+        if (arrayCreationExpression
+                is not ArrayCreationExpressionSyntax
+                and not ImplicitArrayCreationExpressionSyntax
+                and not InitializerExpressionSyntax)
         {
-            var expression = (ExpressionSyntax)originalRoot.FindNode(
-                diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-            arrayExpressions.Push(expression);
+            return;
         }
 
-        // We're going to be continually editing this tree.  Track all the nodes we
-        // care about so we can find them across each edit.
-        var semanticDocument = await SemanticDocument.CreateAsync(
-            document.WithSyntaxRoot(originalRoot.TrackNodes(arrayExpressions)),
-            cancellationToken).ConfigureAwait(false);
-
-        while (arrayExpressions.Count > 0)
+        if (arrayCreationExpression is InitializerExpressionSyntax initializer)
         {
-            var arrayCreationExpression = semanticDocument.Root.GetCurrentNodes(arrayExpressions.Pop()).Single();
-            if (arrayCreationExpression
-                    is not ArrayCreationExpressionSyntax
-                    and not ImplicitArrayCreationExpressionSyntax
-                    and not InitializerExpressionSyntax)
-            {
-                continue;
-            }
-
-            var subEditor = new SyntaxEditor(semanticDocument.Root, services);
-
-            if (arrayCreationExpression is InitializerExpressionSyntax initializer)
-            {
-                subEditor.ReplaceNode(
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(
+                initializer,
+                ConvertInitializerToCollectionExpression(
                     initializer,
-                    ConvertInitializerToCollectionExpression(
-                        initializer,
-                        IsOnSingleLine(semanticDocument.Text, initializer)));
-            }
-            else
-            {
-                var matches = GetMatches(semanticDocument, arrayCreationExpression);
-                if (matches.IsDefault)
-                    continue;
+                    IsOnSingleLine(text, initializer)));
+        }
+        else
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var matches = GetMatches(semanticModel, arrayCreationExpression);
+            if (matches.IsDefault)
+                return;
 
-                var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
-                    semanticDocument.Document,
-                    fallbackOptions,
-                    arrayCreationExpression,
-                    matches,
-                    static e => e switch
-                    {
-                        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-                        ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.Initializer,
-                        _ => throw ExceptionUtilities.Unreachable(),
-                    },
-                    static (e, i) => e switch
-                    {
-                        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.WithInitializer(i),
-                        ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.WithInitializer(i),
-                        _ => throw ExceptionUtilities.Unreachable(),
-                    },
-                    cancellationToken).ConfigureAwait(false);
+            var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+                document,
+                fallbackOptions,
+                arrayCreationExpression,
+                matches,
+                static e => e switch
+                {
+                    ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+                    ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.Initializer,
+                    _ => throw ExceptionUtilities.Unreachable(),
+                },
+                static (e, i) => e switch
+                {
+                    ArrayCreationExpressionSyntax arrayCreation => arrayCreation.WithInitializer(i),
+                    ImplicitArrayCreationExpressionSyntax implicitArrayCreation => implicitArrayCreation.WithInitializer(i),
+                    _ => throw ExceptionUtilities.Unreachable(),
+                },
+                cancellationToken).ConfigureAwait(false);
 
-                subEditor.ReplaceNode(arrayCreationExpression, collectionExpression);
-                foreach (var match in matches)
-                    subEditor.RemoveNode(match.Statement);
-            }
-
-            semanticDocument = await semanticDocument.WithSyntaxRootAsync(
-                subEditor.GetChangedRoot(), cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(arrayCreationExpression, collectionExpression);
+            foreach (var match in matches)
+                editor.RemoveNode(match.Statement);
         }
 
-        editor.ReplaceNode(originalRoot, semanticDocument.Root);
         return;
 
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch> GetMatches(SemanticDocument document, ExpressionSyntax expression)
-        {
-            switch (expression)
+        ImmutableArray<CollectionExpressionMatch> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
+            => expression switch
             {
-                case ImplicitArrayCreationExpressionSyntax:
-                    // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
-                    // from within the initializer.
-                    return ImmutableArray<CollectionExpressionMatch>.Empty;
+                // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
+                // from within the initializer.
+                ImplicitArrayCreationExpressionSyntax
+                    => ImmutableArray<CollectionExpressionMatch>.Empty,
 
-                case ArrayCreationExpressionSyntax arrayCreation:
-                    // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
-                    // be added to the collection expression.
-                    return CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        document.SemanticModel, arrayCreation, cancellationToken);
+                // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
+                // be added to the collection expression.
+                ArrayCreationExpressionSyntax arrayCreation
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
 
-                default:
-                    // We validated this is unreachable in the caller.
-                    throw ExceptionUtilities.Unreachable();
-            }
-        }
+                // We validated this is unreachable in the caller.
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
     }
 }
