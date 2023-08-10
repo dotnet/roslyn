@@ -362,23 +362,23 @@ internal static class CSharpCollectionExpressionRewriter
         CollectionElementSyntax CreateElement(
             CollectionExpressionMatch<TMatchNode> match, string? preferredIndentation)
         {
-            var statement = match.Node;
+            var node = match.Node;
 
-            if (statement is ExpressionStatementSyntax expressionStatement)
+            if (node is ExpressionStatementSyntax expressionStatement)
             {
                 // Create: `x` for `collection.Add(x)` or `.. x` for `collection.AddRange(x)`
                 return CreateCollectionElement(
                     match,
                     ConvertExpression(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation)));
             }
-            else if (statement is ForEachStatementSyntax foreachStatement)
+            else if (node is ForEachStatementSyntax foreachStatement)
             {
                 // Create: `.. x` for `foreach (var v in x) collection.Add(v)`
                 return CreateCollectionElement(
                     match,
                     IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation));
             }
-            else if (statement is IfStatementSyntax ifStatement)
+            else if (node is IfStatementSyntax ifStatement)
             {
                 var condition = IndentExpression(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
                 var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
@@ -404,6 +404,10 @@ internal static class CSharpCollectionExpressionRewriter
                     return CreateCollectionElement(match, expression);
                 }
             }
+            else if (node is ExpressionSyntax expression)
+            {
+                return CreateCollectionElement(match, IndentExpression(parentStatement: null, expression, preferredIndentation));
+            }
             else
             {
                 throw ExceptionUtilities.Unreachable();
@@ -411,7 +415,7 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         ExpressionSyntax IndentExpression(
-            StatementSyntax parentStatement,
+            StatementSyntax? parentStatement,
             ExpressionSyntax expression,
             string? preferredIndentation)
         {
@@ -452,7 +456,7 @@ internal static class CSharpCollectionExpressionRewriter
                 });
 
             // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
-            return TransferComments(parentStatement, updatedExpression, preferredIndentation);
+            return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
         }
 
         SyntaxToken IndentToken(
@@ -504,11 +508,14 @@ internal static class CSharpCollectionExpressionRewriter
                 : preferredIndentation);
         }
 
-        static ExpressionSyntax TransferComments(
-            StatementSyntax parentStatement,
+        static ExpressionSyntax TransferParentStatementComments(
+            StatementSyntax? parentStatement,
             ExpressionSyntax expression,
             string preferredIndentation)
         {
+            if (parentStatement is null)
+                return expression;
+
             using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newLeadingTrivia);
             using var _2 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newTrailingTrivia);
 
@@ -587,17 +594,17 @@ internal static class CSharpCollectionExpressionRewriter
                     totalLength += expression.Span.Length;
             }
 
-            foreach (var (statement, _) in matches)
+            foreach (var (node, _) in matches)
             {
                 // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                 // appropriate place to go.
-                if (statement.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
-                    statement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                if (node.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
+                    node.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
                 {
                     return true;
                 }
 
-                foreach (var component in GetElementComponents(statement))
+                foreach (var component in GetElementComponents(node))
                 {
                     // if any of the expressions we're adding are multiline, then make things multiline.
                     if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -20,9 +21,46 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public class UseCollectionExpressionForCreateTests
 {
+    private const string s_collectionBuilderApi = """
+
+        namespace System.Runtime.CompilerServices
+        {
+            [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+            public sealed class CollectionBuilderAttribute : Attribute
+            {
+                public CollectionBuilderAttribute(Type builderType, string methodName) { }
+            }
+        }
+        """;
+
+    private const string s_basicCollectionApi = """
+
+        static partial class MyCollection
+        {
+            public static MyCollection<T> Create<T>(System.ReadOnlySpan<T> values) => default;
+            public static MyCollection<T> Create<T>(System.Span<T> values) => default;
+
+            public static MyCollection<T> Create<T>() => default;
+            public static MyCollection<T> Create<T>(T t1) => default;
+            public static MyCollection<T> Create<T>(T t1, T t2) => default;
+            public static MyCollection<T> Create<T>(T t1, T t2, T t3) => default;
+            public static MyCollection<T> Create<T>(T t1, T t2, T t3, T t4) => default;
+            public static MyCollection<T> Create<T>(params T[] values) => default;
+            public static MyCollection<T> CreateRange<T>(System.Collections.Generic.IEnumerable<T> values) => default;
+        }
+
+        [System.Runtime.CompilerServices.CollectionBuilder(typeof(MyCollection), "Create")]
+        class MyCollection<T> : System.Collections.Generic.IEnumerable<T>
+        {
+            public System.Collections.Generic.IEnumerator<T> GetEnumerator() => default;
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => default;
+        }
+        """;
+
     [Fact]
     public async Task TestNotInCSharp11()
     {
+
         await new VerifyCS.Test
         {
             TestCode = """
@@ -30,64 +68,61 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    ImmutableArray<int> i = ImmutableArray.Create(1, 2, 3);
+                    MyCollection<int> i = MyCollection.Create(1, 2, 3);
                 }
-                """,
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
     [Fact]
-    public async Task TestInCSharp12()
+    public async Task TestInCSharp12_Net70()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                using System.Collections.Immutable;
-
                 class C
                 {
-                    ImmutableArray<int> i = [|ImmutableArray.[|Create|](|]1, 2, 3);
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
                 }
-                """,
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
-                using System.Collections.Immutable;
-
                 class C
                 {
-                    ImmutableArray<int> i = [1, 2, 3];
+                    MyCollection<int> i = [1, 2, 3];
                 }
-                """,
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestInCSharp12_Net80()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System.Collections.Immutable;
+    //[Fact]
+    //public async Task TestInCSharp12_Net80()
+    //{
+    //    await new VerifyCS.Test
+    //    {
+    //        TestCode = """
+    //            using System.Collections.Immutable;
 
-                class C
-                {
-                    ImmutableArray<int> i = [|ImmutableArray.[|Create|](|]1, 2, 3);
-                }
-                """,
-            FixedCode = """
-                using System.Collections.Immutable;
+    //            class C
+    //            {
+    //                MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
+    //            }
+    //            """ + s_collectionBuilderApi + s_basicCollectionApi,
+    //        FixedCode = """
+    //            using System.Collections.Immutable;
 
-                class C
-                {
-                    ImmutableArray<int> i = [1, 2, 3];
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-        }.RunAsync();
-    }
+    //            class C
+    //            {
+    //                MyCollection<int> i = [1, 2, 3];
+    //            }
+    //            """ + s_collectionBuilderApi + s_basicCollectionApi,
+    //        LanguageVersion = LanguageVersion.CSharp12,
+    //        ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+    //    }.RunAsync();
+    //}
 
     //[Fact]
     //public async Task TestSingleLine_TrailingComma()

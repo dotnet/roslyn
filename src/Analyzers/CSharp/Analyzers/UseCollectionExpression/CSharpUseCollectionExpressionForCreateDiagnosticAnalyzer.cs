@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    private const string CreateName = "Create";
+    private const string CreateName = nameof(ImmutableArray.Create);
+    private const string CreateRangeName = nameof(ImmutableArray.CreateRange);
 
     public const string UnwrapArgument = nameof(UnwrapArgument);
 
@@ -96,7 +97,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (invocationExpression.Expression is not MemberAccessExpressionSyntax
             {
                 RawKind: (int)SyntaxKind.SimpleMemberAccessExpression,
-                Name.Identifier.Value: CreateName,
+                Name.Identifier.Value: CreateName or CreateRangeName,
             } memberAccessExpression)
         {
             return;
@@ -185,68 +186,76 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (arguments.Any(static a => a.NameColon != null))
             return false;
 
-        // `XXX.Create()` can be converted to `[]`
-        if (originalCreateMethod.Parameters.Length == 0)
-            return arguments.Count == 0;
-
-        // If we have `Create<T>(T)`, `Create<T>(T, T)` etc., then this is convertible.
-        if (originalCreateMethod.Parameters.All(static p => p.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }))
-            return arguments.Count == originalCreateMethod.Parameters.Length;
-
-        // If we have `Create<T>(params T[])` this is legal if there are multiple arguments.  Or a single argument that
-        // is an array literal.
-        if (originalCreateMethod.Parameters is [{ IsParams: true, Type: IArrayTypeSymbol { ElementType: ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } } }])
+        if (originalCreateMethod.Name is CreateRangeName)
         {
-            if (arguments.Count >= 2)
-                return true;
-
-            if (arguments is [{ Expression: ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax }])
-            {
-                unwrapArgument = true;
-                return true;
-            }
-
-            return false;
-        }
-
-        if (arguments.Count != 1)
-            return false;
-
-        // If we have `Create<T>(ReadOnlySpan<T> values)` this is legal if a stack-alloc expression is passed along.
-        if (originalCreateMethod.Parameters is [INamedTypeSymbol
-            {
-                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-            } spanType])
-        {
-            if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+            // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
+            if (originalCreateMethod.Parameters is [INamedTypeSymbol
+                {
+                    Name: nameof(IEnumerable<int>),
+                    TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                } enumerableType] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
             {
                 if (arguments[0].Expression
-                        is StackAllocArrayCreationExpressionSyntax
-                        or ImplicitStackAllocArrayCreationExpressionSyntax)
+                        is ArrayCreationExpressionSyntax
+                        or ImplicitArrayCreationExpressionSyntax
+                        or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression }
+                        or ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression })
                 {
                     unwrapArgument = true;
                     return true;
                 }
             }
         }
-
-        // If we have `Create<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-        if (originalCreateMethod.Parameters is [INamedTypeSymbol
-            {
-                Name: nameof(IEnumerable<int>),
-                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-            } enumerableType] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+        else if (originalCreateMethod.Name is CreateName)
         {
-            if (arguments[0].Expression
-                    is ArrayCreationExpressionSyntax
-                    or ImplicitArrayCreationExpressionSyntax
-                    or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                    or ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression })
+            // `XXX.Create()` can be converted to `[]`
+            if (originalCreateMethod.Parameters.Length == 0)
+                return arguments.Count == 0;
+
+            // If we have `Create<T>(T)`, `Create<T>(T, T)` etc., then this is convertible.
+            if (originalCreateMethod.Parameters.All(static p => p.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }))
+                return arguments.Count == originalCreateMethod.Parameters.Length;
+
+            // If we have `Create<T>(params T[])` this is legal if there are multiple arguments.  Or a single argument that
+            // is an array literal.
+            if (originalCreateMethod.Parameters is [{ IsParams: true, Type: IArrayTypeSymbol { ElementType: ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } } }])
             {
-                unwrapArgument = true;
-                return true;
+                if (arguments.Count >= 2)
+                    return true;
+
+                if (arguments is [{ Expression: ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax }])
+                {
+                    unwrapArgument = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            // If we have `Create<T>(ReadOnlySpan<T> values)` this is legal if a stack-alloc expression is passed along.
+            //
+            // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler will change the
+            // stack alloc to a heap alloc, which could be very bad for user perf.
+
+            if (arguments.Count == 1 &&
+                compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
+                originalCreateMethod.Parameters is [INamedTypeSymbol
+                {
+                    Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                    TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                } spanType])
+            {
+                if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
+                    spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+                {
+                    if (arguments[0].Expression
+                            is StackAllocArrayCreationExpressionSyntax
+                            or ImplicitStackAllocArrayCreationExpressionSyntax)
+                    {
+                        unwrapArgument = true;
+                        return true;
+                    }
+                }
             }
         }
 

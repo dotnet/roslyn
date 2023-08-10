@@ -51,17 +51,20 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         // object creation expression is that it serves as an actual node the rewriting code can attach an initializer
         // to, by which it can figure out appropriate wrapping and indentation for the collection expression elements.
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         var syntaxAnnotation = new SyntaxAnnotation();
         var dummyObjectCreation = ImplicitObjectCreationExpression().WithTriviaFrom(invocationExpression).WithAdditionalAnnotations(syntaxAnnotation);
 
         // Get the expressions that we're going to fill the new collection expression with.
         var expressions = GetExpressions(invocationExpression, unwrapArgument);
-        var newDocument = document.WithSyntaxRoot(root.ReplaceNode(invocationExpression, dummyObjectCreation));
+
+        var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
+            semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
+        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(syntaxAnnotation).Single();
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
-            newDocument,
+            newSemanticDocument.Document,
             fallbackOptions,
             dummyObjectCreation,
             expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false)),
