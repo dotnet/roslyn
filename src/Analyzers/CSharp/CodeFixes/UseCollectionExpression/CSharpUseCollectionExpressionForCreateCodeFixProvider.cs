@@ -37,7 +37,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId);
 
-    protected override Task FixAsync(
+    protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
@@ -54,7 +54,19 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var wrappingLength = fallbackOptions.GetOptions(document.Project.Services).CollectionExpressionWrappingLength;
 #endif
 
+        // Get the expressions that we're going to fill the new collection expression with.
         var expressions = GetExpressions(invocationExpression, unwrapArgument);
+
+        // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
+        // following steps.  First, we replace `XXX.Create(...)` with `new()` (an empty object creation expression). We
+        // then call into our helper which replaces expressions with collection expressions.  The reason for the dummy
+        // object creation expression is that it serves as an actual node the rewriting code can attach an initializer
+        // to, by which it can figure out appropriate wrapping and indentation for the collection expression elements.
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var syntaxAnnotation = new SyntaxAnnotation();
+        var dummyObjectCreation = ImplicitObjectCreationExpression().WithAdditionalAnnotations(syntaxAnnotation);
     }
 
     private static ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
