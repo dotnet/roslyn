@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected sealed override async Task FixAsync(
             Document document,
-            Diagnostic diagnostic,
             SyntaxEditor editor,
             CodeActionOptionsProvider fallbackOptions,
             TObjectCreationExpressionSyntax objectCreation,
+            ImmutableDictionary<string, string?> properties,
             CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers could be arbitrarily
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             using var analyzer = GetAnalyzer();
 
-            var useCollectionExpression = diagnostic.Properties?.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
+            var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
             var matches = analyzer.Analyze(
                 semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 

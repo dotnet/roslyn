@@ -40,10 +40,10 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
 
     protected sealed override async Task FixAsync(
         Document document,
-        Diagnostic diagnostic,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax arrayCreationExpression,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
         var services = document.Project.Solution.Services;

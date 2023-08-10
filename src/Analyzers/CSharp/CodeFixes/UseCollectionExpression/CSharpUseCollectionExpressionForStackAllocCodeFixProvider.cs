@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -34,10 +33,10 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
     protected sealed override async Task FixAsync(
         Document document,
-        Diagnostic diagnostic,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax stackAllocExpression,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
         if (stackAllocExpression is not StackAllocArrayCreationExpressionSyntax and not ImplicitStackAllocArrayCreationExpressionSyntax)

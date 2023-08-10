@@ -35,9 +35,20 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         _equivalenceKey = equivalenceKey;
     }
 
+    /// <summary>
+    /// Subclasses must override this to actually provide the fix for a particular diagnostic.  The implementation will
+    /// be passed the <em>current</em> <paramref name="document"/> (containing the changes from all prior fixes), the
+    /// the <paramref name="diagnosticNode"/> in that document, for the current diagnostic being fixed.  And the <see
+    /// cref="Diagnostic.Properties"/> for that diagnostic.  The diagnostic itself is not passed along as it was
+    /// computed with respect to the original user document, and as such its <see cref="Diagnostic.Location"/> and <see
+    /// cref="Diagnostic.AdditionalLocations"/> will not be correct.
+    /// </summary>
     protected abstract Task FixAsync(
-        Document document, Diagnostic diagnostic, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, TDiagnosticNode diagnosticNode,
+        Document document,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions,
+        TDiagnosticNode diagnosticNode,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
 
     protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -85,10 +96,10 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
 
             await FixAsync(
                 semanticDocument.Document,
-                diagnostic,
                 subEditor,
                 fallbackOptions,
                 diagnosticNode,
+                diagnostic.Properties,
                 cancellationToken).ConfigureAwait(false);
 
             var changedRoot = subEditor.GetChangedRoot();
