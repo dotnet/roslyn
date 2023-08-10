@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,42 +24,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
-internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
+    : ForkingSyntaxEditorBasedCodeFixProvider<InvocationExpressionSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpUseCollectionExpressionForCreateCodeFixProvider()
+        : base(CSharpCodeFixesResources.Use_collection_expression,
+               IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId)
     {
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId);
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        RegisterCodeFix(context, CSharpCodeFixesResources.Use_collection_expression, IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId);
-        return Task.CompletedTask;
-    }
-
-    protected override async Task FixAllAsync(
+    protected override Task FixAsync(
         Document document,
-        ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
         CodeActionOptionsProvider fallbackOptions,
+        InvocationExpressionSyntax invocationExpression,
+        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var unwrapArguments = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArguments);
 
-        foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
+        var expressions = GetExpressions(invocationExpression, unwrapArguments);
+    }
+
+    private ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArguments)
+    {
+        var arguments = invocationExpression.ArgumentList.Arguments;
+
+        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
+        // expressions the user wrote out.
+        if (!unwrapArguments)
+            return arguments.SelectAsArray(static a => a.Expression);
+
+        Contract.ThrowIfTrue(arguments.Count != 1);
+        var expression = arguments.Single().Expression;
+
+        return expression switch
         {
-            var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            editor.ReplaceNode(
-                expression,
-                (current, _) => EmptyCollection.WithTriviaFrom(current));
-        }
+            ImplicitArrayCreationExpressionSyntax implicitArray
+                => GetExpressions(implicitArray.Initializer),
 
-        return;
+            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc
+                => GetExpressions(implicitStackAlloc.Initializer),
+
+            ArrayCreationExpressionSyntax arrayCreation
+                => GetExpressions(arrayCreation.Initializer),
+
+            StackAllocArrayCreationExpressionSyntax stackAllocCreation
+                => GetExpressions(stackAllocCreation.Initializer),
+
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation
+                => GetExpressions(implicitObjectCreation.Initializer),
+
+            ObjectCreationExpressionSyntax objectCreation
+                => GetExpressions(objectCreation.Initializer),
+
+            _ => throw ExceptionUtilities.Unreachable();
+        };
+
+        static ImmutableArray<ExpressionSyntax> GetExpressions(InitializerExpressionSyntax? initializer)
+            => initializer is null
+                ? ImmutableArray<ExpressionSyntax>.Empty
+                : initializer.Expressions.ToImmutableArray();
     }
 }

@@ -25,6 +25,11 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 {
     private const string CreateName = "Create";
 
+    public const string UnwrapArgument = nameof(UnwrapArgument);
+
+    private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
+        ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
+
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -125,8 +130,12 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         //  `Create(params T[])` (passing as individual elements, or an array with an initializer)
         //  `Create(ReadOnlySpan<T>)` (passing as a stack-alloc with an initializer)
         //  `Create(IEnumerable<T>)` (passing as something with an initializer.
-        if (!IsCompatibleSignatureAndArguments(semanticModel.Compilation, invocationExpression, createMethod.OriginalDefinition, cancellationToken))
+        if (!IsCompatibleSignatureAndArguments(
+                semanticModel.Compilation, invocationExpression, createMethod.OriginalDefinition,
+                out var unwrapArgument, cancellationToken))
+        {
             return;
+        }
 
         // Make sure we can actually use a collection expression in place of the full invocation.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
@@ -136,12 +145,14 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
+
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             memberAccessExpression.Name.Identifier.GetLocation(),
             option.Notification.Severity,
             additionalLocations: locations,
-            properties: null));
+            properties));
 
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
@@ -154,18 +165,18 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             additionalUnnecessaryLocations[0],
             ReportDiagnostic.Default,
             additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+            properties));
     }
 
     private static bool IsCompatibleSignatureAndArguments(
         Compilation compilation,
         InvocationExpressionSyntax invocationExpression,
         IMethodSymbol originalCreateMethod,
+        out bool unwrapArgument,
         CancellationToken cancellationToken)
     {
-        // `XXX.Create()` can always be converted to `[]`
-        if (originalCreateMethod.Parameters.Length == 0)
-            return true;
+        unwrapArgument = false;
 
         var arguments = invocationExpression.ArgumentList.Arguments;
 
@@ -174,9 +185,13 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (arguments.Any(static a => a.NameColon != null))
             return false;
 
+        // `XXX.Create()` can be converted to `[]`
+        if (originalCreateMethod.Parameters.Length == 0)
+            return arguments.Count == 0;
+
         // If we have `Create<T>(T)`, `Create<T>(T, T)` etc., then this is convertible.
         if (originalCreateMethod.Parameters.All(static p => p.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }))
-            return true;
+            return arguments.Count == originalCreateMethod.Parameters.Length;
 
         // If we have `Create<T>(params T[])` this is legal if there are multiple arguments.  Or a single argument that
         // is an array literal.
@@ -185,15 +200,20 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             if (arguments.Count >= 2)
                 return true;
 
-            if (arguments is [{ Expression: ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax])
+            if (arguments is [{ Expression: ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax }])
+            {
+                unwrapArgument = true;
                 return true;
+            }
 
             return false;
         }
 
+        if (arguments.Count != 1)
+            return false;
+
         // If we have `Create<T>(ReadOnlySpan<T> values)` this is legal if a stack-alloc expression is passed along.
-        if (arguments.Count == 1 &&
-            originalCreateMethod.Parameters is [INamedTypeSymbol
+        if (originalCreateMethod.Parameters is [INamedTypeSymbol
             {
                 Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
                 TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
@@ -202,14 +222,18 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                 spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
             {
-                if (arguments[0].Expression is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
+                if (arguments[0].Expression
+                        is StackAllocArrayCreationExpressionSyntax
+                        or ImplicitStackAllocArrayCreationExpressionSyntax)
+                {
+                    unwrapArgument = true;
                     return true;
+                }
             }
         }
 
         // If we have `Create<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-        if (arguments.Count == 1 &&
-            originalCreateMethod.Parameters is [INamedTypeSymbol
+        if (originalCreateMethod.Parameters is [INamedTypeSymbol
             {
                 Name: nameof(IEnumerable<int>),
                 TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
@@ -218,9 +242,10 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             if (arguments[0].Expression
                     is ArrayCreationExpressionSyntax
                     or ImplicitArrayCreationExpressionSyntax
-                    or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 }
-                    or ImplicitObjectCreationExpressionSyntax {  ArgumentList.Arguments.Count: 0 })
+                    or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression }
+                    or ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression })
             {
+                unwrapArgument = true;
                 return true;
             }
         }
