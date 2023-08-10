@@ -9,11 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
+/// <summary>
+/// Helper type for <see cref="CodeFixProvider"/>s that need to provide 'fix all' support in a document, by operate by
+/// applying one fix at a time, then recomputing the work to do after that fix is applied.  While this is not generally
+/// desirable from a performance perspective (due to the costs of forking a document after each fix), it is sometimes
+/// necessary as individual fixes can impact the code so substantially that successive fixes may no longer apply, or may
+/// have dramatically different data to work with before the fix.  For example, if one fix removes statements entirely
+/// that another fix was contained in.
+/// </summary>
 internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     : SyntaxEditorBasedCodeFixProvider
     where TDiagnosticNode : SyntaxNode
