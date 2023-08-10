@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             // By-design, constants will not propagate to conversions.
             return operation is IConversionOperation op
-                ? IsConstant(op.Operand)
+                ? !op.Conversion.IsUserDefined && IsConstant(op.Operand)
                 : operation.ConstantValue.HasValue;
         }
     }
