@@ -168,13 +168,28 @@ internal sealed class LanguageServerProjectSystem
 
         projectBuildManager.StartBatchBuild();
 
+        var displayedToast = 0;
+
         try
         {
             var tasks = new List<Task>();
 
             foreach (var projectPathToLoadOrReload in projectPathsToLoadOrReload)
             {
-                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken), cancellationToken));
+                tasks.Add(Task.Run(async () =>
+                {
+                    var errorKind = await LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken);
+                    if (errorKind is not null)
+                    {
+                        // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
+                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, 1, 0) == 0;
+                        if (shouldShowToast)
+                        {
+                            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPathToLoadOrReload));
+                            await ShowToastNotification.ShowToastNotificationAsync(errorKind.Value, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                        }
+                    }
+                }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -187,7 +202,7 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
     {
         try
         {
@@ -231,29 +246,24 @@ internal sealed class LanguageServerProjectSystem
                     foreach (var logItem in loadedFile.Log)
                     {
                         var projectName = Path.GetFileName(projectPath);
-                        var messageType = logItem.Kind switch
-                        {
-                            WorkspaceDiagnosticKind.Failure => LSP.MessageType.Error,
-                            WorkspaceDiagnosticKind.Warning => LSP.MessageType.Warning,
-                            _ => throw ExceptionUtilities.UnexpectedValue(logItem.Kind)
-                        };
-
-                        _logger.Log(messageType is LSP.MessageType.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
-                        var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, projectName);
-                        await ShowToastNotification.ShowToastNotificationAsync(messageType, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                        _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
                     }
+
+                    return loadedFile.Log.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
                 }
                 else
                 {
                     _logger.LogInformation($"Successfully completed load of {projectPath}");
+                    return null;
                 }
             }
+
+            return null;
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Exception thrown while loading {projectPath}");
-            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
-            await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+            return LSP.MessageType.Error;
         }
     }
 }
