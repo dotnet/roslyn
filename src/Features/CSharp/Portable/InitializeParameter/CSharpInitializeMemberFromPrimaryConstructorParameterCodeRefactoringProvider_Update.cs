@@ -174,7 +174,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             .ToImmutableHashSet();
 
         var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
-        var lookup = references.SelectMany(static r => r.Locations.Where(loc => !loc.IsImplicit)).ToLookup(static loc => loc.Document);
+        var lookup = references.SelectMany(static r => r.Locations.Where(loc => !loc.IsImplicit)).GroupBy(static loc => loc.Document);
 
         foreach (var group in lookup)
         {
