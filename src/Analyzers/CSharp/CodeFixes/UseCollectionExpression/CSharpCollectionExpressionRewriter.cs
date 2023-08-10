@@ -483,12 +483,10 @@ internal static class CSharpCollectionExpressionRewriter
 
         SyntaxTrivia GetIndentedWhitespaceTrivia(string preferredIndentation, string firstTokenOnLineIndentationString, int pos)
         {
-            var currentTokenIndentation = GetIndentationStringForPosition(pos);
-            var currentTokenPreferredIndentation = currentTokenIndentation.StartsWith(firstTokenOnLineIndentationString)
-                ? preferredIndentation + currentTokenIndentation[firstTokenOnLineIndentationString.Length..]
-                : preferredIndentation;
-            var whitespace = Whitespace(currentTokenPreferredIndentation);
-            return whitespace;
+            var positionIndentation = GetIndentationStringForPosition(pos);
+            return Whitespace(positionIndentation.StartsWith(firstTokenOnLineIndentationString)
+                ? preferredIndentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
+                : preferredIndentation);
         }
 
         static ExpressionSyntax TransferComments(
