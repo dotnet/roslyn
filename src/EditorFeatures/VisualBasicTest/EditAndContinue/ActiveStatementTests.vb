@@ -781,7 +781,7 @@ End Module
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, Nothing, GetResource("Module", "Module1")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, Nothing, GetResource("method", "Main()")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, Nothing, GetResource("method", "Module1.Main()")))
         End Sub
 #End Region
 
@@ -2068,7 +2068,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", GetResource("field")))
         End Sub
 
         <Fact>
@@ -2113,8 +2113,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", GetResource("field")),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", GetResource("field")))
         End Sub
 
         <Fact>
@@ -4434,7 +4434,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join y In ys On       F()        Equals G()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -4479,7 +4479,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", GetResource("Lambda")))
+                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join y In ys On       F()        Equals G()", GetResource("Lambda")))
         End Sub
 #End Region
 
@@ -4631,7 +4631,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(b)", GetResource("Lambda")),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", GetResource("Lambda")))
         End Sub
 
         <Fact>
@@ -4659,7 +4660,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(b)", GetResource("Lambda")),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", GetResource("Lambda")))
         End Sub
 
         <Fact>
