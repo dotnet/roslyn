@@ -53,20 +53,31 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var syntaxAnnotation = new SyntaxAnnotation();
-        var dummyObjectCreation = ImplicitObjectCreationExpression().WithTriviaFrom(invocationExpression).WithAdditionalAnnotations(syntaxAnnotation);
+        var dummyObjectAnnotation = new SyntaxAnnotation();
+        var expressionAnnotation = new SyntaxAnnotation();
 
         // Get the expressions that we're going to fill the new collection expression with.
         var expressions = GetExpressions(invocationExpression, unwrapArgument);
 
+        var dummyObjectCreation =
+            ImplicitObjectCreationExpression(
+                ArgumentList(SeparatedList(expressions.Select(e => Argument(e.WithAdditionalAnnotations(expressionAnnotation))))),
+                initializer: null)
+                .WithTriviaFrom(invocationExpression)
+                .WithAdditionalAnnotations(dummyObjectAnnotation);
+
         var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
-        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(syntaxAnnotation).Single();
+        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
+        expressions = newSemanticDocument.Root
+            .GetAnnotatedNodes(expressionAnnotation)
+            .OfType<ExpressionSyntax>()
+            .ToImmutableArray();
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             fallbackOptions,
-            dummyObjectCreation,
+            dummyObjectAnnotation,
             expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false)),
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),

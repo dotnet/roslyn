@@ -581,6 +581,8 @@ public class UseCollectionExpressionForCreateTests
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
+                using System.Collections.Generic;
+                
                 class C
                 {
                     MyCollection<int> i = [];
@@ -723,15 +725,8 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    IMyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
-                }
-                """ + s_collectionBuilderApi + s_basicCollectionApi,
-            FixedCode = """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    IMyCollection<int> i = [1, 2, 3];
+                    // Will start working once we allow reference conversions.
+                    IMyCollection<int> i = {|CS0266:MyCollection.Create(1, 2, 3)|};
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
