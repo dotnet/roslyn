@@ -578,8 +578,9 @@ internal static class CSharpCollectionExpressionRewriter
 
         string GetIndentationStringForPosition(int position)
         {
-            var tokenLine = document.Text.Lines.GetLineFromPosition(position);
-            var indentation = position - tokenLine.Start;
+            var lineContainingPosition = document.Text.Lines.GetLineFromPosition(position);
+            var lineText = lineContainingPosition.ToString();
+            var indentation = lineText.ConvertTabToSpace(formattingOptions.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
             return indentation.CreateIndentationString(formattingOptions.UseTabs, formattingOptions.TabSize);
         }
 
