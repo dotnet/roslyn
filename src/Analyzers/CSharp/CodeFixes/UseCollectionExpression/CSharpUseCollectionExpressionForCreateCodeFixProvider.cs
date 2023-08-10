@@ -45,49 +45,43 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
-        var unwrapArguments = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArguments);
+        var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
 
-        var expressions = GetExpressions(invocationExpression, unwrapArguments);
+        // the option is currently not an editorconfig option, so not available in code style layer
+#if CODE_STYLE
+        var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
+#else
+        var wrappingLength = fallbackOptions.GetOptions(document.Project.Services).CollectionExpressionWrappingLength;
+#endif
+
+        var expressions = GetExpressions(invocationExpression, unwrapArgument);
     }
 
-    private ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArguments)
+    private static ImmutableArray<ExpressionSyntax> GetExpressions(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
     {
         var arguments = invocationExpression.ArgumentList.Arguments;
 
         // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
         // expressions the user wrote out.
-        if (!unwrapArguments)
+        if (!unwrapArgument)
             return arguments.SelectAsArray(static a => a.Expression);
 
         Contract.ThrowIfTrue(arguments.Count != 1);
         var expression = arguments.Single().Expression;
 
-        return expression switch
+        var initializer = expression switch
         {
-            ImplicitArrayCreationExpressionSyntax implicitArray
-                => GetExpressions(implicitArray.Initializer),
-
-            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc
-                => GetExpressions(implicitStackAlloc.Initializer),
-
-            ArrayCreationExpressionSyntax arrayCreation
-                => GetExpressions(arrayCreation.Initializer),
-
-            StackAllocArrayCreationExpressionSyntax stackAllocCreation
-                => GetExpressions(stackAllocCreation.Initializer),
-
-            ImplicitObjectCreationExpressionSyntax implicitObjectCreation
-                => GetExpressions(implicitObjectCreation.Initializer),
-
-            ObjectCreationExpressionSyntax objectCreation
-                => GetExpressions(objectCreation.Initializer),
-
-            _ => throw ExceptionUtilities.Unreachable();
+            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
+            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
+            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
+            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
+            _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        static ImmutableArray<ExpressionSyntax> GetExpressions(InitializerExpressionSyntax? initializer)
-            => initializer is null
-                ? ImmutableArray<ExpressionSyntax>.Empty
-                : initializer.Expressions.ToImmutableArray();
+        return initializer is null
+            ? ImmutableArray<ExpressionSyntax>.Empty
+            : initializer.Expressions.ToImmutableArray();
     }
 }
