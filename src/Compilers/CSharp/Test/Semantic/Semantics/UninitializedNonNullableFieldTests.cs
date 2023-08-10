@@ -2806,5 +2806,50 @@ public class C
             Assert.Single(diagnostic.AdditionalLocations);
         }
 
+        [Fact]
+        public void CopyConstructor_01()
+        {
+            var source = """
+                #nullable enable
+                var r = new Rec(); // to show that implicit parameterless ctor still exists, hence diagnostic 1
+
+                record Rec
+                {
+                    public string Prop { get; init; } // 1
+                    public Rec(Rec other) // 2
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string Prop { get; init; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19),
+                // 0.cs(7,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(7, 12));
+        }
+
+        [Fact]
+        public void CopyConstructor_02()
+        {
+            var source = """
+                #nullable enable
+                record Rec(string Prop)
+                {
+                    public Rec(Rec other) // 1
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(4,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(4, 12));
+        }
     }
 }
