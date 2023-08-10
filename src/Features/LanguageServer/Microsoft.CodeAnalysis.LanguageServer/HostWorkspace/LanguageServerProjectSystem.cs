@@ -182,7 +182,7 @@ internal sealed class LanguageServerProjectSystem
                     if (errorKind is not null)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
-                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, 1, 0) == 0;
+                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, value: 1, comparand: 0) == 0;
                         if (shouldShowToast)
                         {
                             var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPathToLoadOrReload));
