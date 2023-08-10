@@ -580,10 +580,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             var tokenLine = document.Text.Lines.GetLineFromPosition(position);
             var indentation = position - tokenLine.Start;
-            var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
-                document.Text, indentationOptions);
-
-            return indentationString;
+            return indentation.CreateIndentationString(formattingOptions.UseTabs, formattingOptions.TabSize);
         }
 
         bool MakeMultiLineCollectionExpression()
