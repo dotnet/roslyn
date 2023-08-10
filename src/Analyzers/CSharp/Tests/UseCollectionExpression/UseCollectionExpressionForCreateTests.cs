@@ -98,6 +98,318 @@ public class UseCollectionExpressionForCreateTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task TestEmpty()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestOneElement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTwoElements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThreeElements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFourElements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3, 4);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3, 4];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParamsWithMultipleElements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3, 4, 5);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3, 4, 5];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParamsWithExplicitArrayArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = MyCollection.Create(new int[5]);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParamsWithExplicitArrayArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]new int[] { });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParamsWithExplicitArrayArgument3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]new int[] { 1, 2, 3 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParamsWithImplicitArrayArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|](|]new[] { 1, 2, 3 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReadOnlySpan_ExplicitStackAlloc_Net70()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = MyCollection.Create<int>(stackalloc int[] { 1 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReadOnlySpan_ImplicitStackAlloc_Net70()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = MyCollection.Create<int>(stackalloc[] { 1 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReadOnlySpan_ExplicitStackAlloc_Net80_1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc int[] { });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReadOnlySpan_ExplicitStackAlloc_Net80_2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc int[] { 1, 2, 3 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReadOnlySpan_ImplicitStackAlloc_Net80_1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc[] { 1, 2, 3 });
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [1, 2, 3];
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     //[Fact]
     //public async Task TestInCSharp12_Net80()
     //{
@@ -1103,7 +1415,7 @@ public class UseCollectionExpressionForCreateTests
     //            class C
     //            {
     //            }
-                
+
     //            public class XAttribute : System.Attribute
     //            {
     //                public XAttribute(int[] values) { }
@@ -1199,7 +1511,7 @@ public class UseCollectionExpressionForCreateTests
     //            class C
     //            {
     //                public int[] X;
-                
+
     //                void M()
     //                {
     //                    var v = new C
@@ -2578,7 +2890,7 @@ public class UseCollectionExpressionForCreateTests
     //            """,
     //        BatchFixedCode = """
     //            using System;
-                
+
     //            class C
     //            {
     //                void M(int i, int j)
@@ -2629,7 +2941,7 @@ public class UseCollectionExpressionForCreateTests
     //            """,
     //        BatchFixedCode = """
     //            using System;
-                
+
     //            class C
     //            {
     //                void M(int i, int j)
@@ -2691,7 +3003,7 @@ public class UseCollectionExpressionForCreateTests
     //            """,
     //        BatchFixedCode = """
     //            using System;
-                
+
     //            class C
     //            {
     //                void M(int i, int j)

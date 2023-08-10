@@ -196,7 +196,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
                 } enumerableType] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
             {
                 if (arguments[0].Expression
-                        is ArrayCreationExpressionSyntax
+                        is ArrayCreationExpressionSyntax { Initializer: not null }
                         or ImplicitArrayCreationExpressionSyntax
                         or ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression }
                         or ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer.RawKind: (int)SyntaxKind.CollectionInitializerExpression })
@@ -223,7 +223,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
                 if (arguments.Count >= 2)
                     return true;
 
-                if (arguments is [{ Expression: ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax }])
+                if (arguments is [{ Expression: ArrayCreationExpressionSyntax { Initializer: not null } or ImplicitArrayCreationExpressionSyntax }])
                 {
                     unwrapArgument = true;
                     return true;
@@ -239,17 +239,20 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
             if (arguments.Count == 1 &&
                 compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
-                originalCreateMethod.Parameters is [INamedTypeSymbol
-                {
-                    Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                    TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                } spanType])
+                originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
+                        {
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } spanType
+                    }])
             {
                 if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                     spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
                 {
                     if (arguments[0].Expression
-                            is StackAllocArrayCreationExpressionSyntax
+                            is StackAllocArrayCreationExpressionSyntax { Initializer: not null }
                             or ImplicitStackAllocArrayCreationExpressionSyntax)
                     {
                         unwrapArgument = true;
