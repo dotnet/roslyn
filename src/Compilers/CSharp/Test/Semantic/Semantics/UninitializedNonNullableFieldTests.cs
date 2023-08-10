@@ -2851,5 +2851,80 @@ public class C
                 //     public Rec(Rec other) // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(4, 12));
         }
+
+        [Fact]
+        public void CopyConstructor_03()
+        {
+            // copy constructor implicitly declared
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CopyConstructor_04()
+        {
+            // copy constructor explicitly declared, lacks SetsRequiredMembersAttribute
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+                    public Rec(Rec other) { } // 1
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,23): error CS9035: Required member 'Rec.Prop' must be set in the object initializer or attribute constructor.
+                //         var rec = new Rec(this);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Rec").WithArguments("Rec.Prop").WithLocation(9, 23));
+        }
+
+        [Fact]
+        public void CopyConstructor_05()
+        {
+            // copy constructor explicitly declared, has SetsRequiredMembersAttribute
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    [SetsRequiredMembers]
+                    public Rec(Rec other) { } // 1
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) { } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(9, 12));
+        }
     }
 }
