@@ -10278,5 +10278,66 @@ public class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65515")]
+        public void ExtraInvocationClosingParentheses()
+        {
+            var text = @"
+public class C
+{
+    public void M()
+    {
+        int sum0 = Sum(1, 2));
+        
+        void Local()
+        {
+            AnotherLocal());
+            
+            int sum1 = Sum(1, 2));
+            int sum2 = Sum(1, 3));
+            
+            void AnotherLocal()
+            {
+                int x = sum2 + 2;
+            }
+        }
+    }
+    
+    public static int Sum(int a, int b) => a + b;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,29): error CS1002: ; expected
+                //         int sum0 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 29),
+                // (6,29): error CS1513: } expected
+                //         int sum0 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 29),
+                // (8,14): warning CS8321: The local function 'Local' is declared but never used
+                //         void Local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(8, 14),
+                // (10,13): error CS0165: Use of unassigned local variable 'sum2'
+                //             AnotherLocal());
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "AnotherLocal()").WithArguments("sum2").WithLocation(10, 13),
+                // (10,27): error CS1002: ; expected
+                //             AnotherLocal());
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 27),
+                // (10,27): error CS1513: } expected
+                //             AnotherLocal());
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 27),
+                // (12,33): error CS1002: ; expected
+                //             int sum1 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(12, 33),
+                // (12,33): error CS1513: } expected
+                //             int sum1 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(12, 33),
+                // (13,33): error CS1002: ; expected
+                //             int sum2 = Sum(1, 3));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(13, 33),
+                // (13,33): error CS1513: } expected
+                //             int sum2 = Sum(1, 3));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(13, 33)
+                );
+        }
     }
 }

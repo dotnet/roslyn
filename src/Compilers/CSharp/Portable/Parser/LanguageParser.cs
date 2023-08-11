@@ -8294,6 +8294,7 @@ done:;
             {
                 _termState |= TerminatorState.IsSwitchSectionStart;
             }
+            _termState &= ~TerminatorState.IsEndOfDeclarationClause;
 
             int lastTokenPosition = -1;
             while (this.CurrentToken.Kind is not SyntaxKind.CloseBraceToken and not SyntaxKind.EndOfFileToken
