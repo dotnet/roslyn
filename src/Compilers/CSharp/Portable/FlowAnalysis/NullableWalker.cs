@@ -680,8 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // an initializer, we know we've assigned to the member and
                 // have given any applicable warnings about a bad value going in.
                 // Therefore we skip this check when the member has an initializer to reduce noise.
-                // Copy constructors do not run initializers, so we can't take this easy-out in that case.
-                if (HasInitializer(member) && !SynthesizedRecordCopyCtor.IsCopyConstructor(constructor))
+                if (HasInitializer(member) && constructor.IncludeFieldInitializersInBody())
                 {
                     return;
                 }
