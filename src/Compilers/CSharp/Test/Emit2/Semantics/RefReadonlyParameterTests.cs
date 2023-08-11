@@ -3428,6 +3428,112 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_11()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.InteropServices;
+
+            interface I1 { }
+            interface I2 { }
+
+            [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+            interface I
+            {
+                void M(I1 o, ref int i);
+                void M(I2 o, in int i);
+            }
+
+            class C : I
+            {
+                void I.M(I1 o, ref int i) => System.Console.Write("1");
+                void I.M(I2 o, in int i) => System.Console.Write("2");
+            }
+            """;
+
+        var source2 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, 43);
+            i.M(null, x);
+            i.M(null, in x);
+            """;
+
+        var expectedOutput = "222";
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var source3 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, ref x);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "1", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // 1.cs(3,3): error CS0121: The call is ambiguous between the following methods or properties: 'I.M(I1, ref int)' and 'I.M(I2, in int)'
+            // i.M(null, ref x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I.M(I1, ref int)", "I.M(I2, in int)").WithLocation(3, 3)
+        };
+
+        CreateCompilation(new[] { source1, source3 }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(new[] { source1, source3 }).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_12()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.InteropServices;
+
+            interface I1 { }
+            interface I2 { }
+
+            [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+            interface I
+            {
+                void M(I1 o, ref int i);
+                void M(I2 o, ref readonly int i);
+            }
+
+            class C : I
+            {
+                void I.M(I1 o, ref int i) => System.Console.Write("1");
+                void I.M(I2 o, ref readonly int i) => System.Console.Write("2");
+            }
+            """;
+
+        var source2 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, 43);
+            i.M(null, x);
+            i.M(null, in x);
+            """;
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: "222").VerifyDiagnostics(
+            // 1.cs(3,11): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // i.M(null, 43);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "43").WithArguments("2").WithLocation(3, 11),
+            // 1.cs(4,11): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+            // i.M(null, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(4, 11));
+
+        var source3 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, ref x);
+            """;
+        CreateCompilation(new[] { source1, source3 }).VerifyDiagnostics(
+            // 1.cs(3,3): error CS0121: The call is ambiguous between the following methods or properties: 'I.M(I1, ref int)' and 'I.M(I2, ref readonly int)'
+            // i.M(null, ref x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I.M(I1, ref int)", "I.M(I2, ref readonly int)").WithLocation(3, 3));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
     public void OverloadResolution_ExtensionMethod_01()
     {
         var source = """
