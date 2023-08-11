@@ -771,7 +771,7 @@ namespace N
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, "namespace N", GetResource("class", "C")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method","N.C.Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "N.C.Main()")));
         }
 
         [Fact]
