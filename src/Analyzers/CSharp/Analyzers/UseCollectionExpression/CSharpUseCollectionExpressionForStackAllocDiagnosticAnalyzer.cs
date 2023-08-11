@@ -146,7 +146,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
-    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches(
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         CancellationToken cancellationToken)

@@ -296,7 +296,7 @@ internal static class UseCollectionExpressionHelpers
         return false;
     }
 
-    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches<TArrayCreationExpressionSyntax>(
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
@@ -310,7 +310,7 @@ internal static class UseCollectionExpressionHelpers
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
             return default;
 
-        using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<CollectionExpressionMatch<StatementSyntax>>.GetInstance(out var matches);
 
         var initializer = getInitializer(expression);
         if (size is OmittedArraySizeExpressionSyntax)
