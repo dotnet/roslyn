@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {

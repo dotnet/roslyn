@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel.Composition
+Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServer
 
@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
         "BC36597", ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
         "BC37327"  ' ERRID.ERR_SymbolDefinedInAssembly
     )>
+    <[Shared]>
     Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics
         Implements ILspBuildOnlyDiagnostics
 
