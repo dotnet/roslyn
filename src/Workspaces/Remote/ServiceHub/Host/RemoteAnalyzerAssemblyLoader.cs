@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public RemoteAnalyzerAssemblyLoader(string baseDirectory)
         {
-            // jason for review
             _baseDirectory = baseDirectory;
         }
 

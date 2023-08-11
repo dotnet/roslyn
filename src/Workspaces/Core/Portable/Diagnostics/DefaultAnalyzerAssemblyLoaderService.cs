@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
         private readonly IAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
-        // jason for review
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
             Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies"));
 

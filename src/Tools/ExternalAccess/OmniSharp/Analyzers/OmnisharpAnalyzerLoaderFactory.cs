@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
     {
         public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
         {
-            // jason for review
             baseDirectory ??= Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies");
             return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
         }
