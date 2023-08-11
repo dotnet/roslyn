@@ -2882,7 +2882,7 @@ public class C
                 record Rec
                 {
                     public required string Prop { get; init; }
-                    public Rec(Rec other) { } // 1
+                    public Rec(Rec other) { }
 
                     public void M()
                     {
