@@ -1191,11 +1191,244 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute);
         comp.VerifyDiagnostics(
             // (3,36): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
             //     public unsafe void M(delegate*<ref readonly int, void> p) { }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 36));
+    }
+
+    [Fact]
+    public void FunctionPointer_NoAttribute_PlusNormalMethod()
+    {
+        var source = """
+            class C
+            {
+                public unsafe void M1(delegate*<ref readonly int, void> p) { }
+                public void M2(ref readonly int p) { }
+            }
+            """;
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (3,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe void M1(delegate*<ref readonly int, void> p) { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 37));
+    }
+
+    [Fact]
+    public void FunctionPointer_InternalAttribute()
+    {
+        // Attribute is synthesized for Assembly1, but it's not visible to Assembly2.
+        var source1 = """
+            [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
+            internal class C
+            {
+                public void M(ref readonly int p) { }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+        var source2 = """
+            class D
+            {
+                public unsafe object M(delegate*<ref readonly int, void> p)
+                {
+                    var c = new C();
+                    int x = 5;
+                    c.M(in x);
+                    var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+                    return attr;
+                }
+            }
+            """;
+        var comp2 = CreateCompilation(source2, new[] { comp1Ref }, assemblyName: "Assembly2", options: TestOptions.UnsafeDebugDll);
+        comp2.VerifyDiagnostics(
+            // (3,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe object M(delegate*<ref readonly int, void> p)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 38),
+            // (8,56): error CS0234: The type or namespace name 'RequiresLocationAttribute' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
+            //         var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "RequiresLocationAttribute").WithArguments("RequiresLocationAttribute", "System.Runtime.CompilerServices").WithLocation(8, 56));
+
+        // Assembly1 defines the attribute in source and has IVT to Assembly2, so the attribute is visible to Assembly2.
+        var comp1b = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1bRef = comp1b.EmitToImageReference();
+        var comp2b = CreateCompilation(source2, new[] { comp1bRef }, assemblyName: "Assembly2", options: TestOptions.UnsafeDebugDll);
+        comp2b.VerifyDiagnostics();
+
+        // Assembly1 defines the attribute in source but doesn't have IVT to Assembly3, so the attribute isn't visible to Assembly3.
+        var source3 = """
+            class D
+            {
+                public unsafe object M(delegate*<ref readonly int, void> p)
+                {
+                    var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+                    return attr;
+                }
+            }
+            """;
+        var comp3 = CreateCompilation(source3, new[] { comp1bRef }, assemblyName: "Assembly3", options: TestOptions.UnsafeDebugDll);
+        comp3.VerifyDiagnostics(
+            // (3,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe object M(delegate*<ref readonly int, void> p)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 38),
+            // (5,56): error CS0122: 'RequiresLocationAttribute' is inaccessible due to its protection level
+            //         var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+            Diagnostic(ErrorCode.ERR_BadAccess, "RequiresLocationAttribute").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 56));
+    }
+
+    [Fact]
+    public void FunctionPointer_DefineManually_LaterDefinedInRuntime()
+    {
+        // Library defines an API with function pointer, manually declaring the attribute.
+        var source1 = """
+            public class C
+            {
+                public unsafe void M(delegate*<ref readonly int, void> f)
+                {
+                    int x = 123;
+                    f(in x);
+                }
+            }
+            """;
+        var comp1v1 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v1.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v1, "Assembly1");
+        var comp1v1Ref = comp1v1.EmitToImageReference();
+
+        // Consumer can use the API.
+        var source2 = """
+            public class D
+            {
+                public unsafe void M()
+                {
+                    new C().M(&F);
+                }
+                static void F(ref readonly int x) => System.Console.Write("F" + x);
+            }
+            """;
+        var comp2 = CreateCompilation(source2, new[] { comp1v1Ref }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        verifyModoptFromAssembly(comp2, "Assembly1");
+        var comp2Ref = comp2.EmitToImageReference();
+
+        var source3 = """
+            try
+            {
+                new D().M();
+            }
+            catch (System.MissingMethodException e)
+            {
+                System.Console.Write(e.Message.Contains("Void C.M(Void (Int32 ByRef))"));
+            }
+            """;
+        var verifier3v1 = CompileAndVerify(source3, new[] { comp1v1Ref, comp2Ref }, expectedOutput: "F123").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v1.Compilation, "Assembly1");
+
+        // .NET runtime declares the attribute.
+        var source4 = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+                public sealed class RequiresLocationAttribute : Attribute
+                {
+                }
+            }
+            """;
+        var comp4 = CreateCompilation(source4, assemblyName: "Assembly4").VerifyDiagnostics();
+        var comp4Ref = comp4.EmitToImageReference();
+
+        // Library is recompiled against the newest runtime.
+        var comp1v2 = CreateCompilation(source1, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v2.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v2, "Assembly4");
+        var comp1v2Ref = comp1v2.EmitToImageReference();
+
+        // That breaks the consumer.
+        var verifier3v2 = CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v2.Compilation, "Assembly4");
+
+        // Unless the library adds type forwarding.
+        var source5 = """
+            using System.Runtime.CompilerServices;
+            [assembly: TypeForwardedToAttribute(typeof(RequiresLocationAttribute))]
+            """;
+        var comp1v3 = CreateCompilation(new[] { source1, source5 }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v3.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v3, "Assembly4");
+        var comp1v3Ref = comp1v3.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v3Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        // Or keeps the manual attribute definition.
+        var comp1v4 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v4.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v4, "Assembly1");
+        var comp1v4Ref = comp1v4.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v4Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        static void verifyModoptFromAssembly(Compilation comp, string assemblyName)
+        {
+            var f = ((CSharpCompilation)comp).GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var p = ((FunctionPointerTypeSymbol)f.Type).Signature.Parameters.Single();
+            var mod = p.RefCustomModifiers.Single();
+            Assert.True(mod.IsOptional);
+            Assert.Equal(RequiresLocationAttributeQualifiedName, mod.Modifier.ToTestDisplayString());
+            Assert.Equal(assemblyName, mod.Modifier.ContainingAssembly.Name);
+        }
+    }
+
+    [Fact]
+    public void FunctionPointer_DefineManually_AndInReference()
+    {
+        var source1 = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+                public sealed class RequiresLocationAttribute : Attribute
+                {
+                }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        // Attribute declared both in the same assembly and in a reference.
+        var source2 = """
+            public class C
+            {
+                public unsafe void M(delegate*<ref readonly int, void> f) { }
+            }
+            """;
+        var comp2 = CreateCompilation(new[] { source2, RequiresLocationAttributeDefinition }, new[] { comp1Ref },
+            assemblyName: "Assembly2", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp2, sourceSymbolValidator: verify2, symbolValidator: verify2).VerifyDiagnostics();
+
+        static void verify2(ModuleSymbol m)
+        {
+            Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly2", modifier.ContainingAssembly.Name);
+        }
+
+        // Attribute declared only in a reference.
+        var comp3 = CreateCompilation(source2, new[] { comp1Ref }, assemblyName: "Assembly3", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp3, sourceSymbolValidator: verify3, symbolValidator: verify3).VerifyDiagnostics();
+
+        static void verify3(ModuleSymbol m)
+        {
+            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly1", modifier.ContainingAssembly.Name);
+        }
+
+        static INamedTypeSymbol verify(ModuleSymbol m)
+        {
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var ptr = (FunctionPointerTypeSymbol)p.Type;
+            var p2 = ptr.Signature.Parameters.Single();
+            VerifyRefReadonlyParameter(p2, customModifiers: VerifyModifiers.RequiresLocation);
+            return p2.RefCustomModifiers.Single().Modifier;
+        }
     }
 
     [Fact]
@@ -1231,7 +1464,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute);
         comp.VerifyDiagnostics(
             // (5,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
             //         delegate*<ref readonly int, void> p = null;
