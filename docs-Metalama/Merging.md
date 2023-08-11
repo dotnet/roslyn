@@ -14,19 +14,39 @@ version 3.11.0, commit https://github.com/dotnet/roslyn/commit/ae1fff344d4697662
 
 See Modifications.md to better understand the changes done for Metalama.
 
-## 3. Update eng-Metalama\MainVersions.props
+## 3. Enable original NuGet sources
+
+Uncomment the original NuGet sources in NuGet.config file.
+Do this now, because in the next steps, all the new packages will get restored on your machine,
+so you'll be able to backup them.
+
+## 4. Update eng-Metalama\MainVersions.props
 
 Set RoslynVersion to the source Roslyn version.
 
-## 4. Regenerate generated source files
+## 5. Regenerate generated source files
 
 See Modifications.md for details.
 
-## 5. Make sure all test are green
+## 6. Make sure all test are green
 
-To run Roslyn tests, execute `b test`.
-To run Metalama.Compiler tests, execute `dotnet test src\Metalama\Metalama.Compiler.UnitTests\Metalama.Compiler.UnitTests.csproj`.
+To run Metalama.Compiler tests, execute `b test`.
+To run all Roslyn tests, execute `b test -p TestAll`.
 
-## 6. Update Metalama Framework
+## 7. Backup new NuGet packages
+
+- If the project has not been built, or the repo got cleaned, execute `b build`.
+- Execute `b push-nuget-dependencies`.
+
+If authentication fails when pushing, copy one of the failing `nuget push` commands, and execute it wih an `--interactive` flag. Then execute the previous command again.
+
+This step only works correctly, when all packages have been restored in the working copy of the repo, and the repo has not been cleaned afterwards.
+
+## 8. Disable original NuGet sources
+
+Comment out the original NuGet sources in NuGet.config again.
+Never push the NuGet.config file with the original sources uncommented, so we know that a package is missing in the backup feed early enough.
+
+## 9. Update Metalama Framework
 
 See docs\updating-roslyn.md in the Metalama repo.
