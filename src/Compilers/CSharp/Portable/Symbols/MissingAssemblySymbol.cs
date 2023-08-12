@@ -203,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeConversions TypeConversions => throw ExceptionUtilities.Unreachable();
+
         public override AssemblyMetadata GetMetadata() => null;
 
         internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()

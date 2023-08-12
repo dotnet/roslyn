@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private AssemblySymbol _corLibrary;
 
-        private TypeConversions _lazyTypeConversions;
-
         /// <summary>
         /// The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
         /// The value is MissingAssemblySymbol if none of the referenced assemblies can be used as a source for the 
@@ -56,23 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeConversions TypeConversions
-        {
-            get
-            {
-                if (this != _corLibrary)
-                {
-                    return _corLibrary.TypeConversions;
-                }
-
-                if (_lazyTypeConversions is null)
-                {
-                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
-                }
-
-                return _lazyTypeConversions;
-            }
-        }
+        internal abstract TypeConversions TypeConversions { get; }
 
         /// <summary>
         /// A helper method for ReferenceManager to set the system assembly, which provides primitive 
