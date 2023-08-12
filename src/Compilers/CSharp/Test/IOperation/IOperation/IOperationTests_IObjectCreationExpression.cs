@@ -5181,73 +5181,76 @@ class C3
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term '{'
+                // (8,70): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
-                // CS1026: ) expected
+                // (8,70): error CS1026: ) expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 70),
-                // CS1003: Syntax error, ':' expected
+                // (8,70): error CS1003: Syntax error, ':' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(8, 70),
-                // CS1525: Invalid expression term '{'
+                // (8,70): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
-                // CS1003: Syntax error, ',' expected
+                // (8,70): error CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(8, 70),
-                // CS1513: } expected
+                // (8,88): error CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(8, 88),
+                // (8,90): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 88),
-                // CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1525: Invalid expression term '{'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1513: } expected
+                //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,93): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 93),
-                // CS1026: ) expected
+                // (8,93): error CS1026: ) expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 93),
-                // CS1002: ; expected
+                // (8,93): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 93),
-                // CS1002: ; expected
+                // (8,101): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 101),
-                // CS1513: } expected
+                // (8,101): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 101),
-                // CS1002: ; expected
+                // (8,110): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 110),
-                // CS1513: } expected
+                // (8,111): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 111),
-                // CS1022: Type or namespace definition, or end-of-file expected
+                // (10,5): error CS1022: Type or namespace definition, or end-of-file expected
                 //     }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 5),
-                // CS1022: Type or namespace definition, or end-of-file expected
+                // (11,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1),
-                // CS0103: The name 'P1' does not exist in the current context
+                // (8,72): error CS0103: The name 'P1' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(8, 72),
-                // CS0103: The name 'P2' does not exist in the current context
+                // (8,80): error CS0103: The name 'P2' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P2").WithArguments("P2").WithLocation(8, 80),
-                // CS0747: Invalid initializer member declarator
+                // (8,70): error CS0747: Invalid initializer member declarator
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ P1 = 3, P2 = 4 }").WithLocation(8, 70),
-                // CS0103: The name 'P1' does not exist in the current context
+                // (8,95): error CS0103: The name 'P1' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(8, 95),
-                // CS0103: The name 'P2' does not exist in the current context
+                // (8,103): error CS0103: The name 'P2' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P2").WithArguments("P2").WithLocation(8, 103)
             };

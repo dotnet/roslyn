@@ -2091,7 +2091,7 @@ public class C
                             }
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }

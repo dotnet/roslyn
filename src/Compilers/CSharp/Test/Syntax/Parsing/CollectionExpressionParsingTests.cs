@@ -301,13 +301,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                             N(SyntaxKind.IdentifierToken, "B");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -525,13 +518,7 @@ public class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
             // (1,11): error CS1003: Syntax error, ',' expected
             // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
-            // (1,15): error CS1002: ; expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 15),
-            // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 15));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -574,13 +561,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
