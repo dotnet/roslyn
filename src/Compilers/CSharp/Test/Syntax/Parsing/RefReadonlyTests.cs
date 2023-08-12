@@ -347,26 +347,23 @@ class Test
     }
 }").GetParseDiagnostics().Verify(
                 // (10,15): error CS1525: Invalid expression term 'readonly'
-                //         M(in x);
+                //         M(ref readonly x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,15): error CS1026: ) expected
-                //         M(in x);
+                //         M(ref readonly x);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS1002: ; expected
-                //         M(in x);
+                //         M(ref readonly x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS0106: The modifier 'readonly' is not valid for this item
-                //         M(in x);
+                //         M(ref readonly x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,25): error CS1001: Identifier expected
-                //         M(in x);
+                //         M(ref readonly x);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(10, 25),
-                // (10,25): error CS1002: ; expected
-                //         M(in x);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 25),
-                // (10,25): error CS1513: } expected
-                //         M(in x);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 25));
+                // (10,25): error CS1003: Syntax error, ',' expected
+                //         M(ref readonly x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(10, 25));
         }
 
         [Fact]

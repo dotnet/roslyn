@@ -6226,13 +6226,9 @@ M(out ref readonly scoped int c);
                 // (2,11): error CS0106: The modifier 'readonly' is not valid for this item
                 // M(out ref readonly scoped int c);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 11),
-                // (2,32): error CS1002: ; expected
+                // (2,32): error CS1003: Syntax error, ',' expected
                 // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 32),
-                // (2,32): error CS1022: Type or namespace definition, or end-of-file expected
-                // M(out ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 32)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 32));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6287,13 +6283,6 @@ M(out ref readonly scoped int c);
                                 N(SyntaxKind.IdentifierToken, "c");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -6324,13 +6313,9 @@ M(out ref scoped readonly int c);
                 // (2,18): error CS0106: The modifier 'readonly' is not valid for this item
                 // M(out ref scoped readonly int c);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 18),
-                // (2,32): error CS1002: ; expected
+                // (2,32): error CS1003: Syntax error, ',' expected
                 // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 32),
-                // (2,32): error CS1022: Type or namespace definition, or end-of-file expected
-                // M(out ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 32)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 32));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6381,13 +6366,6 @@ M(out ref scoped readonly int c);
                                 N(SyntaxKind.IdentifierToken, "c");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -6741,13 +6719,9 @@ M(out @scoped ref readonly int a);
                 // (2,19): error CS0106: The modifier 'readonly' is not valid for this item
                 // M(out @scoped ref readonly int a);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 19),
-                // (2,33): error CS1002: ; expected
+                // (2,33): error CS1003: Syntax error, ',' expected
                 // M(out @scoped ref readonly int a);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 33),
-                // (2,33): error CS1022: Type or namespace definition, or end-of-file expected
-                // M(out @scoped ref readonly int a);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 33)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6803,13 +6777,6 @@ M(out @scoped ref readonly int a);
                                 N(SyntaxKind.IdentifierToken, "a");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -12297,13 +12264,9 @@ using (ref scoped int b);
                 // (2,19): error CS1026: ) expected
                 // using (ref scoped int b);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 19),
-                // (2,24): error CS1002: ; expected
+                // (2,24): error CS1003: Syntax error, ',' expected
                 // using (ref scoped int b);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 24),
-                // (2,24): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (ref scoped int b);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 24)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12335,15 +12298,8 @@ using (ref scoped int b);
                                     N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -12487,13 +12443,9 @@ using (ref readonly scoped int c);
                 // (2,12): error CS0106: The modifier 'readonly' is not valid for this item
                 // using (ref readonly scoped int c);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 12),
-                // (2,33): error CS1002: ; expected
+                // (2,33): error CS1003: Syntax error, ',' expected
                 // using (ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 33),
-                // (2,33): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (ref readonly scoped int c);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 33)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12530,15 +12482,8 @@ using (ref readonly scoped int c);
                                     N(SyntaxKind.IdentifierToken, "c");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -12565,13 +12510,10 @@ using (ref scoped readonly int c);
                 // (2,19): error CS0106: The modifier 'readonly' is not valid for this item
                 // using (ref scoped readonly int c);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 19),
-                // (2,33): error CS1002: ; expected
+                // (2,33): error CS1003: Syntax error, ',' expected
                 // using (ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 33),
-                // (2,33): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (ref scoped readonly int c);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 33)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 33));
+
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12604,15 +12546,8 @@ using (ref scoped readonly int c);
                                     N(SyntaxKind.IdentifierToken, "c");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -12679,13 +12614,9 @@ using (@scoped int a);
                 // (2,16): error CS1026: ) expected
                 // using (@scoped int a);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 16),
-                // (2,21): error CS1002: ; expected
+                // (2,21): error CS1003: Syntax error, ',' expected
                 // using (@scoped int a);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 21),
-                // (2,21): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (@scoped int a);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 21)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12713,15 +12644,8 @@ using (@scoped int a);
                                     N(SyntaxKind.IdentifierToken, "a");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -12792,13 +12716,9 @@ using (@scoped ref int b);
                 // (2,16): error CS1026: ) expected
                 // using (@scoped ref int b);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(2, 16),
-                // (2,25): error CS1002: ; expected
+                // (2,25): error CS1003: Syntax error, ',' expected
                 // using (@scoped ref int b);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 25),
-                // (2,25): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (@scoped ref int b);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 25)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 25));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12830,15 +12750,8 @@ using (@scoped ref int b);
                                     N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -12910,13 +12823,9 @@ using (@scoped ref readonly int a);
                 // (2,16): error CS1026: ) expected
                 // using (@scoped ref readonly int a);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(2, 16),
-                // (2,34): error CS1002: ; expected
+                // (2,34): error CS1003: Syntax error, ',' expected
                 // using (@scoped ref readonly int a);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 34),
-                // (2,34): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (@scoped ref readonly int a);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 34)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 34));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12949,15 +12858,8 @@ using (@scoped ref readonly int a);
                                     N(SyntaxKind.IdentifierToken, "a");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -13510,13 +13412,9 @@ using (scoped scoped int a);
                 // (2,22): error CS1026: ) expected
                 // using (scoped scoped int a);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 22),
-                // (2,27): error CS1002: ; expected
+                // (2,27): error CS1003: Syntax error, ',' expected
                 // using (scoped scoped int a);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 27),
-                // (2,27): error CS1022: Type or namespace definition, or end-of-file expected
-                // using (scoped scoped int a);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 27)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 27));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -13551,15 +13449,8 @@ using (scoped scoped int a);
                                     N(SyntaxKind.IdentifierToken, "a");
                                 }
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.SemicolonToken);
                         }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -14885,16 +14776,15 @@ catch (scoped ref T a) {}
                 // (3,15): error CS1514: { expected
                 // catch (scoped ref T a) {}
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "ref").WithLocation(3, 15),
-                // (3,22): error CS1002: ; expected
+                // (3,22): error CS1003: Syntax error, ',' expected
                 // catch (scoped ref T a) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(3, 22),
-                // (3,22): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 22),
+                // (3,24): error CS1002: ; expected
                 // catch (scoped ref T a) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(3, 22),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(3, 24),
                 // (3,26): error CS1513: } expected
                 // catch (scoped ref T a) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 26)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 26));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -14972,16 +14862,15 @@ catch (scoped ref readonly T a) {}
                 // (3,15): error CS1514: { expected
                 // catch (scoped ref readonly T a) {}
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "ref").WithLocation(3, 15),
-                // (3,31): error CS1002: ; expected
+                // (3,31): error CS1003: Syntax error, ',' expected
                 // catch (scoped ref readonly T a) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(3, 31),
-                // (3,31): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 31),
+                // (3,33): error CS1002: ; expected
                 // catch (scoped ref readonly T a) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(3, 31),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(3, 33),
                 // (3,35): error CS1513: } expected
                 // catch (scoped ref readonly T a) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 35)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 35));
 
             N(SyntaxKind.CompilationUnit);
             {

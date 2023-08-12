@@ -2883,30 +2883,21 @@ public class MyAttribute : System.Attribute
                 """;
 
             UsingTree(text,
-                // (5,29): error CS1002: ; expected
+                // (5,29): error CS1003: Syntax error, ',' expected
                 //         int sum0 = Sum(1, 2));
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(5, 29),
-                // (5,29): error CS1513: } expected
-                //         int sum0 = Sum(1, 2));
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(5, 29),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(5, 29),
                 // (9,27): error CS1002: ; expected
                 //             AnotherLocal());
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
                 // (9,27): error CS1513: } expected
                 //             AnotherLocal());
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
-                // (11,33): error CS1002: ; expected
+                // (11,33): error CS1003: Syntax error, ',' expected
                 //             int sum1 = Sum(1, 2));
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 33),
-                // (11,33): error CS1513: } expected
-                //             int sum1 = Sum(1, 2));
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 33),
-                // (12,33): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(11, 33),
+                // (12,33): error CS1003: Syntax error, ',' expected
                 //             int sum2 = Sum(1, 3));
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(12, 33),
-                // (12,33): error CS1513: } expected
-                //             int sum2 = Sum(1, 3));
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(12, 33));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(12, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2976,10 +2967,6 @@ public class MyAttribute : System.Attribute
                                         }
                                     }
                                 }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.EmptyStatement);
-                            {
                                 N(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.LocalFunctionStatement);
@@ -3061,10 +3048,6 @@ public class MyAttribute : System.Attribute
                                                 }
                                             }
                                         }
-                                        M(SyntaxKind.SemicolonToken);
-                                    }
-                                    N(SyntaxKind.EmptyStatement);
-                                    {
                                         N(SyntaxKind.SemicolonToken);
                                     }
                                     N(SyntaxKind.LocalDeclarationStatement);
@@ -3111,10 +3094,6 @@ public class MyAttribute : System.Attribute
                                                 }
                                             }
                                         }
-                                        M(SyntaxKind.SemicolonToken);
-                                    }
-                                    N(SyntaxKind.EmptyStatement);
-                                    {
                                         N(SyntaxKind.SemicolonToken);
                                     }
                                     N(SyntaxKind.LocalFunctionStatement);

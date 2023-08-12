@@ -8412,7 +8412,7 @@ done:;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFixedStatement;
-            var decl = ParseVariableDeclaration();
+            var decl = ParseVariableDeclaration_FixedForUsingStatement();
             _termState = saveTerm;
 
             return _syntaxFactory.FixedStatement(
@@ -8784,7 +8784,7 @@ done:;
                         scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
                     }
 
-                    decl = ParseVariableDeclaration();
+                    decl = ParseVariableDeclaration_FixedForUsingStatement();
 
                     var declType = decl.Type;
 
@@ -9427,7 +9427,7 @@ done:;
 
                 if (scopedKeyword != null)
                 {
-                    declaration = ParseVariableDeclaration();
+                    declaration = ParseVariableDeclaration_FixedForUsingStatement();
                     declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
                     return;
                 }
@@ -9461,14 +9461,14 @@ done:;
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration();
+                            declaration = ParseVariableDeclaration_FixedForUsingStatement();
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration();
+                            declaration = ParseVariableDeclaration_FixedForUsingStatement();
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
@@ -9489,7 +9489,7 @@ done:;
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                declaration = ParseVariableDeclaration();
+                declaration = ParseVariableDeclaration_FixedForUsingStatement();
             }
             else
             {
@@ -9575,10 +9575,11 @@ done:;
 
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: canParseAsLocalFunction,
-                    attributes: attributes,
-                    mods: mods.ToList(),
-                    type: out var type,
-                    localFunction: out var localFunction);
+                    stopOnCloseParen: false,
+                    attributes,
+                    mods.ToList(),
+                    out var type,
+                    out var localFunction);
 
                 if (localFunction != null)
                 {
@@ -9735,15 +9736,21 @@ done:;
         }
 
         /// <summary>
-        /// Parse a local variable declaration.
+        /// Parse a local variable declaration.  Specifically, only for the `fixed (...)` `for(...)` or `using (...)`
+        /// statements.  Specifically, the statements where a close paren comes after the variable declaration.
         /// </summary>
         /// <returns></returns>
-        private VariableDeclarationSyntax ParseVariableDeclaration()
+        private VariableDeclarationSyntax ParseVariableDeclaration_FixedForUsingStatement()
         {
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            TypeSyntax type;
-            LocalFunctionStatementSyntax localFunction;
-            ParseLocalDeclaration(variables, false, attributes: default, mods: default, out type, out localFunction);
+            ParseLocalDeclaration(
+                variables,
+                allowLocalFunctions: false,
+                stopOnCloseParen: true,
+                attributes: default,
+                mods: default,
+                out var type,
+                out var localFunction);
             Debug.Assert(localFunction == null);
             return _syntaxFactory.VariableDeclaration(
                 type,
@@ -9753,6 +9760,7 @@ done:;
         private void ParseLocalDeclaration(
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
+            bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
             out TypeSyntax type,
@@ -9774,7 +9782,7 @@ done:;
                 variables,
                 variableDeclarationsExpected: true,
                 allowLocalFunctions,
-                stopOnCloseParen: true,
+                stopOnCloseParen,
                 attributes,
                 mods,
                 out localFunction);
