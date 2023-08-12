@@ -4697,7 +4697,10 @@ parse_member_name:;
 
             var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: 0, parentKind);
             if (this.CurrentToken.Kind == SyntaxKind.DotToken)
-                eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);  // Better error message for confusing event situation.
+            {
+                // Better error message for confusing event situation.
+                eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);
+            }
 
             return _syntaxFactory.EventFieldDeclaration(
                 attributes,
