@@ -4531,19 +4531,13 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFieldDeclaration;
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                this.ParseVariableDeclarators(type, VariableFlags.Fixed, variables, parentKind);
+            this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Fixed, variables, parentKind);
+            _termState = saveTerm;
 
-                return _syntaxFactory.FieldDeclaration(
-                    attributes, modifiers.ToList(),
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    this.EatToken(SyntaxKind.SemicolonToken));
-            }
-            finally
-            {
-                _termState = saveTerm;
-            }
+            return _syntaxFactory.FieldDeclaration(
+                attributes, modifiers.ToList(),
+                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private MemberDeclarationSyntax ParseEventDeclaration(
@@ -4673,28 +4667,21 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFieldDeclaration;
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                this.ParseVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables: variables, parentKind: parentKind);
+            this.ParseFieldDeclarationVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables, parentKind);
+            _termState = saveTerm;
 
-                // Make 'scoped' part of the type when it is the last token in the modifiers list
-                if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
-                {
-                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
-                    modifiers.RemoveLast();
-                }
-
-                var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                return _syntaxFactory.FieldDeclaration(
-                    attributes,
-                    modifiers.ToList(),
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    semicolon);
-            }
-            finally
+            // Make 'scoped' part of the type when it is the last token in the modifiers list
+            if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
             {
-                _termState = saveTerm;
+                type = _syntaxFactory.ScopedType(scopedKeyword, type);
+                modifiers.RemoveLast();
             }
+
+            return _syntaxFactory.FieldDeclaration(
+                attributes,
+                modifiers.ToList(),
+                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
@@ -4720,27 +4707,20 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFieldDeclaration;
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
+            this.ParseFieldDeclarationVariableDeclarators(type, flags: 0, variables, parentKind);
+            _termState = saveTerm;
 
-                if (this.CurrentToken.Kind == SyntaxKind.DotToken)
-                {
-                    eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);  // Better error message for confusing event situation.
-                }
-
-                var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                return _syntaxFactory.EventFieldDeclaration(
-                    attributes,
-                    modifiers.ToList(),
-                    eventToken,
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    semicolon);
-            }
-            finally
+            if (this.CurrentToken.Kind == SyntaxKind.DotToken)
             {
-                _termState = saveTerm;
+                eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);  // Better error message for confusing event situation.
             }
+
+            return _syntaxFactory.EventFieldDeclaration(
+                attributes,
+                modifiers.ToList(),
+                eventToken,
+                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private bool IsEndOfFieldDeclaration()
