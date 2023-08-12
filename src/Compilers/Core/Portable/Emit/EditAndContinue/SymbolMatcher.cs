@@ -61,9 +61,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
-                anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
-                anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
-                anonymousDelegatesWithIndexedNames: MapAnonymousDelegatesWithIndexedNames(baseline.AnonymousDelegatesWithIndexedNames),
+                synthesizedTypes: new SynthesizedTypeMaps(
+                    MapAnonymousTypes(baseline.SynthesizedTypes.AnonymousTypes),
+                    MapAnonymousDelegates(baseline.SynthesizedTypes.AnonymousDelegates),
+                    MapAnonymousDelegatesWithIndexedNames(baseline.SynthesizedTypes.AnonymousDelegatesWithIndexedNames)),
                 synthesizedMembers: mappedSynthesizedMembers,
                 deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
@@ -103,46 +104,46 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
+        private ImmutableDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(ImmutableDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
         {
-            var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
+            var builder = ImmutableDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousTypeMap)
             {
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
-                RoslynDebug.Assert(type != null);
-                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                Debug.Assert(type != null);
+                builder.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
-        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
+        private ImmutableDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(ImmutableDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
         {
-            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+            var builder = ImmutableDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var (key, value) in anonymousDelegates)
             {
                 var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
-                RoslynDebug.Assert(delegateTypeDef != null);
-                result.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
+                Debug.Assert(delegateTypeDef != null);
+                builder.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
-        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        private ImmutableDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
         {
-            var result = new Dictionary<string, AnonymousTypeValue>();
+            var builder = ImmutableDictionary.CreateBuilder<string, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousDelegates)
             {
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
-                RoslynDebug.Assert(type != null);
-                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                Debug.Assert(type != null);
+                builder.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
         /// <summary>

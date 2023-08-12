@@ -31,6 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return (PEAssemblySymbol)CreateCompilation("", new[] { reference }).GetReferencedAssemblySymbol(reference);
         }
 
+        private static CSharpSymbolMatcher CreateMatcher(CSharpCompilation fromCompilation, CSharpCompilation toCompilation)
+            => new CSharpSymbolMatcher(
+                fromCompilation.SourceAssembly,
+                sourceContext: default,
+                toCompilation.SourceAssembly,
+                otherContext: default,
+                SynthesizedTypeMaps.Empty,
+                otherSynthesizedMembers: null,
+                otherDeletedMembers: null);
+
         [Fact]
         public void ConcurrentAccess()
         {
@@ -69,16 +79,7 @@ class B
 
             for (int i = 0; i < 10; i++)
             {
-                var matcher = new CSharpSymbolMatcher(
-                    null,
-                    null,
-                    null,
-                    compilation1.SourceAssembly,
-                    default,
-                    compilation0.SourceAssembly,
-                    default,
-                    null,
-                    null);
+                var matcher = CreateMatcher(compilation1, compilation0);
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
@@ -129,16 +130,7 @@ class B
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
             Assert.Equal(2, members.Length);
             foreach (var member in members)
@@ -164,16 +156,7 @@ class C
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member.GetCciAdapter());
             Assert.NotNull(other);
@@ -201,16 +184,7 @@ class C
             Assert.Equal(1, ((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
             Assert.Equal(1, ((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var other = (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol();
             Assert.NotNull(other);
@@ -247,16 +221,7 @@ abstract class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var g0 = compilation0.GetMember<MethodSymbol>("C.G");
@@ -338,16 +303,7 @@ public class C
             var compilation0 = CreateCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference());
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -381,16 +337,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
             var other = matcher.MapReference(member.GetCciAdapter());
@@ -421,16 +368,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
             var other = matcher.MapReference(member.GetCciAdapter());
@@ -462,16 +400,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreatePointerTypeSymbol(elementType);
             var other = matcher.MapReference(member.GetCciAdapter());
@@ -506,16 +435,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var member = compilation1.GetMember<FieldSymbol>("C.y");
             var other = matcher.MapReference((Cci.ITypeReference)member.Type.GetCciAdapter());
             // For a newly added type, there is no match in the previous generation.
@@ -674,16 +594,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -707,16 +618,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -740,16 +642,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -773,16 +666,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -806,16 +690,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -839,16 +714,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -872,16 +738,7 @@ public struct Vector
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -905,16 +762,7 @@ public struct Vector
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -938,16 +786,7 @@ public class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -971,16 +810,7 @@ public class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1018,16 +848,7 @@ struct C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var s0 = compilation0.GetMember<MethodSymbol>("C.S");
             var t0 = compilation0.GetMember<MethodSymbol>("C.T");
@@ -1075,16 +896,7 @@ struct C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var s0 = compilation0.GetMember<PropertySymbol>("C.S");
             var t0 = compilation0.GetMember<PropertySymbol>("C.T");
@@ -1167,16 +979,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1201,16 +1004,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1235,16 +1029,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1267,16 +1052,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<FieldSymbol>("C.S");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1381,16 +1157,7 @@ interface I
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var x0 = compilation0.GetMember<FieldSymbol>("I.X");
             var y0 = compilation0.GetMember<EventSymbol>("I.Y");
@@ -1439,16 +1206,7 @@ unsafe class C
             var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             var compilation1 = compilation0.WithSource(source);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             for (int i = 1; i <= 7; i++)
             {
@@ -1482,16 +1240,7 @@ unsafe class C
             var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             var compilation1 = compilation0.WithSource(source2);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
 
@@ -1542,16 +1291,7 @@ unsafe class C
                 var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
                 var compilation1 = compilation0.WithSource(source2);
 
-                var matcher = new CSharpSymbolMatcher(
-                    null,
-                    null,
-                    null,
-                    compilation1.SourceAssembly,
-                    default,
-                    compilation0.SourceAssembly,
-                    default,
-                    null,
-                    null);
+                var matcher = CreateMatcher(compilation1, compilation0);
 
                 var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
 
@@ -1574,16 +1314,7 @@ public record R
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.ToString");
             var other = matcher.MapDefinition(member.GetCciAdapter());
@@ -1605,16 +1336,7 @@ public record R
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member0 = compilation0.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
             var member1 = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
@@ -1637,16 +1359,7 @@ public record R
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member0 = compilation0.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
             var member1 = compilation1.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
@@ -1667,16 +1380,7 @@ public record R(int X)
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var member0 = compilation0.GetMember<SynthesizedRecordPropertySymbol>("R.X");
             var member1 = compilation1.GetMember<SourcePropertySymbol>("R.X");
@@ -1702,16 +1406,7 @@ public record R
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
 
             var members = compilation1.GetMembers("R..ctor");
             // There are two, one is the copy constructor
@@ -2007,16 +1702,7 @@ class A
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             Assert.Equal(6, members1.Length);
@@ -2058,16 +1744,7 @@ class A
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             Assert.Equal(6, members1.Length);
@@ -2119,16 +1796,7 @@ class A
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             Assert.Equal(3, members1.Length);
@@ -2175,16 +1843,7 @@ class A
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             Assert.Equal(6, members1.Length);
 
@@ -2229,16 +1888,7 @@ class A
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                compilation0.SourceAssembly,
-                default,
-                null,
-                null);
+            var matcher = CreateMatcher(compilation1, compilation0);
             var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
             Assert.Equal(6, members1.Length);
 

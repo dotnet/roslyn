@@ -247,17 +247,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Free()
         End Sub
 
-        Friend Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
-            Dim result = New Dictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
-            Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
-            GetAllCreatedTemplates(builder)
-            For Each template In builder
-                Dim nameAndIndex = template.NameAndIndex
-                Dim key = template.GetAnonymousTypeKey()
-                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter())
-                result.Add(key, value)
-            Next
-            builder.Free()
+        Friend Function GetAnonymousTypeMap() As ImmutableDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+            Dim templates = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
+            GetAllCreatedTemplates(templates)
+
+            Dim result = templates.ToImmutableDictionary(
+                keySelector:=Function(template) template.GetAnonymousTypeKey(),
+                elementSelector:=Function(template) New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(template.NameAndIndex.Name, template.NameAndIndex.Index, template.GetCciAdapter()))
+
+            templates.Free()
             Return result
         End Function
 

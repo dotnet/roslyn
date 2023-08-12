@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, context, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
@@ -53,11 +53,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
                 matchToPrevious = New VisualBasicSymbolMatcher(
-                    previousGeneration.AnonymousTypeMap,
                     sourceAssembly:=sourceAssembly,
                     sourceContext:=context,
                     otherAssembly:=previousAssembly,
                     otherContext:=previousContext,
+                    previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
                     otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
             End If
@@ -115,22 +115,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
-            Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            ' VB anonymous delegates are handled as anonymous types in the map above
-            Dim anonymousDelegates = SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-            Dim anonymousDelegatesWithIndexedNames = SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, anonymousDelegates, anonymousDelegatesWithIndexedNames, metadataDecoder, assemblyReferenceIdentityMap)
+
+            ' VB anonymous delegates are handled as anonymous types.
+            Dim synthesizedTypes = New SynthesizedTypeMaps(
+                GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
+
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(synthesizedTypes, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
 
         ' friend for testing
-        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As ImmutableDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
             ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
             ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
 
-            Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim builder = ImmutableDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
@@ -150,15 +153,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    result.Add(key, value)
+                    builder.Add(key, value)
                 ElseIf TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    result.Add(key, value)
+                    builder.Add(key, value)
                 End If
             Next
-            Return result
+            Return builder.ToImmutable()
         End Function
 
         Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
@@ -222,21 +225,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
-            Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
+        Friend Overloads Function GetSynthesizedTypes() As SynthesizedTypeMaps Implements IPEDeltaAssemblyBuilder.GetSynthesizedTypes
+            ' VB anonymous delegates are handled as anonymous types
+            Dim result = New SynthesizedTypeMaps(
+                Compilation.AnonymousTypeManager.GetAnonymousTypeMap(),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
+
             ' Should contain all entries in previous generation.
-            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
-            Return anonymousTypes
-        End Function
+            Debug.Assert(_previousGeneration.SynthesizedTypes.IsSubsetOf(result))
 
-        Friend Overloads Function GetAnonymousDelegates() As IReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegates
-            ' VB anonymous delegates are handled as anonymous types in the method above
-            Return SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-        End Function
-
-        Friend Overloads Function GetAnonymousDelegatesWithIndexedNames() As IReadOnlyDictionary(Of String, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegatesWithIndexedNames
-            ' VB anonymous delegates are handled as anonymous types in the method above
-            Return SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
+            Return result
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
@@ -248,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
+            Return ImmutableArray.CreateRange(_previousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
