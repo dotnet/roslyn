@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.CurrentToken.Kind == SyntaxKind.ColonToken
                         ? this.EatTokenAsKind(SyntaxKind.EqualsGreaterThanToken)
                         : this.EatToken(SyntaxKind.EqualsGreaterThanToken),
-                    ParseExpressionCore());
+                    ParsePossibleRefExpression());
 
                 // If we're not making progress, abort
                 if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)
