@@ -5930,13 +5930,13 @@ class C
                 //     private C c;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "c").WithArguments("C.c", "null").WithLocation(4, 15);
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 expectedDiagnostic,
-                // (5,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(c.c.c);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c").WithArguments("instance member in 'nameof'").WithLocation(5, 40));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "c").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 40));
         }
     }
 }

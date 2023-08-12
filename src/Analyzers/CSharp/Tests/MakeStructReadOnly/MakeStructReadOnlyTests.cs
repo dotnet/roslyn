@@ -20,10 +20,10 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
 public class MakeStructReadOnlyTests
 {
-    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersionExtensions.CSharpNext)
+    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.CSharp12)
         => TestAsync(testCode, testCode, version);
 
-    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersionExtensions.CSharpNext)
+    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.CSharp12)
     {
         await new VerifyCS.Test
         {
@@ -435,7 +435,7 @@ LanguageVersion.CSharp7_2);
 {
     readonly int i;
 }",
-LanguageVersionExtensions.CSharpNext);
+LanguageVersion.CSharp12);
     }
 
     [Fact]

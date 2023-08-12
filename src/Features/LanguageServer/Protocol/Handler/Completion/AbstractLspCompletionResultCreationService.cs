@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 {
                     lspItem.CommitCharacters = Array.Empty<string>();
                 }
-                else if (!lspItem.Preselect && typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
                 {
                     // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
                     // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true

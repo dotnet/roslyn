@@ -15,6 +15,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using System.Linq;
+using Microsoft.VisualStudio.Settings;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -746,7 +747,7 @@ namespace N
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, "", GetResource("class", "N.C")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "N.C.Main()")));
         }
 
         [Fact]
@@ -770,7 +771,7 @@ namespace N
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, "namespace N", GetResource("class", "C")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "N.C.Main()")));
         }
 
         [Fact]
@@ -2333,6 +2334,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69249")]
         public void InstanceFieldInitializer_Internal_Delete2()
         {
             var src1 = @"
@@ -2340,34 +2342,14 @@ class C
 {
     int a = F(1), <AS:1>b = F(2)</AS:1>;
 
-    public C() {}
-
-    public static int F(int a)
-    {
-        <AS:0>return a;</AS:0> 
-    }
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
+    public static int F(int a) => <AS:0>1</AS:0>;
 }";
             var src2 = @"
 class C
 {
     <AS:1>int a, b;</AS:1>
 
-    public C() {}
-
-    public static int F(int a)
-    {
-        <AS:0>return a;</AS:0> 
-    }
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
+    public static int F(int a) => <AS:0>1</AS:0>;
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -2619,7 +2601,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", GetResource("field")));
         }
 
         [Fact]
@@ -2669,8 +2651,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", GetResource("field")),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", GetResource("field")));
         }
 
         [Fact]
@@ -9779,7 +9761,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", CSharpFeaturesResources.lambda));
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "b", GetResource("lambda")),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", GetResource("lambda")));
         }
 
         [Fact]
@@ -11595,8 +11578,31 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
-                        // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", GetResource("method", "F()")) })
+                });
+        }
+
+        [Fact]
+        public void InsertDeleteMethod_Active_EntirePartialTypeDeclaration()
+        {
+            var srcA1 = "partial class C { }";
+            var srcB1 = "partial class C { void F() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
+            var srcA2 = "partial class C { void F() { System.Console.WriteLine(1); } }";
+            var srcB2 = "<AS:0/>";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
+                new[]
+                {
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
+                        }),
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "C.F()")) })
                 });
         }
 

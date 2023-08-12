@@ -77,6 +77,11 @@
         <target state="new">Running tests...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_csharp_logs">
+        <source>Show C# logs</source>
+        <target state="new">Show C# logs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="new">Stack Trace</target>
@@ -105,6 +110,21 @@
       <trans-unit id="Test_run_error">
         <source>Test run error: {0}</source>
         <target state="new">Test run error: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
+        <source>There were problems loading project {0}. See log for details.</source>
+        <target state="new">There were problems loading project {0}. See log for details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="There_were_problems_loading_solution_0_See_log_for_details">
+        <source>There were errors loading solution {0}. See log for details.</source>
+        <target state="new">There were errors loading solution {0}. See log for details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="There_were_problems_loading_your_projects_See_log_for_details">
+        <source>There were problems loading your projects. See log for details.</source>
+        <target state="new">There were problems loading your projects. See log for details.</target>
         <note />
       </trans-unit>
     </body>

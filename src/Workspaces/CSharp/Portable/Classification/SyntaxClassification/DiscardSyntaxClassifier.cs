@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
            SegmentedList<ClassifiedSpan> result,
            CancellationToken cancellationToken)
         {
-            if (syntax.IsKind(SyntaxKind.DiscardDesignation) || syntax.IsKind(SyntaxKind.DiscardPattern))
+            if (syntax.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.DiscardPattern)
             {
                 result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                 return;

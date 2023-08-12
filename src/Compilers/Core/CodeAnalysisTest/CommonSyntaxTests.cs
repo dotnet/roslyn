@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void CSharpSyntax_VisualBasicKind()
         {
-            var node = CSharp.SyntaxFactory.Identifier("a");
+            var node = CSharp.SyntaxFactory.IdentifierName("a");
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(node));
             var token = CSharp.SyntaxFactory.Token(CSharp.SyntaxKind.IfKeyword);
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(token));
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void VisualBasicSyntax_CSharpKind()
         {
-            var node = VisualBasic.SyntaxFactory.Identifier("a");
+            var node = VisualBasic.SyntaxFactory.IdentifierName("a");
             Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(node));
             var token = VisualBasic.SyntaxFactory.Token(VisualBasic.SyntaxKind.IfKeyword);
             Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(token));

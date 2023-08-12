@@ -61,6 +61,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             => keyword switch
             {
                 "enum" => FeaturesResources.enum_,
+                "enum value" => FeaturesResources.enum_value,
                 "class" => FeaturesResources.class_,
                 "interface" => FeaturesResources.interface_,
                 "delegate" => FeaturesResources.delegate_,
@@ -70,6 +71,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "static constructor" => FeaturesResources.static_constructor,
                 "constructor" => FeaturesResources.constructor,
                 "field" => FeaturesResources.field,
+                "const field" => FeaturesResources.const_field,
                 "method" => FeaturesResources.method,
                 "property" => FeaturesResources.property_,
                 "property getter" => CSharpFeaturesResources.property_getter,
@@ -117,7 +119,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 SourceMarkers.Clear(markedSource),
-                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                 path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
