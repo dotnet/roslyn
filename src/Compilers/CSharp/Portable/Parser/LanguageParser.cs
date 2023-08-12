@@ -9800,7 +9800,6 @@ done:;
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.SemicolonToken:
-                // case SyntaxKind.CloseParenToken:
                 case SyntaxKind.ColonToken:
                     return true;
                 default:
