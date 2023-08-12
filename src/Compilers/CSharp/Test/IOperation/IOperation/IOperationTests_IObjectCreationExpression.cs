@@ -5260,7 +5260,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .locals {R1}
 {
     Locals: [C1 x]
@@ -5270,40 +5269,36 @@ Block[B0] - Entry
         Block[B1] - Block
             Predecessors: [B0]
             Statements (3)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Value: 
-                    IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Value:
+                    IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'P1 = 1')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C3.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P1')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IPropertyReferenceOperation: C3 C2.C31 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C31')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                              Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Right: 
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'P2 = 2')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C3.P2 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P2')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IPropertyReferenceOperation: C3 C2.C31 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C31')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                              Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Right: 
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
             Next (Regular) Block[B2]
                 Entering: {R3}
-
         .locals {R3}
         {
             CaptureIds: [1] [2]
@@ -5311,110 +5306,97 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'C2')
-                      Value: 
+                      Value:
                         IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
                 Jump if False (Regular) to Block[B4]
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
                 Next (Regular) Block[B3]
             Block[B3] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
-                      Value: 
+                      Value:
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                           Children(0)
-
                 Next (Regular) Block[B5]
             Block[B4] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
-                      Value: 
+                      Value:
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                           Children(0)
-
                 Next (Regular) Block[B5]
             Block[B5] - Block
                 Predecessors: [B3] [B4]
                 Statements (1)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid) (Syntax: 'C32 = b ? (')
-                      Left: 
+                      Left:
                         IPropertyReferenceOperation: C3 C2.C32 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C32')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'C2')
-                      Right: 
+                      Right:
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C3, IsInvalid, IsImplicit) (Syntax: 'b ? (')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (NoConversion)
-                          Operand: 
+                          Operand:
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? (')
-
                 Next (Regular) Block[B6]
                     Leaving: {R3}
         }
-
         Block[B6] - Block
             Predecessors: [B5]
             Statements (2)
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{ P1 = 3, P2 = 4 }')
                   Children(2):
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
-                        Left: 
+                        Left:
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                             Children(0)
-                        Right: 
+                        Right:
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
-                        Left: 
+                        Left:
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                             Children(0)
-                        Right: 
+                        Right:
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
-
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 3, P2 = 4 }')
-                  Left: 
-                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 3, P2 = 4 }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... , P2 = 4 })')
+                  Left:
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... , P2 = 4 })')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
             Next (Regular) Block[B7]
                 Leaving: {R2}
     }
-
     Block[B7] - Block
         Predecessors: [B6]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(')
-              Expression: 
+              Expression:
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'P1 = 3')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                       Children(0)
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'P2 = 4 ')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                       Children(0)
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-
         Next (Regular) Block[B8]
             Leaving: {R1}
 }
-
 Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
