@@ -3638,17 +3638,7 @@ scoped ref readonly R x = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 20),
                 // (2,24): error CS1003: Syntax error, ',' expected
                 // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 24),
-                // (2,25): error CS1002: ; expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 25),
-                // (2,25): error CS1022: Type or namespace definition, or end-of-file expected
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 25),
-                // (2,27): error CS1525: Invalid expression term '='
-                // (ref scoped int b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 27)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3743,17 +3733,7 @@ scoped ref readonly R x = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 18),
                 // (2,22): error CS1003: Syntax error, ',' expected
                 // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 22),
-                // (2,23): error CS1002: ; expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 23),
-                // (2,23): error CS1022: Type or namespace definition, or end-of-file expected
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 23),
-                // (2,25): error CS1525: Invalid expression term '='
-                // (ref scoped a b, var c) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 25)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 22));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3926,17 +3906,7 @@ scoped ref readonly R x = M;
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var").WithLocation(2, 29),
                 // (2,33): error CS1003: Syntax error, ',' expected
                 // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33),
-                // (2,34): error CS1002: ; expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 34),
-                // (2,34): error CS1022: Type or namespace definition, or end-of-file expected
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 34),
-                // (2,36): error CS1525: Invalid expression term '='
-                // (ref readonly scoped int c, var d) = M;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 36)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -10127,9 +10097,6 @@ foreach (ref readonly scoped c in collection);
 foreach (ref readonly scoped int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token ')'
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref readonly scoped int c in collection").WithArguments(")").WithLocation(2, 1),
                 // (2,10): error CS1525: Invalid expression term 'ref'
                 // foreach (ref readonly scoped int c in collection);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 10),
@@ -10153,11 +10120,7 @@ foreach (ref readonly scoped int c in collection);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 14),
                 // (2,36): error CS1003: Syntax error, ',' expected
                 // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36),
-                // (2,49): error CS1002: ; expected
-                // foreach (ref readonly scoped int c in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 49)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
 
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -10211,9 +10174,6 @@ foreach (ref readonly scoped int c in collection);
 foreach (ref scoped readonly int c in collection);
 ";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,1): error CS1073: Unexpected token ')'
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref scoped readonly int c in collection").WithArguments(")").WithLocation(2, 1),
                 // (2,10): error CS1525: Invalid expression term 'ref'
                 // foreach (ref scoped readonly int c in collection);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
@@ -10234,11 +10194,7 @@ foreach (ref scoped readonly int c in collection);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 21),
                 // (2,36): error CS1003: Syntax error, ',' expected
                 // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36),
-                // (2,49): error CS1002: ; expected
-                // foreach (ref scoped readonly int c in collection);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 49)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36));
 
             N(SyntaxKind.ForEachVariableStatement);
             {

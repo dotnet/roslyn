@@ -4758,14 +4758,15 @@ parse_member_name:;
 
             LocalFunctionStatementSyntax localFunction;
             ParseVariableDeclarators(
-                type: type,
-                flags: flags,
-                variables: variables,
-                variableDeclarationsExpected: variableDeclarationsExpected,
+                type,
+                flags,
+                variables,
+                variableDeclarationsExpected,
                 allowLocalFunctions: false,
+                stopOnCloseParen: false,
                 attributes: default,
                 mods: default,
-                localFunction: out localFunction);
+                out localFunction);
 
             Debug.Assert(localFunction == null);
         }
@@ -4776,6 +4777,7 @@ parse_member_name:;
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool variableDeclarationsExpected,
             bool allowLocalFunctions,
+            bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction)
@@ -4800,6 +4802,10 @@ parse_member_name:;
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    break;
+                }
+                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -9767,10 +9773,11 @@ done:;
                 flags,
                 variables,
                 variableDeclarationsExpected: true,
-                allowLocalFunctions: allowLocalFunctions,
-                attributes: attributes,
-                mods: mods,
-                localFunction: out localFunction);
+                allowLocalFunctions,
+                stopOnCloseParen: true,
+                attributes,
+                mods,
+                out localFunction);
             _termState = saveTerm;
 
             if (allowLocalFunctions && localFunction == null && type is PredefinedTypeSyntax { Keyword.Kind: SyntaxKind.VoidKeyword })
@@ -9784,7 +9791,7 @@ done:;
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.SemicolonToken:
-                case SyntaxKind.CloseParenToken:
+                // case SyntaxKind.CloseParenToken:
                 case SyntaxKind.ColonToken:
                     return true;
                 default:

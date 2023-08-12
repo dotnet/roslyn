@@ -253,13 +253,7 @@ public class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
             // (1,14): error CS1003: Syntax error, ',' expected
             // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
-            // (1,18): error CS1002: ; expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
-            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14));
 
         N(SyntaxKind.CompilationUnit);
         {
