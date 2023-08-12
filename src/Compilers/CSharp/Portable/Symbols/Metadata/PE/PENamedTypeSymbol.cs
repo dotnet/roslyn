@@ -2608,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private ImmutableArray<TypeParameterSymbol> EnsureTypeParametersAreLoaded()
             {
-                return InterlockedOperations.InterlockedInitialize(
+                return InterlockedOperations.Initialize(
                     ref _lazyTypeParameters,
                     static self =>
                     {
