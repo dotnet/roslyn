@@ -4748,7 +4748,8 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        private void ParseVariableDeclarators(TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
+        private void ParseFieldDeclarationVariableDeclarators(
+            TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
         {
             // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace) 
             // the reported errors should take into consideration whether or not one expects them in the current context.
@@ -4756,17 +4757,18 @@ parse_member_name:;
                 parentKind is not SyntaxKind.NamespaceDeclaration and not SyntaxKind.FileScopedNamespaceDeclaration &&
                 (parentKind != SyntaxKind.CompilationUnit || IsScript);
 
-            LocalFunctionStatementSyntax localFunction;
             ParseVariableDeclarators(
                 type,
                 flags,
                 variables,
                 variableDeclarationsExpected,
                 allowLocalFunctions: false,
+                // A field declaration doesn't have a `(...)` construct.  So no need to stop if we hit a close paren
+                // after a declarator.  Let normal error recovery kick in.
                 stopOnCloseParen: false,
                 attributes: default,
                 mods: default,
-                out localFunction);
+                out var localFunction);
 
             Debug.Assert(localFunction == null);
         }
@@ -9575,6 +9577,8 @@ done:;
 
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: canParseAsLocalFunction,
+                    // A local declaration doesn't have a `(...)` construct.  So no need to stop if we hit a close paren
+                    // after a declarator.  Let normal error recovery kick in.
                     stopOnCloseParen: false,
                     attributes,
                     mods.ToList(),
@@ -9746,7 +9750,8 @@ done:;
             ParseLocalDeclaration(
                 variables,
                 allowLocalFunctions: false,
-                // Always stop on a close paren as the parent `fixed/for/using` statement wants to consume it.
+                // Always stop on a close paren as the parent `fixed(...)/for(...)/using(...)` statement wants to
+                // consume it.
                 stopOnCloseParen: true,
                 attributes: default,
                 mods: default,
