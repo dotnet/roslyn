@@ -9746,6 +9746,7 @@ done:;
             ParseLocalDeclaration(
                 variables,
                 allowLocalFunctions: false,
+                // Always stop on a close paren as the parent `fixed/for/using` statement wants to consume it.
                 stopOnCloseParen: true,
                 attributes: default,
                 mods: default,
