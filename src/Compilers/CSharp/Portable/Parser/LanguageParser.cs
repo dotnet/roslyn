@@ -4528,15 +4528,10 @@ parse_member_name:;
 
             var type = this.ParseType();
 
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Fixed, variables, parentKind);
-            _termState = saveTerm;
-
             return _syntaxFactory.FieldDeclaration(
                 attributes, modifiers.ToList(),
-                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                _syntaxFactory.VariableDeclaration(
+                    type, this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Fixed, parentKind)),
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -4664,11 +4659,7 @@ parse_member_name:;
             TypeSyntax type,
             SyntaxKind parentKind)
         {
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            this.ParseFieldDeclarationVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables, parentKind);
-            _termState = saveTerm;
+            var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: VariableFlags.LocalOrField, parentKind);
 
             // Make 'scoped' part of the type when it is the last token in the modifiers list
             if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
@@ -4680,7 +4671,7 @@ parse_member_name:;
             return _syntaxFactory.FieldDeclaration(
                 attributes,
                 modifiers.ToList(),
-                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                _syntaxFactory.VariableDeclaration(type, variables),
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -4704,22 +4695,15 @@ parse_member_name:;
             // abstract, we allow the attribute to specify that it belongs to a field.  Later, in the
             // semantic pass, we will disallow this.
 
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            this.ParseFieldDeclarationVariableDeclarators(type, flags: 0, variables, parentKind);
-            _termState = saveTerm;
-
+            var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: 0, parentKind);
             if (this.CurrentToken.Kind == SyntaxKind.DotToken)
-            {
                 eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);  // Better error message for confusing event situation.
-            }
 
             return _syntaxFactory.EventFieldDeclaration(
                 attributes,
                 modifiers.ToList(),
                 eventToken,
-                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                _syntaxFactory.VariableDeclaration(type, variables),
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -4728,14 +4712,19 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        private void ParseFieldDeclarationVariableDeclarators(
-            TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
+        private SeparatedSyntaxList<VariableDeclaratorSyntax> ParseFieldDeclarationVariableDeclarators(
+            TypeSyntax type, VariableFlags flags, SyntaxKind parentKind)
         {
             // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace) 
             // the reported errors should take into consideration whether or not one expects them in the current context.
             bool variableDeclarationsExpected =
                 parentKind is not SyntaxKind.NamespaceDeclaration and not SyntaxKind.FileScopedNamespaceDeclaration &&
                 (parentKind != SyntaxKind.CompilationUnit || IsScript);
+
+            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
+
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFieldDeclaration;
 
             ParseVariableDeclarators(
                 type,
@@ -4749,8 +4738,10 @@ parse_member_name:;
                 attributes: default,
                 mods: default,
                 out var localFunction);
-
             Debug.Assert(localFunction == null);
+
+            _termState = saveTerm;
+            return _pool.ToListAndFree(variables);
         }
 
         private void ParseVariableDeclarators(
@@ -5202,13 +5193,12 @@ parse_member_name:;
             modifiers.Add(this.EatToken(SyntaxKind.ConstKeyword));
 
             var type = this.ParseType();
-
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            this.ParseVariableDeclarators(type, VariableFlags.Const, variables, parentKind);
             return _syntaxFactory.FieldDeclaration(
                 attributes,
                 modifiers.ToList(),
-                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                _syntaxFactory.VariableDeclaration(
+                    type,
+                    this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Const, parentKind)),
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
