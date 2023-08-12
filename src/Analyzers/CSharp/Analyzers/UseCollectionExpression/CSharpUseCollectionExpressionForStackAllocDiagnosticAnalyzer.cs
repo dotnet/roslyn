@@ -40,6 +40,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                 .Add(s_descriptor, CodeStyleOptions2.PreferCollectionExpression)
                 .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionExpression))
     {
+        ImmutableArray.CreateBuilder()
     }
 
     protected override void InitializeWorker(AnalysisContext context)
