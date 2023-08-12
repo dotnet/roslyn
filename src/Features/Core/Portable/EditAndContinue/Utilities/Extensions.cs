@@ -178,6 +178,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                    static (param, constructor) => param.RefKind == RefKind.Out && param.Type.Equals(constructor.Parameters[param.Ordinal].Type, SymbolEqualityComparer.Default),
                    constructor);
 
+        // TODO: use AssociatedSymbol to tie field to the parameter (see https://github.com/dotnet/roslyn/issues/69115)
+        public static IFieldSymbol? GetPrimaryParameterBackingField(this IParameterSymbol parameter)
+            => (IFieldSymbol?)parameter.ContainingType.GetMembers().FirstOrDefault(
+                static (member, parameter) => member is IFieldSymbol field && ParsePrimaryParameterBackingFieldName(field.Name, out var paramName) && paramName == parameter.Name, parameter);
+
+        private static bool ParsePrimaryParameterBackingFieldName(string fieldName, [NotNullWhen(true)] out string? parameterName)
+        {
+            int closing;
+            if (fieldName.StartsWith("<") && (closing = fieldName.IndexOf(">P")) > 1)
+            {
+                parameterName = fieldName.Substring(1, closing - 1);
+                return true;
+            }
+
+            parameterName = null;
+            return false;
+        }
+
         /// <summary>
         /// Returns a deconstructor that matches the parameters of the given <paramref name="constructor"/>, or null if there is none.
         /// </summary>

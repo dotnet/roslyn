@@ -55,22 +55,19 @@ namespace Microsoft.CodeAnalysis.Telemetry
         }
 
         /// <summary>
-        /// Adds aggregated information for the metric and value passed in via logMessage. The Name/Value properties
+        /// Adds aggregated information for the metric and value passed in via <paramref name="logMessage"/>. The Name/Value properties
         /// are used as the metric name and value to record.
         /// </summary>
         /// <param name="logMessage"></param>
-        public void Log(LogMessage logMessage)
+        public void Log(KeyValueLogMessage logMessage)
         {
             if (!IsEnabled)
                 return;
 
-            if (logMessage is not KeyValueLogMessage kvLogMessage)
+            if (!logMessage.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string metricName)
                 throw ExceptionUtilities.Unreachable();
 
-            if (!kvLogMessage.TryGetValue(TelemetryLogging.AggregatedKeyName, out var nameValue) || nameValue is not string metricName)
-                throw ExceptionUtilities.Unreachable();
-
-            if (!kvLogMessage.TryGetValue(TelemetryLogging.AggregatedKeyValue, out var valueValue) || valueValue is not int value)
+            if (!logMessage.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
                 throw ExceptionUtilities.Unreachable();
 
             var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<int>(metricName, _histogramConfiguration));
@@ -80,12 +77,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
             _aggregatingTelemetryLogManager.EnsureTelemetryWorkQueued();
         }
 
-        public IDisposable? LogBlockTime(string name, int minThresholdMs)
+        public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
         {
             if (!IsEnabled)
                 return null;
 
-            return new TimedTelemetryLogBlock(name, minThresholdMs, telemetryLog: this);
+            if (!logMessage.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string)
+                throw ExceptionUtilities.Unreachable();
+
+            return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
         }
 
         private bool IsEnabled => _session.IsOptedIn;

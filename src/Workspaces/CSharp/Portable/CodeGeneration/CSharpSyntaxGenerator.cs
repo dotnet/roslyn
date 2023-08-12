@@ -9,7 +9,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Xml.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -178,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             SyntaxNode? initializer)
         {
+            // some constant types will also appear as readonly when read from metadata
+            modifiers = modifiers.IsConst ? modifiers.WithIsReadOnly(false) : modifiers;
+
             return SyntaxFactory.FieldDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.FieldDeclaration),
@@ -191,9 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private protected override SyntaxNode ParameterDeclaration(
-            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams)
+            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
         {
             var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
+            if (isScoped)
+                modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ScopedKeyword));
+
             if (isExtension)
                 modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
@@ -219,6 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return SyntaxFactory.Token(SyntaxKind.OutKeyword);
                 case RefKind.Ref:
                     return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                case RefKind.RefReadOnlyParameter:
+                    return SyntaxFactory.Token(SyntaxKind.InKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
@@ -1423,6 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Const |
             DeclarationModifiers.New |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Ref |
             DeclarationModifiers.Required |
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe |
@@ -3189,13 +3197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax ||
-                expression.IsKind(SyntaxKind.ThisExpression) ||
-                expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                expression.IsKind(SyntaxKind.InvocationExpression) ||
-                expression.IsKind(SyntaxKind.ElementAccessExpression) ||
-                expression.IsKind(SyntaxKind.MemberBindingExpression))
+                expression.Kind()
+                    is SyntaxKind.ThisExpression
+                    or SyntaxKind.BaseExpression
+                    or SyntaxKind.ParenthesizedExpression
+                    or SyntaxKind.SimpleMemberAccessExpression
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.ElementAccessExpression
+                    or SyntaxKind.MemberBindingExpression)
             {
                 return expression;
             }

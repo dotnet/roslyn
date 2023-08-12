@@ -209,5 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
         }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
     }
 }

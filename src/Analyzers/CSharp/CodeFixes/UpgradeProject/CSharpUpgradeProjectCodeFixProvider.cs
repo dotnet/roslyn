@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8885", // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 "CS8936", // error CS8936: Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.
                 "CS9058", // error CS9058: Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.
+                "CS9194", // error CS9194: Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.
+                "CS9202", // error CS9202: Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.
             });
 
         public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;

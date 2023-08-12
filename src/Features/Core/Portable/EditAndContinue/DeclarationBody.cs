@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Differencing;
 using Roslyn.Utilities;
@@ -21,6 +22,32 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     public abstract OneOrMany<SyntaxNode> RootNodes { get; }
 
     /// <summary>
+    /// Returns all nodes of the body.
+    /// </summary>
+    /// <remarks>
+    /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share 
+    /// their parent nodes with other bodies (e.g. join clause expressions).
+    /// </remarks>
+    public virtual IEnumerable<SyntaxNode> GetExpressionsAndStatements()
+    {
+        foreach (var root in RootNodes)
+        {
+            yield return root;
+        }
+    }
+
+    public IEnumerable<SyntaxNode> GetDescendantNodes(Func<SyntaxNode, bool> descendIntoChildren)
+    {
+        foreach (var root in GetExpressionsAndStatements())
+        {
+            foreach (var node in root.DescendantNodesAndSelf(descendIntoChildren))
+            {
+                yield return node;
+            }
+        }
+    }
+
+    /// <summary>
     /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens"/>)
     /// and its span covers the entire <see cref="MemberBody.Envelope"/>.
     /// May include descendant nodes or tokens that do not belong to the body.
@@ -28,6 +55,12 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     public abstract SyntaxNode EncompassingAncestor { get; }
 
     public abstract StateMachineInfo GetStateMachineInfo();
+
+    /// <summary>
+    /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
+    /// If the body is a field/property initializer analyzes the initializer expression only.
+    /// </summary>
+    public abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model);
 
     /// <summary>
     /// Computes a statement-level syntax tree match of this body with <paramref name="newBody"/>.

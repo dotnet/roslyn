@@ -73,9 +73,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
     {
         context.RegisterCompilationStartAction(context =>
         {
-            // "x is not Type y" is only available in C# 9.0 and above. Don't offer this refactoring
-            // in projects targeting a lesser version.
-            if (!context.Compilation.LanguageVersion().IsCSharp12OrAbove())
+            if (!context.Compilation.LanguageVersion().SupportsPrimaryConstructors())
                 return;
 
             // Mapping from a named type to a particular analyzer we have created for it. Needed because nested
