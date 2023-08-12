@@ -12514,7 +12514,6 @@ using (ref scoped readonly int c);
                 // using (ref scoped readonly int c);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 33));
 
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
