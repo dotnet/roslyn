@@ -51,9 +51,46 @@ internal static class UseCollectionInitializerHelpers
 
             return additionalUnnecessaryLocations;
         }
-        else
+
+        return ImmutableArray<Location>.Empty;
+    }
+
+    public static IEnumerable<TStatementSyntax> GetSubsequentStatements<TStatementSyntax>(
+        ISyntaxFacts syntaxFacts,
+        TStatementSyntax initialStatement) where TStatementSyntax : SyntaxNode
+    {
+        // If containing statement is inside a block (e.g. method), than we need to iterate through its child
+        // statements. If containing statement is in top-level code, than we need to iterate through child statements of
+        // containing compilation unit.
+        var containingBlockOrCompilationUnit = initialStatement.GetRequiredParent();
+
+        // In case of top-level code parent of the statement will be GlobalStatementSyntax,
+        // so we need to get its parent in order to get CompilationUnitSyntax
+        if (syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
+            containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent!;
+
+        var foundStatement = false;
+        foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
         {
-            return ImmutableArray<Location>.Empty;
+            if (child.IsToken)
+                continue;
+
+            var childNode = child.AsNode()!;
+            var extractedChild = syntaxFacts.IsGlobalStatement(childNode)
+                ? syntaxFacts.GetStatementOfGlobalStatement(childNode)
+                : childNode;
+
+            if (!foundStatement)
+            {
+                if (extractedChild == initialStatement)
+                {
+                    foundStatement = true;
+                }
+
+                continue;
+            }
+
+            yield return (TStatementSyntax)childNode;
         }
     }
 }
