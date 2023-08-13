@@ -1325,10 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             };
 
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
-        {
-            return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(
-                (VariableDeclaratorSyntax)declarator);
-        }
+            => ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Any(v => v == declarator);
 
         public bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
             => SyntaxFactory.AreEquivalent(token1, token2);
