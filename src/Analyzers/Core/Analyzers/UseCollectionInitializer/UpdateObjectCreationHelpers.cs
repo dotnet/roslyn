@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -27,17 +28,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax startExpression,
-            TStatementSyntax containingStatement,
             SyntaxNodeOrToken valuePattern,
             ISymbol? initializedSymbol)
         {
             SemanticModel = semanticModel;
             SyntaxFacts = syntaxFacts;
             StartExpression = startExpression;
-            ContainingStatement = containingStatement;
+            ContainingStatement = startExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
             ValuePattern = valuePattern;
             InitializedSymbol = initializedSymbol;
         }
+
+        public IEnumerable<TStatementSyntax> GetSubsequentStatements()
+            => UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
 
         public bool ValuePatternMatches(TExpressionSyntax expression)
         {
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
     internal static class UpdateObjectCreationHelpers
     {
-        public static (SyntaxNodeOrToken valuePattern, ISymbol? initializedSymbol)? TryInitializeVariableDeclarationCase<TExpressionSyntax, TStatementSyntax>(
+        public static UpdateObjectCreationState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase<TExpressionSyntax, TStatementSyntax>(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
@@ -111,10 +114,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
 
             var valuePattern = syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
-            return (valuePattern, initializedSymbol);
+            return new(semanticModel, syntaxFacts, rootExpression, valuePattern, initializedSymbol);
         }
 
-        public static (SyntaxNodeOrToken valuePattern, ISymbol? initializedSymbol)? TryInitializeAssignmentCase<TExpressionSyntax, TStatementSyntax>(
+        public static UpdateObjectCreationState<TExpressionSyntax, TStatementSyntax>? TryInitializeAssignmentCase<TExpressionSyntax, TStatementSyntax>(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var initializedSymbol = semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
-            return (left, initializedSymbol);
+            return new(semanticModel, syntaxFacts, rootExpression, left, initializedSymbol);
         }
     }
 }

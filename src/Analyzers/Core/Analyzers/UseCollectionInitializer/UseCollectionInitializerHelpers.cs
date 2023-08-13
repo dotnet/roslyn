@@ -132,8 +132,11 @@ internal static class UseCollectionInitializerHelpers
                 return false;
 
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
+            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(
+                    semanticModel, syntaxFacts, valuePattern, initializedSymbol, argumentExpression, cancellationToken))
+            {
                 return false;
+            }
 
             // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
             // cannot be used in an outer collection initializer as it would change meaning.  i.e.:
