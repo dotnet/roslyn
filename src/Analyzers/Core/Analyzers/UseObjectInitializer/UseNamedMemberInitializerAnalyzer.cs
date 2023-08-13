@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
+    using static UpdateObjectCreationHelpers;
+
     internal class UseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
 
                 var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
-                if (!ValuePatternMatches(expression))
+                if (!ValuePatternMatches(_syntaxFacts, _valuePattern, expression))
                     break;
 
                 var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();

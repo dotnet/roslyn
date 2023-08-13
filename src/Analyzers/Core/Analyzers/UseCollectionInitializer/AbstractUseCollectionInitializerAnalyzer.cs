@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
     using static UseCollectionInitializerHelpers;
+    using static UpdateObjectCreationHelpers;
 
     internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
                         out var instance) &&
-                    ValuePatternMatches(instance))
+                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
                 {
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
                 }
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: identifier.Text,
                         out var instance) &&
-                    ValuePatternMatches(instance))
+                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
                 {
                     // `foreach` will become `..expr` when we make it into a collection expression.
                     return new Match<TStatementSyntax>(foreachStatement, UseSpread: true);
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
                         out var instance) &&
-                    ValuePatternMatches(instance))
+                    ValuePatternMatches(_syntaxFacts, _valuePattern,    instance))
                 {
                     if (whenFalse is null)
                     {
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                             addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                             requiredArgumentName: null,
                             out instance) &&
-                        ValuePatternMatches(instance))
+                        ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
                     {
                         // add the form `x ? y : z` to the result
                         return new Match<TStatementSyntax>(ifStatement, UseSpread: false);
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
                         out var instance) &&
-                    ValuePatternMatches(instance))
+                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
                 {
                     seenInvocation = true;
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (!seenInvocation)
             {
                 if (TryAnalyzeIndexAssignment(expressionStatement, out var instance) &&
-                    ValuePatternMatches(instance))
+                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
                 {
                     seenIndexAssignment = true;
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
