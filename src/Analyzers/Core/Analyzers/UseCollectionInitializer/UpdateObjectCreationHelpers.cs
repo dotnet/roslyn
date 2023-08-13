@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -80,6 +81,79 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             return false;
+        }
+
+        public bool TryAnalyzeInvocation<TExpressionStatementSyntax>(
+            TExpressionStatementSyntax statement,
+            string addName,
+            string? requiredArgumentName,
+            bool forCollectionExpression,
+            CancellationToken cancellationToken,
+            [NotNullWhen(true)] out TExpressionSyntax? instance)
+            where TExpressionStatementSyntax : TStatementSyntax
+        {
+            instance = null;
+
+            var invocationExpression = this.SyntaxFacts.GetExpressionOfExpressionStatement(statement);
+            if (!this.SyntaxFacts.IsInvocationExpression(invocationExpression))
+                return false;
+
+            var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+            if (arguments.Count < 1)
+                return false;
+
+            // Collection expressions can only call the single argument Add/AddRange methods on a type.
+            // So if we don't have exactly one argument, fail out.
+            if (forCollectionExpression && arguments.Count != 1)
+                return false;
+
+            if (requiredArgumentName != null && arguments.Count != 1)
+                return false;
+
+            foreach (var argument in arguments)
+            {
+                if (!this.SyntaxFacts.IsSimpleArgument(argument))
+                    return false;
+
+                var argumentExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
+                    return false;
+
+                // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
+                // cannot be used in an outer collection initializer as it would change meaning.  i.e.:
+                //
+                //      new List(Of IEnumerable(Of String)) { { a, b, c } }
+                //
+                // is not legal.  That's because instead of adding `{ a, b, c }` as a single element to the list, VB
+                // instead looks for an 3-argument `Add` method to invoke on `List<T>` (which clearly fails).
+                if (this.SyntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
+                    return false;
+
+                // If the caller is requiring a particular argument name, then validate that is what this argument
+                // is referencing.
+                if (requiredArgumentName != null)
+                {
+                    if (!this.SyntaxFacts.IsIdentifierName(argumentExpression))
+                        return false;
+
+                    this.SyntaxFacts.GetNameAndArityOfSimpleName(argumentExpression, out var suppliedName, out _);
+                    if (requiredArgumentName != suppliedName)
+                        return false;
+                }
+            }
+
+            var memberAccess = this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+            if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+                return false;
+
+            this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
+            this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
+
+            if (arity != 0 || !Equals(name, addName))
+                return false;
+
+            instance = localInstance as TExpressionSyntax;
+            return instance != null;
         }
     }
 

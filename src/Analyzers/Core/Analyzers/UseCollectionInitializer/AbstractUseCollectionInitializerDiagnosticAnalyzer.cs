@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!preferInitializerOption.Value)
                     return null;
 
-                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (arguments.Count != 0)
                     return null;
 
-                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
