@@ -10,10 +10,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
+    using static UseCollectionInitializerHelpers;
+
     internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -99,19 +100,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool TryAddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
         {
-            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
-            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.GetRequiredParent();
-
-            // In case of top-level code parent of the statement will be GlobalStatementSyntax,
-            // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
-            {
-                containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent!;
-            }
-
-            var foundStatement = false;
-
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
@@ -135,35 +123,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (seenIndexAssignment && _analyzeForCollectionExpression)
                 return false;
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var statement in GetSubsequentStatements(_syntaxFacts, _containingStatement))
             {
-                if (child.IsToken)
-                    continue;
-
-                var childNode = child.AsNode();
-                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
-
-                if (!foundStatement)
-                {
-                    if (extractedChild == _containingStatement)
-                    {
-                        foundStatement = true;
-                    }
-
-                    continue;
-                }
-
-                if (extractedChild is TExpressionStatementSyntax expressionStatement &&
+                if (statement is TExpressionStatementSyntax expressionStatement &&
                     TryProcessExpressionStatement(expressionStatement))
                 {
                     continue;
                 }
-                else if (extractedChild is TForeachStatementSyntax foreachStatement &&
+                else if (statement is TForeachStatementSyntax foreachStatement &&
                     TryProcessForeachStatement(foreachStatement))
                 {
                     continue;
                 }
-                else if (extractedChild is TIfStatementSyntax ifStatement &&
+                else if (statement is TIfStatementSyntax ifStatement &&
                     TryProcessIfStatement(ifStatement))
                 {
                     continue;

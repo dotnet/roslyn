@@ -64,8 +64,8 @@ internal static class UseCollectionInitializerHelpers
         // containing compilation unit.
         var containingBlockOrCompilationUnit = initialStatement.GetRequiredParent();
 
-        // In case of top-level code parent of the statement will be GlobalStatementSyntax,
-        // so we need to get its parent in order to get CompilationUnitSyntax
+        // In case of top-level code parent of the statement will be GlobalStatementSyntax, so we need to get its parent
+        // in order to get CompilationUnitSyntax
         if (syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
             containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent!;
 
@@ -90,7 +90,7 @@ internal static class UseCollectionInitializerHelpers
                 continue;
             }
 
-            yield return (TStatementSyntax)childNode;
+            yield return (TStatementSyntax)extractedChild;
         }
     }
 }
