@@ -16,8 +16,6 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     MemberAccessExpressionSyntax,
     InvocationExpressionSyntax,
     ExpressionStatementSyntax,
-    ForEachStatementSyntax,
-    IfStatementSyntax,
     VariableDeclaratorSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
@@ -35,26 +33,28 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         };
     }
 
-    protected override void GetPartsOfForeachStatement(
-        ForEachStatementSyntax statement,
+    public override void GetPartsOfForeachStatement(
+        StatementSyntax statement,
         out SyntaxToken identifier,
         out ExpressionSyntax expression,
         out IEnumerable<StatementSyntax> statements)
     {
-        identifier = statement.Identifier;
-        expression = statement.Expression;
-        statements = ExtractEmbeddedStatements(statement.Statement);
+        var foreachStatement = (ForEachStatementSyntax)statement;
+        identifier = foreachStatement.Identifier;
+        expression = foreachStatement.Expression;
+        statements = ExtractEmbeddedStatements(foreachStatement.Statement);
     }
 
-    protected override void GetPartsOfIfStatement(
-        IfStatementSyntax statement,
+    public override void GetPartsOfIfStatement(
+        StatementSyntax statement,
         out ExpressionSyntax condition,
         out IEnumerable<StatementSyntax> whenTrueStatements,
         out IEnumerable<StatementSyntax>? whenFalseStatements)
     {
-        condition = statement.Condition;
-        whenTrueStatements = ExtractEmbeddedStatements(statement.Statement);
-        whenFalseStatements = statement.Else != null ? ExtractEmbeddedStatements(statement.Else.Statement) : null;
+        var ifStatement = (IfStatementSyntax)statement;
+        condition = ifStatement.Condition;
+        whenTrueStatements = ExtractEmbeddedStatements(ifStatement.Statement);
+        whenFalseStatements = ifStatement.Else != null ? ExtractEmbeddedStatements(ifStatement.Else.Statement) : null;
     }
 
     private static IEnumerable<StatementSyntax> ExtractEmbeddedStatements(StatementSyntax embeddedStatement)

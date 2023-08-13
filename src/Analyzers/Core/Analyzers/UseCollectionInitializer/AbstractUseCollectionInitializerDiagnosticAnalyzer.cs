@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TIfStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -49,8 +47,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
-        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
             TExpressionSyntax,
@@ -59,8 +55,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {
