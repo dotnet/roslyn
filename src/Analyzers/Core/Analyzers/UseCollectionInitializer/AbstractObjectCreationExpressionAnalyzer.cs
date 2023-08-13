@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected ISyntaxFacts SyntaxFacts => this.State.SyntaxFacts;
         protected SemanticModel SemanticModel => this.State.SemanticModel;
 
-        protected abstract bool ShouldAnalyze();
+        protected abstract bool ShouldAnalyze(CancellationToken cancellationToken);
         protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
 
         public void Initialize(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected ImmutableArray<TMatch> AnalyzeWorker(CancellationToken cancellationToken)
         {
-            if (!ShouldAnalyze())
+            if (!ShouldAnalyze(cancellationToken))
                 return default;
 
             using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);

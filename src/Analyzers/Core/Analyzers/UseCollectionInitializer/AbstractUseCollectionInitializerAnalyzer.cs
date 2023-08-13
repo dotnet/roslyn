@@ -75,11 +75,20 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
-            bool areCollectionExpressionsSupported,
+            bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
-            this.Initialize(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
-            var result = this.AnalyzeWorker();
+            var statement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
+
+            var state =
+                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken) ??
+                TryInitializeAssignmentCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken);
+
+            if (state is null)
+                return default;
+
+            this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
+            var result = this.AnalyzeWorker(cancellationToken);
 
             // If analysis failed entirely, immediately bail out.
             if (result.IsDefault)
@@ -93,22 +102,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // However, for collection initializers we always want at least one element to add to the initializer.  In
             // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
             // noise.  So convert empty results to an invalid result here.
-            if (areCollectionExpressionsSupported)
+            if (analyzeForCollectionExpression)
                 return result;
 
             // Downgrade an empty result to a failure for the normal collection-initializer case.
             return result.IsEmpty ? default : result;
         }
 
-        protected override bool TryAddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
+        protected override bool TryAddMatches(
+            ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken)
         {
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
-            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
+            var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
-                var initializerExpressions = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer);
+                var initializerExpressions = this.SyntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer);
                 if (initializerExpressions is [var firstInit, ..])
                 {
                     // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
                         return false;
 
-                    seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
+                    seenIndexAssignment = this.SyntaxFacts.IsElementAccessInitializer(firstInit);
                     seenInvocation = !seenIndexAssignment;
 
                     // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
@@ -125,9 +135,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
 
-            foreach (var statement in GetSubsequentStatements(_syntaxFacts, _containingStatement))
+            foreach (var statement in this.State.GetSubsequentStatements())
             {
-                var match = TryAnalyzeStatement(statement, ref seenInvocation, ref seenIndexAssignment);
+                cancellationToken.ThrowIfCancellationRequested();
+                var match = TryAnalyzeStatement(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
                 if (match is null)
                     break;
 
@@ -137,14 +148,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return true;
         }
 
-        private Match<TStatementSyntax>? TryAnalyzeStatement(TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment)
+        private Match<TStatementSyntax>? TryAnalyzeStatement(
+            TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
         {
             return _analyzeForCollectionExpression
-                ? TryAnalyzeStatementForCollectionExpression(statement)
-                : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment);
+                ? TryAnalyzeStatementForCollectionExpression(statement, cancellationToken)
+                : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
         }
 
-        private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionExpression(TStatementSyntax statement)
+        private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionExpression(TStatementSyntax statement, CancellationToken cancellationToken)
         {
             return statement switch
             {
@@ -161,8 +173,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         expressionStatement,
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
+                        cancellationToken,
                         out var instance) &&
-                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
+                    this.State.ValuePatternMatches(instance))
                 {
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
                 }
@@ -171,6 +184,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         expressionStatement,
                         addName: nameof(List<int>.AddRange),
                         requiredArgumentName: null,
+                        cancellationToken,
                         out instance))
                 {
                     // AddRange(x) will become `..x` when we make it into a collection expression.
@@ -195,8 +209,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         childExpressionStatement,
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: identifier.Text,
+                        cancellationToken,
                         out var instance) &&
-                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
+                    this.State.ValuePatternMatches(instance))
                 {
                     // `foreach` will become `..expr` when we make it into a collection expression.
                     return new Match<TStatementSyntax>(foreachStatement, UseSpread: true);
@@ -227,8 +242,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         trueChildStatement,
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
+                        cancellationToken,
                         out var instance) &&
-                    ValuePatternMatches(_syntaxFacts, _valuePattern,    instance))
+                    this.State.ValuePatternMatches(instance))
                 {
                     if (whenFalse is null)
                     {
@@ -242,8 +258,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                             falseChildStatement,
                             addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                             requiredArgumentName: null,
+                            cancellationToken,
                             out instance) &&
-                        ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
+                        this.State.ValuePatternMatches(instance))
                     {
                         // add the form `x ? y : z` to the result
                         return new Match<TStatementSyntax>(ifStatement, UseSpread: false);
@@ -255,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionInitializer(
-            TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment)
+            TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
         {
             // At least one of these has to be false.
             Contract.ThrowIfTrue(seenInvocation && seenIndexAssignment);
@@ -271,8 +288,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         expressionStatement,
                         addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
+                        cancellationToken,
                         out var instance) &&
-                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
+                    this.State.ValuePatternMatches(instance))
                 {
                     seenInvocation = true;
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
@@ -281,8 +299,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             if (!seenInvocation)
             {
-                if (TryAnalyzeIndexAssignment(expressionStatement, out var instance) &&
-                    ValuePatternMatches(_syntaxFacts, _valuePattern, instance))
+                if (TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
+                    this.State.ValuePatternMatches(instance))
                 {
                     seenIndexAssignment = true;
                     return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
@@ -292,16 +310,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return null;
         }
 
-        protected override bool ShouldAnalyze()
+        protected override bool ShouldAnalyze(CancellationToken cancellationToken)
         {
             if (this.HasExistingInvalidInitializerForCollection(_objectCreationExpression))
                 return false;
 
-            var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+            var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
             if (type == null)
                 return false;
 
-            var addMethods = _semanticModel.LookupSymbols(
+            var addMethods = this.SemanticModel.LookupSymbols(
                 _objectCreationExpression.SpanStart,
                 container: type,
                 name: WellKnownMemberNames.CollectionInitializerAddMethodName,
@@ -312,40 +330,41 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out TExpressionSyntax? instance)
         {
             instance = null;
-            if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
+            if (!this.SyntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
                 return false;
 
-            if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
+            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
                 return false;
 
-            _syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+            this.SyntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
 
-            if (!_syntaxFacts.IsElementAccessExpression(left))
+            if (!this.SyntaxFacts.IsElementAccessExpression(left))
                 return false;
 
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
-            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(right))
+            if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
                 return false;
 
             // Can't reference the variable being initialized in the arguments of the indexing expression.
-            _syntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
-            var elementAccessArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+            this.SyntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
+            var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
             foreach (var argument in elementAccessArguments)
             {
-                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argument))
+                if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
                     return false;
 
                 // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
                 // indexing expression.
-                var argExpression = _syntaxFacts.GetExpressionOfArgument(argument);
-                argExpression = _syntaxFacts.WalkDownParentheses(argExpression);
+                var argExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+                argExpression = this.SyntaxFacts.WalkDownParentheses(argExpression);
 
-                if (_syntaxFacts.IsIndexExpression(argExpression) || _syntaxFacts.IsRangeExpression(argExpression))
+                if (this.SyntaxFacts.IsIndexExpression(argExpression) || this.SyntaxFacts.IsRangeExpression(argExpression))
                     return false;
             }
 
@@ -357,13 +376,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TExpressionStatementSyntax statement,
             string addName,
             string? requiredArgumentName,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out TExpressionSyntax? instance)
         {
             instance = null;
-            if (_syntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
+            if (this.SyntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
                 return false;
 
-            var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+            var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             if (arguments.Count < 1)
                 return false;
 
@@ -377,11 +397,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             foreach (var argument in arguments)
             {
-                if (!_syntaxFacts.IsSimpleArgument(argument))
+                if (!this.SyntaxFacts.IsSimpleArgument(argument))
                     return false;
 
-                var argumentExpression = _syntaxFacts.GetExpressionOfArgument(argument);
-                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
+                var argumentExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+                if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
                     return false;
 
                 // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
@@ -391,30 +411,30 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 //
                 // is not legal.  That's because instead of adding `{ a, b, c }` as a single element to the list, VB
                 // instead looks for an 3-argument `Add` method to invoke on `List<T>` (which clearly fails).
-                if (_syntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
+                if (this.SyntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
                     return false;
 
                 // If the caller is requiring a particular argument name, then validate that is what this argument
                 // is referencing.
                 if (requiredArgumentName != null)
                 {
-                    if (!_syntaxFacts.IsIdentifierName(argumentExpression))
+                    if (!this.SyntaxFacts.IsIdentifierName(argumentExpression))
                         return false;
 
-                    _syntaxFacts.GetNameAndArityOfSimpleName(argumentExpression, out var suppliedName, out _);
+                    this.SyntaxFacts.GetNameAndArityOfSimpleName(argumentExpression, out var suppliedName, out _);
                     if (requiredArgumentName != suppliedName)
                         return false;
                 }
             }
 
-            if (_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
+            if (this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
                 return false;
 
-            if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+            if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
                 return false;
 
-            _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
-            _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
+            this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
+            this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
             if (arity != 0 || !Equals(name, addName))
                 return false;

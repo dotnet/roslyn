@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
-        protected override bool ShouldAnalyze()
+        protected override bool ShouldAnalyze(CancellationToken cancellationToken)
         {
             // Can't add member initializers if the object already has a collection initializer attached to it.
             return !this.SyntaxFacts.IsObjectCollectionInitializer(this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
