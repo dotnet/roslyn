@@ -9,6 +9,77 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
+    internal readonly struct UpdateObjectCreationState<
+        TExpressionSyntax,
+        TStatementSyntax>
+        where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
+    {
+        public readonly SemanticModel SemanticModel;
+        public readonly ISyntaxFacts SyntaxFacts;
+        public readonly TExpressionSyntax StartExpression;
+        public readonly TStatementSyntax ContainingStatement;
+
+        public readonly SyntaxNodeOrToken ValuePattern;
+        public readonly ISymbol? InitializedSymbol;
+
+        public UpdateObjectCreationState(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
+            TExpressionSyntax startExpression,
+            TStatementSyntax containingStatement,
+            SyntaxNodeOrToken valuePattern,
+            ISymbol? initializedSymbol)
+        {
+            SemanticModel = semanticModel;
+            SyntaxFacts = syntaxFacts;
+            StartExpression = startExpression;
+            ContainingStatement = containingStatement;
+            ValuePattern = valuePattern;
+            InitializedSymbol = initializedSymbol;
+        }
+
+        public bool ValuePatternMatches(TExpressionSyntax expression)
+        {
+            if (ValuePattern.IsToken)
+            {
+                return SyntaxFacts.IsIdentifierName(expression) &&
+                    SyntaxFacts.AreEquivalent(
+                        ValuePattern.AsToken(),
+                        SyntaxFacts.GetIdentifierOfSimpleName(expression));
+            }
+            else
+            {
+                return SyntaxFacts.AreEquivalent(
+                    ValuePattern.AsNode(), expression);
+            }
+        }
+
+        public bool ExpressionContainsValuePatternOrReferencesInitializedSymbol(
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
+        {
+            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
+            {
+                if (!SyntaxFacts.IsNameOfSimpleMemberAccessExpression(subExpression) &&
+                    !SyntaxFacts.IsNameOfMemberBindingExpression(subExpression))
+                {
+                    if (ValuePatternMatches(subExpression))
+                        return true;
+                }
+
+                if (InitializedSymbol != null &&
+                    InitializedSymbol.Equals(
+                        SemanticModel.GetSymbolInfo(subExpression, cancellationToken).GetAnySymbol()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     internal static class UpdateObjectCreationHelpers
     {
         public static (SyntaxNodeOrToken valuePattern, ISymbol? initializedSymbol)? TryInitializeVariableDeclarationCase<TExpressionSyntax, TStatementSyntax>(
@@ -70,57 +141,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var initializedSymbol = semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
             return (left, initializedSymbol);
-        }
-
-        public static bool ValuePatternMatches<TExpressionSyntax>(
-            ISyntaxFacts syntaxFacts,
-            SyntaxNodeOrToken valuePattern,
-            TExpressionSyntax expression)
-            where TExpressionSyntax: SyntaxNode
-        {
-            if (valuePattern.IsToken)
-            {
-                return syntaxFacts.IsIdentifierName(expression) &&
-                    syntaxFacts.AreEquivalent(
-                        valuePattern.AsToken(),
-                        syntaxFacts.GetIdentifierOfSimpleName(expression));
-            }
-            else
-            {
-                return syntaxFacts.AreEquivalent(
-                    valuePattern.AsNode(), expression);
-            }
-        }
-
-        public static bool ExpressionContainsValuePatternOrReferencesInitializedSymbol<TExpressionSyntax>(
-            SemanticModel semanticModel,
-            ISyntaxFacts syntaxFacts,
-            SyntaxNodeOrToken valuePattern,
-            ISymbol? initializedSymbol,
-            SyntaxNode expression,
-            CancellationToken cancellationToken)
-            where TExpressionSyntax : SyntaxNode
-        {
-            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
-            {
-                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(subExpression) &&
-                    !syntaxFacts.IsNameOfMemberBindingExpression(subExpression))
-                {
-                    if (ValuePatternMatches(syntaxFacts, valuePattern, subExpression))
-                    {
-                        return true;
-                    }
-                }
-
-                if (initializedSymbol != null &&
-                    initializedSymbol.Equals(
-                        semanticModel.GetSymbolInfo(subExpression, cancellationToken).GetAnySymbol()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
