@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -90,41 +91,18 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (!option.Value)
             return;
 
-        // Looking for `XXX.Create(...)`
-        if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
+        //if (!IsCompatibleSignatureAndArguments(
+        //        compilation, invocationExpression, createMethod.OriginalDefinition,
+        //        out var unwrapArgument, cancellationToken))
+        //{
+        //    return;
+        //}
+
+        var matches = AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken);
+        if (matches == null)
             return;
 
-        if (memberAccessExpression.Name.Identifier.ValueText is not CreateBuilderName and not GetInstanceName)
-            return;
-
-        if (memberAccessExpression.Name.Identifier.ValueText == GetInstanceName &&
-            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<int>) })
-        {
-            return;
-        }
-
-        if (memberAccessExpression.Expression is not SimpleNameSyntax)
-            return;
-
-        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
-        if (factoryType is null)
-            return;
-
-        // has to be the form: `Builder b = XXX.CreateBuilder();` or
-        //                     `var _ = XXX.CreateBuilder(out var builder);
-        if (invocationExpression.Parent is not EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } declarator } })
-            return;
-
-        var arguments = invocationExpression.ArgumentList.Arguments;
-        if (arguments is not [] and not [{ RefKindKeyword.RawKind: (int)SyntaxKind.OutKeyword, Expression: DeclarationExpressionSyntax }])
-            return;
-
-        if (!IsCompatibleSignatureAndArguments(
-                compilation, invocationExpression, createMethod.OriginalDefinition,
-                out var unwrapArgument, cancellationToken))
-        {
-            return;
-        }
+        UseCollectionExpressionForAnalyzer.Analyze(localD)
 
         // Make sure we can actually use a collection expression in place of the full invocation.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
@@ -156,6 +134,47 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties));
+    }
+
+    private static CollectionBuilderMatches? AnalyzeInvocation(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocationExpression,
+        CancellationToken cancellationToken)
+    {
+        // Looking for `XXX.Create(...)`
+        if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
+            return null;
+
+        if (memberAccessExpression.Name.Identifier.ValueText is not CreateBuilderName and not GetInstanceName)
+            return null;
+
+        if (memberAccessExpression.Name.Identifier.ValueText == GetInstanceName &&
+            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<int>) })
+        {
+            return null;
+        }
+
+        if (memberAccessExpression.Expression is not SimpleNameSyntax)
+            return null;
+
+        var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+        if (createMethod is not IMethodSymbol { IsStatic: true })
+            return null;
+
+        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
+        if (factoryType is null)
+            return null;
+
+        // has to be the form: `Builder b = XXX.CreateBuilder();` or
+        //                     `var _ = XXX.CreateBuilder(out var builder);
+        if (invocationExpression.Parent is not EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax } declarator } })
+            return null;
+
+        var arguments = invocationExpression.ArgumentList.Arguments;
+        if (arguments is not [] and not [{ RefKindKeyword.RawKind: (int)SyntaxKind.OutKeyword, Expression: DeclarationExpressionSyntax }])
+            return null;
+
+
     }
 
     private static bool IsCompatibleSignatureAndArguments(

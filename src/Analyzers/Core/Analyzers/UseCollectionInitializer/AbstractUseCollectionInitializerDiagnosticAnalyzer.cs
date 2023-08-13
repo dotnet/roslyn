@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -239,52 +238,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             ImmutableArray<Location> locations,
             ImmutableDictionary<string, string?>? properties)
         {
-            var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
 
-            foreach (var (match, _) in matches)
+            foreach (var match in matches)
             {
-                if (match is TExpressionStatementSyntax)
-                {
-                    var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
+                var additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
+                    syntaxFacts, match);
+                if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                    continue;
 
-                    if (syntaxFacts.IsInvocationExpression(expression))
-                    {
-                        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-                        var additionalUnnecessaryLocations = ImmutableArray.Create(
-                            syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
-                            syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
-
-                        // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                        // will be offered.
-                        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                            s_unnecessaryCodeDescriptor,
-                            additionalUnnecessaryLocations[0],
-                            ReportDiagnostic.Default,
-                            additionalLocations: locations,
-                            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                            properties));
-                    }
-                }
-                else if (match is TForeachStatementSyntax)
-                {
-                    // For a `foreach (var x in expr) ...` statement, fade out the parts before and after `expr`.
-
-                    var expression = syntaxFacts.GetExpressionOfForeachStatement(match);
-                    var additionalUnnecessaryLocations = ImmutableArray.Create(
-                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, expression.SpanStart)),
-                        syntaxTree.GetLocation(TextSpan.FromBounds(expression.FullSpan.End, match.Span.End)));
-
-                    // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                    // will be offered.
-                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        s_unnecessaryCodeDescriptor,
-                        additionalUnnecessaryLocations[0],
-                        ReportDiagnostic.Default,
-                        additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                        properties));
-                }
+                // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                // will be offered.
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    s_unnecessaryCodeDescriptor,
+                    additionalUnnecessaryLocations[0],
+                    ReportDiagnostic.Default,
+                    additionalLocations: locations,
+                    additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                    properties));
             }
         }
     }

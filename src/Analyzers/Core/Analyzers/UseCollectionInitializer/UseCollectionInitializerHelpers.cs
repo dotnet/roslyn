@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
+namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 internal static class UseCollectionInitializerHelpers
 {
@@ -15,4 +18,42 @@ internal static class UseCollectionInitializerHelpers
 
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
+
+    public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax>(
+        ISyntaxFacts syntaxFacts,
+        Match<TStatementSyntax> matchInfo)
+        where TStatementSyntax : SyntaxNode
+    {
+        var match = matchInfo.Statement;
+        var syntaxTree = match.SyntaxTree;
+        if (syntaxFacts.IsExpressionStatement(match))
+        {
+            var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
+
+            if (syntaxFacts.IsInvocationExpression(expression))
+            {
+                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
+                var additionalUnnecessaryLocations = ImmutableArray.Create(
+                    syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
+                    syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
+
+                return additionalUnnecessaryLocations;
+            }
+        }
+        else if (syntaxFacts.IsForEachStatement(match))
+        {
+            // For a `foreach (var x in expr) ...` statement, fade out the parts before and after `expr`.
+
+            var expression = syntaxFacts.GetExpressionOfForeachStatement(match);
+            var additionalUnnecessaryLocations = ImmutableArray.Create(
+                syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, expression.SpanStart)),
+                syntaxTree.GetLocation(TextSpan.FromBounds(expression.FullSpan.End, match.Span.End)));
+
+            return additionalUnnecessaryLocations;
+        }
+        else
+        {
+            return ImmutableArray<Location>.Empty;
+        }
+    }
 }
