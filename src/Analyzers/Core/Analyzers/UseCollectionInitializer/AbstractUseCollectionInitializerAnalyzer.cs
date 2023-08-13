@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -116,120 +117,95 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                     seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
                     seenInvocation = !seenIndexAssignment;
+
+                    // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
+                    if (seenIndexAssignment && _analyzeForCollectionExpression)
+                        return false;
                 }
             }
-
-            // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
-            if (seenIndexAssignment && _analyzeForCollectionExpression)
-                return false;
 
             foreach (var statement in GetSubsequentStatements(_syntaxFacts, _containingStatement))
             {
-                if (statement is TExpressionStatementSyntax expressionStatement &&
-                    TryProcessExpressionStatement(expressionStatement))
-                {
-                    continue;
-                }
-                else if (statement is TForeachStatementSyntax foreachStatement &&
-                    TryProcessForeachStatement(foreachStatement))
-                {
-                    continue;
-                }
-                else if (statement is TIfStatementSyntax ifStatement &&
-                    TryProcessIfStatement(ifStatement))
-                {
-                    continue;
-                }
+                var match = TryAnalyzeStatement(statement, ref seenInvocation, ref seenIndexAssignment);
+                if (match is null)
+                    break;
 
-                // Something we didn't understand. Stop here.
-                break;
+                matches.Add(match.Value);
             }
 
             return true;
+        }
 
-            bool TryProcessExpressionStatement(TExpressionStatementSyntax expressionStatement)
+        private Match<TStatementSyntax>? TryAnalyzeStatement(TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment)
+        {
+            return _analyzeForCollectionExpression
+                ? TryAnalyzeStatementForCollectionExpression(statement)
+                : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment);
+        }
+
+        private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionExpression(TStatementSyntax statement)
+        {
+            return statement switch
             {
-                // Can't mix Adds and indexing.
-                if (!seenIndexAssignment)
-                {
-                    // Look for a call to Add or AddRange
-                    if (TryAnalyzeInvocation(
-                            expressionStatement,
-                            addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                            requiredArgumentName: null,
-                            out var instance) &&
-                        ValuePatternMatches(instance))
-                    {
-                        seenInvocation = true;
-                        matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
-                        return true;
-                    }
-                    else if (
-                        _analyzeForCollectionExpression &&
-                        TryAnalyzeInvocation(
-                            expressionStatement,
-                            addName: nameof(List<int>.AddRange),
-                            requiredArgumentName: null,
-                            out instance))
-                    {
-                        seenInvocation = true;
+                TExpressionStatementSyntax expressionStatement => TryAnalyzeExpressionStatement(expressionStatement),
+                TForeachStatementSyntax foreachStatement => TryAnalyzeForeachStatement(foreachStatement),
+                TIfStatementSyntax ifStatement => TryAnalyzeIfStatement(ifStatement),
+                _ => null,
+            };
 
-                        // AddRange(x) will become `..x` when we make it into a collection expression.
-                        matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: true));
-                        return true;
-                    }
+            Match<TStatementSyntax>? TryAnalyzeExpressionStatement(TExpressionStatementSyntax expressionStatement)
+            {
+                // Look for a call to Add or AddRange
+                if (TryAnalyzeInvocation(
+                        expressionStatement,
+                        addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                        requiredArgumentName: null,
+                        out var instance) &&
+                    ValuePatternMatches(instance))
+                {
+                    return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
                 }
 
-                // Can't mix Adds and indexing.  Can't use indexing with a collection expression.
-                if (!seenInvocation && !_analyzeForCollectionExpression)
+                if (TryAnalyzeInvocation(
+                        expressionStatement,
+                        addName: nameof(List<int>.AddRange),
+                        requiredArgumentName: null,
+                        out instance))
                 {
-                    if (TryAnalyzeIndexAssignment(expressionStatement, out var instance))
-                    {
-                        seenIndexAssignment = true;
-                        matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
-                        return true;
-                    }
+                    // AddRange(x) will become `..x` when we make it into a collection expression.
+                    return new Match<TStatementSyntax>(expressionStatement, UseSpread: true);
                 }
 
-                return false;
+                return null;
             }
 
-            bool TryProcessForeachStatement(TForeachStatementSyntax foreachStatement)
+            Match<TStatementSyntax>? TryAnalyzeForeachStatement(TForeachStatementSyntax foreachStatement)
             {
-                // if we're not producing a collection expression, then we cannot convert any foreach'es into
-                // `[..expr]` elements.
-                if (_analyzeForCollectionExpression)
+                this.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+                // must be of the form:
+                //
+                //      foreach (var x in expr)
+                //          dest.Add(x)
+                //
+                // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
+                // being added to `dest`.
+                if (foreachStatements.ToImmutableArray() is [TExpressionStatementSyntax childExpressionStatement] &&
+                    TryAnalyzeInvocation(
+                        childExpressionStatement,
+                        addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                        requiredArgumentName: identifier.Text,
+                        out var instance) &&
+                    ValuePatternMatches(instance))
                 {
-                    this.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
-                    // must be of the form:
-                    //
-                    //      foreach (var x in expr)
-                    //          dest.Add(x)
-                    //
-                    // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
-                    // being added to `dest`.
-                    if (foreachStatements.ToImmutableArray() is [TExpressionStatementSyntax childExpressionStatement] &&
-                        TryAnalyzeInvocation(
-                            childExpressionStatement,
-                            addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                            requiredArgumentName: identifier.Text,
-                            out var instance) &&
-                        ValuePatternMatches(instance))
-                    {
-                        // `foreach` will become `..expr` when we make it into a collection expression.
-                        matches.Add(new Match<TStatementSyntax>(foreachStatement, UseSpread: true));
-                        return true;
-                    }
+                    // `foreach` will become `..expr` when we make it into a collection expression.
+                    return new Match<TStatementSyntax>(foreachStatement, UseSpread: true);
                 }
 
-                return false;
+                return null;
             }
 
-            bool TryProcessIfStatement(TIfStatementSyntax ifStatement)
+            Match<TStatementSyntax>? TryAnalyzeIfStatement(TIfStatementSyntax ifStatement)
             {
-                if (!_analyzeForCollectionExpression)
-                    return false;
-
                 // look for the form:
                 //
                 //  if (x)
@@ -256,8 +232,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     if (whenFalse is null)
                     {
                         // add the form `.. x ? [y] : []` to the result
-                        matches.Add(new Match<TStatementSyntax>(ifStatement, UseSpread: true));
-                        return true;
+                        return new Match<TStatementSyntax>(ifStatement, UseSpread: true);
                     }
 
                     var whenFalseStatements = whenFalse.ToImmutableArray();
@@ -270,13 +245,50 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         ValuePatternMatches(instance))
                     {
                         // add the form `x ? y : z` to the result
-                        matches.Add(new Match<TStatementSyntax>(ifStatement, UseSpread: false));
-                        return true;
+                        return new Match<TStatementSyntax>(ifStatement, UseSpread: false);
                     }
                 }
 
-                return false;
+                return null;
             }
+        }
+
+        private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionInitializer(
+            TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment)
+        {
+            // At least one of these has to be false.
+            Contract.ThrowIfTrue(seenInvocation && seenIndexAssignment);
+
+            if (statement is not TExpressionStatementSyntax expressionStatement)
+                return null;
+
+            // Can't mix Adds and indexing.
+            if (!seenIndexAssignment)
+            {
+                // Look for a call to Add or AddRange
+                if (TryAnalyzeInvocation(
+                        expressionStatement,
+                        addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                        requiredArgumentName: null,
+                        out var instance) &&
+                    ValuePatternMatches(instance))
+                {
+                    seenInvocation = true;
+                    return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
+                }
+            }
+
+            if (!seenInvocation)
+            {
+                if (TryAnalyzeIndexAssignment(expressionStatement, out var instance) &&
+                    ValuePatternMatches(instance))
+                {
+                    seenIndexAssignment = true;
+                    return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
+                }
+            }
+
+            return null;
         }
 
         protected override bool ShouldAnalyze()
