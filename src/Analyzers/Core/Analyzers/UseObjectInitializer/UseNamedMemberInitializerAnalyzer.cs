@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 // 
                 // In the second case we'd change semantics because we'd access the old value 
                 // before the new value got written.
-                if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(rightExpression, cancellationToken))
+                if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(rightExpression, cancellationToken))
                     break;
 
                 // If we have code like "x.v = .Length.ToString()"

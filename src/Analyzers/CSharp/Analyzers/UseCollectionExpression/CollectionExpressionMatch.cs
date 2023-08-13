@@ -12,8 +12,3 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 internal readonly record struct CollectionExpressionMatch<TMatchNode>(
     TMatchNode Node,
     bool UseSpread) where TMatchNode : SyntaxNode;
-
-internal readonly record struct CollectionBuilderMatches(
-    LocalDeclarationStatementSyntax LocalDeclarationStatement,
-    InvocationExpressionSyntax CreationExpression,
-    ImmutableArray<CollectionExpressionMatch<StatementSyntax>> Matches);

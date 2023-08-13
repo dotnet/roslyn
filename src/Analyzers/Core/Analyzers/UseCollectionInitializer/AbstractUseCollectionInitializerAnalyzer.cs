@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
-            if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
+            if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
                 return false;
 
             // Can't reference the variable being initialized in the arguments of the indexing expression.
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
             foreach (var argument in elementAccessArguments)
             {
-                if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
+                if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
                     return false;
 
                 // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return false;
 
                 var argumentExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
-                if (this.State.ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
+                if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
                     return false;
 
                 // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument

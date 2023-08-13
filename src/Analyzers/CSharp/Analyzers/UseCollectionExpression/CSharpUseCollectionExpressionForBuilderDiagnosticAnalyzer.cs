@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,12 +15,16 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
+
+internal readonly record struct CollectionBuilderMatch(
+    Location DiagnosticLocation,
+    LocalDeclarationStatementSyntax LocalDeclarationStatement,
+    InvocationExpressionSyntax CreationExpression,
+    ImmutableArray<Match<StatementSyntax>> Matches);
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer
@@ -84,8 +86,6 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
-        var compilation = semanticModel.Compilation;
-        var syntaxTree = semanticModel.SyntaxTree;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
         var cancellationToken = context.CancellationToken;
 
@@ -94,41 +94,24 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (!option.Value)
             return;
 
-        //if (!IsCompatibleSignatureAndArguments(
-        //        compilation, invocationExpression, createMethod.OriginalDefinition,
-        //        out var unwrapArgument, cancellationToken))
-        //{
-        //    return;
-        //}
-
-        var matches = AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken);
-        if (matches == null)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } match)
             return;
-
-        UseCollectionExpressionForAnalyzer.Analyze(localD)
-
-        // Make sure we can actually use a collection expression in place of the full invocation.
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, invocationExpression, skipVerificationForReplacedNode: true, cancellationToken))
-        {
-            return;
-        }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
-
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
-            memberAccessExpression.Name.Identifier.GetLocation(),
+            match.DiagnosticLocation,
             option.Notification.Severity,
             additionalLocations: locations,
-            properties));
+            properties: null));
 
+        FadeOurCode(context, match, locations);
+    }
+
+    private static void FadeOurCode(SyntaxNodeAnalysisContext context, CollectionBuilderMatch match, ImmutableArray<Location> locations)
+    {
         var additionalUnnecessaryLocations = ImmutableArray.Create(
-            syntaxTree.GetLocation(TextSpan.FromBounds(
-                invocationExpression.SpanStart,
-                invocationExpression.ArgumentList.OpenParenToken.Span.End)),
-            invocationExpression.ArgumentList.CloseParenToken.GetLocation());
+            match.LocalDeclarationStatement.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             s_unnecessaryCodeDescriptor,
@@ -136,17 +119,39 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             ReportDiagnostic.Default,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-            properties));
+            properties: null));
+
+        foreach (var statementMatch in match.Matches)
+        {
+            additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
+                CSharpSyntaxFacts.Instance, statementMatch);
+            if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                continue;
+
+            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+            // will be offered.
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_unnecessaryCodeDescriptor,
+                additionalUnnecessaryLocations[0],
+                ReportDiagnostic.Default,
+                additionalLocations: locations,
+                additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                properties: null));
+        }
     }
 
-    private static CollectionBuilderMatches? AnalyzeInvocation(
+    private static CollectionBuilderMatch? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         CancellationToken cancellationToken)
     {
-        // Looking for `XXX.Create(...)`
-        if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
+        // Looking for `XXX.CreateBuilder(...)`
+        // Or `ArrayBuilder<>.GetInstance`
+        if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression ||
+            memberAccessExpression.Expression is not SimpleNameSyntax)
+        {
             return null;
+        }
 
         if (memberAccessExpression.Name.Identifier.ValueText is not CreateBuilderName and not GetInstanceName)
             return null;
@@ -157,11 +162,8 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             return null;
         }
 
-        if (memberAccessExpression.Expression is not SimpleNameSyntax)
-            return null;
-
-        var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-        if (createMethod is not IMethodSymbol { IsStatic: true })
+        var createSymbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+        if (createSymbol is not IMethodSymbol { IsStatic: true } createMethod)
             return null;
 
         var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
@@ -174,14 +176,18 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             return null;
 
         var arguments = invocationExpression.ArgumentList.Arguments;
-        var identifier = arguments switch
-        {
-            [] => declarator.Identifier,
-            [{ RefKindKeyword.RawKind: (int)SyntaxKind.OutKeyword, Expression: DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax singleVariable } }]
-                => singleVariable.Identifier,
-            _ => default,
-        };
+        var argumentIndex = 0;
+        if (createMethod.Parameters is [{ Name: "capacity" or "initialCapacity" }, ..])
+            argumentIndex++;
 
+        // If it's of the form `var x = XXX.CreateBuilder()` or `var x = XXX.CreateBuilder(capacity)` then we're looking
+        // for usages of 'x'.  However, if it's `var x = XXX.CreateBuilder(out var y)` or `var x =
+        // XXX.CreateBuilder(capacity, out var y)` then we're looking for usages of 'y'.
+        var identifier =
+            argumentIndex == arguments.Count ? declarator.Identifier :
+            argumentIndex == arguments.Count - 1 && arguments[argumentIndex] is { RefKindKeyword.RawKind: (int)SyntaxKind.OutKeyword, Expression: DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax singleVariable } }
+                ? singleVariable.Identifier
+                : default;
         if (identifier == default)
             return null;
 
@@ -192,136 +198,69 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             identifier,
             initializedSymbol: semanticModel.GetDeclaredSymbol(declarator, cancellationToken));
 
-        using var _ = ArrayBuilder<CollectionExpressionMatch<StatementSyntax>>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<Match<StatementSyntax>>.GetInstance(out var matches);
 
-        foreach (var siblingStatement in state.GetSubsequentStatements())
+        // Now walk all the statement after the local declaration.
+        using var enumerator = state.GetSubsequentStatements().GetEnumerator();
+        while (enumerator.MoveNext())
         {
+            var siblingStatement = enumerator.Current;
+
+            // See if it's one of the statement forms that can become a collection expression element.
             var match = state.TryAnalyzeStatementForCollectionExpression(
                 CSharpUpdateExpressionSyntaxHelper.Instance, siblingStatement, cancellationToken);
             if (match != null)
             {
-                matches.Add(new CollectionExpressionMatch<StatementSyntax>(match.Value.Statement, match.Value.UseSpread));
+                matches.Add(match.Value);
                 continue;
             }
 
-            // Had to have at least one match 
+            // Had to have at least one match, otherwise do not convert this.
             if (matches.Count == 0)
-                break;
+                return null;
 
-            return new(localDeclarationStatement, creationExpression, matches.ToImmutable());
+            // Now, look for something in the current statement indicating we're converting the builder to the final form.
+            var creationExpression = TryGetCreationExpression(identifier, siblingStatement);
+            if (creationExpression is null)
+                return null;
+
+            // Now, ensure that no subsequent statements reference the builder anymore.
+            while (enumerator.MoveNext())
+            {
+                if (state.NodeContainsValuePatternOrReferencesInitializedSymbol(enumerator.Current, cancellationToken))
+                    return null;
+            }
+
+            // Make sure we can actually use a collection expression in place of the created collection.
+            if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+                    semanticModel, creationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+            {
+                return null;
+            }
+
+            // Looks good.  We can convert this.
+            return new(memberAccessExpression.Name.Identifier.GetLocation(), localDeclarationStatement, creationExpression, matches.ToImmutable());
         }
 
         return null;
     }
 
-    private static bool IsCompatibleSignatureAndArguments(
-        Compilation compilation,
-        InvocationExpressionSyntax invocationExpression,
-        IMethodSymbol originalCreateMethod,
-        out bool unwrapArgument,
-        CancellationToken cancellationToken)
+    private static InvocationExpressionSyntax? TryGetCreationExpression(SyntaxToken identifier, StatementSyntax statement)
     {
-        unwrapArgument = false;
-
-        var arguments = invocationExpression.ArgumentList.Arguments;
-
-        // Don't bother offering if any of the arguments are named.  It's unlikely for this to occur in practice, and it
-        // means we do not have to worry about order of operations.
-        if (arguments.Any(static a => a.NameColon != null))
-            return false;
-
-        if (originalCreateMethod.Name is CreateRangeName)
+        // Look for code like `builder.ToImmutable()` in this statement.
+        foreach (var identifierName in statement.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
         {
-            // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-            if (originalCreateMethod.Parameters is [
-                {
-                    Type: INamedTypeSymbol
-                    {
-                        Name: nameof(IEnumerable<int>),
-                        TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                    } enumerableType
-                }] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+            if (identifierName.Identifier.ValueText == identifier.ValueText &&
+                identifier.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
+                memberAccess.Expression == identifierName &&
+                memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
+                memberAccess.Name.Identifier.ValueText is
+                    nameof(ArrayBuilder<int>.ToImmutable) or nameof(ArrayBuilder<int>.ToImmutableAndClear) or nameof(ArrayBuilder<int>.ToImmutableAndFree))
             {
-                var argExpression = arguments[0].Expression;
-                if (argExpression
-                        is ArrayCreationExpressionSyntax { Initializer: not null }
-                        or ImplicitArrayCreationExpressionSyntax)
-                {
-                    unwrapArgument = true;
-                    return true;
-                }
-
-                if (argExpression is ObjectCreationExpressionSyntax objectCreation)
-                {
-                    // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
-                    if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
-                        return false;
-
-                    // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);
-                    if (objectCreation.Initializer.IsKind(SyntaxKind.ObjectCreationExpression) && objectCreation.Initializer.Expressions.Count > 0)
-                        return false;
-
-                    unwrapArgument = true;
-                    return true;
-                }
-            }
-        }
-        else if (originalCreateMethod.Name is CreateName)
-        {
-            // `XXX.Create()` can be converted to `[]`
-            if (originalCreateMethod.Parameters.Length == 0)
-                return arguments.Count == 0;
-
-            // If we have `Create<T>(T)`, `Create<T>(T, T)` etc., then this is convertible.
-            if (originalCreateMethod.Parameters.All(static p => p.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }))
-                return arguments.Count == originalCreateMethod.Parameters.Length;
-
-            // If we have `Create<T>(params T[])` this is legal if there are multiple arguments.  Or a single argument that
-            // is an array literal.
-            if (originalCreateMethod.Parameters is [{ IsParams: true, Type: IArrayTypeSymbol { ElementType: ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } } }])
-            {
-                if (arguments.Count >= 2)
-                    return true;
-
-                if (arguments is [{ Expression: ArrayCreationExpressionSyntax { Initializer: not null } or ImplicitArrayCreationExpressionSyntax }])
-                {
-                    unwrapArgument = true;
-                    return true;
-                }
-
-                return false;
-            }
-
-            // If we have `Create<T>(ReadOnlySpan<T> values)` this is legal if a stack-alloc expression is passed along.
-            //
-            // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler will change the
-            // stack alloc to a heap alloc, which could be very bad for user perf.
-
-            if (arguments.Count == 1 &&
-                compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
-                originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
-                        {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
-            {
-                if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                    spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
-                {
-                    if (arguments[0].Expression
-                            is StackAllocArrayCreationExpressionSyntax { Initializer: not null }
-                            or ImplicitStackAllocArrayCreationExpressionSyntax)
-                    {
-                        unwrapArgument = true;
-                        return true;
-                    }
-                }
+                return invocationExpression;
             }
         }
 
-        return false;
+        return null;
     }
 }

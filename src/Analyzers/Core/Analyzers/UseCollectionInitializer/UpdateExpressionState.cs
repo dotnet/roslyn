@@ -60,7 +60,7 @@ internal readonly struct UpdateExpressionState<
         }
     }
 
-    public bool ExpressionContainsValuePatternOrReferencesInitializedSymbol(
+    public bool NodeContainsValuePatternOrReferencesInitializedSymbol(
         SyntaxNode expression,
         CancellationToken cancellationToken)
     {
@@ -120,7 +120,7 @@ internal readonly struct UpdateExpressionState<
                 return false;
 
             var argumentExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
-            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
+            if (NodeContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
                 return false;
 
             // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
