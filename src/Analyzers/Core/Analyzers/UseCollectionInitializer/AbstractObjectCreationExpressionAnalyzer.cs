@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        protected UpdateObjectCreationState<TExpressionSyntax, TStatementSyntax> State;
+        protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax> State;
 
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
         protected bool _analyzeForCollectionExpression;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
 
         public void Initialize(
-            UpdateObjectCreationState<TExpressionSyntax, TStatementSyntax> state,
+            UpdateExpressionState<TExpressionSyntax, TStatementSyntax> state,
             TObjectCreationExpressionSyntax objectCreationExpression,
             bool analyzeForCollectionExpression)
         {
