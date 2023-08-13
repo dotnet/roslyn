@@ -6,12 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
+
+using static UpdateObjectCreationHelpers;
 
 internal static class UseCollectionInitializerHelpers
 {
@@ -95,13 +98,15 @@ internal static class UseCollectionInitializerHelpers
         }
     }
 
-    public static bool TryAnalyzeInvocation(
+    public static bool TryAnalyzeInvocation<TExpressionStatementSyntax, TExpressionSyntax>(
         ISyntaxFacts syntaxFacts,
         TExpressionStatementSyntax statement,
         string addName,
         string? requiredArgumentName,
         bool forCollectionExpression,
         [NotNullWhen(true)] out TExpressionSyntax? instance)
+        where TExpressionStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         instance = null;
 

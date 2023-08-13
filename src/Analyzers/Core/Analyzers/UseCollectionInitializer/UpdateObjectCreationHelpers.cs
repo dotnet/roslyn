@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -89,6 +90,37 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return syntaxFacts.AreEquivalent(
                     valuePattern.AsNode(), expression);
             }
+        }
+
+        public static bool ExpressionContainsValuePatternOrReferencesInitializedSymbol<TExpressionSyntax>(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
+            SyntaxNodeOrToken valuePattern,
+            ISymbol? initializedSymbol,
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
+            where TExpressionSyntax : SyntaxNode
+        {
+            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
+            {
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(subExpression) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(subExpression))
+                {
+                    if (ValuePatternMatches(syntaxFacts, valuePattern, subExpression))
+                    {
+                        return true;
+                    }
+                }
+
+                if (initializedSymbol != null &&
+                    initializedSymbol.Equals(
+                        semanticModel.GetSymbolInfo(subExpression, cancellationToken).GetAnySymbol()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
