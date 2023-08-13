@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TStatementSyntax,
             TObjectCreationExpressionSyntax,
             TVariableDeclaratorSyntax,
-            Match<TStatementSyntax>>, IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax>, IDisposable
+            Match<TStatementSyntax>>, IDisposable
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
         protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
 
-        public abstract void GetPartsOfForeachStatement(TStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
-        public abstract void GetPartsOfIfStatement(TStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
+        protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
         public static TAnalyzer Allocate()
             => s_pool.Allocate();
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
         {
             return _analyzeForCollectionExpression
-                ? State.TryAnalyzeStatementForCollectionExpression(this, statement, cancellationToken)
+                ? State.TryAnalyzeStatementForCollectionExpression(this.SyntaxHelper, statement, cancellationToken)
                 : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
         }
 

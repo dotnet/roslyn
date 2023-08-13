@@ -12,16 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-internal interface IUpdateExpressionSyntaxHelper<
-    TExpressionSyntax,
-    TStatementSyntax>
-    where TExpressionSyntax : SyntaxNode
-    where TStatementSyntax : SyntaxNode
-{
-    void GetPartsOfForeachStatement(TStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
-    void GetPartsOfIfStatement(TStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
-}
-
 internal readonly struct UpdateExpressionState<
     TExpressionSyntax,
     TStatementSyntax>

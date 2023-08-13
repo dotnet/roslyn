@@ -17,15 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
-        Public Overrides Sub GetPartsOfForeachStatement(statement As StatementSyntax, ByRef identifier As SyntaxToken, ByRef expression As ExpressionSyntax, ByRef statements As IEnumerable(Of StatementSyntax))
-            ' Only called for collection expressions, which VB does not support
-            Throw ExceptionUtilities.Unreachable()
-        End Sub
-
-        Public Overrides Sub GetPartsOfIfStatement(statement As StatementSyntax, ByRef condition As ExpressionSyntax, ByRef whenTrueStatements As IEnumerable(Of StatementSyntax), ByRef whenFalseStatements As IEnumerable(Of StatementSyntax))
-            ' Only called for collection expressions, which VB does not support
-            Throw ExceptionUtilities.Unreachable()
-        End Sub
+        Protected Overrides ReadOnly Property SyntaxHelper As IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax) =
+            VisualBasicUpdateExpressionSyntaxHelper.Instance
 
         Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode) As Boolean
             ' Only called for collection expressions, which VB does not support

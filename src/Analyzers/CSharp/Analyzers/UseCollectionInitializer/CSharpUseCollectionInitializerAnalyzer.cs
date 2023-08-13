@@ -19,6 +19,9 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     VariableDeclaratorSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
+    protected override IUpdateExpressionSyntaxHelper<ExpressionSyntax, StatementSyntax> SyntaxHelper
+        => CSharpUpdateExpressionSyntaxHelper.Instance;
+
     protected override bool IsComplexElementInitializer(SyntaxNode expression)
         => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
 
@@ -32,31 +35,4 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             Expressions.Count: > 0,
         };
     }
-
-    public override void GetPartsOfForeachStatement(
-        StatementSyntax statement,
-        out SyntaxToken identifier,
-        out ExpressionSyntax expression,
-        out IEnumerable<StatementSyntax> statements)
-    {
-        var foreachStatement = (ForEachStatementSyntax)statement;
-        identifier = foreachStatement.Identifier;
-        expression = foreachStatement.Expression;
-        statements = ExtractEmbeddedStatements(foreachStatement.Statement);
-    }
-
-    public override void GetPartsOfIfStatement(
-        StatementSyntax statement,
-        out ExpressionSyntax condition,
-        out IEnumerable<StatementSyntax> whenTrueStatements,
-        out IEnumerable<StatementSyntax>? whenFalseStatements)
-    {
-        var ifStatement = (IfStatementSyntax)statement;
-        condition = ifStatement.Condition;
-        whenTrueStatements = ExtractEmbeddedStatements(ifStatement.Statement);
-        whenFalseStatements = ifStatement.Else != null ? ExtractEmbeddedStatements(ifStatement.Else.Statement) : null;
-    }
-
-    private static IEnumerable<StatementSyntax> ExtractEmbeddedStatements(StatementSyntax embeddedStatement)
-        => embeddedStatement is BlockSyntax block ? block.Statements : SpecializedCollections.SingletonEnumerable(embeddedStatement);
 }
