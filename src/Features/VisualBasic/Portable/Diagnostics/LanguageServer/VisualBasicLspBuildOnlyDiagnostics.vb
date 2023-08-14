@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
     ' Keep in sync with IsBuildOnlyDiagnostic
     ' src\Compilers\VisualBasic\Portable\Errors\ErrorFacts.vb
     <LspBuildOnlyDiagnostics(
+        LanguageNames.VisualBasic,
         "BC31091", ' ERRID.ERR_TypeRefResolutionError3,
         "BC35000", ' ERRID.ERR_MissingRuntimeHelper,
         "BC36597", ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure

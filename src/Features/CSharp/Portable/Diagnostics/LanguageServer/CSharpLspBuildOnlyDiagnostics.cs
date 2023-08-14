@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
     // Keep in sync with IsBuildOnlyDiagnostic
     // src\Compilers\CSharp\Portable\Errors\ErrorFacts.cs
     [LspBuildOnlyDiagnostics(
+        LanguageNames.CSharp,
         "CS1607", // ErrorCode.WRN_ALinkWarn:
         "CS0169", // ErrorCode.WRN_UnreferencedField:
         "CS0414", // ErrorCode.WRN_UnreferencedFieldAssg:

@@ -18,23 +18,22 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [DataContract]
-internal readonly record struct BuildOnlyDiagnosticIdsResult([property: DataMember(Name = "ids")] string[] Ids);
+internal record class BuildOnlyDiagnosticIdsResult([property: DataMember(Name = "ids")] string[] Ids);
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(BuildOnlyDiagnosticIdsHandler)), Shared]
 [Method(BuildOnlyDiagnosticIdsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class BuildOnlyDiagnosticIdsHandler(
+internal sealed class BuildOnlyDiagnosticIdsHandler(
     DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> compilerBuildOnlyDiagnosticsProviders)
                 : ILspServiceRequestHandler<BuildOnlyDiagnosticIdsResult>
 {
-    private const string BuildOnlyDiagnosticIdsMethodName = "workspace/buildOnlyDiagnosticIds";
+    public const string BuildOnlyDiagnosticIdsMethodName = "workspace/buildOnlyDiagnosticIds";
 
     private readonly DiagnosticAnalyzerInfoCache.SharedGlobalCache _globalCache = globalCache;
-    private readonly ImmutableArray<string> _compilerBuildOnlyDiagnosticIds = compilerBuildOnlyDiagnosticsProviders
-        .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
-        .ToImmutableArray();
+    private readonly ImmutableDictionary<string, string[]> _compilerBuildOnlyDiagnosticIds = compilerBuildOnlyDiagnosticsProviders
+        .ToImmutableDictionary(lazy => lazy.Metadata.LanguageName, lazy => lazy.Metadata.BuildOnlyDiagnostics);
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
@@ -44,7 +43,13 @@ internal class BuildOnlyDiagnosticIdsHandler(
         Contract.ThrowIfNull(context.Solution);
 
         using var _1 = ArrayBuilder<string>.GetInstance(out var builder);
-        builder.AddRange(_compilerBuildOnlyDiagnosticIds);
+        foreach (var languageName in context.Solution.Projects.Select(p => p.Language).Distinct())
+        {
+            if (_compilerBuildOnlyDiagnosticIds.TryGetValue(languageName, out var compilerBuildOnlyDiagnosticIds))
+            {
+                builder.AddRange(compilerBuildOnlyDiagnosticIds);
+            }
+        }
 
         using var _2 = PooledHashSet<(object Reference, string Language)>.GetInstance(out var seenAnalyzerReferencesByLanguage);
 
