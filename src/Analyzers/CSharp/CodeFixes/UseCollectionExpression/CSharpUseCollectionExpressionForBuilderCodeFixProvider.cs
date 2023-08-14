@@ -45,85 +45,118 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
-        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var matchOpt = CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer.AnalyzeInvocation(
-            semanticDocument.SemanticModel, invocationExpression, cancellationToken);
+            semanticModel, invocationExpression, cancellationToken);
         if (matchOpt is not { } fullMatch)
             return;
 
-        // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = GetArguments(fullMatch.Matches);
+        // We want to replace the final invocation (`builder.ToImmutable()`) with `new()`.  That way we can call into
+        // the collection-rewriter to swap out that object-creation with the new collection-expression.
 
+        // First, mark all the nodes we care about, so we can find them once we do the replacement with the
+        // object-creation expression.
         var dummyObjectAnnotation = new SyntaxAnnotation();
-        var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)
-            .WithTriviaFrom(invocationExpression)
-            .WithAdditionalAnnotations(dummyObjectAnnotation);
+        var newDocument = await CreateTrackedDocumentAsync(
+            document, fullMatch, dummyObjectAnnotation, cancellationToken).ConfigureAwait(false);
 
-        var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
-            semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
-        dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
+        var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
 
-        // Grab the moved expressions and create the final match-list to pass to the rewriter. Importantly, add the
-        // original information about if we're making spread elements or not based on the original analysis.
-        var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.Zip(fullMatch.Matches).SelectAsArray(static t => new CollectionExpressionMatch<ExpressionSyntax>(t.First, t.Second.UseSpread));
+        // Move the original match over to this rewritten tree.
+        fullMatch = TrackMatch(root, fullMatch);
 
+        // Get the new collection expression.
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
-            newSemanticDocument.Document,
+            newDocument,
             fallbackOptions,
             dummyObjectCreation,
-            matches,
+            fullMatch.Matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
 
+        var subEditor = new SyntaxEditor(root, document.Project.Solution.Services);
+
         // Remove the actual declaration of the builder.
-        editor.RemoveNode(fullMatch.LocalDeclarationStatement);
+        subEditor.RemoveNode(fullMatch.LocalDeclarationStatement);
 
         // Remove all the nodes mutating the builder.
         foreach (var (statement, _) in fullMatch.Matches)
-            editor.RemoveNode(statement);
+            subEditor.RemoveNode(statement);
 
         // Finally, replace the invocation where we convert the builder to a collection with the new collection expression.
-        editor.ReplaceNode(invocationExpression, collectionExpression);
+        subEditor.ReplaceNode(dummyObjectCreation, collectionExpression);
+
+        editor.ReplaceNode(editor.OriginalRoot, subEditor.GetChangedRoot());
     }
 
-    private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(ImmutableArray<Match<StatementSyntax>> matches)
+    private static CollectionBuilderMatch TrackMatch(SyntaxNode root, CollectionBuilderMatch fullMatch)
+        => new(fullMatch.DiagnosticLocation,
+               root.GetCurrentNode(fullMatch.LocalDeclarationStatement)!,
+               root.GetCurrentNode(fullMatch.CreationExpression)!,
+               fullMatch.Matches.SelectAsArray(m => new Match<StatementSyntax>(root.GetCurrentNode(m.Statement)!, m.UseSpread)));
+
+    private static async Task<Document> CreateTrackedDocumentAsync(
+        Document document,
+        CollectionBuilderMatch fullMatch,
+        SyntaxAnnotation annotation,
+        CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToTrack);
 
-        foreach (var match in matches)
-        {
-            var 
-        }
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        nodesToTrack.Add(fullMatch.LocalDeclarationStatement);
+        foreach (var (node, _) in fullMatch.Matches)
+            nodesToTrack.Add(node);
+        nodesToTrack.Add(fullMatch.CreationExpression);
 
-        return SeparatedList<ArgumentSyntax>(NodeOrTokenList(nodesAndTokens));
+        var newRoot = root.TrackNodes(nodesToTrack);
+        var creationExpression = newRoot.GetCurrentNode(fullMatch.CreationExpression)!;
 
-        var arguments = invocationExpression.ArgumentList.Arguments;
+        var dummyObjectCreation = ImplicitObjectCreationExpression()
+            .WithTriviaFrom(creationExpression)
+            .WithAdditionalAnnotations(annotation);
 
-        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
-        // expressions the user wrote out.
-        if (!unwrapArgument)
-            return arguments;
-
-        Contract.ThrowIfTrue(arguments.Count != 1);
-        var expression = arguments.Single().Expression;
-
-        var initializer = expression switch
-        {
-            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
-            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
-            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
-            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
-            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-
-        return initializer is null
-            ? default
-            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
-                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
+        var newDocument = document.WithSyntaxRoot(newRoot.ReplaceNode(creationExpression, dummyObjectCreation));
+        return newDocument;
     }
+
+    //private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(ImmutableArray<Match<StatementSyntax>> matches)
+    //{
+    //    using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+    //    foreach (var match in matches)
+    //    {
+    //        var 
+    //    }
+
+    //    return SeparatedList<ArgumentSyntax>(NodeOrTokenList(nodesAndTokens));
+
+    //    var arguments = invocationExpression.ArgumentList.Arguments;
+
+    //    // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
+    //    // expressions the user wrote out.
+    //    if (!unwrapArgument)
+    //        return arguments;
+
+    //    Contract.ThrowIfTrue(arguments.Count != 1);
+    //    var expression = arguments.Single().Expression;
+
+    //    var initializer = expression switch
+    //    {
+    //        ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
+    //        ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
+    //        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+    //        StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
+    //        ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
+    //        ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
+    //        _ => throw ExceptionUtilities.Unreachable(),
+    //    };
+
+    //    return initializer is null
+    //        ? default
+    //        : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
+    //            nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
+    //}
 }
