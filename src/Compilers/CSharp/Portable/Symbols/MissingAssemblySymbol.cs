@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeConversions TypeConversions => throw ExceptionUtilities.Unreachable();
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
 
         public override AssemblyMetadata GetMetadata() => null;
 
