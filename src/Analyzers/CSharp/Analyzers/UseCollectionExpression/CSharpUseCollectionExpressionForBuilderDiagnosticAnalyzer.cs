@@ -94,10 +94,10 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             additionalLocations: locations,
             properties: null));
 
-        FadeOurCode(context, analysisResult, locations);
+        FadeOutCode(context, analysisResult, locations);
     }
 
-    private static void FadeOurCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
+    private static void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
     {
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             analysisResult.LocalDeclarationStatement.GetLocation());
