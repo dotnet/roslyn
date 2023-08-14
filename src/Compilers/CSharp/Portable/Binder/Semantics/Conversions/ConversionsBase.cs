@@ -1431,7 +1431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.BadTargetType;
             }
 
-            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            var hasExplicitReturnType = anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType);
+            if (hasExplicitReturnType)
             {
                 if (invokeMethod.RefKind != refKind ||
                     !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
@@ -1521,11 +1522,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Ensure the body can be converted to that delegate type
-            var bound = anonymousFunction.Bind(delegateType, isTargetExpressionTree);
-            if (ErrorFacts.PreventsSuccessfulDelegateConversion(bound.Diagnostics.Diagnostics))
+            if (!hasExplicitReturnType || !anonymousFunction.HasExplicitlyTypedParameterList)
             {
-                return LambdaConversionResult.BindingFailed;
+                // Ensure the body can be converted to that delegate type
+                var bound = anonymousFunction.Bind(delegateType, isTargetExpressionTree);
+                if (ErrorFacts.PreventsSuccessfulDelegateConversion(bound.Diagnostics.Diagnostics))
+                {
+                    return LambdaConversionResult.BindingFailed;
+                }
             }
 
             return LambdaConversionResult.Success;
