@@ -372,8 +372,6 @@ internal static class CSharpCollectionExpressionRewriter
                 //      `x` for `collection.Add(x)`
                 //      `.. x` for `collection.AddRange(x)`
                 //      `x, y, z` for `collection.AddRange(x, y, z)`
-                //
-                // Note: we might also have `.AddRange(x, y, z)
                 var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation));
 
                 Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
