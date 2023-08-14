@@ -159,8 +159,10 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (factoryType is null)
             return null;
 
-        // has to be the form: `Builder b = XXX.CreateBuilder();` or
-        //                     `var _ = XXX.CreateBuilder(out var builder);
+        // has to be the form:
+        //
+        //      `Builder b = XXX.CreateBuilder();` or
+        //      `var _ = XXX.CreateBuilder(out var builder);`
         if (invocationExpression.Parent is not EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax localDeclarationStatement } } declarator })
             return null;
 
@@ -193,11 +195,11 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         using var enumerator = state.GetSubsequentStatements().GetEnumerator();
         while (enumerator.MoveNext())
         {
-            var siblingStatement = enumerator.Current;
+            var subseqeuntStatement = enumerator.Current;
 
             // See if it's one of the statement forms that can become a collection expression element.
             var match = state.TryAnalyzeStatementForCollectionExpression(
-                CSharpUpdateExpressionSyntaxHelper.Instance, siblingStatement, cancellationToken);
+                CSharpUpdateExpressionSyntaxHelper.Instance, subseqeuntStatement, cancellationToken);
             if (match != null)
             {
                 matches.Add(match.Value);
@@ -208,12 +210,14 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             if (matches.Count == 0)
                 return null;
 
-            // Now, look for something in the current statement indicating we're converting the builder to the final form.
-            var creationExpression = TryGetCreationExpression(identifier, siblingStatement);
+            // Now, look for something in the current statement (like `builder.ToImmutable()`) indicating we're
+            // converting the builder to the final form.
+            var creationExpression = TryFindCreationExpression(identifier, subseqeuntStatement);
             if (creationExpression is null)
                 return null;
 
-            // Now, ensure that no subsequent statements reference the builder anymore.
+            // Now, ensure that no subsequent statements reference the builder anymore.  If so, that would break once we
+            // remove the builder entirely.
             while (enumerator.MoveNext())
             {
                 if (state.NodeContainsValuePatternOrReferencesInitializedSymbol(enumerator.Current, cancellationToken))
@@ -232,31 +236,31 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         }
 
         return null;
-    }
 
-    private static InvocationExpressionSyntax? TryGetCreationExpression(SyntaxToken identifier, StatementSyntax statement)
-    {
-        // Look for code like `builder.ToImmutable()` in this statement.
-        foreach (var identifierName in statement.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+        static InvocationExpressionSyntax? TryFindCreationExpression(SyntaxToken identifier, StatementSyntax statement)
         {
-            if (identifierName.Identifier.ValueText == identifier.ValueText &&
-                identifierName.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
-                memberAccess.Expression == identifierName &&
-                memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
-                memberAccess.Name.Identifier.ValueText
-                    is nameof(ImmutableArray<int>.Builder.ToImmutable)
-                    or nameof(ImmutableArray<int>.Builder.MoveToImmutable)
-                    or nameof(ImmutableArray<int>.Builder.ToArray)
-                    or nameof(ArrayBuilder<int>.ToImmutableAndClear)
-                    or nameof(ArrayBuilder<int>.ToImmutableAndFree)
-                    or nameof(ArrayBuilder<int>.ToArrayAndFree)
-                    or nameof(Enumerable.ToList))
+            // Look for code like `builder.ToImmutable()` in this statement.
+            foreach (var identifierName in statement.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
             {
-                return invocationExpression;
+                if (identifierName.Identifier.ValueText == identifier.ValueText &&
+                    identifierName.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
+                    memberAccess.Expression == identifierName &&
+                    memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
+                    memberAccess.Name.Identifier.ValueText
+                        is nameof(ImmutableArray<int>.Builder.ToImmutable)
+                        or nameof(ImmutableArray<int>.Builder.MoveToImmutable)
+                        or nameof(ImmutableArray<int>.Builder.ToArray)
+                        or nameof(ArrayBuilder<int>.ToImmutableAndClear)
+                        or nameof(ArrayBuilder<int>.ToImmutableAndFree)
+                        or nameof(ArrayBuilder<int>.ToArrayAndFree)
+                        or nameof(Enumerable.ToList))
+                {
+                    return invocationExpression;
+                }
             }
-        }
 
-        return null;
+            return null;
+        }
     }
 
     /// <summary>
