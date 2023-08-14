@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -30,6 +30,7 @@ public partial class UseCollectionExpressionForBuilderTests
             public void AddRange(System.Collections.Immutable.ImmutableArray<T> items) { }
             public void AddRange(System.Collections.Generic.IEnumerable<T> items) { }
             public void AddRange(params T[] items) { }
+            public void AddRange(T[] items, int length) { }
             public void Clear() { }
 
             public System.Collections.Immutable.ImmutableArray<T> ToImmutable() => default;
@@ -44,6 +45,7 @@ public partial class UseCollectionExpressionForBuilderTests
 
             public static System.IDisposable GetInstance(out ArrayBuilder<T> instance) { instance = default; return null; }
             public static System.IDisposable GetInstance(int capacity, out ArrayBuilder<T> instance) { instance = default; return null; }
+            public static System.IDisposable GetInstance(int capacity, T fillWithValue, out ArrayBuilder<T> instance) { instance = default; return null; }
         }
         """;
 
@@ -628,6 +630,176 @@ public partial class UseCollectionExpressionForBuilderTests
         }.RunAsync();
     }
 
+    [Theory, MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    public async Task TestWithIfStatement1(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        {{pattern}}
+                        if (b)
+                            builder.Add(0);
+
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        Goo([.. {|CS0173:b ? [0] : []|}]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestWithIfStatement2(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        {{pattern}}
+                        if (b)
+                            builder.Add(0);
+                        else
+                            builder.Add(1);
+
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        Goo([b ? 0 : 1]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    public async Task TestWithIfStatement3(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        {{pattern}}
+                        if (b)
+                        {
+                            builder.Add(0);
+                        }
+
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        Goo([.. {|CS0173:b ? [0] : []|}]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestWithIfStatement4(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        {{pattern}}
+                        if (b)
+                        {
+                            builder.Add(0);
+                        }
+                        else
+                        {
+                            builder.Add(1);
+                        }
+
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        Goo([b ? 0 : 1]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
     public async Task TestAddRange1(string pattern)
     {
@@ -734,6 +906,31 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([1, 2, 3]);
                     }
                 
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(FailureCreationPatterns))]
+    public async Task TestAddRange4(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        {{pattern}}
+                        builder.AddRange(x, 2);
+                        Goo(builder.ToImmutable());
+                    }
+
                     void Goo(ImmutableArray<int> values) { }
                 }
                 """ + s_arrayBuilderApi,
@@ -939,6 +1136,151 @@ public partial class UseCollectionExpressionForBuilderTests
                     }
 
                     void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestTrivia1(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        {{pattern}}
+
+                        // Leading
+                        [|builder.Add(|]0); // Trailing
+                        return builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        return
+                        [
+                            // Leading
+                            0, // Trailing
+                        ];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestMultiLine1(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        {{pattern}}
+                        [|builder.Add(|]1 +
+                            2);
+                        return builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        return
+                        [
+                            1 +
+                                2,
+                        ];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestMultiLine2(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        {{pattern}}
+                        [|builder.Add(|]1 +
+                            2);
+                        [|builder.Add(|]3 +
+                            4);
+                        return builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        return
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4,
+                        ];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestOnFillWithValue()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        using var _ = ArrayBuilder<int>.GetInstance(10, 0, out var builder);
+                        builder.Add(0);
+                        return builder.ToImmutable();
+                    }
                 }
                 """ + s_arrayBuilderApi,
             LanguageVersion = LanguageVersion.CSharp12,
