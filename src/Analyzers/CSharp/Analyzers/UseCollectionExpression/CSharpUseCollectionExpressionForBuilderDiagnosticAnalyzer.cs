@@ -254,8 +254,13 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                 identifier.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
                 memberAccess.Expression == identifierName &&
                 memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
-                memberAccess.Name.Identifier.ValueText is
-                    nameof(ArrayBuilder<int>.ToImmutable) or nameof(ArrayBuilder<int>.ToImmutableAndClear) or nameof(ArrayBuilder<int>.ToImmutableAndFree))
+                memberAccess.Name.Identifier.ValueText
+                    is nameof(ImmutableArray<int>.Builder.ToImmutable)
+                    or nameof(ImmutableArray<int>.Builder.MoveToImmutable)
+                    or nameof(ImmutableArray<int>.Builder.ToArray)
+                    or nameof(ArrayBuilder<int>.ToImmutableAndClear)
+                    or nameof(ArrayBuilder<int>.ToImmutableAndFree)
+                    or nameof(Enumerable.ToList))
             {
                 return invocationExpression;
             }
