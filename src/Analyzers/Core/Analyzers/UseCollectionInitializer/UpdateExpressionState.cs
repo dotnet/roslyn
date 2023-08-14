@@ -68,6 +68,12 @@ internal readonly struct UpdateExpressionState<
     public IEnumerable<TStatementSyntax> GetSubsequentStatements()
         => UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
 
+    /// <summary>
+    /// <see langword="true"/> if this <paramref name="expression"/> is a reference to the object-creation value, or the
+    /// collection-builder that was created.  For example, when seeing <c>x.Add(y)</c> this can be used to see if
+    /// <c>x</c> refers to the value being analyzed, and as such <c>y</c> should be added as an element once this is
+    /// converted to a collection-initializer or collection-expression.
+    /// </summary>
     public bool ValuePatternMatches(TExpressionSyntax expression)
     {
         if (ValuePattern.IsToken)
@@ -84,6 +90,12 @@ internal readonly struct UpdateExpressionState<
         }
     }
 
+    /// <summary>
+    /// <see langword="true"/> if the passed in <paramref name="expression"/> contains some reference to the value being
+    /// tracked, or symbol it was assigned to.  This can be used to see if there are other manipulations of that symbol,
+    /// preventing the features from offering to convert these more complex scenarios to
+    /// collection-initializers/expressions.
+    /// </summary>
     public bool NodeContainsValuePatternOrReferencesInitializedSymbol(
         SyntaxNode expression,
         CancellationToken cancellationToken)
@@ -108,6 +120,9 @@ internal readonly struct UpdateExpressionState<
         return false;
     }
 
+    /// <summary>
+    /// Analyze an expression statement to see if it is a legal call of the form <c>val.Add(...)</c>.
+    /// </summary>
     public bool TryAnalyzeAddInvocation<TExpressionStatementSyntax>(
         TExpressionStatementSyntax statement,
         string? requiredArgumentName,
@@ -135,6 +150,9 @@ internal readonly struct UpdateExpressionState<
         return true;
     }
 
+    /// <summary>
+    /// Analyze an expression statement to see if it is a legal call of the form <c>val.AddRange(...)</c>.
+    /// </summary>
     public bool TryAnalyzeAddRangeInvocation<TExpressionStatementSyntax>(
         TExpressionStatementSyntax statement,
         string? requiredArgumentName,
@@ -269,6 +287,11 @@ internal readonly struct UpdateExpressionState<
         return instance != null;
     }
 
+    /// <summary>
+    /// Analyze an statement to see if it it could be converted into elements for a new collection-expression.  This
+    /// includes calls to <c>.Add</c> and <c>.AddRange</c>, as well as <c>foreach</c> statements that update the
+    /// collection, and <c>if</c> statements that conditionally add items to the collection-expression.
+    /// </summary>
     public Match<TStatementSyntax>? TryAnalyzeStatementForCollectionExpression(
         IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> syntaxHelper,
         TStatementSyntax statement,
