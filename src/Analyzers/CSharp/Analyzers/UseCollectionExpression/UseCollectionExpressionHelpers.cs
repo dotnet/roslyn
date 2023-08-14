@@ -51,6 +51,18 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
+        // Special case.  Block "ImmutableArray<T>" when on 7.0 and prior runtimes.  The reason for this is that
+        // ImmutableArray<T> *looks* to be an ok collection-type since it supports the collection-initializer pattern.
+        // However, that pattern does the absolute wrong thing here as it converts to `new ImmutableArray<T>() { X, Y, Z
+        // }` which throws at runtime.
+        var immutableArrayType = compilation.ImmutableArrayOfTType();
+        var collectionBuilderType = compilation.CollectionBuilderAttribute();
+        if (originalTypeInfo.ConvertedType.OriginalDefinition.Equals(immutableArrayType) &&
+            !immutableArrayType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+        {
+            return false;
+        }
+
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
         // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
         // but it's possible we'll end up with different types at runtime that may cause problems.

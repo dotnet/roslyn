@@ -246,7 +246,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         foreach (var identifierName in statement.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
         {
             if (identifierName.Identifier.ValueText == identifier.ValueText &&
-                identifier.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
+                identifierName.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
                 memberAccess.Expression == identifierName &&
                 memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
                 memberAccess.Name.Identifier.ValueText
