@@ -2541,7 +2541,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.RegularPreview, verify: Verification.Passes, expectedOutput: @"0");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
             comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
@@ -2599,7 +2599,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.RegularPreview, verify: Verification.Passes, expectedOutput: @"");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
             comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
@@ -2691,7 +2691,7 @@ struct S1
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.RegularPreview, verify: Verification.Passes, expectedOutput: @"4242420");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
             comp.VerifyIL($"Program.Test1({modifier} S1?)", @"
 {
