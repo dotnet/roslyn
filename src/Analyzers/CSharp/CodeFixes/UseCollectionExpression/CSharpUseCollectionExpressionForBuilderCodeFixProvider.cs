@@ -121,42 +121,4 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         var newDocument = document.WithSyntaxRoot(newRoot.ReplaceNode(creationExpression, dummyObjectCreation));
         return newDocument;
     }
-
-    //private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(ImmutableArray<Match<StatementSyntax>> matches)
-    //{
-    //    using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-
-    //    foreach (var match in matches)
-    //    {
-    //        var 
-    //    }
-
-    //    return SeparatedList<ArgumentSyntax>(NodeOrTokenList(nodesAndTokens));
-
-    //    var arguments = invocationExpression.ArgumentList.Arguments;
-
-    //    // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
-    //    // expressions the user wrote out.
-    //    if (!unwrapArgument)
-    //        return arguments;
-
-    //    Contract.ThrowIfTrue(arguments.Count != 1);
-    //    var expression = arguments.Single().Expression;
-
-    //    var initializer = expression switch
-    //    {
-    //        ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
-    //        ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
-    //        ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-    //        StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
-    //        ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
-    //        ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
-    //        _ => throw ExceptionUtilities.Unreachable(),
-    //    };
-
-    //    return initializer is null
-    //        ? default
-    //        : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
-    //            nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
-    //}
 }
