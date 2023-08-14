@@ -20,7 +20,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-internal readonly record struct CollectionBuilderMatch(
+/// <summary>
+/// Result of analyzing an <c>XXX.CreateBuilder</c> expression to see if it can be replaced with a collection
+/// expression.
+/// </summary>
+/// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
+/// expression.</param>
+/// <param name="LocalDeclarationStatement">The declaration of the builder.  Will be removed if the user chooses to make
+/// the change.</param>
+/// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
+/// replaced with the collection expression</param>
+/// <param name="Matches">The statements that are mutating the builder that will be converted into elements in the final
+/// collection expression.</param>
+internal readonly record struct CollectionBuilderAnalysisResult(
     Location DiagnosticLocation,
     LocalDeclarationStatementSyntax LocalDeclarationStatement,
     InvocationExpressionSyntax CreationExpression,
@@ -89,24 +101,24 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (!option.Value)
             return;
 
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } match)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
-            match.DiagnosticLocation,
+            analysisResult.DiagnosticLocation,
             option.Notification.Severity,
             additionalLocations: locations,
             properties: null));
 
-        FadeOurCode(context, match, locations);
+        FadeOurCode(context, analysisResult, locations);
     }
 
-    private static void FadeOurCode(SyntaxNodeAnalysisContext context, CollectionBuilderMatch match, ImmutableArray<Location> locations)
+    private static void FadeOurCode(SyntaxNodeAnalysisContext context, CollectionBuilderAnalysisResult analysisResult, ImmutableArray<Location> locations)
     {
         var additionalUnnecessaryLocations = ImmutableArray.Create(
-            match.LocalDeclarationStatement.GetLocation());
+            analysisResult.LocalDeclarationStatement.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             s_unnecessaryCodeDescriptor,
@@ -116,7 +128,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: null));
 
-        foreach (var statementMatch in match.Matches)
+        foreach (var statementMatch in analysisResult.Matches)
         {
             additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
                 CSharpSyntaxFacts.Instance, statementMatch);
@@ -135,7 +147,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         }
     }
 
-    public static CollectionBuilderMatch? AnalyzeInvocation(
+    public static CollectionBuilderAnalysisResult? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         CancellationToken cancellationToken)
