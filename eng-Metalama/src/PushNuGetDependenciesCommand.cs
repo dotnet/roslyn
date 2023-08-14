@@ -16,22 +16,21 @@ using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Build.Publishers;
 using PostSharp.Engineering.BuildTools.Utilities;
 
-namespace BuildMetalamaCompiler;
+namespace Build;
 
 internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 {
     // This record represents data from project.nuget.cache files. 
-    // The name matches the one in project.nuget.cache json file.
-    // JsonPropertyName cannot be used, because it is not valid for records.
-    // ReSharper disable once InconsistentNaming
     private record ProjectNuGetCache(string[] expectedPackageFiles);
 
     // This record represents data from .nupkg.metadata files.
-    // The name matches the one in project.nuget.cache json file.
-    // JsonPropertyName cannot be used, because it is not valid for records.
-    // ReSharper disable once InconsistentNaming
     private record NuGetPackageMetadata(string source);
     
+    private static readonly JsonSerializerOptions jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     protected override bool ExecuteCore(BuildContext context, PublishSettings settings)
     {
         context.Console.WriteHeading("Pushing packages");
@@ -43,16 +42,14 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
         {
             tasks[i] = Task.FromResult(true);
         }
-        
+
         var cancellationToken = ConsoleHelper.CancellationToken;
 
         var packageHashPathsVisited = new HashSet<string>();
         var packagePathsToUpload = new ConcurrentBag<string>();
 
         context.Console.WriteImportantMessage($"Listing packages.");
-        var httpClient = new HttpClient();
-
-        try
+        using (var httpClient = new HttpClient())
         {
             // Don't push packages, that are available at nuget.org.
             async Task<bool> FilterPackageAsync(string packagePath)
@@ -61,7 +58,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
                 var packageDirectory = Path.GetDirectoryName(packagePath)!;
                 var metadataPath = Path.Combine(packageDirectory, ".nupkg.metadata");
                 var metadataJson = await File.ReadAllTextAsync(metadataPath, cancellationToken);
-                var metadata = JsonSerializer.Deserialize<NuGetPackageMetadata>(metadataJson)!;
+                var metadata = JsonSerializer.Deserialize<NuGetPackageMetadata>(metadataJson, jsonSerializerOptions)!;
 
                 if (metadata.source.StartsWith("https://api.nuget.org"))
                 {
@@ -86,22 +83,26 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
                     $"https://api.nuget.org/v3-flatcontainer/{packageName}/{packageVersion}/{packageName}.nuspec";
 
                 // ReSharper disable once AccessToDisposedClosure
-                var httpResult = await httpClient.GetAsync(packageMetadataPath, cancellationToken);
-
-                if (httpResult.StatusCode == HttpStatusCode.OK)
+                using (var httpResult = await httpClient.SendAsync(
+                           new HttpRequestMessage(HttpMethod.Head, packageMetadataPath),
+                           HttpCompletionOption.ResponseHeadersRead,
+                           cancellationToken))
                 {
-                    context.Console.WriteMessage($"Package '{packageFile}' found at NuGet.org.");
+                    if (httpResult.StatusCode == HttpStatusCode.OK)
+                    {
+                        context.Console.WriteMessage($"Package '{packageFile}' found at NuGet.org.");
 
-                    return true;
-                }
+                        return true;
+                    }
 
-                // Assertion.
-                if (httpResult.StatusCode != HttpStatusCode.NotFound)
-                {
-                    context.Console.WriteError(
-                        $"'{packageMetadataPath}' returned '{httpResult.StatusCode} {httpResult.ReasonPhrase}' unexpectedly.");
+                    // Assertion.
+                    if (httpResult.StatusCode != HttpStatusCode.NotFound)
+                    {
+                        context.Console.WriteError(
+                            $"'{packageMetadataPath}' returned '{httpResult.StatusCode} {httpResult.ReasonPhrase}' unexpectedly.");
 
-                    return false;
+                        return false;
+                    }
                 }
 
                 packagePathsToUpload.Add(packagePath);
@@ -115,7 +116,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
                 context.Console.WriteMessage($"Processing {cachePath}.");
 
                 var cacheJson = File.ReadAllText(cachePath);
-                var cache = JsonSerializer.Deserialize<ProjectNuGetCache>(cacheJson)!;
+                var cache = JsonSerializer.Deserialize<ProjectNuGetCache>(cacheJson, jsonSerializerOptions)!;
 
                 foreach (var packageHashPath in cache.expectedPackageFiles)
                 {
@@ -163,10 +164,6 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
                 }
             }
         }
-        finally
-        {
-            httpClient.Dispose();
-        }
 
         if (!success)
         {
@@ -188,7 +185,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
             {
                 return false;
             }
-            
+
             j++;
         }
 

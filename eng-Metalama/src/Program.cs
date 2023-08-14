@@ -7,8 +7,6 @@ using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Dependencies.Definitions;
 using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2023_1;
-using BuildMetalamaCompiler;
-using BuildMetalamaCompiler;
 
 var product = new Product(MetalamaDependencies.MetalamaCompiler)
 {
