@@ -7,12 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
     private const string CreateName = nameof(ImmutableArray.Create);
     private const string CreateRangeName = nameof(ImmutableArray.CreateRange);
@@ -31,55 +27,32 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
 
-    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
-        EnforceOnBuildValues.UseCollectionExpressionForCreate,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: false);
-
-    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
-        EnforceOnBuildValues.UseCollectionExpressionForCreate,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: true);
-
     public CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionExpression)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionExpression))
+        : base(IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
+               EnforceOnBuildValues.UseCollectionExpressionForCreate)
     {
     }
 
-    protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(context =>
+    protected override void InitializeWorker(CompilationStartAnalysisContext context)
+    {
+        var collectionBuilderAttribute = context.Compilation.CollectionBuilderAttribute();
+        if (collectionBuilderAttribute is null)
+            return;
+
+        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+        // and eventually report fading diagnostics with location outside this node.
+        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
         {
-            var compilation = context.Compilation;
-            if (!compilation.LanguageVersion().SupportsCollectionExpressions())
-                return;
-
-            var collectionBuilderAttribute = compilation.CollectionBuilderAttribute();
-            if (collectionBuilderAttribute is null)
-                return;
-
-            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-            // and eventually report fading diagnostics with location outside this node.
-            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-            {
-                context.RegisterSyntaxNodeAction(
-                    context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
-                    SyntaxKind.InvocationExpression);
-            });
+            context.RegisterSyntaxNodeAction(
+                context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
+                SyntaxKind.InvocationExpression);
         });
+    }
 
-    private static void AnalyzeInvocationExpression(
+    private void AnalyzeInvocationExpression(
         SyntaxNodeAnalysisContext context,
         INamedTypeSymbol collectionBuilderAttribute)
     {
@@ -150,7 +123,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            s_descriptor,
+            Descriptor,
             memberAccessExpression.Name.Identifier.GetLocation(),
             option.Notification.Severity,
             additionalLocations: locations,
@@ -163,7 +136,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             invocationExpression.ArgumentList.CloseParenToken.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            s_unnecessaryCodeDescriptor,
+            UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             ReportDiagnostic.Default,
             additionalLocations: locations,
