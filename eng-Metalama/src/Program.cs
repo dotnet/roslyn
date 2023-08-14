@@ -40,6 +40,10 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
 product.BuildCompleted += OnBuildCompleted;
 var commandApp = new CommandApp();
 commandApp.AddProductCommands( product );
+commandApp.Configure(delegate (IConfigurator root)
+{
+    root.AddCommand<PushNuGetDependenciesCommand>("push-nuget-dependencies").WithData(product).WithDescription("Pushes NuGet dependencies not coming from NuGet.org to Azure Artifacts repository. See See docs-Metalama/Merging.md for details.");
+});
 
 return commandApp.Run( args );
 
