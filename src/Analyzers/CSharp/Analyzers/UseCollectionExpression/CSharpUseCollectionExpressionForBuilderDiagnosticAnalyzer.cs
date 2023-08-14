@@ -20,24 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-/// <summary>
-/// Result of analyzing an <c>XXX.CreateBuilder</c> expression to see if it can be replaced with a collection
-/// expression.
-/// </summary>
-/// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
-/// expression.</param>
-/// <param name="LocalDeclarationStatement">The declaration of the builder.  Will be removed if the user chooses to make
-/// the change.</param>
-/// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
-/// replaced with the collection expression</param>
-/// <param name="Matches">The statements that are mutating the builder that will be converted into elements in the final
-/// collection expression.</param>
-internal readonly record struct CollectionBuilderAnalysisResult(
-    Location DiagnosticLocation,
-    LocalDeclarationStatementSyntax LocalDeclarationStatement,
-    InvocationExpressionSyntax CreationExpression,
-    ImmutableArray<Match<StatementSyntax>> Matches);
-
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -115,7 +97,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         FadeOurCode(context, analysisResult, locations);
     }
 
-    private static void FadeOurCode(SyntaxNodeAnalysisContext context, CollectionBuilderAnalysisResult analysisResult, ImmutableArray<Location> locations)
+    private static void FadeOurCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
     {
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             analysisResult.LocalDeclarationStatement.GetLocation());
@@ -147,7 +129,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         }
     }
 
-    public static CollectionBuilderAnalysisResult? AnalyzeInvocation(
+    public static AnalysisResult? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         CancellationToken cancellationToken)
@@ -276,4 +258,22 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         return null;
     }
+
+    /// <summary>
+    /// Result of analyzing an <c>XXX.CreateBuilder</c> expression to see if it can be replaced with a collection
+    /// expression.
+    /// </summary>
+    /// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
+    /// expression.</param>
+    /// <param name="LocalDeclarationStatement">The declaration of the builder.  Will be removed if the user chooses to make
+    /// the change.</param>
+    /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
+    /// replaced with the collection expression</param>
+    /// <param name="Matches">The statements that are mutating the builder that will be converted into elements in the final
+    /// collection expression.</param>
+    public readonly record struct AnalysisResult(
+        Location DiagnosticLocation,
+        LocalDeclarationStatementSyntax LocalDeclarationStatement,
+        InvocationExpressionSyntax CreationExpression,
+        ImmutableArray<Match<StatementSyntax>> Matches);
 }

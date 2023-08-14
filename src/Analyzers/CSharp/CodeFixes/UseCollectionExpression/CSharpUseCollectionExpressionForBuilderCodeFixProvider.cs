@@ -14,15 +14,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static SyntaxFactory;
 using static CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer;
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForBuilder), Shared]
 internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
@@ -92,7 +91,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         return;
 
         // Move the nodes in analysisResult over to the tracked result in the root passed in.
-        static CollectionBuilderAnalysisResult TrackAnalysisResult(SyntaxNode root, CollectionBuilderAnalysisResult analysisResult)
+        static AnalysisResult TrackAnalysisResult(SyntaxNode root, AnalysisResult analysisResult)
             => new(analysisResult.DiagnosticLocation,
                    root.GetCurrentNode(analysisResult.LocalDeclarationStatement)!,
                    root.GetCurrentNode(analysisResult.CreationExpression)!,
@@ -102,7 +101,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         // across mutations we're making.
         static async Task<Document> CreateTrackedDocumentAsync(
             Document document,
-            CollectionBuilderAnalysisResult analysisResult,
+            AnalysisResult analysisResult,
             SyntaxAnnotation annotation,
             CancellationToken cancellationToken)
         {
