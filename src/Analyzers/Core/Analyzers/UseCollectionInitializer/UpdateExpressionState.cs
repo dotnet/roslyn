@@ -96,14 +96,23 @@ internal readonly struct UpdateExpressionState<
         [NotNullWhen(true)] out TExpressionSyntax? instance)
         where TExpressionStatementSyntax : TStatementSyntax
     {
-        return TryAnalyzeInvocation(
-            statement,
-            WellKnownMemberNames.CollectionInitializerAddMethodName,
-            requiredArgumentName,
-            forCollectionExpression,
-            cancellationToken,
-            out instance,
-            out _);
+        if (!TryAnalyzeInvocation(
+                statement,
+                WellKnownMemberNames.CollectionInitializerAddMethodName,
+                requiredArgumentName,
+                cancellationToken,
+                out instance,
+                out var arguments))
+        {
+            return false;
+        }
+
+        // Collection expressions can only call the single argument Add method on a type. So if we don't have exactly
+        // one argument, fail out.
+        if (forCollectionExpression && arguments.Count != 1)
+            return false;
+
+        return true;
     }
 
     public bool TryAnalyzeAddRangeInvocation<TExpressionStatementSyntax>(
@@ -114,31 +123,71 @@ internal readonly struct UpdateExpressionState<
         out bool useSpread)
         where TExpressionStatementSyntax : TStatementSyntax
     {
-        return TryAnalyzeInvocation(
-            statement,
-            AddRangeName,
-            requiredArgumentName,
-            forCollectionExpression: true,
-            cancellationToken,
-            out instance,
-            out useSpread);
+        useSpread = false;
+        if (!TryAnalyzeInvocation(
+                statement,
+                AddRangeName,
+                requiredArgumentName,
+                cancellationToken,
+                out instance,
+                out var arguments))
+        {
+            return false;
+        }
+
+        var memberAccess = instance.GetRequiredParent();
+
+        // TryAnalyzeInvocation ensures these
+        Contract.ThrowIfTrue(arguments.Count == 0);
+        Contract.ThrowIfFalse(this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess));
+
+        // AddRange can be of the form `AddRange(IEnumerable<T> values)` or it could be `AddRange(params T[]
+        // values)`  If the former, we only allow a single argument.  If the latter, we can allow multiple
+        // expressions.  The former will be converted to a spread element.  The latter will be added
+        // individually.
+        var method = this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() as IMethodSymbol;
+        if (method is null)
+            return false;
+
+        if (method.Parameters.Length != 1)
+            return false;
+
+        var parameter = method.Parameters.Single();
+        if (parameter.IsParams)
+        {
+            // It's a method like `AddRange(T[] values)`.  If we were passed an array to this, we'll use a spread.
+            // Otherwise, if we were passed individual elements, we'll add them as is.
+            if (arguments.Count > 1)
+                return true;
+
+            // For single argument case, have to determine which form we're calling.
+            var convertedType = this.SemanticModel.GetTypeInfo(SyntaxFacts.GetExpressionOfArgument(arguments[0]), cancellationToken).ConvertedType;
+            useSpread = parameter.Type.Equals(convertedType);
+        }
+        else
+        {
+            // It's a method like `AddRange(IEnumerable<T> values)`.  There needs to be a single value passed.  When
+            // converted to a collection expression, we'll use a spread expression like `[.. values]`.
+            if (arguments.Count != 1)
+                return false;
+
+            useSpread = true;
+        }
+
+        return true;
     }
 
     private bool TryAnalyzeInvocation<TExpressionStatementSyntax>(
         TExpressionStatementSyntax statement,
         string addName,
         string? requiredArgumentName,
-        bool forCollectionExpression,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
-        out bool useSpread)
+        out SeparatedSyntaxList<SyntaxNode> arguments)
         where TExpressionStatementSyntax : TStatementSyntax
     {
-        // Only collection expressions support converting AddRange(...) calls.  So this should not be called for the Add case.
-        Contract.ThrowIfTrue(addName == AddRangeName && !forCollectionExpression);
-
+        arguments = default;
         instance = null;
-        useSpread = false;
 
         if (!this.SyntaxFacts.IsExpressionStatement(statement))
             return false;
@@ -147,7 +196,7 @@ internal readonly struct UpdateExpressionState<
         if (!this.SyntaxFacts.IsInvocationExpression(invocationExpression))
             return false;
 
-        var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+        arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
         if (arguments.Count < 1)
             return false;
 
@@ -195,49 +244,6 @@ internal readonly struct UpdateExpressionState<
 
         if (arity != 0 || !Equals(name, addName))
             return false;
-
-        // Collection expressions can only call the single argument Add/AddRange methods on a type.
-        // So if we don't have exactly one argument, fail out.
-        if (forCollectionExpression)
-        {
-            if (addName == WellKnownMemberNames.CollectionInitializerAddMethodName)
-            {
-                // Any call to `.Add(...)` for a collection expression can only have a single argument.
-                if (arguments.Count != 1)
-                    return false;
-            }
-            else if (addName == AddRangeName)
-            {
-                // AddRange can be of the form `AddRange(IEnumerable<T> values)` or it could be `AddRange(params T[]
-                // values)`  If the former, we only allow a single argument.  If the latter, we can allow multiple
-                // expressions.  The former will be converted to a spread element.  The latter will be added
-                // individually.
-                var method = this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() as IMethodSymbol;
-                if (method is null)
-                    return false;
-
-                if (method.Parameters.Length != 1)
-                    return false;
-
-                if (method.Parameters[0].IsParams)
-                {
-
-                }
-                else
-                {
-                    // It was like `AddRange(IEnumerable<T> values)`.  There needs to be a single value passed.  When
-                    // converted to a collection expression, we'll use 
-                    if (arguments.Count != 1)
-                        return false;
-
-                    useSpread = true;
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(addName);
-            }
-        }
 
         instance = localInstance as TExpressionSyntax;
         return instance != null;

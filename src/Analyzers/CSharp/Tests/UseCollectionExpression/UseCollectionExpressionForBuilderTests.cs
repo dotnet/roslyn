@@ -656,7 +656,7 @@ public partial class UseCollectionExpressionForBuilderTests
 
                 class C
                 {
-                    void M()
+                    void M(int[] x)
                     {
                         Goo([1, 2, 3]);
                     }
