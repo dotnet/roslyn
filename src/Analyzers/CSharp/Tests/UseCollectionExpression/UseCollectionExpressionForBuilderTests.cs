@@ -780,6 +780,82 @@ public partial class UseCollectionExpressionForBuilderTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task TestToImmutableAndFree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        [|var builder = ArrayBuilder<int>.[|GetInstance|]();|]
+                        [|builder.Add(|]0);
+                        Goo(builder.ToImmutableAndFree());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        Goo([0]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestToImmutableAndClear()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        [|var builder = ArrayBuilder<int>.[|GetInstance|]();|]
+                        [|builder.Add(|]0);
+                        Goo(builder.ToImmutableAndClear());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        Goo([0]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
     public async Task TestToArray(string pattern)
     {
@@ -834,6 +910,32 @@ public partial class UseCollectionExpressionForBuilderTests
                         builder.Add(0);
                         Goo(builder.ToImmutable());
                         builder.Add(0);
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithOtherDisposableUsageAfter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        using var d = ArrayBuilder<int>.GetInstance(out var builder);
+                        builder.Add(0);
+                        Goo(builder.ToImmutable());
+                        d.Dispose();
                     }
 
                     void Goo(ImmutableArray<int> values) { }
