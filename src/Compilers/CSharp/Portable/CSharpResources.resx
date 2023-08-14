@@ -7793,4 +7793,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="IDS_FeatureRefInSwitchExpressionArm" xml:space="preserve">
+    <value>ref in switch expression arms</value>
+  </data>
 </root>

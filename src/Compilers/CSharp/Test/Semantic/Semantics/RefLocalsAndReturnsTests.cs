@@ -4907,5 +4907,167 @@ void M(out int x) => throw null;
                 Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
             }
         }
+
+        [Fact]
+        public void RefSwitchStatement()
+        {
+            const string source =
+                """
+                public class C
+                {
+                    int northField;
+                    int southField;
+                    int eastField;
+                    int westField;
+
+                    public ref int GetDirectionField(Direction direction) => ref direction switch
+                    {
+                        Direction.North => ref northField,
+                        Direction.South => ref southField,
+                        Direction.East => ref eastField,
+                        Direction.West => ref westField,
+                        _ => throw null!,
+                    };
+
+                    public ref int GetDirectionField_Target(Direction direction)
+                    {
+                        switch (direction)
+                        {
+                            case Direction.North:
+                                return ref northField;
+                            case Direction.South:
+                                return ref southField;
+                            case Direction.East:
+                                return ref eastField;
+                            case Direction.West:
+                                return ref westField;
+                            default:
+                                throw null!;
+                        }
+                    }
+                }
+                
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+
+                public class Program
+                {
+                    static void Main()
+                    {
+                        const int otherValue = 3412;
+
+                        var c = new C();
+                        ref var directionFieldNorth = ref c.GetDirectionField(Direction.North);
+                        directionFieldNorth = otherValue;
+                        ref var directionFieldNorth1 = ref c.GetDirectionField(Direction.North);
+                        System.Console.Write($"{directionFieldNorth1 is otherValue} {directionFieldNorth} {directionFieldNorth1}");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            // Skipped verification because of method returning by ref int
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "True 3412 3412");
+
+            const string targetIL =
+                """
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  1
+                  .locals init (Direction V_0,
+                                Direction V_1,
+                                int& V_2)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: switch (direction)
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.1
+                  // sequence point: <hidden>
+                  IL_0003:  ldloc.1
+                  IL_0004:  stloc.0
+                  // sequence point: <hidden>
+                  IL_0005:  ldloc.0
+                  IL_0006:  switch    (
+                        IL_001d,
+                        IL_0026,
+                        IL_002f,
+                        IL_0038)
+                  IL_001b:  br.s       IL_0041
+                  // sequence point: return ref northField;
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldflda     "int C.northField"
+                  IL_0023:  stloc.2
+                  IL_0024:  br.s       IL_0043
+                  // sequence point: return ref southField;
+                  IL_0026:  ldarg.0
+                  IL_0027:  ldflda     "int C.southField"
+                  IL_002c:  stloc.2
+                  IL_002d:  br.s       IL_0043
+                  // sequence point: return ref eastField;
+                  IL_002f:  ldarg.0
+                  IL_0030:  ldflda     "int C.eastField"
+                  IL_0035:  stloc.2
+                  IL_0036:  br.s       IL_0043
+                  // sequence point: return ref westField;
+                  IL_0038:  ldarg.0
+                  IL_0039:  ldflda     "int C.westField"
+                  IL_003e:  stloc.2
+                  IL_003f:  br.s       IL_0043
+                  // sequence point: throw null!;
+                  IL_0041:  ldnull
+                  IL_0042:  throw
+                  // sequence point: }
+                  IL_0043:  ldloc.2
+                  IL_0044:  ret
+                }
+                """;
+
+            const string expressionIL =
+                """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  1
+                  .locals init (int& V_0)
+                  // sequence point: direction sw ...     }
+                  IL_0000:  ldarg.1
+                  IL_0001:  switch    (
+                        IL_0018,
+                        IL_0021,
+                        IL_002a,
+                        IL_0033)
+                  IL_0016:  br.s       IL_003c
+                  IL_0018:  ldarg.0
+                  IL_0019:  ldflda     "int C.northField"
+                  IL_001e:  stloc.0
+                  IL_001f:  br.s       IL_003e
+                  IL_0021:  ldarg.0
+                  IL_0022:  ldflda     "int C.southField"
+                  IL_0027:  stloc.0
+                  IL_0028:  br.s       IL_003e
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldflda     "int C.eastField"
+                  IL_0030:  stloc.0
+                  IL_0031:  br.s       IL_003e
+                  IL_0033:  ldarg.0
+                  IL_0034:  ldflda     "int C.westField"
+                  IL_0039:  stloc.0
+                  IL_003a:  br.s       IL_003e
+                  IL_003c:  ldnull
+                  IL_003d:  throw
+                  IL_003e:  ldloc.0
+                  IL_003f:  ret
+                }
+                """;
+
+            verifier.VerifyMethodBody("C.GetDirectionField_Target", targetIL);
+            verifier.VerifyMethodBody("C.GetDirectionField", expressionIL);
+        }
     }
 }

@@ -2222,6 +2222,11 @@
         <target state="translated">ref 字段</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefInSwitchExpressionArm">
+        <source>ref in switch expression arms</source>
+        <target state="new">ref in switch expression arms</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
         <target state="new">ref readonly parameters</target>

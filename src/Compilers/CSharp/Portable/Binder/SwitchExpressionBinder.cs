@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch expression and set the switch governing type.
             var boundInputExpression = BindSwitchGoverningExpression(diagnostics);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, boundInputExpression, diagnostics);
-            TypeSymbol? naturalType = InferResultType(switchArms, diagnostics);
+            TypeSymbol? naturalType = InferResultType(switchArms, out var refKind, diagnostics);
             bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol? defaultLabel, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundUnconvertedSwitchExpression(
                 node, boundInputExpression, switchArms, decisionDag,
-                defaultLabel: defaultLabel, reportedNotExhaustive: reportedNotExhaustive, type: naturalType);
+                defaultLabel, reportedNotExhaustive, refKind, type: naturalType);
         }
 
         /// <summary>
@@ -136,16 +136,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Infer the result type of the switch expression by looking for a common type
         /// to which every arm's expression can be converted.
         /// </summary>
-        private TypeSymbol? InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, BindingDiagnosticBag diagnostics)
+        private TypeSymbol? InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchArms, out RefKind refKind, BindingDiagnosticBag diagnostics)
         {
+            refKind = RefKind.None;
             var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
-            foreach (var @case in switchCases)
+            foreach (var arm in switchArms)
             {
-                var type = @case.Value.Type;
-                if (type is object && seenTypes.Add(type))
+                var type = arm.Value.Type;
+                if (type is not null && seenTypes.Add(type))
                 {
                     typesInOrder.Add(type);
+                }
+
+                switch (arm.RefKind)
+                {
+                    case RefKind.Ref
+                    when refKind is RefKind.None:
+                        refKind = RefKind.Ref;
+                        break;
+
+                    case RefKind.RefReadOnlyParameter:
+                    case RefKind.RefReadOnly:
+                        // We ignore escape safety here, and only normalize to ref readonly
+                        refKind = RefKind.RefReadOnly;
+                        break;
                 }
             }
 
@@ -154,13 +169,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteInfo);
             typesInOrder.Free();
 
-            // We've found a candidate common type among those arms that have a type.  Also check that every arm's
-            // expression (even those without a type) can be converted to that type.
-            if (commonType is object)
+            // We've found a candidate common type among those arms that have a type.
+            // Also check that every arm's expression (even those without a type) can be converted to that type.
+            // If the arm is a ref return, ensure that the type is equal to the common type, without accounting for conversions.
+            if (commonType is not null)
             {
-                foreach (var @case in switchCases)
+                foreach (var arm in switchArms)
                 {
-                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteInfo).Exists)
+                    if (arm.IsRef)
+                    {
+                        if (!commonType.Equals(arm.Value.Type))
+                        {
+                            commonType = null;
+                            break;
+                        }
+                    }
+                    else if (!this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, commonType, ref useSiteInfo).Exists)
                     {
                         commonType = null;
                         break;

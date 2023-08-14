@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis
         LocalStoreTracker = 36,
 
         /// <summary>
+        /// Temp created for the result of a switch expression returning by ref.
+        /// </summary>
+        SwitchExpressionRef = 37,
+
+        /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
         /// (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>

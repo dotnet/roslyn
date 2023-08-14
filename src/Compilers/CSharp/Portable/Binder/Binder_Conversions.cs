@@ -951,23 +951,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
             ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance(source.SwitchArms.Length);
+            bool allowConversion = !source.IsRef;
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
-                var oldCase = source.SwitchArms[i];
-                var oldValue = oldCase.Value;
-                var newValue =
-                    targetTyped
-                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
-                var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
-                builder.Add(newCase);
+                var oldArm = source.SwitchArms[i];
+                var oldValue = oldArm.Value;
+                var newValue = oldValue;
+
+                bool requiresConversion = oldValue.Type is null;
+                if (allowConversion || requiresConversion)
+                {
+                    newValue = targetTyped
+                        ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                        : GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                }
+                var newArm = (oldValue == newValue) ? oldArm :
+                    new BoundSwitchExpressionArm(oldArm.Syntax, oldArm.Locals, oldArm.Pattern, oldArm.WhenClause, newValue, oldArm.Label, oldArm.RefKind, oldArm.HasErrors);
+                builder.Add(newArm);
             }
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
                 source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.ReachabilityDecisionDag,
-                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
+                source.DefaultLabel, source.ReportedNotExhaustive, source.RefKind, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
         }
 
         private BoundExpression CreateUserDefinedConversion(

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetState(StateWhenTrue);
                 }
 
-                VisitRvalue(arm.Value);
+                VisitPotentialByRefExpression(arm.Value, arm.IsRef);
                 Join(ref endState, ref this.State);
             }
 

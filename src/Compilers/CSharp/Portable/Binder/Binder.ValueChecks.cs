@@ -789,6 +789,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Strict RValue
                     break;
 
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
+                    var switchExpression = (BoundSwitchExpression)expr;
+
+                    if (switchExpression.IsRef)
+                    {
+                        Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
+
+                        // defer check to the switch arms' values
+                        bool check = true;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            // Specially handle throw expressions in arms because they are not treated the same elsewhere
+                            if (arm.Value is BoundThrowExpression)
+                                continue;
+
+                            check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
+                            if (!check)
+                            {
+                                check = false;
+                                break;
+                            }
+                        }
+                        if (check)
+                            return true;
+                    }
+
+                    break;
+
                 default:
                     Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
                     break;
@@ -3548,6 +3577,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ThrowExpression:
+                    return true;
+
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpression = (BoundSwitchExpression)expr;
+                    foreach (var arm in switchExpression.SwitchArms)
+                    {
+                        bool canEscape = CheckRefEscape(node, arm.Value, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+                        if (!canEscape)
+                            return false;
+                    }
                     return true;
             }
 
