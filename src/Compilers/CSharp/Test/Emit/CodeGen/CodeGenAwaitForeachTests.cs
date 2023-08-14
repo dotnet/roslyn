@@ -7134,8 +7134,10 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(21, 56));
         }
 
-        [Fact]
-        public void TestGetAsyncEnumeratorPatternViaInExtensionOnNonAssignableVariable()
+        [Theory]
+        [InlineData("in", LanguageVersion.CSharp9)]
+        [InlineData("ref readonly", LanguageVersion.Preview)]
+        public void TestGetAsyncEnumeratorPatternViaInExtensionOnNonAssignableVariable(string modifier, LanguageVersion languageVersion)
         {
             string source = @"
 using System;
@@ -7157,15 +7159,17 @@ public struct C
 }
 public static class Extensions
 {
-    public static C.Enumerator GetAsyncEnumerator(this in C self) => new C.Enumerator();
+    public static C.Enumerator GetAsyncEnumerator(this " + modifier + @" C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
 
-        [Fact]
-        public void TestGetAsyncEnumeratorPatternViaInExtensionOnAssignableVariable()
+        [Theory]
+        [InlineData("in", LanguageVersion.CSharp9)]
+        [InlineData("ref readonly", LanguageVersion.Preview)]
+        public void TestGetAsyncEnumeratorPatternViaInExtensionOnAssignableVariable(string modifier, LanguageVersion languageVersion)
         {
             string source = @"
 using System;
@@ -7188,9 +7192,9 @@ public struct C
 }
 public static class Extensions
 {
-    public static C.Enumerator GetAsyncEnumerator(this in C self) => new C.Enumerator();
+    public static C.Enumerator GetAsyncEnumerator(this " + modifier + @" C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }

@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors
                 // about arguments being passed with the wrong RefKind. The user will have already gotten an error about mismatched RefKinds or it will
                 // be a place where refkinds are allowed to differ
-                argumentRefKindsBuilder.Add(refKind);
+                argumentRefKindsBuilder.Add(refKind == RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
             }
 
             var interpolatedString = BindUnconvertedInterpolatedExpressionToHandlerType(

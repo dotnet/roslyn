@@ -6683,8 +6683,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">Nejde použít konstruktor atributu {0}, protože má parametry in.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">Nejde použít konstruktor atributu {0}, protože má parametry in.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -12679,8 +12679,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">Prvním parametrem metody rozšíření in {0} musí být konkrétní (neobecný) typ hodnoty.</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Prvním parametrem metody rozšíření in {0} musí být konkrétní (neobecný) typ hodnoty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

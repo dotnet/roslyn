@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -546,6 +547,37 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
             VerifyRefReadonlyParameter(p);
         }
+    }
+
+    [Fact]
+    public void AttributeConstructor()
+    {
+        var source = """
+            [A(1)]
+            class A : System.Attribute
+            {
+                A(ref readonly int x) { }
+            }
+            
+            [B()]
+            class B : System.Attribute
+            {
+                B(ref readonly int x = 2) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,2): error CS8358: Cannot use attribute constructor 'A.A(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [A(1)]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(ref readonly int)").WithLocation(1, 2),
+            // (1,4): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // [A(1)]
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(1, 4),
+            // (7,2): error CS8358: Cannot use attribute constructor 'B.B(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [B()]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(ref readonly int)").WithLocation(7, 2),
+            // (10,28): warning CS9521: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     B(ref readonly int x = 2) { }
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(10, 28));
     }
 
     [Fact]
@@ -2884,6 +2916,143 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AssgReadonly, "rorro").WithLocation(23, 9));
     }
 
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M1({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    x = ref y;
+                }
+                static void M2({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    System.Console.WriteLine(x + " " + y);
+                    x = ref y;
+                    System.Console.WriteLine(x + " " + y);
+                }
+                static void Main()
+                {
+                    int x = 5;
+                    int y = 6;
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(5, 17),
+                // (10,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(10, 17));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size        4 (0x4)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  starg.s    V_0
+                  IL_0003:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters_Struct(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            struct S(int v)
+            {
+                public int V = v;
+            }
+            class C
+            {
+                static int M1({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    return (x = ref y).V;
+                }
+                static void M2({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    System.Console.WriteLine(x.V + " " + y.V);
+                    System.Console.WriteLine((x = ref y).V);
+                    System.Console.WriteLine(x.V + " " + y.V);
+                }
+                static void Main()
+                {
+                    S x = new S(5);
+                    S y = new S(6);
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,25): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         return (x = ref y).V;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 25),
+                // (14,43): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         System.Console.WriteLine((x = ref y).V);
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(14, 43));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  dup
+                  IL_0002:  starg.s    V_0
+                  IL_0004:  ldfld      "int S.V"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
+    }
+
     [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void RefReadonlyParameter_Arglist()
     {
@@ -4895,6 +5064,106 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Fact]
+    public void Invocation_Operator_Metadata()
+    {
+        // public class C
+        // {
+        //     public static C operator+(ref readonly C x, C y) => x;
+        //     public static C operator--(ref readonly C x) => x;
+        //     public static implicit operator C(ref readonly int x) => null;
+        //     public static explicit operator C(ref readonly short x) => null;
+        // }
+        var ilSource = """
+            .class public auto ansi beforefieldinit C extends System.Object
+            {
+                .method public hidebysig specialname static 
+                    class C op_Addition (
+                        [in] class C& x,
+                        class C y
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Decrement (
+                        [in] class C& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Implicit (
+                        [in] int32& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Explicit (
+                        [in] int16& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var source = """
+            int i = 4;
+            short s = 5;
+            C c = null;
+            _ = c + c;
+            c--;
+            c = i;
+            c = (C)s;
+            """;
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+            // (4,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+            // _ = c + c;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + c").WithArguments("+", "C", "C").WithLocation(4, 5),
+            // (5,1): error CS0023: Operator '--' cannot be applied to operand of type 'C'
+            // c--;
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "c--").WithArguments("--", "C").WithLocation(5, 1),
+            // (6,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
+            // c = i;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int", "C").WithLocation(6, 5),
+            // (7,5): error CS0030: Cannot convert type 'short' to 'C'
+            // c = (C)s;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C)s").WithArguments("short", "C").WithLocation(7, 5));
+    }
+
     [Theory, CombinatorialData]
     public void Invocation_ExtensionMethod([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
     {
@@ -4920,6 +5189,44 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
               IL_0004:  call       "void C.M({{modifier}} int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod_Metadata([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source1 = $$"""
+            public static class E
+            {
+                public static void M(this {{modifier}} int x) => System.Console.Write(x);
+            }
+            """;
+        var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        var source2 = """
+            static class Program
+            {
+                static void Main()
+                {
+                    var x = 1;
+                    x.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Main", $$"""
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void E.M({{modifier}} int)"
               IL_0009:  ret
             }
             """);
