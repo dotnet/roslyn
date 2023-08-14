@@ -43,15 +43,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var statement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
-
-            var state =
-                TryInitializeVariableDeclarationCase(objectCreationExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(objectCreationExpression, statement, cancellationToken);
-
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
             if (state is null)
                 return default;
 

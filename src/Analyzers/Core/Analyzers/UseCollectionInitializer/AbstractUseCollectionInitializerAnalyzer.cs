@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -14,8 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
-    using static UseCollectionInitializerHelpers;
-
     internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -64,16 +61,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         public ImmutableArray<Match<TStatementSyntax>> Analyze(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
-            var statement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
-
-            var state =
-                TryInitializeVariableDeclarationCase(objectCreationExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(objectCreationExpression, statement, cancellationToken);
-
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
             if (state is null)
                 return default;
 

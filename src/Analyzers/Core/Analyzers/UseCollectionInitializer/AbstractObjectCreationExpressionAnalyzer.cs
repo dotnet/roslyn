@@ -63,19 +63,36 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return matches.ToImmutable();
         }
 
-        protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase(
+        protected static UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
+            TExpressionSyntax rootExpression,
+            CancellationToken cancellationToken)
+        {
+            var statement = rootExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
+            if (statement is null)
+                return null;
+
+            return
+                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken) ??
+                TryInitializeAssignmentCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken);
+        }
+
+        private static UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
             TStatementSyntax containingStatement,
             CancellationToken cancellationToken)
         {
-            if (!this.SyntaxFacts.IsLocalDeclarationStatement(containingStatement))
+            if (!syntaxFacts.IsLocalDeclarationStatement(containingStatement))
                 return null;
 
             var containingDeclarator = rootExpression.Parent?.Parent;
             if (containingDeclarator is null)
                 return null;
 
-            var initializedSymbol = this.SemanticModel.GetDeclaredSymbol(containingDeclarator, cancellationToken);
+            var initializedSymbol = semanticModel.GetDeclaredSymbol(containingDeclarator, cancellationToken);
             if (initializedSymbol is ILocalSymbol local &&
                 local.Type is IDynamicTypeSymbol)
             {
@@ -84,27 +101,29 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
-            if (!this.SyntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, containingStatement))
+            if (!syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, containingStatement))
                 return null;
 
-            var valuePattern = this.SyntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
-            return new(this.SemanticModel, this.SyntaxFacts, rootExpression, valuePattern, initializedSymbol);
+            var valuePattern = syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
+            return new(semanticModel, syntaxFacts, rootExpression, valuePattern, initializedSymbol);
         }
 
-        protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeAssignmentCase(
+        private static UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeAssignmentCase(
+            SemanticModel semanticModel,
+            ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
             TStatementSyntax containingStatement,
             CancellationToken cancellationToken)
         {
-            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(containingStatement))
+            if (!syntaxFacts.IsSimpleAssignmentStatement(containingStatement))
                 return null;
 
-            this.SyntaxFacts.GetPartsOfAssignmentStatement(containingStatement,
+            syntaxFacts.GetPartsOfAssignmentStatement(containingStatement,
                 out var left, out var right);
             if (right != rootExpression)
                 return null;
 
-            var typeInfo = this.SemanticModel.GetTypeInfo(left, cancellationToken);
+            var typeInfo = semanticModel.GetTypeInfo(left, cancellationToken);
             if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
             {
                 // Not supported if we're initializing something dynamic.  The object we're instantiating
@@ -112,8 +131,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
-            var initializedSymbol = this.SemanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
-            return new(this.SemanticModel, this.SyntaxFacts, rootExpression, left, initializedSymbol);
+            var initializedSymbol = semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
+            return new(semanticModel, syntaxFacts, rootExpression, left, initializedSymbol);
         }
     }
 }
