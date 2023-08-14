@@ -33,8 +33,8 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     {
     }
 
-    protected override bool IsSupported(INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
-        => collectionBuilderAttribute is not null;
+    protected override bool IsSupported(Compilation compilation)
+        => compilation.CollectionBuilderAttribute() is not null;
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
         => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);

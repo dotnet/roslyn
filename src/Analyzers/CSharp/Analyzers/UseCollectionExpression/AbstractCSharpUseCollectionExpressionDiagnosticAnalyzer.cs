@@ -42,7 +42,7 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 
     protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context);
 
-    protected virtual bool IsSupported(INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+    protected virtual bool IsSupported(Compilation compilation)
         => true;
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -55,10 +55,7 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
             if (!compilation.LanguageVersion().SupportsCollectionExpressions())
                 return;
 
-            var collectionBuilderAttribute = compilation.CollectionBuilderAttribute();
-            var supportsInlineArrayTypes = compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
-
-            if (!IsSupported(collectionBuilderAttribute, supportsInlineArrayTypes))
+            if (!IsSupported(compilation))
                 return;
 
             // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to get callbacks for object
