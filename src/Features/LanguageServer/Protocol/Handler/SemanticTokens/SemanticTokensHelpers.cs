@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             using var _ = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
-            for (var spanIndex = 0; spanIndex < updatedClassifiedSpans.Count; spanIndex++)
+            for (var spanIndex = 0; spanIndex < classifiedSpans.Length; spanIndex++)
             {
                 var span = classifiedSpans[spanIndex];
                 text.GetLinesAndOffsets(span.TextSpan, out var startLine, out var startOffset, out var endLine, out var endOffSet);
