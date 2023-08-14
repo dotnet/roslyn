@@ -8387,7 +8387,7 @@ done:;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFixedStatement;
-            var decl = ParseVariableDeclaration_FixedForUsingStatement();
+            var decl = ParseParenthesizedVariableDeclaration();
             _termState = saveTerm;
 
             return _syntaxFactory.FixedStatement(
@@ -8759,7 +8759,7 @@ done:;
                         scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
                     }
 
-                    decl = ParseVariableDeclaration_FixedForUsingStatement();
+                    decl = ParseParenthesizedVariableDeclaration();
 
                     var declType = decl.Type;
 
@@ -9402,7 +9402,7 @@ done:;
 
                 if (scopedKeyword != null)
                 {
-                    declaration = ParseVariableDeclaration_FixedForUsingStatement();
+                    declaration = ParseParenthesizedVariableDeclaration();
                     declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
                     return;
                 }
@@ -9436,14 +9436,14 @@ done:;
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration_FixedForUsingStatement();
+                            declaration = ParseParenthesizedVariableDeclaration();
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration_FixedForUsingStatement();
+                            declaration = ParseParenthesizedVariableDeclaration();
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
@@ -9464,7 +9464,7 @@ done:;
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                declaration = ParseVariableDeclaration_FixedForUsingStatement();
+                declaration = ParseParenthesizedVariableDeclaration();
             }
             else
             {
@@ -9713,11 +9713,10 @@ done:;
         }
 
         /// <summary>
-        /// Parse a local variable declaration.  Specifically, only for the `fixed (...)` `for(...)` or `using (...)`
-        /// statements.  Specifically, the statements where a close paren comes after the variable declaration.
+        /// Parse a local variable declaration for constructs where the variable declaration is enclodes in parentheses.
+        /// Specifically, only for the `fixed (...)` `for(...)` or `using (...)` statements.
         /// </summary>
-        /// <returns></returns>
-        private VariableDeclarationSyntax ParseVariableDeclaration_FixedForUsingStatement()
+        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration()
         {
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             ParseLocalDeclaration(
