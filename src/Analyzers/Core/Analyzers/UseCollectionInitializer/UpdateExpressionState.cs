@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -84,16 +85,54 @@ internal readonly struct UpdateExpressionState<
         return false;
     }
 
-    public bool TryAnalyzeInvocation<TExpressionStatementSyntax>(
+    public bool TryAnalyzeAddInvocation<TExpressionStatementSyntax>(
         TExpressionStatementSyntax statement,
-        string addName,
         string? requiredArgumentName,
         bool forCollectionExpression,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance)
         where TExpressionStatementSyntax : TStatementSyntax
     {
+        return TryAnalyzeInvocation(
+            statement,
+             WellKnownMemberNames.CollectionInitializerAddMethodName,
+             requiredArgumentName,
+             forCollectionExpression,
+             cancellationToken,
+             out instance,
+             out _);
+    }
+
+    public bool TryAnalyzeAddRangeInvocation<TExpressionStatementSyntax>(
+        TExpressionStatementSyntax statement,
+        string? requiredArgumentName,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        out bool useSpread)
+        where TExpressionStatementSyntax : TStatementSyntax
+    {
+        return TryAnalyzeInvocation(
+            statement,
+            nameof(List<int>.AddRange),
+            requiredArgumentName,
+            forCollectionExpression: true,
+            cancellationToken,
+            out instance,
+            out useSpread);
+    }
+
+    private bool TryAnalyzeInvocation<TExpressionStatementSyntax>(
+        TExpressionStatementSyntax statement,
+        string addName,
+        string? requiredArgumentName,
+        bool forCollectionExpression,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        out bool useSpread)
+        where TExpressionStatementSyntax : TStatementSyntax
+    {
         instance = null;
+        useSpread = false;
 
         if (!this.SyntaxFacts.IsExpressionStatement(statement))
             return false;
@@ -181,9 +220,8 @@ internal readonly struct UpdateExpressionState<
         Match<TStatementSyntax>? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
         {
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeInvocation(
+            if (@this.TryAnalyzeAddInvocation(
                     expressionStatement,
-                    addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -193,16 +231,16 @@ internal readonly struct UpdateExpressionState<
                 return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
             }
 
-            if (@this.TryAnalyzeInvocation(
+            if (@this.TryAnalyzeAddRangeInvocation(
                     expressionStatement,
-                    addName: nameof(List<int>.AddRange),
                     requiredArgumentName: null,
-                    forCollectionExpression: true,
                     cancellationToken,
-                    out instance))
+                    out instance,
+                    out var useSpread) &&
+                @this.ValuePatternMatches(instance))
             {
                 // AddRange(x) will become `..x` when we make it into a collection expression.
-                return new Match<TStatementSyntax>(expressionStatement, UseSpread: true);
+                return new Match<TStatementSyntax>(expressionStatement, useSpread);
             }
 
             return null;
@@ -219,9 +257,8 @@ internal readonly struct UpdateExpressionState<
             // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
             // being added to `dest`.
             if (foreachStatements.ToImmutableArray() is [TStatementSyntax childExpressionStatement] &&
-                @this.TryAnalyzeInvocation(
+                @this.TryAnalyzeAddInvocation(
                     childExpressionStatement,
-                    addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                     requiredArgumentName: identifier.Text,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -253,9 +290,8 @@ internal readonly struct UpdateExpressionState<
             var whenTrueStatements = whenTrue.ToImmutableArray();
 
             if (whenTrueStatements is [TStatementSyntax trueChildStatement] &&
-                @this.TryAnalyzeInvocation(
+                @this.TryAnalyzeAddInvocation(
                     trueChildStatement,
-                    addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -270,9 +306,8 @@ internal readonly struct UpdateExpressionState<
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();
                 if (whenFalseStatements is [TStatementSyntax falseChildStatement] &&
-                    @this.TryAnalyzeInvocation(
+                    @this.TryAnalyzeAddInvocation(
                         falseChildStatement,
-                        addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
                         forCollectionExpression: true,
                         cancellationToken,

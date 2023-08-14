@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;

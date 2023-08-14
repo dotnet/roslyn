@@ -162,10 +162,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (!seenIndexAssignment)
             {
                 // Look for a call to Add or AddRange
-                if (TryAnalyzeInvocation(
+                if (this.State.TryAnalyzeAddInvocation(
                         expressionStatement,
-                        addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                         requiredArgumentName: null,
+                        forCollectionExpression: false,
                         cancellationToken,
                         out var instance) &&
                     this.State.ValuePatternMatches(instance))
@@ -247,77 +247,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             instance = elementInstance as TExpressionSyntax;
-            return instance != null;
-        }
-
-        private bool TryAnalyzeInvocation(
-            TExpressionStatementSyntax statement,
-            string addName,
-            string? requiredArgumentName,
-            CancellationToken cancellationToken,
-            [NotNullWhen(true)] out TExpressionSyntax? instance)
-        {
-            instance = null;
-            if (this.SyntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
-                return false;
-
-            var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-            if (arguments.Count < 1)
-                return false;
-
-            // Collection expressions can only call the single argument Add/AddRange methods on a type.
-            // So if we don't have exactly one argument, fail out.
-            if (_analyzeForCollectionExpression && arguments.Count != 1)
-                return false;
-
-            if (requiredArgumentName != null && arguments.Count != 1)
-                return false;
-
-            foreach (var argument in arguments)
-            {
-                if (!this.SyntaxFacts.IsSimpleArgument(argument))
-                    return false;
-
-                var argumentExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
-                if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argumentExpression, cancellationToken))
-                    return false;
-
-                // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
-                // cannot be used in an outer collection initializer as it would change meaning.  i.e.:
-                //
-                //      new List(Of IEnumerable(Of String)) { { a, b, c } }
-                //
-                // is not legal.  That's because instead of adding `{ a, b, c }` as a single element to the list, VB
-                // instead looks for an 3-argument `Add` method to invoke on `List<T>` (which clearly fails).
-                if (this.SyntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
-                    return false;
-
-                // If the caller is requiring a particular argument name, then validate that is what this argument
-                // is referencing.
-                if (requiredArgumentName != null)
-                {
-                    if (!this.SyntaxFacts.IsIdentifierName(argumentExpression))
-                        return false;
-
-                    this.SyntaxFacts.GetNameAndArityOfSimpleName(argumentExpression, out var suppliedName, out _);
-                    if (requiredArgumentName != suppliedName)
-                        return false;
-                }
-            }
-
-            if (this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
-                return false;
-
-            if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
-                return false;
-
-            this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
-            this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
-
-            if (arity != 0 || !Equals(name, addName))
-                return false;
-
-            instance = localInstance as TExpressionSyntax;
             return instance != null;
         }
     }
