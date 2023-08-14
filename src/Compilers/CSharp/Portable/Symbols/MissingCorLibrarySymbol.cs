@@ -22,21 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly MissingCorLibrarySymbol Instance = new MissingCorLibrarySymbol();
 
-        internal override TypeConversions TypeConversions
-        {
-            get
-            {
-                Debug.Assert(this == CorLibrary);
-
-                if (_lazyTypeConversions is null)
-                {
-                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
-                }
-
-                return _lazyTypeConversions;
-            }
-        }
-
         /// <summary>
         /// An array of cached Cor types defined in this assembly.
         /// Lazily filled by GetDeclaredSpecialType method.
@@ -50,6 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(new AssemblyIdentity("<Missing Core Assembly>"))
         {
             this.SetCorLibrary(this);
+        }
+
+        internal override TypeConversions TypeConversions
+        {
+            get
+            {
+                Debug.Assert(this == CorLibrary);
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
+            }
         }
 
         /// <summary>
