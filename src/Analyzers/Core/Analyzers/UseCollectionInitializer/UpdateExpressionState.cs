@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -19,6 +20,8 @@ internal readonly struct UpdateExpressionState<
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
+    private const string AddRangeName = nameof(List<int>.AddRange);
+
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;
     public readonly TExpressionSyntax StartExpression;
@@ -95,12 +98,12 @@ internal readonly struct UpdateExpressionState<
     {
         return TryAnalyzeInvocation(
             statement,
-             WellKnownMemberNames.CollectionInitializerAddMethodName,
-             requiredArgumentName,
-             forCollectionExpression,
-             cancellationToken,
-             out instance,
-             out _);
+            WellKnownMemberNames.CollectionInitializerAddMethodName,
+            requiredArgumentName,
+            forCollectionExpression,
+            cancellationToken,
+            out instance,
+            out _);
     }
 
     public bool TryAnalyzeAddRangeInvocation<TExpressionStatementSyntax>(
@@ -113,7 +116,7 @@ internal readonly struct UpdateExpressionState<
     {
         return TryAnalyzeInvocation(
             statement,
-            nameof(List<int>.AddRange),
+            AddRangeName,
             requiredArgumentName,
             forCollectionExpression: true,
             cancellationToken,
@@ -131,6 +134,9 @@ internal readonly struct UpdateExpressionState<
         out bool useSpread)
         where TExpressionStatementSyntax : TStatementSyntax
     {
+        // Only collection expressions support converting AddRange(...) calls.  So this should not be called for the Add case.
+        Contract.ThrowIfTrue(addName == AddRangeName && !forCollectionExpression);
+
         instance = null;
         useSpread = false;
 
@@ -143,11 +149,6 @@ internal readonly struct UpdateExpressionState<
 
         var arguments = this.SyntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
         if (arguments.Count < 1)
-            return false;
-
-        // Collection expressions can only call the single argument Add/AddRange methods on a type.
-        // So if we don't have exactly one argument, fail out.
-        if (forCollectionExpression && arguments.Count != 1)
             return false;
 
         if (requiredArgumentName != null && arguments.Count != 1)
@@ -194,6 +195,49 @@ internal readonly struct UpdateExpressionState<
 
         if (arity != 0 || !Equals(name, addName))
             return false;
+
+        // Collection expressions can only call the single argument Add/AddRange methods on a type.
+        // So if we don't have exactly one argument, fail out.
+        if (forCollectionExpression)
+        {
+            if (addName == WellKnownMemberNames.CollectionInitializerAddMethodName)
+            {
+                // Any call to `.Add(...)` for a collection expression can only have a single argument.
+                if (arguments.Count != 1)
+                    return false;
+            }
+            else if (addName == AddRangeName)
+            {
+                // AddRange can be of the form `AddRange(IEnumerable<T> values)` or it could be `AddRange(params T[]
+                // values)`  If the former, we only allow a single argument.  If the latter, we can allow multiple
+                // expressions.  The former will be converted to a spread element.  The latter will be added
+                // individually.
+                var method = this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() as IMethodSymbol;
+                if (method is null)
+                    return false;
+
+                if (method.Parameters.Length != 1)
+                    return false;
+
+                if (method.Parameters[0].IsParams)
+                {
+
+                }
+                else
+                {
+                    // It was like `AddRange(IEnumerable<T> values)`.  There needs to be a single value passed.  When
+                    // converted to a collection expression, we'll use 
+                    if (arguments.Count != 1)
+                        return false;
+
+                    useSpread = true;
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(addName);
+            }
+        }
 
         instance = localInstance as TExpressionSyntax;
         return instance != null;
