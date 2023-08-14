@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
+        private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[32], 2);
 
         private BlendedNode[] _blendedTokens;
 
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 _firstBlender = default(Blender);
-                _lexedTokens = new ArrayElement<SyntaxToken>[32];
+                _lexedTokens = s_lexedTokensPool.Allocate();
             }
 
             // PreLex is not cancellable. 
@@ -93,6 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
+                }
+            }
+
+            var lexedTokens = _lexedTokens;
+            if (lexedTokens != null)
+            {
+                _lexedTokens = null;
+                if (lexedTokens.Length < 4096)
+                {
+                    Array.Clear(lexedTokens, 0, lexedTokens.Length);
+                    s_lexedTokensPool.Free(lexedTokens);
+                }
+                else
+                {
+                    s_lexedTokensPool.ForgetTrackedObject(lexedTokens);
                 }
             }
         }
@@ -124,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // NOTE: Do not cancel in this method. It is called from the constructor.
             var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
-            _lexedTokens = new ArrayElement<SyntaxToken>[size];
             var lexer = this.lexer;
             var mode = _mode;
 
@@ -422,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                var tmp = new ArrayElement<SyntaxToken>[_lexedTokens.Length * 2];
-                Array.Copy(_lexedTokens, tmp, _lexedTokens.Length);
-                _lexedTokens = tmp;
+                var old = _lexedTokens;
+                Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
+                s_lexedTokensPool.ForgetTrackedObject(old, replacement: _lexedTokens);
             }
         }
 
