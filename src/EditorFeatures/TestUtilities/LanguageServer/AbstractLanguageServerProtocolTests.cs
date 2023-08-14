@@ -639,6 +639,13 @@ namespace Roslyn.Test.Utilities
                 return result;
             }
 
+            public async Task<ResponseType?> ExecuteRequest0Async<ResponseType>(string methodName, CancellationToken cancellationToken)
+            {
+                // If creating the LanguageServer threw we might timeout without this.
+                var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return result;
+            }
+
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
