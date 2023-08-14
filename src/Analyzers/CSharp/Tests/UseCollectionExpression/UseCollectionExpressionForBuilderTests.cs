@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -161,7 +158,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -174,7 +171,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([0]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -199,7 +196,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -212,7 +209,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([0]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -238,7 +235,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -262,7 +259,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -290,7 +287,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -303,7 +300,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([0, .. x]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -333,7 +330,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -346,7 +343,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([0, .. x]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -376,7 +373,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -406,7 +403,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -440,7 +437,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -453,7 +450,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([0, .. x, .. y]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -487,7 +484,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -500,7 +497,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([.. x, 0, .. y]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -534,7 +531,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -547,7 +544,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([.. x, .. y, 0]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -572,7 +569,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -585,7 +582,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([.. x]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -610,7 +607,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -623,7 +620,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([1]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -648,7 +645,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             FixedCode = """
@@ -661,7 +658,109 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo([1, 2, 3]);
                     }
                 
-                    void Goo(ImmutableArray<int> value) { }
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveToImmutable()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        [|var builder = ImmutableArray.[|CreateBuilder|]<int>(1);|]
+                        [|builder.Add(|]0);
+                        Goo(builder.MoveToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        Goo([0]);
+                    }
+                
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestToArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        [|var builder = ImmutableArray.[|CreateBuilder|]<int>(1);|]
+                        [|builder.Add(|]0);
+                        Goo(builder.ToArray());
+                    }
+
+                    void Goo(int[] values) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        Goo([0]);
+                    }
+                
+                    void Goo(int[] values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithOtherBuilderUsageAfter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        var builder = ImmutableArray.CreateBuilder<int>();
+                        builder.Add(0);
+                        Goo(builder.ToImmutable());
+                        builder.Add(0);
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
