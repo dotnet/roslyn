@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
     public CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
