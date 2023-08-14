@@ -255,6 +255,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                     or nameof(ImmutableArray<int>.Builder.ToArray)
                     or nameof(ArrayBuilder<int>.ToImmutableAndClear)
                     or nameof(ArrayBuilder<int>.ToImmutableAndFree)
+                    or nameof(ArrayBuilder<int>.ToArrayAndFree)
                     or nameof(Enumerable.ToList))
             {
                 return invocationExpression;
