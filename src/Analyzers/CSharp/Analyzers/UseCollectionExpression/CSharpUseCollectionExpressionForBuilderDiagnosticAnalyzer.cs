@@ -33,11 +33,6 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     private const string CreateBuilderName = nameof(ImmutableArray.CreateBuilder);
     private const string GetInstanceName = nameof(ArrayBuilder<int>.GetInstance);
 
-    public const string UnwrapArgument = nameof(UnwrapArgument);
-
-    private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
-        ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -140,7 +135,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         }
     }
 
-    private static CollectionBuilderMatch? AnalyzeInvocation(
+    public static CollectionBuilderMatch? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         CancellationToken cancellationToken)
