@@ -33,23 +33,14 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     {
     }
 
-    protected override void InitializeWorker(CompilationStartAnalysisContext context)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
     {
-        var collectionBuilderAttribute = context.Compilation.CollectionBuilderAttribute();
         if (collectionBuilderAttribute is null)
             return;
 
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-        {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
-                SyntaxKind.InvocationExpression);
-        });
+        context.RegisterSyntaxNodeAction(
+            context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
+            SyntaxKind.InvocationExpression);
     }
 
     private void AnalyzeInvocationExpression(

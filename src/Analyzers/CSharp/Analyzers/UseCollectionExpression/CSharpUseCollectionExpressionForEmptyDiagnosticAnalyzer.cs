@@ -26,20 +26,8 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
     {
     }
 
-    protected override void InitializeWorker(CompilationStartAnalysisContext context)
-    {
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-        {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeMemberAccess(context),
-                SyntaxKind.SimpleMemberAccessExpression);
-        });
-    }
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+        => context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
 
     private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
     {
