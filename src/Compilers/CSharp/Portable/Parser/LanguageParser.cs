@@ -9713,7 +9713,7 @@ done:;
         }
 
         /// <summary>
-        /// Parse a local variable declaration for constructs where the variable declaration is enclodes in parentheses.
+        /// Parse a local variable declaration for constructs where the variable declaration is enclosed in parentheses.
         /// Specifically, only for the `fixed (...)` `for(...)` or `using (...)` statements.
         /// </summary>
         private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration()
