@@ -15,7 +15,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
     using static UseCollectionInitializerHelpers;
-    using static UpdateObjectCreationHelpers;
 
     internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
@@ -65,8 +64,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         public ImmutableArray<Match<TStatementSyntax>> Analyze(
-            SemanticModel semanticModel,
-            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
@@ -74,8 +71,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var statement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
 
             var state =
-                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken);
+                TryInitializeVariableDeclarationCase(objectCreationExpression, statement, cancellationToken) ??
+                TryInitializeAssignmentCase(objectCreationExpression, statement, cancellationToken);
 
             if (state is null)
                 return default;

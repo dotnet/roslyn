@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -60,6 +61,59 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return default;
 
             return matches.ToImmutable();
+        }
+
+        protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase(
+            TExpressionSyntax rootExpression,
+            TStatementSyntax containingStatement,
+            CancellationToken cancellationToken)
+        {
+            if (!this.SyntaxFacts.IsLocalDeclarationStatement(containingStatement))
+                return null;
+
+            var containingDeclarator = rootExpression.Parent?.Parent;
+            if (containingDeclarator is null)
+                return null;
+
+            var initializedSymbol = this.SemanticModel.GetDeclaredSymbol(containingDeclarator, cancellationToken);
+            if (initializedSymbol is ILocalSymbol local &&
+                local.Type is IDynamicTypeSymbol)
+            {
+                // Not supported if we're creating a dynamic local.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return null;
+            }
+
+            if (!this.SyntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, containingStatement))
+                return null;
+
+            var valuePattern = this.SyntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
+            return new(this.SemanticModel, this.SyntaxFacts, rootExpression, valuePattern, initializedSymbol);
+        }
+
+        protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeAssignmentCase(
+            TExpressionSyntax rootExpression,
+            TStatementSyntax containingStatement,
+            CancellationToken cancellationToken)
+        {
+            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(containingStatement))
+                return null;
+
+            this.SyntaxFacts.GetPartsOfAssignmentStatement(containingStatement,
+                out var left, out var right);
+            if (right != rootExpression)
+                return null;
+
+            var typeInfo = this.SemanticModel.GetTypeInfo(left, cancellationToken);
+            if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
+            {
+                // Not supported if we're initializing something dynamic.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return null;
+            }
+
+            var initializedSymbol = this.SemanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
+            return new(this.SemanticModel, this.SyntaxFacts, rootExpression, left, initializedSymbol);
         }
     }
 }

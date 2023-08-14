@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -13,8 +14,6 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
-    using static UpdateObjectCreationHelpers;
-
     internal class UseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
             TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax,
-            Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>
+            Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>, IDisposable
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -34,33 +33,30 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly ObjectPool<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
             = SharedPools.Default<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
 
-        public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
-            SemanticModel semanticModel,
-            ISyntaxFacts syntaxFacts,
+        public static UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax> Allocate()
+            => s_pool.Allocate();
+
+        public void Dispose()
+        {
+            this.Clear();
+            s_pool.Free(this);
+        }
+
+        public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
             var statement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
 
             var state =
-                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(semanticModel, syntaxFacts, (TExpressionSyntax)objectCreationExpression, statement, cancellationToken);
+                TryInitializeVariableDeclarationCase(objectCreationExpression, statement, cancellationToken) ??
+                TryInitializeAssignmentCase(objectCreationExpression, statement, cancellationToken);
 
             if (state is null)
                 return default;
 
-            var analyzer = s_pool.Allocate();
-
-            analyzer.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
-            try
-            {
-                return analyzer.AnalyzeWorker(cancellationToken);
-            }
-            finally
-            {
-                analyzer.Clear();
-                s_pool.Free(analyzer);
-            }
+            this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
+            return this.AnalyzeWorker(cancellationToken);
         }
 
         protected override bool ShouldAnalyze(CancellationToken cancellationToken)
