@@ -875,9 +875,9 @@ struct A { }";
             // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // using x = int;
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
-            // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,11): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using x = int;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("using type alias").WithLocation(1, 11));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "int").WithArguments("using type alias", "12.0").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -908,7 +908,7 @@ struct A { }";
     {
         var text = @"using x = int;";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = int;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int;").WithLocation(1, 1),
@@ -4047,9 +4047,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
-            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using unsafe static System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 7),
             // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
@@ -4097,9 +4097,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
-            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using unsafe static System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 7),
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14));
@@ -4140,7 +4140,7 @@ using X = __makeref;
     {
         var text = @"using unsafe static System.Console;";
 
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
@@ -4187,7 +4187,7 @@ using X = __makeref;
     {
         var text = @"using unsafe static System.Console;";
 
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static System.Console;").WithLocation(1, 1),
@@ -4235,9 +4235,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
-            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using unsafe static X = System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 7),
             // (1,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 7),
@@ -4296,9 +4296,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
-            // (1,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using unsafe static X = System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 7),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 7),
             // (1,14): error CS9133: 'static' modifier must precede 'unsafe' modifier.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.ERR_BadStaticAfterUnsafe, "static").WithLocation(1, 14),
@@ -4350,7 +4350,7 @@ using X = __makeref;
     {
         var text = @"using unsafe static X = System.Console;";
 
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
@@ -4408,7 +4408,7 @@ using X = __makeref;
     {
         var text = @"using unsafe static X = System.Console;";
 
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using unsafe static X = System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe static X = System.Console;").WithLocation(1, 1),
@@ -4468,9 +4468,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 14),
             // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // using static unsafe System.Console;
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
@@ -4511,9 +4511,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using static unsafe System.Console;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 14));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -4547,7 +4547,7 @@ using X = __makeref;
         var text = @"using static unsafe System.Console;";
 
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
@@ -4587,7 +4587,7 @@ using X = __makeref;
         var text = @"using static unsafe System.Console;";
 
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Console;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1));
@@ -4628,9 +4628,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 14),
             // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // using static unsafe System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 14));
@@ -4712,9 +4712,9 @@ using X = __makeref;
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
-            // (1,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
             // using static unsafe System.Collections.Generic.List<int*[]>;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(1, 14));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -4789,7 +4789,7 @@ using X = __makeref;
         var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
 
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
@@ -4870,7 +4870,7 @@ using X = __makeref;
         var text = @"using static unsafe System.Collections.Generic.List<int*[]>;";
 
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static unsafe System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Collections.Generic.List<int*[]>;").WithLocation(1, 1));
@@ -5104,7 +5104,7 @@ using X = __makeref;
         var text = @"using static System.Collections.Generic.List<int*[]>;";
 
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),
@@ -5184,7 +5184,7 @@ using X = __makeref;
         var text = @"using static System.Collections.Generic.List<int*[]>;";
 
         UsingTree(text);
-        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static System.Collections.Generic.List<int*[]>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static System.Collections.Generic.List<int*[]>;").WithLocation(1, 1),

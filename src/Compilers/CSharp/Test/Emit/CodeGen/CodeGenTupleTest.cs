@@ -5401,9 +5401,9 @@ class C
 using VT2 = (int, int);
 ";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,13): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int, int)").WithArguments("using type alias", "12.0").WithLocation(2, 13),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -7040,7 +7040,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7061,13 +7061,12 @@ class C
                 // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = (1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
-                );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7097,7 +7096,7 @@ class C
                 // (12,32): error CS1525: Invalid expression term ')'
                 //         x = ((int, int))(1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((int, int))(null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((int, int))(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0030: Cannot convert type '(int, int, int)' to '(int, int)'
@@ -7118,13 +7117,12 @@ class C
                 // (14,29): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = ((int, int))(1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 29),
-                // (15,29): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,32): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = ((int, int))(1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 29),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 32),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = ((int, int))null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13)
-                );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7155,7 +7153,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7176,14 +7174,12 @@ class C
                 // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = (1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
-
-            );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7214,7 +7210,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(string, string)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(string, string)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(string, string)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(string, string)'
@@ -7232,14 +7228,12 @@ class C
                 // (15,14): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         x = (1, (t)=>t);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(15, 14),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "string").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(string, string)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13)
-                );
-
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7270,7 +7264,7 @@ class C
                 // (12,21): error CS1525: Invalid expression term ')'
                 //         x = ((1, 1, ), 1);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 21),
-                // (8,14): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,14): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((null, null, null), 1);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 14),
                 // (9,14): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7291,14 +7285,12 @@ class C
                 // (14,18): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = ((1, null), 1);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 18),
-                // (15,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,21): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = ((1, (t)=>t), 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 21),
                 // (16,14): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = (null, 1);
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 14)
-
-             );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 14));
         }
 
         [Fact]

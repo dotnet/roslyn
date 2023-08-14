@@ -284,6 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
 #nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingAssembly.ObsoleteAttributeData;
 
         internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {

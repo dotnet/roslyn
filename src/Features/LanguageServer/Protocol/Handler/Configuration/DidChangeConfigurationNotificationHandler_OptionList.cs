@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
@@ -56,6 +55,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             FormattingOptions2.InsertFinalNewLine,
             // Background analysis
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
-            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+            // Code lens options
+            LspOptionsStorage.LspEnableReferencesCodeLens,
+            LspOptionsStorage.LspEnableTestsCodeLens);
     }
 }

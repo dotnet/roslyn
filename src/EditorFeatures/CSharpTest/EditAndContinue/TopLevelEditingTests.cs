@@ -994,6 +994,57 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Insert_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + keyword + " C { int a; }";
+            var src2 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Update_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + "[System.Runtime.CompilerServices.InlineArray(2)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Update_InlineArray_Reloadable(string keyword)
+        {
+            var attribute = ReloadableAttributeSrc + "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[CreateNewOnMetadataUpdate, InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + "[CreateNewOnMetadataUpdate, InlineArray(2)]" + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
         [Fact]
         public void Type_Attribute_Update_NotSupportedByRuntime1()
         {
@@ -1065,6 +1116,23 @@ class C
             edits.VerifySemanticDiagnostics(
                 new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
                 capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        public void Type_Attribute_Delete_InlineArray(string keyword)
+        {
+            var attribute = "namespace System.Runtime.CompilerServices { public class InlineArrayAttribute : Attribute { public InlineArrayAttribute(int n) { } } } ";
+
+            var src1 = attribute + "[System.Runtime.CompilerServices.InlineArray(1)]" + keyword + " C { int a; }";
+            var src2 = attribute + keyword + " C { int a; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttribute, keyword + " C", "InlineArrayAttribute") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -1269,7 +1337,7 @@ public class A3 : System.Attribute { }
                 "Update [" + keyword + " C { }]@0 -> [" + keyword + " D { }]@0");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, keyword + " D", GetResource(keyword)));
+                Diagnostic(RudeEditKind.Renamed, keyword + " D", GetResource(keyword, "C")));
         }
 
         [Fact]
@@ -1289,7 +1357,7 @@ public class A3 : System.Attribute { }
                 "Delete [x = 1]@14");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.Renamed, "class D", GetResource("class", "C")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54886")]
@@ -1305,7 +1373,7 @@ public class A3 : System.Attribute { }
 
             // TODO: expected: Replace edit of D
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.Renamed, "class D", GetResource("class", "C")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54886")]
@@ -1326,7 +1394,7 @@ public class A3 : System.Attribute { }
 
             // TODO: expected: Replace edit of D
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.Renamed, "class D", GetResource("class", "C")));
         }
 
         [Fact]
@@ -2782,6 +2850,35 @@ class C
         #region Records
 
         [Fact]
+        public void Record_Insert()
+        {
+            var src1 = "";
+            var src2 = "record C;";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [record C;]@0");
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Record_Insert_WithParameters()
+        {
+            var src1 = "";
+            var src2 = "record C(int A);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
         public void Record_Name_Update()
         {
             var src1 = "record C { }";
@@ -2793,7 +2890,7 @@ class C
                 "Update [record C { }]@0 -> [record D { }]@0");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "record D", CSharpFeaturesResources.record_));
+                Diagnostic(RudeEditKind.Renamed, "record D", GetResource("record", "C")));
         }
 
         [Fact]
@@ -3068,10 +3165,10 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
         }
 
         [Theory]
-        [InlineData("Equals", "public virtual bool Equals(C rhs) => true;", "Equals(C other)", "other")]
-        [InlineData("PrintMembers", "protected virtual bool PrintMembers(System.Text.StringBuilder sb) => true;", "PrintMembers(StringBuilder builder)", "builder")]
-        [InlineData("Deconstruct", "public void Deconstruct(out int Y) { Y = 1; }", "Deconstruct(out int X)", "X")]
-        [InlineData(".ctor", "protected C(C other) {}", "C(C original)", "original")]
+        [InlineData("Equals", "public virtual bool Equals(C rhs) => true;", "Equals(C rhs)", "rhs")]
+        [InlineData("PrintMembers", "protected virtual bool PrintMembers(System.Text.StringBuilder sb) => true;", "PrintMembers(StringBuilder sb)", "sb")]
+        [InlineData("Deconstruct", "public void Deconstruct(out int Y) { Y = 1; }", "Deconstruct(out int Y)", "Y")]
+        [InlineData(".ctor", "protected C(C other) {}", "C(C other)", "other")]
         public void Record_Method_Delete_ReplacingSynthesizedWithCustom_ParameterNameChanges(string methodName, string methodImpl, string methodDisplay, string parameterDisplay)
         {
             var src1 = "record C(int X) { " + methodImpl + " }";
@@ -3443,7 +3540,7 @@ record C(int X)
 
             // synthesized setter is writable in non-readonly struct
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "record struct C", GetResource("property setter", "X.init")));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "record struct C"));
         }
 
         [Fact]
@@ -3621,7 +3718,7 @@ record C(int X)
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", GetResource("property")) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", GetResource("auto-property")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -3751,7 +3848,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "set", GetResource("property setter")));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "set"));
         }
 
         [Fact]
@@ -3984,7 +4081,7 @@ record C(int X)
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int P", GetResource("property")) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int P", GetResource("auto-property")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -4183,7 +4280,7 @@ record C(int X)
                 "Update [enum Color { Red = 1, Blue = 2, }]@0 -> [enum Colors { Red = 1, Blue = 2, }]@0");
 
             edits.VerifySemanticDiagnostics(
-                 Diagnostic(RudeEditKind.Renamed, "enum Colors", FeaturesResources.enum_));
+                 Diagnostic(RudeEditKind.Renamed, "enum Colors", GetResource("enum", "Color")));
         }
 
         [Fact]
@@ -4425,7 +4522,7 @@ record C(int X)
                 "Update [Red]@13 -> [Orange]@13");
 
             edits.VerifySemanticDiagnostics(
-                 Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.enum_value));
+                 Diagnostic(RudeEditKind.Renamed, "Orange", GetResource("enum value", "Red")));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
@@ -4615,7 +4712,7 @@ record C(int X)
                 "Update [public delegate void D();]@0 -> [public delegate void Z();]@0");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", FeaturesResources.delegate_));
+                Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", GetResource("delegate", "D")));
         }
 
         [Fact]
@@ -4725,7 +4822,7 @@ record C(int X)
                 "Update [int a]@22 -> [int b]@22");
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", GetResource("parameter", "int b")) },
+                new[] { Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", GetResource("parameter")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
@@ -4749,7 +4846,7 @@ record C(int X)
                 "Update [int a]@22 -> [byte a]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "byte a", GetResource("parameter", "byte a")));
+                Diagnostic(RudeEditKind.TypeUpdate, "byte a", GetResource("parameter")));
         }
 
         [Fact]
@@ -4775,7 +4872,7 @@ record C(int X)
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", GetResource("parameter", "int a")) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", GetResource("parameter")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -4836,7 +4933,7 @@ record C(int X)
                 "Update [T]@22 -> [S]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.Renamed, "S", GetResource("type parameter", "T")));
         }
 
         [Fact]
@@ -5005,7 +5102,7 @@ record C(int X)
                 "Update [int b]@22 -> [in int b]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", GetResource("parameter", "in int b")));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", GetResource("parameter")));
         }
 
         [Fact]
@@ -5727,7 +5824,7 @@ class D<T>
                     DocumentResults(
                         diagnostics: new[]
                         {
-                            Diagnostic(RudeEditKind.InitializerUpdate, "int x = 2", GetResource("parameter", "int x"))
+                            Diagnostic(RudeEditKind.InitializerUpdate, "int x = 2", GetResource("parameter"))
                         }),
 
                     DocumentResults()
@@ -8554,7 +8651,7 @@ class C
                 $"Update [{modifier} void goo() {{ }}]@16 -> [{modifier} void boo() {{ }}]@16");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, $"{modifier} void boo()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Renamed, $"{modifier} void boo()", GetResource("method", "goo()")));
         }
 
         [Fact]
@@ -9152,138 +9249,137 @@ class C : I, J
         [Fact]
         public void MethodUpdate_ExplicitlyImplemented2()
         {
+            var interfaces = @"
+interface I { void Goo(); }
+interface J { void Goo(); }
+";
+
             var src1 = @"
 class C : I, J
 {
     void I.Goo() { Console.WriteLine(1); }
     void J.Goo() { Console.WriteLine(2); }
-}";
+}
+" + interfaces;
+
             var src2 = @"
 class C : I, J
 {
     void Goo() { Console.WriteLine(1); }
     void J.Goo() { Console.WriteLine(2); }
-}";
+}
+" + interfaces;
+
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
                 "Update [void I.Goo() { Console.WriteLine(1); }]@25 -> [void Goo() { Console.WriteLine(1); }]@25");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "void Goo()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.Renamed, "void Goo()", GetResource("method", "I.Goo()")));
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
-        public void MethodUpdate_UpdateStackAlloc()
+        [Fact]
+        public void MethodUpdate_StackAlloc_Update()
         {
             var src1 = @"
 class C
 {
-    static void Main(string[] args) 
+    static void Main() 
     { 
-            int i = 10;
-            unsafe
-            {
-                int* px2 = &i;
-            }
+        int i = 1;
+        unsafe
+        {
+            char* buffer = stackalloc char[16];
+            int* px2 = &i;
+        }
     }
 }";
             var src2 = @"
 class C
 {
-    static void Main(string[] args) 
+    static void Main() 
     { 
-            int i = 10;
-            unsafe
-            {
-                char* buffer = stackalloc char[16];
-                int* px2 = &i;
-            }
+        int i = 2;
+        unsafe
+        {
+            char* buffer = stackalloc char[16];
+            int* px2 = &i;
+        }
     }
 }";
-            var expectedEdit = @"Update [static void Main(string[] args) 
-    { 
-            int i = 10;
-            unsafe
-            {
-                int* px2 = &i;
-            }
-    }]@18 -> [static void Main(string[] args) 
-    { 
-            int i = 10;
-            unsafe
-            {
-                char* buffer = stackalloc char[16];
-                int* px2 = &i;
-            }
-    }]@18";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(expectedEdit);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
-        }
-
-        [Theory]
-        [InlineData("stackalloc int[3]")]
-        [InlineData("stackalloc int[3] { 1, 2, 3 }")]
-        [InlineData("stackalloc int[] { 1, 2, 3 }")]
-        [InlineData("stackalloc[] { 1, 2, 3 }")]
-        public void MethodUpdate_UpdateStackAlloc2(string stackallocDecl)
-        {
-            var src1 = @"unsafe class C { static int F() { var x = " + stackallocDecl + "; return 1; } }";
-            var src2 = @"unsafe class C { static int F() { var x = " + stackallocDecl + "; return 2; } }";
-
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc char[16]", FeaturesResources.method));
         }
 
         [Fact]
-        public void MethodUpdate_UpdateStackAllocInLambda1()
+        public void MethodUpdate_StackAlloc_Insert()
         {
-            var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
-            var src2 = "unsafe class C { void M() { F(2, () => { int* a = stackalloc int[10]; }); } }";
-
+            var src1 = @"
+class C
+{
+    static void Main() 
+    { 
+        int i = 10;
+        unsafe
+        {
+            int* px2 = &i;
+        }
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main() 
+    { 
+        int i = 10;
+        unsafe
+        {
+            char* buffer = stackalloc char[16];
+            int* px2 = &i;
+        }
+    }
+}";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc char[16]", FeaturesResources.method));
         }
 
         [Fact]
-        public void MethodUpdate_UpdateStackAllocInLambda2()
+        public void MethodUpdate_StackAlloc_Delete()
         {
-            var src1 = "unsafe class C { void M() { F(1, x => { int* a = stackalloc int[10]; }); } }";
-            var src2 = "unsafe class C { void M() { F(2, x => { int* a = stackalloc int[10]; }); } }";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics();
+            var src1 = @"
+class C
+{
+    static void Main() 
+    { 
+        int i = 10;
+        unsafe
+        {
+            char* buffer = stackalloc char[16];
+            int* px2 = &i;
         }
-
-        [Fact]
-        public void MethodUpdate_UpdateStackAllocInAnonymousMethod()
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main() 
+    { 
+        int i = 10;
+        unsafe
         {
-            var src1 = "unsafe class C { void M() { F(1, delegate(int x) { int* a = stackalloc int[10]; }); } }";
-            var src2 = "unsafe class C { void M() { F(2, delegate(int x) { int* a = stackalloc int[10]; }); } }";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics();
+            int* px2 = &i;
         }
-
-        [Fact]
-        public void MethodUpdate_UpdateStackAllocInLocalFunction()
-        {
-            var src1 = "class C { void M() { unsafe void f(int x) { int* a = stackalloc int[10]; } f(1); } }";
-            var src2 = "class C { void M() { unsafe void f(int x) { int* a = stackalloc int[10]; } f(2); } }";
-
+    }
+}";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "static void Main()", FeaturesResources.method));
         }
 
         [Fact]
@@ -9357,28 +9453,6 @@ class C
         {
             var src1 = "class C { void M() => F(1, delegate(int a) { return a; }); }";
             var src2 = "class C { void M() => F(2, delegate(int a) { return a; }); }";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics();
-        }
-
-        [Fact]
-        public void MethodUpdate_Query()
-        {
-            var src1 = "class C { void M() { F(1, from goo in bar select baz); } }";
-            var src2 = "class C { void M() { F(2, from goo in bar select baz); } }";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics();
-        }
-
-        [Fact]
-        public void MethodWithExpressionBody_Update_Query()
-        {
-            var src1 = "class C { void M() => F(1, from goo in bar select baz); }";
-            var src2 = "class C { void M() => F(2, from goo in bar select baz); }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -10455,7 +10529,7 @@ class C
                 new[]
                 {
                     Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "int x", GetResource("parameter")),
-                    Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "int x", GetResource("property"))
+                    Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "int x", GetResource("auto-property"))
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
@@ -11914,16 +11988,40 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
-        public void Constructor_Instance_Update_Initializer_StackAlloc()
+        public void Constructor_Instance_Update_Initializer_StackAlloc_Update()
         {
             var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
             var src2 = "class C { C() : this(stackalloc int[2]) {} C(Span<int> span) {} }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[2]", FeaturesResources.constructor));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Constructor_Instance_Update_Initializer_StackAlloc_Delete()
+        {
+            var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
+            var src2 = "class C { C() : this(default) {} C(Span<int> span) {} }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "C()", FeaturesResources.constructor));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Constructor_Instance_Update_Initializer_StackAlloc_Insert()
+        {
+            var src1 = "class C { C() : this(default) {} C(Span<int> span) {} }";
+            var src2 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[1]", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -12275,6 +12373,108 @@ partial class C
                     Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", GetResource("parameter")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void Constructor_Instance_Insert_ReplacingDefault_Class_WithMemberInitializers(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+}
+";
+            var src2 = @"
+" + typeKind + @" C
+{
+    private int a = 10;
+    private int b;
+
+    public C() { b = 3; }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [public C() { b = 3; }]@66", "Insert [()]@74");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
+                });
+        }
+
+        [Fact]
+        public void Constructor_Instance_Insert_ReplacingDefault_WithStackAllocInMemberInitializer()
+        {
+            var src1 = "class C { int a = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; }";
+            var src2 = "class C { int a = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; public C() {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "public C()", GetResource("constructor")));
+        }
+
+        [Fact]
+        public void Constructor_Instance_Insert_ReplacingDefault_WithStackAllocInMemberInitializer_Static()
+        {
+            var src1 = "class C { static int a = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; }";
+            var src2 = "class C { static int a = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; public C() {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Constructor_Instance_Insert_ReplacingDefault_WithStackAllocInMemberInitializer_Partial()
+        {
+            var srcA1 = "partial class C { int a = G(stackalloc int[10]); }";
+            var srcB1 = "partial class C { static int G(System.Span<int> span) => 1; }";
+
+            var srcA2 = "partial class C { int a = G(stackalloc int[10]); }";
+            var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; public C() { } }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+
+                    DocumentResults(
+                        diagnostics: new[]
+                        {
+                            Diagnostic(RudeEditKind.StackAllocUpdate, "public C()", GetResource("constructor"))
+                        }),
+                });
+        }
+
+        [Fact]
+        public void Constructor_Instance_Insert_ReplacingExplicitWithDefault_WithStackAllocInMemberInitializer_Partial()
+        {
+            var srcA1 = "partial class C { int a = G(stackalloc int[10]); }";
+            var srcB1 = "partial class C { static int G(System.Span<int> span) => 1; public C() { } }";
+
+            var srcA2 = "partial class C { int a = G(stackalloc int[10]); }";
+            var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+
+                    DocumentResults(
+                        diagnostics: new[]
+                        {
+                            Diagnostic(RudeEditKind.StackAllocUpdate, "partial class C", GetResource("constructor", "C()"))
+                        }),
+                });
         }
 
         [Theory]
@@ -13610,39 +13810,6 @@ partial class C
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Theory]
-        [InlineData("class ")]
-        [InlineData("struct")]
-        public void Constructor_Insert_Parameterless(string typeKind)
-        {
-            var src1 = @"
-" + typeKind + @" C
-{
-    private int a = 10;
-    private int b;
-}
-";
-            var src2 = @"
-" + typeKind + @" C
-{
-    private int a = 10;
-    private int b;
-
-    public C() { b = 3; }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Insert [public C() { b = 3; }]@66", "Insert [()]@74");
-
-            edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                });
-        }
-
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_Static_Update_Modifier_Extern_Add()
@@ -14400,7 +14567,7 @@ public class C
             edits.VerifySemanticDiagnostics(
                 new[]
                 {
-                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int a", GetResource("property")),
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int a", GetResource("auto-property")),
                     Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "class C<T>", GetResource("constructor", "C()")),
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
@@ -14425,36 +14592,55 @@ public class C
                 "Update [a = 1]@21 -> [a = 2]@21");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", FeaturesResources.constructor));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
-        public void FieldInitializerUpdate_StackAllocInConstructor_Initializer()
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_ThisInitializer()
         {
-            var src1 = "class C { int a = 1; C() : this(stackalloc int[1]) { } C(Span<int>) { } }";
-            var src2 = "class C { int a = 2; C() : this(stackalloc int[1]) { } C(Span<int>) { } }";
+            var src1 = "class C { int a = 1; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";
+            var src2 = "class C { int a = 2; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            // no rude edits for constructors that field initializers are not emitted to
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_BaseInitializer()
+        {
+            var src1 = "class C : B { int a = 1; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
+            var src2 = "class C : B { int a = 2; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[1]", GetResource("constructor")));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67307")]
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_PrimaryBaseInitializer()
+        {
+            var src1 = "class C : B(stackalloc int[1]) { int a = 1; } class B(System.Span<int> s);";
+            var src2 = "class C : B(stackalloc int[1]) { int a = 2; } class B(System.Span<int> s);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
         public void FieldInitializerUpdate_StackAllocInOtherInitializer()
         {
-            var src1 = "unsafe class C { int a = 1; int b = G(stackalloc int[10]); int G(Span<int> span) => 1; }";
-            var src2 = "unsafe class C { int a = 2; int b = G(stackalloc int[10]); int G(Span<int> span) => 1; }";
+            var src1 = "class C { int a = 1; int b = G(stackalloc int[10]); static int G(Span<int> span) => 1; }";
+            var src2 = "class C { int a = 2; int b = G(stackalloc int[10]); static int G(Span<int> span) => 1; }";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [a = 1]@21 -> [a = 2]@21");
-
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                 Diagnostic(RudeEditKind.StackAllocUpdate, "class C", GetResource("constructor", "C()")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
@@ -14470,15 +14656,45 @@ public class C
         }
 
         [Fact]
-        public void PropertyInitializerUpdate_StackAlloc()
+        public void PropertyInitializerUpdate_StackAlloc_Update()
         {
-            var src1 = "unsafe class C { int a { get; } = G(stackalloc int[10]); public G(Span<int> span) => 1; }";
-            var src2 = "unsafe class C { int a { get; } = G(stackalloc int[20]); public G(Span<int> span) => 1; }";
+            var src1 = "class C { int a { get; } = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; }";
+            var src2 = "class C { int a { get; } = G(stackalloc int[20]); static int G(System.Span<int> span) => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            // Note: One edit is for the initializer and the other for implicit constructor.
+            // We don't attempt to avoid duplicates reported for different memebers.
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("auto-property")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "class C", GetResource("constructor", "C()")));
+        }
+
+        [Fact]
+        public void PropertyInitializerUpdate_StackAlloc_Delete()
+        {
+            var src1 = "class C { int a { get; } = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; }";
+            var src2 = "class C { int a { get; } = G(default); static int G(System.Span<int> span) => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            // Note: One edit is for the initializer and the other for implicit constructor.
+            // We don't attempt to avoid duplicates reported for different memebers.
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "int a", GetResource("auto-property")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "class C", GetResource("constructor", "C()")));
+        }
+
+        [Fact]
+        public void PropertyInitializerUpdate_StackAlloc_Insert()
+        {
+            var src1 = "class C { int a { get; } = G(default); static int G(System.Span<int> span) => 1; }";
+            var src2 = "class C { int a { get; } = G(stackalloc int[10]); static int G(System.Span<int> span) => 1; }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("auto-property")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("auto-property")));
         }
 
         [Fact]
@@ -14491,7 +14707,7 @@ public class C
 
             // TODO (tomat): diagnostic should point to the property initializer
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -14515,7 +14731,7 @@ public class C
 
             // TODO (tomat): diagnostic should point to the property initializer
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", FeaturesResources.constructor));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37172")]
@@ -15637,7 +15853,7 @@ partial class C
                 "Update [a = 0]@14 -> [b = 0]@14");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b = 0", FeaturesResources.field));
+                Diagnostic(RudeEditKind.Renamed, "b = 0", GetResource("field", "a")));
         }
 
         [Fact]
@@ -15652,7 +15868,7 @@ partial class C
                 "Update [Action a;]@10 -> [event Action a;]@10");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", FeaturesResources.event_));
+                Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", GetResource("field")));
         }
 
         [Theory]
@@ -15679,7 +15895,7 @@ partial class C
             edits.VerifyEdits("Update [" + oldModifiers + "int F = 0;]@10 -> [" + newModifiers + "int F = 0;]@10");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int F = 0", FeaturesResources.field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int F = 0", GetResource(oldModifiers.Contains("const") ? "const field" : "field")));
         }
 
         [Fact]
@@ -15771,7 +15987,10 @@ partial class C
             edits.VerifyEdits(
                 "Update [a]@23 -> [a = () => { }]@23");
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -16273,7 +16492,7 @@ class C
                 ActiveStatementsDescription.Empty,
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
                 },
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
@@ -16911,7 +17130,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.property_));
+                Diagnostic(RudeEditKind.Renamed, "int J.P", GetResource("property", "I.P")));
         }
 
         [Fact]
@@ -17166,7 +17385,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "char P", FeaturesResources.property_) },
+                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "char P", GetResource("auto-property")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17210,7 +17429,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", FeaturesResources.property_) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", GetResource("auto-property")) },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17652,7 +17871,7 @@ class C
 
             // not allowed since it changes the backing field readonly-ness and the signature of the setter (modreq)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "init", CSharpFeaturesResources.property_setter));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "init"));
         }
 
         [Fact]
@@ -17668,7 +17887,7 @@ class C
 
             // not allowed since it changes the backing field readonly-ness and the signature of the setter (modreq)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "set"));
         }
 
         [Fact]
@@ -17720,7 +17939,7 @@ class C
             edits.VerifyEdits("Update [get;]@18 -> [set;]@18");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "set"));
         }
 
         [Fact]
@@ -17845,7 +18064,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 new[]
                 {
-                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int P", GetResource("property")),
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int P", GetResource("auto-property")),
                     Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int P", GetResource("property getter"))
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
@@ -17888,7 +18107,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "ref readonly int P", FeaturesResources.property_) },
+                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "ref readonly int P", GetResource("auto-property")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18088,6 +18307,78 @@ readonly struct S
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P2").GetMethod, preserveLocalVariables: false),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P3").SetMethod, preserveLocalVariables: false)
             });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        public void Property_Rename_ShadowingPrimaryParameter()
+        {
+            var src1 = @"
+class C(int A, int B)
+{
+    public int B { get; init; }
+
+    public int F() => B;
+}
+";
+            var src2 = @"
+class C(int A, int B)
+{
+    public int D { get; init; }
+
+    public int F() => B;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/69317
+            // Update D getter/setter to use deleted B property
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69216")]
+        public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
+        {
+            var src1 = @"
+class C(int A, int B)
+{
+    public int B { get; init; } = B;
+
+    public int F() => B;
+}
+";
+            var src2 = @"
+class C(int A, int B)
+{
+    public int D { get; init; } = B;
+
+    public int F() => B;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/69317
+            // Update D getter/setter to use deleted B property
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                    //SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    //SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    //SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         #endregion
@@ -18431,7 +18722,7 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", CSharpFeaturesResources.indexer));
+                Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", GetResource("indexer", "I.this[int a]")));
         }
 
         [Fact]
@@ -20343,7 +20634,7 @@ class C { static void M(string a) { } }
                 "Update [A]@8 -> [B]@8");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.Renamed, "B", GetResource("type parameter", "A")));
         }
 
         [Fact]
@@ -20375,7 +20666,7 @@ class C { static void M(string a) { } }
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.Renamed, "C", GetResource("type parameter", "A")));
         }
 
         [Fact]
@@ -20839,7 +21130,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[2]", GetResource("top-level code")));
         }
 
         [Fact]
@@ -20851,7 +21142,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[3]", GetResource("top-level code")));
         }
 
         [Fact]
@@ -20863,7 +21154,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[3]", GetResource("top-level code")));
         }
 
         [Fact]

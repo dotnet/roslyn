@@ -9,7 +9,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Xml.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -178,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             SyntaxNode? initializer)
         {
+            // some constant types will also appear as readonly when read from metadata
+            modifiers = modifiers.IsConst ? modifiers.WithIsReadOnly(false) : modifiers;
+
             return SyntaxFactory.FieldDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.FieldDeclaration),
@@ -3195,13 +3197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax ||
-                expression.IsKind(SyntaxKind.ThisExpression) ||
-                expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                expression.IsKind(SyntaxKind.InvocationExpression) ||
-                expression.IsKind(SyntaxKind.ElementAccessExpression) ||
-                expression.IsKind(SyntaxKind.MemberBindingExpression))
+                expression.Kind()
+                    is SyntaxKind.ThisExpression
+                    or SyntaxKind.BaseExpression
+                    or SyntaxKind.ParenthesizedExpression
+                    or SyntaxKind.SimpleMemberAccessExpression
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.ElementAccessExpression
+                    or SyntaxKind.MemberBindingExpression)
             {
                 return expression;
             }

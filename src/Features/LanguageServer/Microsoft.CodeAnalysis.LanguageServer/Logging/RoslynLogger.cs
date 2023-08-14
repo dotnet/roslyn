@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -94,12 +95,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
             var name = GetEventName(functionId);
             var properties = GetProperties(functionId, logMessage, delta: null);
 
             try
             {
-                _telemetryReporter?.Log(name, properties);
+                _telemetryReporter.Log(name, properties);
             }
             catch
             {
@@ -108,12 +114,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
             var eventName = GetEventName(functionId);
             var kind = GetKind(logMessage);
 
             try
             {
-                _telemetryReporter?.LogBlockStart(eventName, (int)kind, blockId);
+                _telemetryReporter.LogBlockStart(eventName, (int)kind, blockId);
             }
             catch
             {
@@ -122,10 +133,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
             var properties = GetProperties(functionId, logMessage, delta);
             try
             {
-                _telemetryReporter?.LogBlockEnd(blockId, properties, cancellationToken);
+                _telemetryReporter.LogBlockEnd(blockId, properties, cancellationToken);
             }
             catch
             {
@@ -145,6 +161,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
             currentReporter?.Dispose();
             _instance = null;
         }
+
+        [MemberNotNullWhen(false, nameof(_telemetryReporter))]
+        private static bool IgnoreReporting(LogMessage logMessage)
+            => _telemetryReporter is null ||
+               logMessage.LogLevel < LogLevel.Information;
 
         private static string GetDescription(Exception exception)
         {

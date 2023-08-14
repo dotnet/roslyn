@@ -5211,7 +5211,10 @@ class Program
     static ref T F2<T>(ref R<T> r) => ref r.F0();
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (4,25): warning CS9201: 'ref' field '_t' should be ref-assigned before use.
+                //     public R(ref T t) { _t = t; }
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "_t").WithArguments("_t").WithLocation(4, 25));
         }
 
         [Fact]
@@ -5446,8 +5449,6 @@ class Program
         [Fact]
         public void DefiniteAssignment_02()
         {
-            // Should we report a warning when assigning a value rather than a ref in the
-            // constructor, because a NullReferenceException will be thrown at runtime?
             var source =
 @"ref struct S<T>
 {
@@ -5458,7 +5459,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
+                //         F = t;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(6, 9));
         }
 
         [Fact]
@@ -5565,7 +5569,10 @@ class Program
     static ref readonly T GetRefReadonly() => throw null;
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
+                //         F = tValue;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
         }
 
         [Fact]
@@ -5601,6 +5608,9 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
+                // (7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tRef; // 2
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 9),
@@ -5650,7 +5660,10 @@ class Program
     static ref readonly T GetRefReadonly() => throw null;
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
+                //         F = tValue;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
         }
 
         [Fact]
@@ -5686,6 +5699,9 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
+                // (7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tRef; // 2
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 9),
@@ -11279,17 +11295,15 @@ scoped readonly ref struct C { }
                 );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void TypeScopeModifier_02(LanguageVersion langVersion)
+        [Fact]
+        public void TypeScopeModifier_02_CSharp10()
         {
             var source =
 @"scoped record A { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
             comp.VerifyDiagnostics(
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
@@ -11321,9 +11335,55 @@ readonly scoped record struct C();
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 32)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
+                );
+        }
+
+        [Fact]
+        public void TypeScopeModifier_02_CSharp11()
+        {
+            var source =
+@"scoped record A { }
+scoped readonly record struct B;
+readonly scoped record struct C();
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0118: 'record' is a variable but is used like a type
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
+                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
+                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
+                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
+                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
+                // (3,17): warning CS0168: The variable 'record' is declared but never used
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
+                // (3,24): error CS1002: ; expected
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
+                // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
                 );
         }
 
@@ -16130,8 +16190,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D1' because it has one or more out parameters
                 //         D1 d1 = delegate { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D1").WithLocation(13, 17));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -16164,10 +16223,9 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
+                // (12,20): error CS1593: Delegate 'D1' does not take 0 arguments
                 //         D1 d1 = () => new R();
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "0").WithLocation(12, 20));
         }
 
         [Fact]
@@ -16192,13 +16250,12 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                // (12,19): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d1 = r => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
-                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(12, 19),
+                // (13,30): error CS1593: Delegate 'D1' does not take 1 arguments
                 //         D1 d2 = (scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("D1", "1").WithLocation(13, 30));
         }
 
         [Fact]
@@ -29531,6 +29588,235 @@ Block[B2] - Exit
                 // (27,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_01()
+        {
+            var verifier = CompileAndVerify("""
+                using System;
+
+                try
+                {
+                    new RS();
+                }
+                catch (NullReferenceException)
+                {
+                    Console.Write(1);
+                }
+
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "1");
+
+            verifier.VerifyDiagnostics(
+                // (15,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(15, 20));
+
+            verifier.VerifyIL("RS..ctor", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  conv.u
+                  IL_0003:  stfld      "ref int RS.ri"
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldfld      "ref int RS.ri"
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  stind.i4
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_02()
+        {
+            var verifier = CompileAndVerify("""
+                using System;
+
+                try
+                {
+                    new RS();
+                }
+                catch (NullReferenceException)
+                {
+                    Console.Write(1);
+                }
+
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS()
+                    {
+                        int local = ri;
+                    }
+                }
+                """,
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "1");
+
+            verifier.VerifyDiagnostics(
+                // (14,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value 0
+                //     ref int ri;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "0").WithLocation(14, 13),
+                // (15,12): warning CS9022: Control is returned to caller before field 'RS.ri' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public RS()
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "RS").WithArguments("RS.ri").WithLocation(15, 12),
+                // (17,21): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //         int local = ri;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(17, 21));
+
+            verifier.VerifyIL("RS..ctor", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  .locals init (int V_0) //local
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  conv.u
+                  IL_0004:  stfld      "ref int RS.ri"
+                  IL_0009:  ldarg.0
+                  IL_000a:  ldfld      "ref int RS.ri"
+                  IL_000f:  ldind.i4
+                  IL_0010:  stloc.0
+                  IL_0011:  ret
+                }
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_03()
+        {
+            var verifier = CompileAndVerify("""
+                using System;
+
+                new RS();
+                Console.Write(1);
+
+                try
+                {
+                    new RS(ignored: true);
+                }
+                catch
+                {
+                    Console.Write(2);
+                }
+
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS()
+                    {
+                        ref int local = ref ri; // 1
+                    }
+
+                    public RS(bool ignored)
+                    {
+                        ref int local = ref ri; // 2
+                        Console.Write(local);
+                    }
+                }
+                """,
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "12");
+
+            verifier.VerifyDiagnostics(
+                // (20,29): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //         ref int local = ref ri; // 1
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(20, 29),
+                // (25,29): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //         ref int local = ref ri; // 2
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(25, 29));
+
+            verifier.VerifyIL("RS..ctor", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  .locals init (int& V_0) //local
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  conv.u
+                  IL_0004:  stfld      "ref int RS.ri"
+                  IL_0009:  ldarg.0
+                  IL_000a:  ldfld      "ref int RS.ri"
+                  IL_000f:  stloc.0
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_04()
+        {
+            var verifier = CompileAndVerify("""
+                using System;
+
+                var i = 1;
+                var rs = new RS(ref i);
+
+                i = 2;
+                rs = new RS(ref i, ignored: true);
+
+                ref struct RS
+                {
+                    ref int ri;
+
+                    public RS(ref int ri)
+                    {
+                        this.ri = ref ri;
+                        Console.Write(this.ri);
+                    }
+
+                    public RS(ref int ri, bool ignored)
+                    {
+                        this = default(RS) with { ri = ref ri };
+                        Console.Write(this.ri);
+                    }
+                }
+                """,
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "12");
+
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment_AutoDefault_05()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref readonly int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (4,20): error CS8331: Cannot assign to field 'ri' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "ri").WithArguments("field", "ri").WithLocation(4, 20),
+                // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
         }
     }
 }

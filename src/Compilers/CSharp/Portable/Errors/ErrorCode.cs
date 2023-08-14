@@ -2183,6 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
         WRN_CapturedPrimaryConstructorParameterInFieldInitializer = 9124,
+        WRN_ByValArraySizeConstRequired = 9125,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
@@ -2264,6 +2265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TargetDifferentRefness = 9198,
         ERR_OutAttrOnRefReadonlyParam = 9199,
         WRN_RefReadonlyParameterDefaultValue = 9200,
+        WRN_UseDefViolationRefField = 9201,
+
+        ERR_FeatureNotAvailableInVersion12 = 9202,
 
         #endregion
 

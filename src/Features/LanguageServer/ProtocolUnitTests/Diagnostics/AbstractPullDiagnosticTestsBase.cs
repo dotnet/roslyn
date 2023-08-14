@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
                 new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(),
                 new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(),
-                new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()));
+                new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer(),
+                new CSharpUseImplicitObjectCreationDiagnosticAnalyzer()));
             builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
             builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
             return new(builder.ToImmutableDictionary());

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
@@ -512,7 +512,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         const int CodeFixTelemetryDelay = 500;
 
                         var fixerName = fixer.GetType().Name;
-                        using var _ = TelemetryLogging.LogBlockTime(FunctionId.CodeFix_Delay, $"{fixerName}", CodeFixTelemetryDelay);
+                        var logMessage = KeyValueLogMessage.Create(m =>
+                        {
+                            m[TelemetryLogging.KeyName] = fixerName;
+                            m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
+                        });
+
+                        using var _ = TelemetryLogging.LogBlockTime(FunctionId.CodeFix_Delay, logMessage, CodeFixTelemetryDelay);
 
                         var codeFixCollection = await TryGetFixesOrConfigurationsAsync(
                             document, span, diagnostics, fixAllForInSpan, fixer,
