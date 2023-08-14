@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // an initializer, we know we've assigned to the member and
                 // have given any applicable warnings about a bad value going in.
                 // Therefore we skip this check when the member has an initializer to reduce noise.
-                if (HasInitializer(member))
+                if (HasInitializer(member) && constructor.IncludeFieldInitializersInBody())
                 {
                     return;
                 }
