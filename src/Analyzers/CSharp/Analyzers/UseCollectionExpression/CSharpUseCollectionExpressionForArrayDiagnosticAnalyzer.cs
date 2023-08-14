@@ -23,7 +23,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
     {
         context.RegisterSyntaxNodeAction(AnalyzeArrayInitializerExpression, SyntaxKind.ArrayInitializerExpression);
         context.RegisterSyntaxNodeAction(AnalyzeArrayCreationExpression, SyntaxKind.ArrayCreationExpression);

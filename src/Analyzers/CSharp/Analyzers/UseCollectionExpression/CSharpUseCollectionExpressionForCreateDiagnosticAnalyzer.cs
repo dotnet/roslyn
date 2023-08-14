@@ -33,19 +33,13 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
-    {
-        if (collectionBuilderAttribute is null)
-            return;
+    protected override bool IsSupported(INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+        => collectionBuilderAttribute is not null;
 
-        context.RegisterSyntaxNodeAction(
-            context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
-            SyntaxKind.InvocationExpression);
-    }
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
 
-    private void AnalyzeInvocationExpression(
-        SyntaxNodeAnalysisContext context,
-        INamedTypeSymbol collectionBuilderAttribute)
+    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var compilation = semanticModel.Compilation;
@@ -79,6 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         // The pattern is a type like `ImmutableArray` (non-generic), returning an instance of `ImmutableArray<T>`.  The
         // actual collection type (`ImmutableArray<T>`) has to have a `[CollectionBuilder(...)]` attribute on it that
         // then points at the factory type.
+        var collectionBuilderAttribute = compilation.CollectionBuilderAttribute()!;
         var collectionBuilderAttributeData = createMethod.ReturnType.OriginalDefinition
             .GetAttributes()
             .FirstOrDefault(a => collectionBuilderAttribute.Equals(a.AttributeClass));

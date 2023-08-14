@@ -40,7 +40,10 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: isUnnecessary);
 
-    protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes);
+    protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context);
+
+    protected virtual bool IsSupported(INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+        => true;
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -55,11 +58,14 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
             var collectionBuilderAttribute = compilation.CollectionBuilderAttribute();
             var supportsInlineArrayTypes = compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
 
+            if (!IsSupported(collectionBuilderAttribute, supportsInlineArrayTypes))
+                return;
+
             // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to get callbacks for object
             // creation expression nodes, but analyze nodes across the entire code block and eventually report fading
             // diagnostics with location outside this node. Without the containing CodeBlockStartAction, our reported
             // diagnostic would be classified as a non-local diagnostic and would not participate in lightbulb for
             // computing code fixes.
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context => InitializeWorker(context, collectionBuilderAttribute, supportsInlineArrayTypes));
+            context.RegisterCodeBlockStartAction<SyntaxKind>(InitializeWorker);
         });
 }

@@ -26,7 +26,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? collectionBuilderAttribute, bool supportsInlineArrayTypes)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
         => context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
 
     private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
