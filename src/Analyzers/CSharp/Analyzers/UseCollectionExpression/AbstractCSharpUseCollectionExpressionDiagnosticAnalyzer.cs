@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 /// <summary>
 /// Base type for all analyzers that offer to update code to use a collection-expression.
 /// </summary>
-internal abstract class AbstractCSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
+internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     protected new readonly DiagnosticDescriptor Descriptor;
     protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
 
-    protected AbstractCSharpUseCollectionExpressionForArrayDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
+    protected AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
         : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
             // Ugly hack.  We need to create a descriptor to pass to our base *and* assign to one of our fields.
             // The conditional pattern form lets us do that.
