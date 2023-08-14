@@ -14,6 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
+/// <summary>
+/// Common immutable state and helpers used by "convert object creation to collection initializer/expression" and "use
+/// collection expression for builder pattern".
+/// </summary>
 internal readonly struct UpdateExpressionState<
     TExpressionSyntax,
     TStatementSyntax>
@@ -24,10 +28,26 @@ internal readonly struct UpdateExpressionState<
 
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;
+
+    /// <summary>
+    /// The original object-creation or collection-builder-creation expression.
+    /// </summary>
     public readonly TExpressionSyntax StartExpression;
+
+    /// <summary>
+    /// The statement containing <see cref="StartExpression"/>
+    /// </summary>
     public readonly TStatementSyntax ContainingStatement;
 
+    /// <summary>
+    /// The name of the value being mutated.  It is whatever the new object-creation or collection-builder is assigned to.
+    /// </summary>
     public readonly SyntaxNodeOrToken ValuePattern;
+
+    /// <summary>
+    /// If a different symbol was initialized (for example, a field rather than a local) this will be that symbol.  This
+    /// only applies to the object-creation case.
+    /// </summary>
     public readonly ISymbol? InitializedSymbol;
 
     public UpdateExpressionState(
