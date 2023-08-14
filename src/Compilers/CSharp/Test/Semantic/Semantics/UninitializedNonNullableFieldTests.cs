@@ -2806,7 +2806,7 @@ public class C
             Assert.Single(diagnostic.AdditionalLocations);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
         public void CopyConstructor_01()
         {
             var source = """
@@ -2832,7 +2832,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(7, 12));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
         public void CopyConstructor_02()
         {
             var source = """
@@ -2852,7 +2852,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(4, 12));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
         public void CopyConstructor_03()
         {
             // copy constructor implicitly declared
@@ -2873,7 +2873,7 @@ public class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
         public void CopyConstructor_04()
         {
             // copy constructor explicitly declared, lacks SetsRequiredMembersAttribute
@@ -2898,7 +2898,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Rec").WithArguments("Rec.Prop").WithLocation(9, 23));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
         public void CopyConstructor_05()
         {
             // copy constructor explicitly declared, has SetsRequiredMembersAttribute
