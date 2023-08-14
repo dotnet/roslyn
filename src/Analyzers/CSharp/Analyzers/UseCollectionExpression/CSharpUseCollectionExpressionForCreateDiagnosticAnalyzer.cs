@@ -33,28 +33,13 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     {
     }
 
-    protected override void InitializeWorker(CompilationStartAnalysisContext context)
-    {
-        var collectionBuilderAttribute = context.Compilation.CollectionBuilderAttribute();
-        if (collectionBuilderAttribute is null)
-            return;
+    protected override bool IsSupported(Compilation compilation)
+        => compilation.CollectionBuilderAttribute() is not null;
 
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-        {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeInvocationExpression(context, collectionBuilderAttribute),
-                SyntaxKind.InvocationExpression);
-        });
-    }
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
 
-    private void AnalyzeInvocationExpression(
-        SyntaxNodeAnalysisContext context,
-        INamedTypeSymbol collectionBuilderAttribute)
+    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var compilation = semanticModel.Compilation;
@@ -88,6 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         // The pattern is a type like `ImmutableArray` (non-generic), returning an instance of `ImmutableArray<T>`.  The
         // actual collection type (`ImmutableArray<T>`) has to have a `[CollectionBuilder(...)]` attribute on it that
         // then points at the factory type.
+        var collectionBuilderAttribute = compilation.CollectionBuilderAttribute()!;
         var collectionBuilderAttributeData = createMethod.ReturnType.OriginalDefinition
             .GetAttributes()
             .FirstOrDefault(a => collectionBuilderAttribute.Equals(a.AttributeClass));

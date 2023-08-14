@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -39,7 +40,10 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: isUnnecessary);
 
-    protected abstract void InitializeWorker(CompilationStartAnalysisContext context);
+    protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context);
+
+    protected virtual bool IsSupported(Compilation compilation)
+        => true;
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -47,9 +51,18 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(context =>
         {
-            if (!context.Compilation.LanguageVersion().SupportsCollectionExpressions())
+            var compilation = context.Compilation;
+            if (!compilation.LanguageVersion().SupportsCollectionExpressions())
                 return;
 
-            InitializeWorker(context);
+            if (!IsSupported(compilation))
+                return;
+
+            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to get callbacks for object
+            // creation expression nodes, but analyze nodes across the entire code block and eventually report fading
+            // diagnostics with location outside this node. Without the containing CodeBlockStartAction, our reported
+            // diagnostic would be classified as a non-local diagnostic and would not participate in lightbulb for
+            // computing code fixes.
+            context.RegisterCodeBlockStartAction<SyntaxKind>(InitializeWorker);
         });
 }

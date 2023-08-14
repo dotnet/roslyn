@@ -4,12 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -24,29 +20,17 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
     {
     }
 
-    protected override void InitializeWorker(CompilationStartAnalysisContext context)
+    protected override bool IsSupported(Compilation compilation)
     {
-        var compilation = context.Compilation;
-
         // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler has no good way to
         // emit these collection expressions.
-        if (!compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
-            return;
+        return compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
+    }
 
-        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-        // and eventually report fading diagnostics with location outside this node.
-        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-        context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-        {
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeExplicitStackAllocExpression(context),
-                SyntaxKind.StackAllocArrayCreationExpression);
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzeImplicitStackAllocExpression(context),
-                SyntaxKind.ImplicitStackAllocArrayCreationExpression);
-        });
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+    {
+        context.RegisterSyntaxNodeAction(AnalyzeExplicitStackAllocExpression, SyntaxKind.StackAllocArrayCreationExpression);
+        context.RegisterSyntaxNodeAction(AnalyzeImplicitStackAllocExpression, SyntaxKind.ImplicitStackAllocArrayCreationExpression);
     }
 
     private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
