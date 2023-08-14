@@ -402,6 +402,8 @@ namespace Analyzer.Utilities
         public const string SystemSystemException = "System.SystemException";
         public const string SystemTextCompositeFormat = "System.Text.CompositeFormat";
         public const string SystemTextEncoding = "System.Text.Encoding";
+        public const string SystemTextJsonJsonSerializerOptions = "System.Text.Json.JsonSerializerOptions";
+        public const string SystemTextJsonJsonSerializer = "System.Text.Json.JsonSerializer";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemTextStringBuilder = "System.Text.StringBuilder";
         public const string SystemThreadStaticAttribute = "System.ThreadStaticAttribute";
