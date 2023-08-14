@@ -34,6 +34,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Create a build request for processing on the server. 
         /// </summary>
+        /// <remarks>
+        /// Even though compilation itself does not specifically require a temporary directory to be successful
+        /// this API deliberately requires <paramref name="tempDirectory"/> to have a value. The reason for this is
+        /// that the server itself requires a temporary directory to startup and it uses the same logic as the client
+        /// to calculate it.
+        /// 
+        /// That means if the client can't calculate the temporary directory the server won't be able to either and 
+        /// hence won't be able to start. So creating <see cref="BuildRequest"/> instances isn't useful cause it's 
+        /// wasting time trying to start a server that won't be able to start.
+        /// </remarks>
         internal static BuildRequest CreateBuildRequest(
             Guid requestId,
             RequestLanguage language,

@@ -44,23 +44,30 @@ namespace Microsoft.CodeAnalysis
         internal int CopyCount => _assemblyDirectoryId;
 
 #if NETCOREAPP
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
             : this(null, baseDirectory)
         {
         }
 
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory)
-            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk)
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string? baseDirectory = null)
+            : base(compilerLoadContext)
 #else
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
 #endif
         {
-            if (baseDirectory is null)
+            if (baseDirectory != null)
             {
-                throw new ArgumentNullException(nameof(baseDirectory));
+                _baseDirectory = baseDirectory;
+            }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/65415
+                // Fixing that issue will involve removing this GetTempPath call
+#pragma warning disable RS0030
+                _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
+#pragma warning restore RS0030
             }
 
-            _baseDirectory = baseDirectory;
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
                 () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 
