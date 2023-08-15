@@ -4,12 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -20,54 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
     private const string EmptyName = nameof(Array.Empty);
 
-    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
-        EnforceOnBuildValues.UseCollectionExpressionForEmpty,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: false);
-
-    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
-        EnforceOnBuildValues.UseCollectionExpressionForEmpty,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: true);
-
     public CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionExpression)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionExpression))
+        : base(IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
+               EnforceOnBuildValues.UseCollectionExpressionForEmpty)
     {
     }
 
-    protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(context =>
-        {
-            if (!context.Compilation.LanguageVersion().SupportsCollectionExpressions())
-                return;
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+        => context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
 
-            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-            // and eventually report fading diagnostics with location outside this node.
-            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-            {
-                context.RegisterSyntaxNodeAction(
-                    context => AnalyzeMemberAccess(context),
-                    SyntaxKind.SimpleMemberAccessExpression);
-            });
-        });
-
-    private static void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+    private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -91,7 +53,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            s_descriptor,
+            Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification.Severity,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
