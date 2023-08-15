@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -5653,6 +5654,22 @@ public class CollectionExpressionParsingTests : ParsingTests
                 N(SyntaxKind.CloseBracketToken);
             }
         }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
+    public void CastVersusIndexAmbiguity31()
+    {
+        UsingStatement("var collection = (List<Cell>)[1, 2, 3, 4, 5];");
+
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
+    public void CastVersusIndexAmbiguity32()
+    {
+        UsingTree("var collection = (List<Cell>)[1, 2, 3, 4, 5];");
+
         EOF();
     }
 
