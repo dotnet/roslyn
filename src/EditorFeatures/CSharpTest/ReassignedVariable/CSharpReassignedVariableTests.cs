@@ -1296,5 +1296,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable
                 }
                 """);
         }
+
+        [Fact]
+        public async Task TestPrimaryConstructor5()
+        {
+            await TestAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                partial class C(int [|p|])
+                {
+                }
+                        </Document>
+                        <Document>
+                partial class C
+                {
+                    void M()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
+        }
     }
 }
