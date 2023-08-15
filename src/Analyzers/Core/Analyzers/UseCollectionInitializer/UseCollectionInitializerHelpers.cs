@@ -88,7 +88,10 @@ internal static class UseCollectionInitializerHelpers
                 continue;
             }
 
-            yield return (TStatementSyntax)extractedChild;
+            if (extractedChild is not TStatementSyntax childStatement)
+                break;
+
+            yield return childStatement;
         }
     }
 }
