@@ -3261,7 +3261,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
+        [Fact]
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
@@ -3282,10 +3282,10 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).GetDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3305,7 +3305,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).GetDiagnostics();
         }
 
         [Fact]
