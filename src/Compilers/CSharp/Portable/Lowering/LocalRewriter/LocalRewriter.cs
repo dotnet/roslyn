@@ -990,6 +990,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this[int], Slice(int, int), Substring(int, int)
                     return false;
 
+                case BoundKind.UnconvertedSwitchExpression:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+
                 case BoundKind.ConvertedSwitchExpression:
                     return ((BoundConvertedSwitchExpression)expr).IsRef;
 

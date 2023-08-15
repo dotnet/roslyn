@@ -1237,6 +1237,11 @@
         <target state="translated">Nenhuma sobrecarga de '{0}' corresponde ao ponteiro de função '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MismatchedRefEscapeInSwitchExpression">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">Palavra-chave inesperada “record”. Você quis dizer “record struct” or “record class”?</target>
@@ -2655,6 +2660,11 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">Convertendo grupo de método em tipo não delegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInSwitchExpression">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MismatchedRefEscapeInTernary">

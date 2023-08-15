@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return expression;
+                    return ConvertIdentityRefExpression(expression, targetType, diagnostics, ref useSiteInfo);
                 }
             }
             else if (!conversion.IsValid ||
@@ -1963,6 +1963,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
+        }
+
+        private BoundExpression ConvertIdentityRefExpression(BoundExpression expression, TypeSymbol destination, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            switch (expression.Kind)
+            {
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpression = (BoundUnconvertedSwitchExpression)expression;
+                    //var conversion = this.Conversions.ClassifyConversionFromExpression(expression, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                    return ConvertSwitchExpression(switchExpression, destination, null, diagnostics);
+
+                default:
+                    return expression;
+            }
         }
 
 #nullable enable

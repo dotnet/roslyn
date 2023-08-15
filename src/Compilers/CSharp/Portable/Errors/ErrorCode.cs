@@ -2271,6 +2271,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region diagnostics introduced for C# Next
+
+        ERR_MismatchedRefEscapeInSwitchExpression = 9300,
+        WRN_MismatchedRefEscapeInSwitchExpression = 9301,
+
+        #endregion
+
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }

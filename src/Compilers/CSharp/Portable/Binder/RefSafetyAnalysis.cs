@@ -396,6 +396,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Expression);
             using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
             this.VisitList(node.SwitchArms);
+            if (node.IsRef)
+            {
+                this.ValidateRefSwitchExpression(node.Syntax, node.SwitchArms, this._diagnostics);
+            }
             return null;
         }
 

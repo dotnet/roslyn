@@ -1157,14 +1157,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter2, parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope)        => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope)        => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  node),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter,  node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope)        => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope)        => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter,        node)
                 };
@@ -1379,6 +1379,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other events defer to the receiver.
             return CheckRefEscape(node, eventAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
+        }
+    }
+
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateRefSwitchExpression(SyntaxNode node, ImmutableArray<BoundSwitchExpressionArm> arms, BindingDiagnosticBag diagnostics)
+        {
+            var currentScope = _localScopeDepth;
+
+            var expressionEscapes = PooledHashSet<(BoundExpression expression, uint escape)>.GetInstance();
+
+            bool hasSameEscapes = true;
+            uint minEscape = uint.MaxValue;
+
+            // val-escape must agree on all arms
+            foreach (var arm in arms)
+            {
+                var expression = arm.Value;
+
+                if (expression is BoundThrowExpression)
+                    continue;
+
+                uint expressionEscape = GetValEscape(expression, currentScope);
+                if (expressionEscapes.Count > 0)
+                {
+                    if (minEscape != expressionEscape)
+                    {
+                        hasSameEscapes = false;
+                    }
+                }
+                minEscape = Math.Min(minEscape, expressionEscape);
+                expressionEscapes.Add((expression, expressionEscape));
+            }
+
+            if (!hasSameEscapes)
+            {
+                // pass through all the expressions whose value escape was calculated
+                // ask the ones with narrower escape, for the wider
+                foreach (var expressionEscape in expressionEscapes)
+                {
+                    var (expression, escape) = expressionEscape;
+                    if (escape != minEscape)
+                    {
+                        Debug.Assert(escape > minEscape);
+                        CheckValEscape(expression.Syntax, expression, currentScope, minEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    }
+                }
+
+                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression : ErrorCode.ERR_MismatchedRefEscapeInSwitchExpression, node.Location);
+            }
+
+            expressionEscapes.Free();
         }
     }
 
@@ -3061,6 +3113,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // ref conditional defers to its operands
                         return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
                                         GetRefEscape(conditional.Alternative, scopeOfTheContainingExpression));
+                    }
+
+                    // otherwise it is an RValue
+                    break;
+
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpression = (BoundSwitchExpression)expr;
+
+                    if (switchExpression.IsRef)
+                    {
+                        // ref conditional defers to its operands
+                        uint maxScope = uint.MinValue;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
+                                continue;
+
+                            maxScope = Math.Max(GetRefEscape(arm.Value, scopeOfTheContainingExpression), maxScope);
+                        }
+                        return maxScope;
                     }
 
                     // otherwise it is an RValue
