@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -597,6 +598,62 @@ public class UseCollectionExpressionForEmptyTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForImmutableArrayNet70()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray<int> v = ImmutableArray<int>.Empty;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForImmutableArrayNet80()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray<int> v = ImmutableArray<int>.[|Empty|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray<int> v = [];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }
