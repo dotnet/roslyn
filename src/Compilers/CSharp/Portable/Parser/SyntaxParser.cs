@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
         private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[32], 2);
 
+        public static bool s_usePooling = true;
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -66,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 _firstBlender = default(Blender);
-                _lexedTokens = s_lexedTokensPool.Allocate();
+                if (s_usePooling)
+                    _lexedTokens = s_lexedTokensPool.Allocate();
+                else
+                    _lexedTokens = new ArrayElement<SyntaxToken>[32];
             }
 
             // PreLex is not cancellable. 
@@ -97,18 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            var lexedTokens = _lexedTokens;
-            if (lexedTokens != null)
+            if (s_usePooling)
             {
-                _lexedTokens = null;
-                if (lexedTokens.Length < 4096)
+                var lexedTokens = _lexedTokens;
+                if (lexedTokens != null)
                 {
-                    Array.Clear(lexedTokens, 0, lexedTokens.Length);
-                    s_lexedTokensPool.Free(lexedTokens);
-                }
-                else
-                {
-                    s_lexedTokensPool.ForgetTrackedObject(lexedTokens);
+                    _lexedTokens = null;
+                    if (lexedTokens.Length < 4096)
+                    {
+                        Array.Clear(lexedTokens, 0, lexedTokens.Length);
+                        s_lexedTokensPool.Free(lexedTokens);
+                    }
+                    else
+                    {
+                        s_lexedTokensPool.ForgetTrackedObject(lexedTokens);
+                    }
                 }
             }
         }
@@ -143,7 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var lexer = this.lexer;
             var mode = _mode;
 
-            _lexedTokens ??= s_lexedTokensPool.Allocate();
+            if (s_usePooling)
+                _lexedTokens ??= s_lexedTokensPool.Allocate();
+            else
+                _lexedTokens = new ArrayElement<SyntaxToken>[size];
 
             for (int i = 0; i < size; i++)
             {
@@ -439,9 +450,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                var old = _lexedTokens;
-                Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
-                s_lexedTokensPool.ForgetTrackedObject(old, replacement: _lexedTokens);
+                if (s_usePooling)
+                {
+                    var old = _lexedTokens;
+                    Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
+                    s_lexedTokensPool.ForgetTrackedObject(old, replacement: _lexedTokens);
+                }
+                else
+                {
+                    var tmp = new ArrayElement<SyntaxToken>[_lexedTokens.Length * 2];
+                    Array.Copy(_lexedTokens, tmp, _lexedTokens.Length);
+                    _lexedTokens = tmp;
+                }
             }
         }
 
