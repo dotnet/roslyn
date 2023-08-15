@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {

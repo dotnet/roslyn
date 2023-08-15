@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TIfStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer> : AbstractObjectCreationExpressionAnalyzer<
             TExpressionSyntax,
@@ -36,8 +34,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
-        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
             TExpressionSyntax,
@@ -46,8 +42,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {
@@ -56,8 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
         protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
 
-        protected abstract void GetPartsOfForeachStatement(TForeachStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
-        protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
+        protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
         public static TAnalyzer Allocate()
             => s_pool.Allocate();
@@ -158,13 +151,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 {
                     continue;
                 }
-                else if (extractedChild is TForeachStatementSyntax foreachStatement &&
-                    TryProcessForeachStatement(foreachStatement))
+                else if (_syntaxFacts.IsForEachStatement(extractedChild) &&
+                    TryProcessForeachStatement((TStatementSyntax)extractedChild))
                 {
                     continue;
                 }
-                else if (extractedChild is TIfStatementSyntax ifStatement &&
-                    TryProcessIfStatement(ifStatement))
+                else if (_syntaxFacts.IsIfStatement(extractedChild) &&
+                    TryProcessIfStatement((TStatementSyntax)extractedChild))
                 {
                     continue;
                 }
@@ -222,13 +215,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            bool TryProcessForeachStatement(TForeachStatementSyntax foreachStatement)
+            bool TryProcessForeachStatement(TStatementSyntax foreachStatement)
             {
                 // if we're not producing a collection expression, then we cannot convert any foreach'es into
                 // `[..expr]` elements.
                 if (_analyzeForCollectionExpression)
                 {
-                    this.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+                    this.SyntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
                     // must be of the form:
                     //
                     //      foreach (var x in expr)
@@ -253,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            bool TryProcessIfStatement(TIfStatementSyntax ifStatement)
+            bool TryProcessIfStatement(TStatementSyntax ifStatement)
             {
                 if (!_analyzeForCollectionExpression)
                     return false;
@@ -270,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 //  else
                 //      expr.Add(z)
 
-                this.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
+                this.SyntaxHelper.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
                 var whenTrueStatements = whenTrue.ToImmutableArray();
 
                 if (whenTrueStatements is [TExpressionStatementSyntax trueChildStatement] &&
