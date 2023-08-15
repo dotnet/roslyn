@@ -6,14 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
@@ -33,28 +30,10 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     {
     }
 
-    protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterCompilationStartAction(context =>
-        {
-            var compilation = context.Compilation;
-            if (!compilation.LanguageVersion().SupportsCollectionExpressions())
-                return;
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
 
-            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-            // and eventually report fading diagnostics with location outside this node.
-            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
-            {
-                context.RegisterSyntaxNodeAction(
-                    context => AnalyzeInvocationExpression(context),
-                    SyntaxKind.InvocationExpression);
-            });
-        });
-
-    private static void AnalyzeInvocationExpression(
-        SyntaxNodeAnalysisContext context)
+    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
@@ -70,7 +49,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            s_descriptor,
+            Descriptor,
             analysisResult.DiagnosticLocation,
             option.Notification.Severity,
             additionalLocations: locations,
@@ -79,13 +58,13 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         FadeOutCode(context, analysisResult, locations);
     }
 
-    private static void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
+    private void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
     {
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             analysisResult.LocalDeclarationStatement.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            s_unnecessaryCodeDescriptor,
+            UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             ReportDiagnostic.Default,
             additionalLocations: locations,
@@ -102,7 +81,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             // Report the diagnostic at the first unnecessary location. This is the location where the code fix
             // will be offered.
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_unnecessaryCodeDescriptor,
+                UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 ReportDiagnostic.Default,
                 additionalLocations: locations,
