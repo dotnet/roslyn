@@ -5777,9 +5777,10 @@ parse_member_name:;
                 return ScanTypeFlags.GenericTypeOrMethod;
             }
 
+            ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+
             do
             {
-                // Eat the <
                 this.EatToken();
 
                 // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
@@ -5792,14 +5793,12 @@ parse_member_name:;
                 if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     greaterThanToken = EatToken();
-                    return ScanTypeFlags.GenericTypeOrExpression;
+                    return result;
                 }
 
-                // Now try to consume the type-arguments to this generic type.
                 switch (this.ScanType(out _))
                 {
                     case ScanTypeFlags.NotType:
-                        // Hit something that wasn't a type, this is definitely not a type.
                         greaterThanToken = null;
                         return ScanTypeFlags.NotType;
 
@@ -5826,6 +5825,7 @@ parse_member_name:;
                         // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
                         // of things that must be types (int*, void**, etc.).
                         isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
 
                     // case ScanTypeFlags.TupleType:
@@ -5852,6 +5852,10 @@ parse_member_name:;
                     case ScanTypeFlags.NullableType:
                         // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
                         isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        if (isDefinitelyTypeArgumentList)
+                        {
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                        }
 
                         // Note: we intentionally fall out without setting 'result'. 
                         // Seeing a nullable type (not followed by a , or > ) is not enough 
@@ -5860,23 +5864,22 @@ parse_member_name:;
                         //      X < Y ? Z : W
                         //
                         // We'd see a nullable type here, but this is definitely not a type arg list.
+
                         break;
 
                     case ScanTypeFlags.GenericTypeOrExpression:
-                        // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
-                        // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
-                        // be some sort of expression where we're comparing, and then shifting values.
+                        // See above.  If we have `X<Y<Z>,` or `X<Y<Z>)`  then this would definitely be a type argument
+                        // list. However, if we have `X<Y<Z>>` then this might not be type argument list.  This could
+                        // just be some sort of expression where we're comparing, and then shifting values.
                         if (!isDefinitelyTypeArgumentList)
                         {
-                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
+                            result = ScanTypeFlags.GenericTypeOrMethod;
                         }
                         break;
 
                     case ScanTypeFlags.GenericTypeOrMethod:
-                        if (!isDefinitelyTypeArgumentList)
-                        {
-                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
-                        }
+                        result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
 
                     case ScanTypeFlags.NonGenericTypeOrExpression:
@@ -5896,9 +5899,16 @@ parse_member_name:;
                 return ScanTypeFlags.NotType;
             }
 
-            // We consumed <...> successfully.  This has to be a generic type or method at this point.
             greaterThanToken = this.EatToken();
-            return ScanTypeFlags.GenericTypeOrMethod;
+
+            // If we have `X<Y>)` then this would definitely be a type argument list.
+            if (!isDefinitelyTypeArgumentList && this.CurrentToken.Kind is SyntaxKind.CloseParenToken)
+            {
+                isDefinitelyTypeArgumentList = true;
+                result = ScanTypeFlags.GenericTypeOrMethod;
+            }
+
+            return result;
         }
 
         private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
@@ -11796,7 +11806,7 @@ done:;
 
             this.EatToken();
 
-            var type = this.ScanType(forPattern: forPattern);
+            var type = this.ScanType(forPattern);
             if (type == ScanTypeFlags.NotType)
             {
                 return false;
