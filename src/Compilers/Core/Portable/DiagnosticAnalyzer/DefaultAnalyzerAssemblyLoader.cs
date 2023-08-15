@@ -70,11 +70,6 @@ namespace Microsoft.CodeAnalysis
                 // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
                 // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
                 // effect
-                if (!Path.IsPathRooted(windowsShadowPath))
-                {
-                    throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
-                }
-
                 return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath);
             }
         }
