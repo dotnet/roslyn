@@ -5660,7 +5660,7 @@ public class CollectionExpressionParsingTests : ParsingTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
     public void CastVersusIndexAmbiguity31()
     {
-        UsingStatement("var x = (A<B>)[1, 2, 3, 4, 5];");
+        UsingStatement("var x = (A<B>)[1];");
 
         N(SyntaxKind.LocalDeclarationStatement);
         {
@@ -5703,38 +5703,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                                         N(SyntaxKind.NumericLiteralToken, "1");
                                     }
                                 }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "2");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "3");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "4");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
                                 N(SyntaxKind.CloseBracketToken);
                             }
                         }
@@ -5749,7 +5717,7 @@ public class CollectionExpressionParsingTests : ParsingTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
     public void CastVersusIndexAmbiguity31_GlobalStatement()
     {
-        UsingTree("var x = (A<B>)[1, 2, 3, 4, 5];");
+        UsingTree("var x = (A<B>)[1];");
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -5794,38 +5762,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
                                                 N(SyntaxKind.NumericLiteralToken, "1");
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "2");
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "3");
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "4");
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "5");
                                             }
                                         }
                                         N(SyntaxKind.CloseBracketToken);
