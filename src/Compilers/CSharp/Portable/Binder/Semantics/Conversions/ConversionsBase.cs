@@ -1431,8 +1431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.BadTargetType;
             }
 
-            bool hasExplicitReturnType;
-            if (hasExplicitReturnType = anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            bool hasExplicitReturnType = anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType);
+            if (hasExplicitReturnType)
             {
                 if (invokeMethod.RefKind != refKind ||
                     !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
