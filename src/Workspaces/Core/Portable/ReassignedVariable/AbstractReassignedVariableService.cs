@@ -162,19 +162,44 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrProperty.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                // Be resilient to cases where the parameter might have multiple locations.  This
-                // should not normally happen, but we want to be resilient in case it occurs in
-                // error scenarios.
-                var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-                if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
-                    return false;
+                if (parameter.IsPrimaryConstructor(cancellationToken))
+                {
+                    // A primary constructor parameter is analyzed across all parts of the type declaration it is
+                    // created in.
+                    var containingType = methodOrProperty.ContainingType;
+                    foreach (var syntaxReference in containingType.DeclaringSyntaxReferences)
+                    {
+                        var declaration = syntaxReference.GetSyntax(cancellationToken);
 
-                // All parameters (except for 'out' parameters), come in definitely assigned.
-                return AnalyzePotentialMatches(
-                    parameter,
-                    parameterLocation,
-                    symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
-                    GetMemberBlock(methodOrPropertyDeclaration));
+                        // All parameters (except for 'out' parameters), come in definitely assigned.
+                        if (AnalyzePotentialMatches(
+                                parameter,
+                                parameterLocation,
+                                symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
+                                declaration))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    // Be resilient to cases where the parameter might have multiple locations.  This
+                    // should not normally happen, but we want to be resilient in case it occurs in
+                    // error scenarios.
+                    var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
+                    if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
+                        return false;
+
+                    // All parameters (except for 'out' parameters), come in definitely assigned.
+                    return AnalyzePotentialMatches(
+                        parameter,
+                        parameterLocation,
+                        symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
+                        GetMemberBlock(methodOrPropertyDeclaration));
+                }
             }
 
             bool TryGetParameterLocation(IParameterSymbol parameter, out TextSpan location)
