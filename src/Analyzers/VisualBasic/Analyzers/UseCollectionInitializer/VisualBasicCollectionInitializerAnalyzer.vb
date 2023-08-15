@@ -14,20 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
-            ForEachStatementSyntax,
-            IfStatementSyntax,
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
-        Protected Overrides Sub GetPartsOfForeachStatement(statement As ForEachStatementSyntax, ByRef identifier As SyntaxToken, ByRef expression As ExpressionSyntax, ByRef statements As IEnumerable(Of StatementSyntax))
-            ' Only called for collection expressions, which VB does not support
-            Throw ExceptionUtilities.Unreachable()
-        End Sub
-
-        Protected Overrides Sub GetPartsOfIfStatement(statement As IfStatementSyntax, ByRef condition As ExpressionSyntax, ByRef whenTrueStatements As IEnumerable(Of StatementSyntax), ByRef whenFalseStatements As IEnumerable(Of StatementSyntax))
-            ' Only called for collection expressions, which VB does not support
-            Throw ExceptionUtilities.Unreachable()
-        End Sub
+        Protected Overrides ReadOnly Property SyntaxHelper As IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax) =
+            VisualBasicUpdateExpressionSyntaxHelper.Instance
 
         Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode) As Boolean
             ' Only called for collection expressions, which VB does not support
