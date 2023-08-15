@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 {
                     continue;
                 }
-                else if (_syntaxFacts.IsForEachStatement(extractedChild) &&
-                    TryProcessForeachStatement((TStatementSyntax)extractedChild))
+                else if (_syntaxFacts.IsForEachStatement(subsequentStatement) &&
+                    TryProcessForeachStatement(subsequentStatement))
                 {
                     continue;
                 }
-                else if (_syntaxFacts.IsIfStatement(extractedChild) &&
-                    TryProcessIfStatement((TStatementSyntax)extractedChild))
+                else if (_syntaxFacts.IsIfStatement(subsequentStatement) &&
+                    TryProcessIfStatement(subsequentStatement))
                 {
                     continue;
                 }
