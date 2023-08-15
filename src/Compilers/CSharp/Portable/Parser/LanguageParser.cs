@@ -5850,8 +5850,7 @@ parse_member_name:;
                     // }
 
                     case ScanTypeFlags.NullableType:
-                        // See above.  If we have `X<Y?>` or `X<Y?,` then this is definitely a type argument list.
-                        // Note: the 
+                        // See above.  If we have `X<Y?,` or `X<Y?>` then this is definitely a type argument list.
                         isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         if (isDefinitelyTypeArgumentList)
                         {
