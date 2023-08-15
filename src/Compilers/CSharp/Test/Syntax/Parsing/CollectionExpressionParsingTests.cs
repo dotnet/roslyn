@@ -5660,7 +5660,7 @@ public class CollectionExpressionParsingTests : ParsingTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
     public void CastVersusIndexAmbiguity31()
     {
-        UsingStatement("var collection = (List<Cell>)[1, 2, 3, 4, 5];");
+        UsingStatement("var x = (A<B>)[1, 2, 3, 4, 5];");
 
         N(SyntaxKind.LocalDeclarationStatement);
         {
@@ -5672,7 +5672,7 @@ public class CollectionExpressionParsingTests : ParsingTests
                 }
                 N(SyntaxKind.VariableDeclarator);
                 {
-                    N(SyntaxKind.IdentifierToken, "collection");
+                    N(SyntaxKind.IdentifierToken, "x");
                     N(SyntaxKind.EqualsValueClause);
                     {
                         N(SyntaxKind.EqualsToken);
@@ -5681,13 +5681,13 @@ public class CollectionExpressionParsingTests : ParsingTests
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.IdentifierToken, "A");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "Cell");
+                                        N(SyntaxKind.IdentifierToken, "B");
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -5747,9 +5747,9 @@ public class CollectionExpressionParsingTests : ParsingTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
-    public void CastVersusIndexAmbiguity32()
+    public void CastVersusIndexAmbiguity31_GlobalStatement()
     {
-        UsingTree("var collection = (List<Cell>)[1, 2, 3, 4, 5];");
+        UsingTree("var x = (A<B>)[1, 2, 3, 4, 5];");
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -5765,7 +5765,7 @@ public class CollectionExpressionParsingTests : ParsingTests
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "collection");
+                            N(SyntaxKind.IdentifierToken, "x");
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
@@ -5774,13 +5774,13 @@ public class CollectionExpressionParsingTests : ParsingTests
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.GenericName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "List");
+                                        N(SyntaxKind.IdentifierToken, "A");
                                         N(SyntaxKind.TypeArgumentList);
                                         {
                                             N(SyntaxKind.LessThanToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "Cell");
+                                                N(SyntaxKind.IdentifierToken, "B");
                                             }
                                             N(SyntaxKind.GreaterThanToken);
                                         }

@@ -5868,12 +5868,12 @@ parse_member_name:;
                         break;
 
                     case ScanTypeFlags.GenericTypeOrExpression:
-                        // See above.  If we have `X<Y<Z>,` or `X<Y<Z>)`  then this would definitely be a type argument
-                        // list. However, if we have `X<Y<Z>>` then this might not be type argument list.  This could
-                        // just be some sort of expression where we're comparing, and then shifting values.
-                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
-                        if (isDefinitelyTypeArgumentList)
+                        // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
+                        // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
+                        // be some sort of expression where we're comparing, and then shifting values.
+                        if (!isDefinitelyTypeArgumentList)
                         {
+                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
                             result = ScanTypeFlags.GenericTypeOrMethod;
                         }
                         break;
