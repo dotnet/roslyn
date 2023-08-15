@@ -81,27 +81,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 int arrayLength = elements.Length;
-                if (arrayLength == 0)
-                {
-                    array = CreateEmptyArray(syntax, arrayType);
-                }
-                else
-                {
-                    var initialization = new BoundArrayInitialization(
-                            syntax,
-                            isInferred: false,
-                            elements.SelectAsArray(e => VisitExpression(e)));
-                    array = new BoundArrayCreation(
+                // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
+                var initialization = (arrayLength == 0)
+                    ? null
+                    : new BoundArrayInitialization(
                         syntax,
-                        ImmutableArray.Create<BoundExpression>(
-                            new BoundLiteral(
-                                syntax,
-                                ConstantValue.Create(arrayLength),
-                                _compilation.GetSpecialType(SpecialType.System_Int32))),
-                        initialization,
-                        arrayType)
-                    { WasCompilerGenerated = true };
-                }
+                        isInferred: false,
+                        elements.SelectAsArray(e => VisitExpression(e)));
+                array = new BoundArrayCreation(
+                    syntax,
+                    ImmutableArray.Create<BoundExpression>(
+                        new BoundLiteral(
+                            syntax,
+                            ConstantValue.Create(arrayLength),
+                            _compilation.GetSpecialType(SpecialType.System_Int32))),
+                    initialization,
+                    arrayType)
+                { WasCompilerGenerated = true };
             }
 
             if (spanConstructor is null)
@@ -160,31 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitListInterfaceCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(node.Type is NamedTypeSymbol);
+            Debug.Assert(node.Type is { });
 
-            var collectionType = (NamedTypeSymbol)node.Type;
-            BoundExpression arrayOrList;
-
-            // Use Array.Empty<T>() rather than List<T> for an empty collection expression when
-            // the target type is IEnumerable<T>, IReadOnlyCollection<T>, or IReadOnlyList<T>.
-            if (node.Elements.Length == 0 &&
-                collectionType is
-                {
-                    OriginalDefinition.SpecialType:
-                        SpecialType.System_Collections_Generic_IEnumerable_T or
-                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                        SpecialType.System_Collections_Generic_IReadOnlyList_T,
-                    TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var elementType]
-                })
-            {
-                arrayOrList = CreateEmptyArray(node.Syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
-            }
-            else
-            {
-                arrayOrList = VisitCollectionInitializerCollectionExpression(node, collectionType);
-            }
-
-            return _factory.Convert(collectionType, arrayOrList);
+            // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
+            var list = VisitCollectionInitializerCollectionExpression(node, node.Type);
+            return _factory.Convert(node.Type, list);
         }
 
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)

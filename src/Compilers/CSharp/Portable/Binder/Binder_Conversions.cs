@@ -675,32 +675,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
             var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
-            if (node.Elements.Length > 0)
+            foreach (var element in node.Elements)
             {
-                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-                foreach (var element in node.Elements)
+                var result = element switch
                 {
-                    var result = element switch
-                    {
-                        BoundBadExpression => element,
-                        BoundCollectionExpressionSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
-                                (SpreadElementSyntax)spreadElement.Syntax,
-                                spreadElement,
-                                collectionInitializerAddMethodBinder,
-                                implicitReceiver,
-                                diagnostics),
-                        _ => BindCollectionInitializerElementAddMethod(
-                            (ExpressionSyntax)element.Syntax,
-                            ImmutableArray.Create(element),
-                            hasEnumerableInitializerType: true,
+                    BoundBadExpression => element,
+                    BoundCollectionExpressionSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
+                            (SpreadElementSyntax)spreadElement.Syntax,
+                            spreadElement,
                             collectionInitializerAddMethodBinder,
-                            diagnostics,
-                            implicitReceiver),
-                    };
-                    result.WasCompilerGenerated = true;
-                    builder.Add(result);
-                }
+                            implicitReceiver,
+                            diagnostics),
+                    _ => BindCollectionInitializerElementAddMethod(
+                        (ExpressionSyntax)element.Syntax,
+                        ImmutableArray.Create(element),
+                        hasEnumerableInitializerType: true,
+                        collectionInitializerAddMethodBinder,
+                        diagnostics,
+                        implicitReceiver),
+                };
+                result.WasCompilerGenerated = true;
+                builder.Add(result);
             }
             return new BoundCollectionExpression(
                 syntax,
@@ -721,6 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
+            // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
             var result = BindCollectionInitializerCollectionExpression(
                 node,
                 CollectionExpressionTypeKind.ListInterface,
