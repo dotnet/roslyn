@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             : base(AnalyzersResources.Object_initialization_can_be_simplified,
                    nameof(AnalyzersResources.Object_initialization_can_be_simplified))
         {
-
         }
 
         protected abstract TStatementSyntax GetNewStatement(
@@ -55,9 +54,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             ImmutableDictionary<string, string?> properties,
             CancellationToken cancellationToken)
         {
-            // We're going to be continually editing this tree.  Track all the nodes we
-            // care about so we can find them across each edit.
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
