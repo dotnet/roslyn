@@ -5824,7 +5824,7 @@ parse_member_name:;
                         // Note: we check if we got 'MustBeType' which triggers for predefined types,
                         // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
                         // of things that must be types (int*, void**, etc.).
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
 
@@ -5850,8 +5850,9 @@ parse_member_name:;
                     // }
 
                     case ScanTypeFlags.NullableType:
-                        // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        // See above.  If we have `X<Y?>` or `X<Y?,` then this is definitely a type argument list.
+                        // Note: the 
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         if (isDefinitelyTypeArgumentList)
                         {
                             result = ScanTypeFlags.GenericTypeOrMethod;
@@ -5871,9 +5872,9 @@ parse_member_name:;
                         // See above.  If we have `X<Y<Z>,` or `X<Y<Z>)`  then this would definitely be a type argument
                         // list. However, if we have `X<Y<Z>>` then this might not be type argument list.  This could
                         // just be some sort of expression where we're comparing, and then shifting values.
-                        if (!isDefinitelyTypeArgumentList)
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
+                        if (isDefinitelyTypeArgumentList)
                         {
-                            isDefinitelyTypeArgumentList = this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
                             result = ScanTypeFlags.GenericTypeOrMethod;
                         }
                         break;
@@ -5902,23 +5903,13 @@ parse_member_name:;
             greaterThanToken = this.EatToken();
 
             // If we have `X<Y>)` then this would definitely be a type argument list.
-            if (!isDefinitelyTypeArgumentList && this.CurrentToken.Kind is SyntaxKind.CloseParenToken)
+            isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CloseParenToken;
+            if (isDefinitelyTypeArgumentList)
             {
-                isDefinitelyTypeArgumentList = true;
                 result = ScanTypeFlags.GenericTypeOrMethod;
             }
 
             return result;
-        }
-
-        private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
-        {
-            if (!isDefinitelyTypeArgumentList)
-            {
-                isDefinitelyTypeArgumentList = this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
-            }
-
-            return isDefinitelyTypeArgumentList;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
