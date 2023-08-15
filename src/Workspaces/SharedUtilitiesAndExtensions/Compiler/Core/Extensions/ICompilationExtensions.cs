@@ -141,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? IAsyncEnumeratorOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
 
+        public static INamedTypeSymbol? ImmutableArrayOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
+
         public static INamedTypeSymbol? SerializableAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
 

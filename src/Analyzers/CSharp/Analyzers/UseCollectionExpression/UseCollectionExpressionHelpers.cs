@@ -51,6 +51,12 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
+        if (originalTypeInfo.ConvertedType.OriginalDefinition is INamedTypeSymbol { IsValueType: true } structType &&
+            !IsValidStructType(compilation, structType))
+        {
+            return false;
+        }
+
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
         // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
         // but it's possible we'll end up with different types at runtime that may cause problems.
@@ -97,6 +103,32 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         return true;
+
+        // Special case.  Block value types without an explicit no-arg constructor, which also do not have the
+        // collection-builder-attribute on them.  This prevents us from offering to convert value-type-collections who
+        // are invalid in their `default` state (like ImmutableArray<T>).  The presumption is that if the
+        // collection-initializer pattern is valid for these value types that they will supply an explicit constructor
+        // to initialize themselves.
+        static bool IsValidStructType(Compilation compilation, INamedTypeSymbol structType)
+        {
+            // Span<> and ReadOnlySpan<> are always valid targets.
+            if (structType.Equals(compilation.SpanOfTType()) || structType.Equals(compilation.ReadOnlySpanOfTType()))
+                return true;
+
+            // If we have a real no-arg constructor, then presume the type is intended to be new-ed up and used as a
+            // collection initializer.
+            var noArgConstructor = structType.Constructors.FirstOrDefault(c => !c.IsStatic && c.Parameters.Length == 0);
+            if (noArgConstructor is { IsImplicitlyDeclared: false })
+                return true;
+
+            // If it has a [CollectionBuilder] attribute on it, it can definitely be used for a collection expression.
+            var collectionBuilderType = compilation.CollectionBuilderAttribute();
+            if (structType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+                return true;
+
+            // Otherwise, presume this is unsafe to use with collection expressions.
+            return false;
+        }
     }
 
     private static bool IsInTargetTypedLocation(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
