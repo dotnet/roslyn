@@ -42,42 +42,48 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = PooledDictionary<ISymbol, bool>.GetInstance(out var symbolToIsReassigned);
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var result);
-            using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
-            using var _4 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var syntaxTreeToModel);
+            using var _3 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var syntaxTreeToModel);
 
-            // Walk through all the nodes in the provided span.  Directly analyze local or parameter declaration.  And
-            // also analyze any identifiers which might be reference to locals or parameters.  Note that we might hit
-            // locals/parameters without any references in the span, or references that don't have the declarations in 
-            // the span
-            stack.Add(root.FindNode(span));
+            return Recurse();
 
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var initialModel = GetSemanticModel(root.SyntaxTree);
-
-            // Use a stack so we don't blow out the stack with recursion.
-            while (stack.Count > 0)
+            ImmutableArray<TextSpan> Recurse()
             {
-                var current = stack.Last();
-                stack.RemoveLast();
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
 
-                if (current.Span.IntersectsWith(span))
+                // Walk through all the nodes in the provided span.  Directly analyze local or parameter declaration.  And
+                // also analyze any identifiers which might be reference to locals or parameters.  Note that we might hit
+                // locals/parameters without any references in the span, or references that don't have the declarations in 
+                // the span
+                stack.Add(root.FindNode(span));
+
+                var semanticModel = GetSemanticModel(root.SyntaxTree);
+
+                // Use a stack so we don't blow out the stack with recursion.
+                while (stack.Count > 0)
                 {
-                    ProcessNode(initialModel, current);
+                    var current = stack.Last();
+                    stack.RemoveLast();
 
-                    foreach (var child in current.ChildNodesAndTokens())
+                    if (current.Span.IntersectsWith(span))
                     {
-                        if (child.IsNode)
-                            stack.Add(child.AsNode()!);
+                        ProcessNode(semanticModel, current);
+
+                        foreach (var child in current.ChildNodesAndTokens())
+                        {
+                            if (child.IsNode)
+                                stack.Add(child.AsNode()!);
+                        }
                     }
                 }
-            }
 
-            result.RemoveDuplicates();
-            return result.ToImmutable();
+                result.RemoveDuplicates();
+                return result.ToImmutable();
+            }
 
             SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
             {
