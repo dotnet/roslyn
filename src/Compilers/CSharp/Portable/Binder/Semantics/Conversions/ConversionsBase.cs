@@ -1431,7 +1431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.BadTargetType;
             }
 
-            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            bool hasExplicitReturnType;
+            if (hasExplicitReturnType = anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
             {
                 if (invokeMethod.RefKind != refKind ||
                     !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
@@ -1519,6 +1520,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return LambdaConversionResult.MissingSignatureWithOutParameter;
                     }
                 }
+            }
+
+            // Avoid binding body if the lambda is fully typed.
+            if (hasExplicitReturnType && anonymousFunction.HasExplicitlyTypedParameterList)
+            {
+                return LambdaConversionResult.Success;
             }
 
             // Ensure the body can be converted to that delegate type

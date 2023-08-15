@@ -4669,6 +4669,33 @@ class Program
             CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void OverloadResolution_53()
+        {
+            var source = """
+                using System;
+
+                class A
+                {
+                    static void Main()
+                    {
+                        object x = 1;
+                        var a = new A();
+                        a.F1(x, y => F2(int () => y));
+                    }
+
+                    void F1<T>(T x, Func<T, int> f) => Console.Write("A");
+                    static int F2(Func<int> f) => f();
+                }
+
+                static class B
+                {
+                    public static void F1(this A a, object x, Func<int, int> f) => Console.Write("B");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "B").VerifyDiagnostics();
+        }
+
         [Fact]
         public void BestCommonType_01()
         {
