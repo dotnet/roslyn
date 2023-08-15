@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -649,6 +647,62 @@ public class UseCollectionExpressionForEmptyTests
                 void M()
                 {
                     ImmutableArray<int> v = [];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForImmutableListNet70()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableList<int> v = ImmutableList<int>.Empty;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForImmutableListNet80()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableList<int> v = ImmutableList<int>.[|Empty|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections.Immutable;
+
+            class C
+            {
+                void M()
+                {
+                    ImmutableList<int> v = [];
                 }
             }
             """,
