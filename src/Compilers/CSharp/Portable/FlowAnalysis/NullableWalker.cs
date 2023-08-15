@@ -6682,6 +6682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As far as we can tell, there is no scenario relevant to nullability analysis
                     // where splitting an L-value (for instance with a ref conditional) would affect the result.
                     Visit(argument);
+                    Unsplit();
 
                     // We'll want to use the l-value type, rather than the result type, for method re-inference
                     UseLvalueOnly(argument);
