@@ -7599,9 +7599,9 @@ End Structure
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d As System.Action", FeaturesResources.event_, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b As Integer", FeaturesResources.field, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c As Integer", FeaturesResources.field, VBFeaturesResources.structure_))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d", GetResource("event"), GetResource("structure")),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "b As Integer", GetResource("field"), GetResource("structure")),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "c As Integer", GetResource("field"), GetResource("structure")))
         End Sub
 
         <Fact>
@@ -7844,7 +7844,16 @@ End Class
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))},
-                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
+                capabilities:=
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType Or
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType Or
+                    EditAndContinueCapabilities.NewTypeDefinition Or
+                    EditAndContinueCapabilities.AddMethodToExistingType)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Function(c)", GetResource("Lambda")),
+                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "B", GetResource("field"))},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")>
@@ -8330,8 +8339,8 @@ End Structure"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Property b As Integer", FeaturesResources.auto_property, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Shared Property c As Integer", FeaturesResources.auto_property, VBFeaturesResources.structure_))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Property b", GetResource("auto-property"), GetResource("structure")),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Shared Property c", GetResource("auto-property"), GetResource("structure")))
         End Sub
 
         <Fact>
@@ -8375,8 +8384,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b As Integer", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c As Integer", FeaturesResources.auto_property, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c", GetResource("auto-property"), GetResource("class")))
         End Sub
 
         <Fact>

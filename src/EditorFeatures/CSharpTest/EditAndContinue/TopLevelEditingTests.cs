@@ -2940,7 +2940,7 @@ record struct C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                 Diagnostic(RudeEditKind.InsertIntoStruct, "public int Y { get; set; } = 0;", FeaturesResources.auto_property, CSharpFeaturesResources.record_struct));
+                 Diagnostic(RudeEditKind.InsertIntoStruct, "public int Y", GetResource("auto-property"), GetResource("record struct")));
         }
 
         [Fact]
@@ -3192,6 +3192,25 @@ protected virtual bool PrintMembers(System.Text.StringBuilder sb) => false;
                     SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }),
                 },
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Theory]
+        [InlineData("method", "ToString()", "public override string ToString() => G(stackalloc int[1]).ToString();")]
+        [InlineData("method", "GetHashCode()", "public override int GetHashCode() => G(stackalloc int[1]) ? 0 : 1;")]
+        [InlineData("method", "Equals(C other)", "public virtual bool Equals(C other) => G(stackalloc int[1]);")]
+        [InlineData("method", "PrintMembers(StringBuilder builder)", "protected virtual bool PrintMembers(System.Text.StringBuilder builder) => G(stackalloc int[1]);")]
+        [InlineData("method", "Deconstruct(out int X)", "public void Deconstruct(out int X)  => G(stackalloc int[X = 1]);")]
+        [InlineData("constructor", "C(C original)", "protected C(C original) => G(stackalloc int[1]);")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69493")]
+        public void Record_Method_Delete_ReplacingCustomWithSynthesized_StackAlloc(string kind, string methodDisplay, string methodImpl)
+        {
+            var src1 = "record C(int X) { bool G(Span<int> s) => true; " + methodImpl + " }";
+            var src2 = "record C(int X) { bool G(Span<int> s) => true; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "record C", GetResource(kind, methodDisplay)));
         }
 
         [Fact]
@@ -3749,6 +3768,19 @@ record C(int X)
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
+        [Fact]
+        public void Record_Property_Delete_ReplacingCustomWithSynthesized_TypeLayoutChange()
+        {
+            var src1 = "record struct C(int P) { public int P { readonly get => 1; set {} } }";
+            var src2 = "record struct C(int P);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertIntoStruct, "int P", GetResource("auto-property"), GetResource("record struct")) },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
         [Theory]
         [InlineData("get; set;")]
         [InlineData("get; init;")]
@@ -3887,6 +3919,28 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                });
+        }
+
+        [Fact]
+        public void Record_Property_Insert_ReplacingSynthesizedWithCustom_TypeLayoutChange()
+        {
+            var src1 = "record struct C(int P);";
+            var src2 = "record struct C(int P) { public int P { readonly get => 1; set {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            // Note: We do not report rude edits when a synthesized auto-property is replaced by an explicit one.
+            // The synthesized property accessors are updated to throw and the backing field remains in the type.
+            // The deleted field will remain unused since adding the primary property back is a rude edit.
+            edits.VerifySemantics(new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
                 });
         }
@@ -11081,7 +11135,7 @@ record C(int X, int Y) { }
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int Y", GetResource("parameter"), GetResource("record")));
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int Y", GetResource("auto-property"), GetResource("record")));
         }
 
         [Fact]
@@ -11100,7 +11154,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "int y", GetResource("parameter"), GetResource("record struct")));
+                Diagnostic(RudeEditKind.InsertIntoStruct, "int y", GetResource("auto-property"), GetResource("record struct")));
         }
 
         [Fact]
@@ -12275,7 +12329,7 @@ partial class C
             edits.VerifySemanticDiagnostics(
                 new[]
                 {
-                    Diagnostic(RudeEditKind.InsertIntoStruct, "int X", GetResource("parameter"), GetResource("record struct"))
+                    Diagnostic(RudeEditKind.InsertIntoStruct, "int X", GetResource("auto-property"), GetResource("record struct"))
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
@@ -13535,8 +13589,13 @@ partial class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) },
+                capabilities: EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "c", GetResource("lambda")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+            
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
@@ -16256,7 +16315,19 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
                 },
-                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
+                capabilities:
+                    EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+                    EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                    EditAndContinueCapabilities.AddMethodToExistingType |
+                    EditAndContinueCapabilities.NewTypeDefinition);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "c", GetResource("lambda")),
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "B = F(b => b + 1)", GetResource("field")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
@@ -16294,7 +16365,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C()"));
+                new[] { Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C()") },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             // TODO (bug https://github.com/dotnet/roslyn/issues/2504):
             //edits.VerifySemantics(
@@ -16636,7 +16708,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "event System.Action<" + newType + "> E", FeaturesResources.event_) },
+                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "event System.Action<" + newType + "> E", GetResource("event field")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -16658,7 +16730,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "event System.Action<(int a, double b)> E", FeaturesResources.event_) },
+                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "event System.Action<(int a, double b)> E", GetResource("event field")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17601,9 +17673,9 @@ struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c { get; set; }", FeaturesResources.auto_property, CSharpFeaturesResources.struct_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g { get; } = 1;", FeaturesResources.auto_property, CSharpFeaturesResources.struct_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i { get; set; } = 1;", FeaturesResources.auto_property, CSharpFeaturesResources.struct_));
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c", GetResource("auto-property"), GetResource("struct")),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g", GetResource("auto-property"), GetResource("struct")),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i", GetResource("auto-property"), GetResource("struct")));
         }
 
         [Fact]
@@ -17645,12 +17717,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int b { get; set; }", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int c { get; set; }", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int f { get; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int g { get; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int h { get; set; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i { get; set; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_));
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int b", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int c", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int f", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int g", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int h", GetResource("auto-property"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i", GetResource("auto-property"), GetResource("class")));
         }
 
         [Fact]
@@ -19533,7 +19605,7 @@ class C
                 "Update [event Action F;]@18 -> [[System.Obsolete]event Action F;]@18");
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", GetResource("event field")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
@@ -19625,7 +19697,7 @@ class C
                 "Update [[System.Obsolete]event Action F;]@18 -> [event Action F;]@18");
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", GetResource("event field")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
