@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var lexer = this.lexer;
             var mode = _mode;
 
+            _lexedTokens ??= s_lexedTokensPool.Allocate();
+
             for (int i = 0; i < size; i++)
             {
                 var token = lexer.Lex(mode);
