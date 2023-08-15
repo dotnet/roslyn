@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis
         internal void StartSingleGeneratorRunTime(string generatorName, string assemblyPath, string id) => WriteEvent(3, generatorName, assemblyPath, id);
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
-        [UnconditionalSuppressMessage("Trimming", "IL2026:'RequiresUnreferencedCodeAttribute'", Justification = "Only passes primitive types, which is safe according to the RUC message.")]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id) => WriteEvent(4, generatorName, assemblyPath, elapsedTicks, id);
 
         [Event(5, Message = "Generator '{0}' failed with exception: {1}", Level = EventLevel.Error)]
