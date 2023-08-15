@@ -623,7 +623,7 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
-    public async Task NotForImmutableArrayNet80()
+    public async Task ForImmutableArrayNet80()
     {
         await new VerifyCS.Test
         {
@@ -692,7 +692,7 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
-    public async Task NotForImmutableListNet80()
+    public async Task ForImmutableListNet80()
     {
         await new VerifyCS.Test
         {
@@ -720,6 +720,182 @@ public class UseCollectionExpressionForEmptyTests
                     }
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForValueTypeWithoutNoArgConstructorAndWithoutCollectionBuilderAttribute()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.Empty;
+                    }
+                }
+
+                struct V<T> : IEnumerable<T>
+                {
+                    public static readonly V<T> Empty = default;
+
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+
+                    public void Add(T x) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForValueTypeWithOneArgConstructorAndWithoutCollectionBuilderAttribute()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.Empty;
+                    }
+                }
+
+                struct V<T> : IEnumerable<T>
+                {
+                    public static readonly V<T> Empty = default;
+
+                    public V(int val) { }
+
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+
+                    public void Add(T x) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithNoArgConstructorAndWithoutCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+            
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V()
+                {
+                }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithoutNoArgConstructorAndWithCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+            
+            [System.Runtime.CompilerServices.CollectionBuilder(typeof(V), "Create")]
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            
+            static class V
+            {
+                public static V<T> Create<T>(ReadOnlySpan<T> values) => default;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();

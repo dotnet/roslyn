@@ -839,7 +839,7 @@ public class UseCollectionExpressionForCreateTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
-    public async Task NotForImmutableArrayNet80()
+    public async Task ForImmutableArrayNet80()
     {
         await new VerifyCS.Test
         {
@@ -895,7 +895,7 @@ public class UseCollectionExpressionForCreateTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
-    public async Task NotForImmutableListNet80()
+    public async Task ForImmutableListNet80()
     {
         await new VerifyCS.Test
         {
