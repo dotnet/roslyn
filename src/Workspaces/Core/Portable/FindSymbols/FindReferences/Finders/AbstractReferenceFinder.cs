@@ -166,15 +166,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
-            if (identifier == "")
-            {
-                // Certain symbols don't have a name, so we return without further searching since the text-based index
-                // and lookup never terminates if searching for an empty string.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118
-                return ImmutableArray<FinderLocation>.Empty;
-            }
-
             var tokens = await FindMatchingIdentifierTokensAsync(state, identifier, cancellationToken).ConfigureAwait(false);
             return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
         }
@@ -188,6 +179,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
+            if (tokens.IsEmpty)
+                return ImmutableArray<FinderLocation>.Empty;
+
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in tokens)
             {
@@ -590,13 +584,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var semanticFacts = state.SemanticFacts;
             var semanticModel = state.SemanticModel;
 
-            if (syntaxFacts.IsInNamespaceOrTypeContext(node))
-            {
-                var typeOrNamespaceUsageInfo = GetTypeOrNamespaceUsageInfo();
-                return SymbolUsageInfo.Create(typeOrNamespaceUsageInfo);
-            }
+            return IsInNamespaceOrTypeContext()
+                ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
+                : GetSymbolUsageInfoCommon();
 
-            return GetSymbolUsageInfoCommon();
+            bool IsInNamespaceOrTypeContext()
+            {
+                var current = node;
+                while (syntaxFacts.IsQualifiedName(current.Parent))
+                    current = current.Parent;
+
+                return syntaxFacts.IsInNamespaceOrTypeContext(current);
+            }
 
             // Local functions.
             TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
@@ -615,9 +614,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 while (syntaxFacts.IsQualifiedName(node.Parent))
-                {
                     node = node.Parent;
-                }
 
                 if (syntaxFacts.IsTypeArgumentList(node.Parent))
                 {

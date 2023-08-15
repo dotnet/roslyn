@@ -1452,11 +1452,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">Habilita la creación de informes de advertencias concretas en la parte del archivo de código fuente situada debajo de la línea actual.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Convertir {0} en una función Async.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Utilizar la variable de control correcta</target>
@@ -1736,16 +1731,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">Convertir función en asincrónica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">Convertir Sub en asincrónico</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

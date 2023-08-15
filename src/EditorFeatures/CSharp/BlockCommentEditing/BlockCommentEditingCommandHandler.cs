@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
         {
-            if (!_editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
                 return false;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
@@ -283,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, cancellationToken);
 
-            var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+            var isBlockComment = trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia;
             if (isBlockComment)
             {
                 newLine = buffer.GetLineFormattingOptions(editorOptionsService, explicitFormat: false).NewLine;

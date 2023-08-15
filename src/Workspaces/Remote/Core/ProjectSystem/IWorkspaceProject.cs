@@ -11,7 +11,7 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 [RpcMarshalable]
-internal interface IWorkspaceProject : IAsyncDisposable
+internal interface IWorkspaceProject : IDisposable
 {
     Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken);
 
@@ -38,5 +38,5 @@ internal interface IWorkspaceProject : IAsyncDisposable
 
     Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken);
 
-    Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken);
+    Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken);
 }

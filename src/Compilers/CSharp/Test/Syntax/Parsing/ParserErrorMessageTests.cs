@@ -1582,6 +1582,8 @@ class Program
         [Fact()]
         public void CS1002ERR_SemicolonExpected_4()
         {
+            // This used to emit CS1002.  However, improved error recovery now just treats this as as a switch that
+            // terminates early, and a case-statement outside of a switch.
             var test = @"
 class Program
 {
@@ -1599,27 +1601,12 @@ class Program
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (8,10): error CS1513: } expected
-    //         {
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-    // (9,16): error CS1525: Invalid expression term 'case'
-    //         label1:
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case"),
-    // (9,16): error CS1002: ; expected
-    //         label1:
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
-    // (9,16): error CS1513: } expected
-    //         label1:
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-    // (10,18): error CS1002: ; expected
-    //         case "t1":
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (10,18): error CS1513: } expected
-    //         case "t1":
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"),
-    // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+                // (8,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 10),
+                // (9,16): error CS1003: Syntax error, 'switch' expected
+                //         label1:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(9, 16));
         }
 
         // TODO: diff error CS1525 vs. CS1513

@@ -182,12 +182,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
+        public const string MakeStructMemberReadOnlyDiagnosticId = "IDE0251";
 
         public const string UsePatternMatchingAsAndMemberAccessDiagnosticId = "IDE0260";
 
         public const string UseCoalesceExpressionForIfNullCheckDiagnosticId = "IDE0270";
 
         public const string UseNameofInAttributeDiagnosticId = "IDE0280";
+
+        public const string UsePrimaryConstructorDiagnosticId = "IDE0290";
+
+        public const string UseCollectionExpressionForArrayDiagnosticId = "IDE0300";
+        public const string UseCollectionExpressionForEmptyDiagnosticId = "IDE0301";
+        public const string UseCollectionExpressionForStackAllocDiagnosticId = "IDE0302";
+        public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

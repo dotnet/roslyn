@@ -17,36 +17,24 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// We have this builder to avoid creating collections unnecessarily.
     /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
     /// </summary>
-    internal struct DiagnosticAnalysisResultBuilder
+    internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
     {
-        public readonly Project Project;
-        public readonly VersionStamp Version;
+        public readonly Project Project = project;
+        public readonly VersionStamp Version = version;
 
-        private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics;
+        private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
 
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals;
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals;
-        private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals = null;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
+        private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals = null;
 
-        private List<DiagnosticData>? _lazyOthers;
+        private List<DiagnosticData>? _lazyOthers = null;
 
-        public DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
-        {
-            Project = project;
-            Version = version;
-
-            _lazyDocumentsWithDiagnostics = null;
-            _lazySyntaxLocals = null;
-            _lazySemanticLocals = null;
-            _lazyNonLocals = null;
-            _lazyOthers = null;
-        }
-
-        public ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
-        public ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
+        public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
+        public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
 
         public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
         {

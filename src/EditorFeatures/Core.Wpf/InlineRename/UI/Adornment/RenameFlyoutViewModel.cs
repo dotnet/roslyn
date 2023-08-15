@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
-            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(VisualStudio.Text.SpanTrackingMode.EdgeInclusive);
+            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             RegisterOleComponent();
         }
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool IsCollapsed
         {
-            get => _globalOptionService.GetOption(InlineRenameUIOptions.CollapseUI);
+            get => _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseUI);
             set
             {
                 if (value != IsCollapsed)
                 {
-                    _globalOptionService.SetGlobalOption(InlineRenameUIOptions.CollapseUI, value);
+                    _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, value);
                     NotifyPropertyChanged(nameof(IsCollapsed));
                     NotifyPropertyChanged(nameof(IsExpanded));
                 }

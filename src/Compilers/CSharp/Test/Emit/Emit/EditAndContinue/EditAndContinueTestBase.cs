@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
-        protected readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
+        internal static readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
 
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
@@ -129,8 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
-        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, Func<Compilation, ISymbol> newSymbolProvider = null)
-            => new(kind, symbolProvider, newSymbolProvider);
+        internal static SemanticEditDescription Edit(
+            SemanticEditKind kind,
+            Func<Compilation, ISymbol> symbolProvider,
+            Func<Compilation, ISymbol> newSymbolProvider = null,
+            bool preserveLocalVariables = false)
+            => new(kind, symbolProvider, newSymbolProvider, preserveLocalVariables);
 
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {

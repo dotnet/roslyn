@@ -12,6 +12,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
@@ -46,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string? PEVerifyMessage { get; init; }
 
         /// <summary>
-        /// True if the expected messages include member tokens.
+        /// True if the expected messages include member tokens and MVIDs.
         /// </summary>
-        public bool IncludeTokens { get; init; }
+        public bool IncludeTokensAndModuleIds { get; init; }
 
         public static readonly Verification Skipped = new() { Status = VerificationStatus.Skipped };
         public static readonly Verification Passes = new() { Status = VerificationStatus.Passes };
@@ -325,9 +326,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null)
         {
+            return CreateCSharpCompilation(assemblyName, assemblyIdentity: null, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations);
+        }
+
+        protected CSharp.CSharpCompilation CreateCSharpCompilation(
+            AssemblyIdentity assemblyIdentity,
+            string code,
+            CSharp.CSharpParseOptions parseOptions = null,
+            CSharp.CSharpCompilationOptions compilationOptions = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null,
+            IEnumerable<Compilation> referencedCompilations = null)
+        {
+            return CreateCSharpCompilation(assemblyName: null, assemblyIdentity, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations);
+        }
+
+        private CSharp.CSharpCompilation CreateCSharpCompilation(
+            string assemblyName,
+            AssemblyIdentity assemblyIdentity,
+            string code,
+            CSharp.CSharpParseOptions parseOptions = null,
+            CSharp.CSharpCompilationOptions compilationOptions = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null,
+            IEnumerable<Compilation> referencedCompilations = null)
+        {
+            Debug.Assert(assemblyName == null || assemblyIdentity == null || assemblyIdentity.Name == assemblyName);
             if (assemblyName == null)
             {
-                assemblyName = GetUniqueName();
+                assemblyName = assemblyIdentity?.Name ?? GetUniqueName();
             }
 
             if (parseOptions == null)
@@ -359,7 +384,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var tree = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(code, encoding: null, SourceHashAlgorithms.Default), options: parseOptions);
 
-            return CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+            var compilation = CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+
+            if (assemblyIdentity != null)
+            {
+                ((SourceAssemblySymbol)compilation.Assembly).lazyAssemblyIdentity = assemblyIdentity;
+            }
+
+            return compilation;
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(

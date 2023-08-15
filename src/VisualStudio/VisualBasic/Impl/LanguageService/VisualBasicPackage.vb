@@ -58,6 +58,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
+            ' This is a UI-affinitized operation. Currently this opeartion prevents setting AllowsBackgroundLoad for
+            ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
+            ' background loads.
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 

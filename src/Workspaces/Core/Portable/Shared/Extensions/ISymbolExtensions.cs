@@ -14,7 +14,6 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -134,29 +133,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, IMethodSymbol? constructor)
         {
             if (constructor == null)
-            {
                 return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
-            }
 
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeConstructor, constructor) &&
-                    attribute.ConstructorArguments.Length == 1 &&
-                    attribute.ConstructorArguments.First().Value is int)
+                    attribute.ConstructorArguments is [{ Value: int value }])
                 {
-#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
-                    var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
-#nullable enable
-
+                    var state = (EditorBrowsableState)value;
                     if (EditorBrowsableState.Never == state)
-                    {
                         return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
-                    }
 
                     if (EditorBrowsableState.Advanced == state)
-                    {
                         return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
-                    }
                 }
             }
 

@@ -134,39 +134,19 @@ End Module", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
-        public async Task RenamingOpenFiles()
+        public virtual async Task RenamingOpenFiles()
         {
             await InitializeWithDefaultSolution();
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "BeforeRename.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
             // Verify we are connected to the project before...
-            var navBarItems = await TestServices.Editor.GetNavigationBarItemsAsync(Microsoft.CodeAnalysis.Editor.NavigationBarDropdownKind.Project, HangMitigatingCancellationToken);
-            Assert.Contains(ProjectName, navBarItems);
+            Assert.Equal(ProjectName, (await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken))!.Project.Name);
 
             await TestServices.SolutionExplorer.RenameFileAsync(ProjectName, "BeforeRename.cs", "AfterRename.cs", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
 
             // ...and after.
-            navBarItems = await TestServices.Editor.GetNavigationBarItemsAsync(Microsoft.CodeAnalysis.Editor.NavigationBarDropdownKind.Project, HangMitigatingCancellationToken);
-            Assert.Contains(ProjectName, navBarItems);
-        }
-
-        [IdeFact]
-        public virtual async Task RenamingOpenFilesViaDTE()
-        {
-            await InitializeWithDefaultSolution();
-            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "BeforeRename.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
-
-            // Verify we are connected to the project before...
-            var navBarItems = await TestServices.Editor.GetNavigationBarItemsAsync(Microsoft.CodeAnalysis.Editor.NavigationBarDropdownKind.Project, HangMitigatingCancellationToken);
-            Assert.Contains(ProjectName, navBarItems);
-
-            await TestServices.SolutionExplorer.RenameFileViaDTEAsync(ProjectName, "BeforeRename.cs", "AfterRename.cs", HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
-
-            // ...and after.
-            navBarItems = await TestServices.Editor.GetNavigationBarItemsAsync(Microsoft.CodeAnalysis.Editor.NavigationBarDropdownKind.Project, HangMitigatingCancellationToken);
-            Assert.Contains(ProjectName, navBarItems);
+            Assert.Equal(ProjectName, (await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken))!.Project.Name);
         }
     }
 }

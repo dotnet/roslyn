@@ -101,29 +101,29 @@ Loop Until |</MethodBody>, "From")
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         Public Sub FromAfterMultiLineFunctionLambdaExprTest()
             VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
                                          End Function |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         Public Sub FromAfterAnonymousObjectCreationExprTest()
             VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
         Public Sub FromAfterIntoClauseTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         Public Sub FromAfterNestedAggregateFromClauseTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>

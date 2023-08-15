@@ -20,19 +20,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal partial class CSharpSelectionValidator : SelectionValidator
+    internal partial class CSharpSelectionValidator(
+        SemanticDocument document,
+        TextSpan textSpan,
+        ExtractMethodOptions options,
+        bool localFunction) : SelectionValidator(document, textSpan, options)
     {
-        private readonly bool _localFunction;
-
-        public CSharpSelectionValidator(
-            SemanticDocument document,
-            TextSpan textSpan,
-            ExtractMethodOptions options,
-            bool localFunction)
-            : base(document, textSpan, options)
-        {
-            _localFunction = localFunction;
-        }
+        private readonly bool _localFunction = localFunction;
 
         public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
                 {
-                    if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
+                    if (ancestor.Kind() is SyntaxKind.BaseConstructorInitializer or SyntaxKind.ThisConstructorInitializer)
                     {
                         return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
                     }

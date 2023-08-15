@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -249,5 +250,26 @@ namespace Microsoft.CodeAnalysis
             }
             builder.Free();
         }
+
+#if COMPILERCORE
+
+        /// <summary>
+        /// Realizes the OneOrMany and disposes the builder in one operation.
+        /// </summary>
+        public static OneOrMany<T> ToOneOrManyAndFree<T>(this ArrayBuilder<T> builder)
+        {
+            if (builder.Count == 1)
+            {
+                var result = OneOrMany.Create(builder[0]);
+                builder.Free();
+                return result;
+            }
+            else
+            {
+                return OneOrMany.Create(builder.ToImmutableAndFree());
+            }
+        }
+
+#endif
     }
 }

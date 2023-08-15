@@ -14,13 +14,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService
     {
-        internal class State
+        internal class State(Document document, SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
         {
-            public SyntaxNode Location { get; }
-            public SyntaxNode ClassOrStructDecl { get; }
-            public INamedTypeSymbol ClassOrStructType { get; }
-            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; }
-            public SemanticModel Model { get; }
+            public SyntaxNode Location { get; } = interfaceNode;
+            public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
+            public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
+            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
+            public SemanticModel Model { get; } = model;
+
+            public readonly Document Document = document;
 
             // The members that are not implemented at all.
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; private set; }
@@ -32,15 +34,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; }
                 = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
 
-            public State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
-            {
-                Location = interfaceNode;
-                ClassOrStructDecl = classOrStructDecl;
-                ClassOrStructType = classOrStructType;
-                InterfaceTypes = interfaceTypes;
-                Model = model;
-            }
-
             public static State Generate(
                 AbstractImplementInterfaceService service,
                 Document document,
@@ -49,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 CancellationToken cancellationToken)
             {
                 if (!service.TryInitializeState(document, model, interfaceNode, cancellationToken,
-                    out var classOrStructDecl, out var classOrStructType, out var interfaceTypes))
+                        out var classOrStructDecl, out var classOrStructType, out var interfaceTypes))
                 {
                     return null;
                 }
@@ -59,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return null;
                 }
 
-                var state = new State(interfaceNode, classOrStructDecl, classOrStructType, interfaceTypes, model);
+                var state = new State(document, interfaceNode, classOrStructDecl, classOrStructType, interfaceTypes, model);
 
                 if (service.CanImplementImplicitly)
                 {

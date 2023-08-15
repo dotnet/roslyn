@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
                 var listView = (AutomationDelegatingListView)sender;
-                if (listView.SelectedItem is CheckBoxOptionViewModel checkBox)
+                if (listView.SelectedItem is AbstractCheckBoxViewModel checkBox)
                 {
                     checkBox.IsChecked = !checkBox.IsChecked;
                     e.Handled = true;

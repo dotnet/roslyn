@@ -12,17 +12,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 {
     [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
-    internal class CSharpMoveToNamespaceService :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpMoveToNamespaceService(
+        [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService) :
+        AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>(optionsService)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveToNamespaceService(
-            [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService)
-            : base(optionsService)
-        {
-        }
-
         protected override string GetNamespaceName(SyntaxNode container)
             => container switch
             {

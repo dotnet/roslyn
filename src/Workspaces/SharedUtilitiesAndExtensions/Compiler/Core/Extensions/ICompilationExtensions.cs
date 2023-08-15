@@ -186,6 +186,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? OnSerializedAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
 
+        public static INamedTypeSymbol? CollectionBuilderAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.CollectionBuilderAttribute");
+
         public static INamedTypeSymbol? ComRegisterFunctionAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);
 
@@ -239,5 +242,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+
+        public static INamedTypeSymbol? ReadOnlySpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+
+        public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
     }
 }

@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Options
             StorageMapping = storageMapping;
             IsEditorConfigOption = isEditorConfigOption;
             DefaultValue = defaultValue;
+
+            Debug.Assert(IsSupportedOptionType(Type));
         }
 
         /// <summary>
@@ -75,25 +78,35 @@ namespace Microsoft.CodeAnalysis.Options
 
         public static bool operator !=(OptionDefinition? left, OptionDefinition? right)
             => !(left == right);
+
+        public static bool IsSupportedOptionType(Type type)
+            => type == typeof(bool) ||
+               type == typeof(string) ||
+               type == typeof(int) ||
+               type == typeof(long) ||
+               type == typeof(bool?) ||
+               type == typeof(int?) ||
+               type == typeof(long?) ||
+               type.IsEnum ||
+               Nullable.GetUnderlyingType(type)?.IsEnum == true ||
+               typeof(ICodeStyleOption).IsAssignableFrom(type) ||
+               type == typeof(NamingStylePreferences) ||
+               type == typeof(ImmutableArray<bool>) ||
+               type == typeof(ImmutableArray<string>) ||
+               type == typeof(ImmutableArray<int>) ||
+               type == typeof(ImmutableArray<long>);
     }
 
-    internal sealed class OptionDefinition<T> : OptionDefinition
+    internal sealed class OptionDefinition<T>(
+        T defaultValue,
+        EditorConfigValueSerializer<T>? serializer,
+        OptionGroup? group,
+        string configName,
+        OptionStorageMapping? storageMapping,
+        bool isEditorConfigOption) : OptionDefinition(group, configName, defaultValue, storageMapping, isEditorConfigOption)
     {
-        public new T DefaultValue { get; }
-        public new EditorConfigValueSerializer<T> Serializer { get; }
-
-        public OptionDefinition(
-            T defaultValue,
-            EditorConfigValueSerializer<T>? serializer,
-            OptionGroup? group,
-            string configName,
-            OptionStorageMapping? storageMapping,
-            bool isEditorConfigOption)
-            : base(group, configName, defaultValue, storageMapping, isEditorConfigOption)
-        {
-            DefaultValue = defaultValue;
-            Serializer = serializer ?? EditorConfigValueSerializer.Default<T>();
-        }
+        public new T DefaultValue { get; } = defaultValue;
+        public new EditorConfigValueSerializer<T> Serializer { get; } = serializer ?? EditorConfigValueSerializer.Default<T>();
 
         public override Type Type
             => typeof(T);

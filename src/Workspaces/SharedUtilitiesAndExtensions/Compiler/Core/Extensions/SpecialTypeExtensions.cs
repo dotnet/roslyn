@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 SpecialType.System_Double => PredefinedType.Double,
                 SpecialType.System_String => PredefinedType.String,
                 SpecialType.System_DateTime => PredefinedType.DateTime,
+                SpecialType.System_IntPtr => PredefinedType.IntPtr,
+                SpecialType.System_UIntPtr => PredefinedType.UIntPtr,
                 _ => PredefinedType.None,
             };
     }

@@ -131,7 +131,7 @@ $$");
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(34324, "https://github.com/dotnet/roslyn/issues/34324")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34324")]
         public async Task TestAfterNullCoalescingAssignment(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -1019,7 +1019,7 @@ $$");
 @"return (a + b)$$"));
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInConstMemberInitializer1()
         {
             // User could say "new int()" here.
@@ -1029,7 +1029,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInConstLocalInitializer1()
         {
             // User could say "new int()" here.
@@ -1041,7 +1041,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInMemberInitializer1()
         {
             await VerifyKeywordAsync(
@@ -1050,28 +1050,28 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInTypeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInDefault()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
         }
 
-        [Fact, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         public async Task TestNotInSizeOf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
-        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -1083,7 +1083,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [Fact, WorkItem(544486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544486")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544486")]
         public async Task TestInsideInitOfConstFieldDecl()
         {
             // user could say "new int()" here.
@@ -1093,7 +1093,7 @@ class C
     const int value = $$");
         }
 
-        [Fact, WorkItem(544998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544998")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544998")]
         public async Task TestInsideStructParameterInitializer()
         {
             await VerifyKeywordAsync(

@@ -576,7 +576,7 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function InvokeWithOpenAngleCommitSeeOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -742,8 +742,8 @@ class c
             End Using
         End Function
 
-        <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
-        <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
         <WpfTheory, CombinatorialData>
         Public Async Function CommitParam(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -772,6 +772,44 @@ class c<T>
                 <Document><![CDATA[
 /// <param$$
 record R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Class(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+class R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Struct(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+struct R(int I);
             ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
@@ -1202,7 +1240,7 @@ class c<T>
             End Using
         End Function
 
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/21481"), CombinatorialData>
         Public Async Function AllowTypingDoubleQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1228,7 +1266,7 @@ class c
             End Using
         End Function
 
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         <WpfTheory, CombinatorialData>
         Public Async Function AllowTypingSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1254,7 +1292,7 @@ class c
             End Using
         End Function
 
-        <WorkItem(44472, "https://github.com/dotnet/roslyn/issues/44472")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44472")>
         <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithAliasAndImportedNamespace(showCompletionInArgumentLists As Boolean) As Task
 

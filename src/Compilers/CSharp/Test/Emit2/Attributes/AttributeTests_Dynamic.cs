@@ -876,7 +876,7 @@ Gen<dynamic> x = null;";
         }
 
         [Fact]
-        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget()
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget1()
         {
             var source =
                 "using X = Gen<dynamic>;"
@@ -898,11 +898,47 @@ Gen<dynamic> x = null;";
         }
 
         [Fact]
-        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore()
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget2()
+        {
+            var source =
+                "using X = dynamic[];"
+                + GetNoCS1980String(typeName: @"dynamic[]")
+                + "X x = null;";
+
+            var comp = CreateCompilationWithMscorlib45(
+                source: source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview),
+                references: new[] { SystemCoreRef });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
+                var expectedTransformsFlags = new bool[] { false, true };
+                DynamicAttributeValidator.ValidateDynamicAttribute(implicitField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
+            });
+        }
+
+        [Fact]
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore1()
         {
             var source =
                 "using X = Gen<dynamic>;"
                 + GetNoCS1980String(typeName: @"Gen<dynamic>")
+                + "X x = null;";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // X x = null;
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
+        }
+
+        [Fact]
+        public void TestDynamicAttributeForScript_DynamicTypeInAliasTarget_NoCore2()
+        {
+            var source =
+                "using X = dynamic[];"
+                + GetNoCS1980String(typeName: @"dynamic[]")
                 + "X x = null;";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -1304,7 +1340,7 @@ class C
         [Theory]
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
+        public void TestDynamicAttributeInAliasContext1(SourceCodeKind sourceCodeKind)
         {
             string source =
                 "using X = Gen<dynamic>;     // No CS1980"
@@ -1313,6 +1349,20 @@ class C
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: source,
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestDynamicAttributeInAliasContext2(SourceCodeKind sourceCodeKind)
+        {
+            string source =
+                "using X = dynamic[];     // No CS1980"
+                + GetNoCS1980String(typeName: "X");
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(
+                source: source,
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Preview)));
         }
 
         [Theory]

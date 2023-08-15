@@ -205,6 +205,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
             => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
 
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
+
         #endregion
     }
 }

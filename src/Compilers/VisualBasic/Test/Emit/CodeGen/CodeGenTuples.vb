@@ -870,7 +870,7 @@ End Module
   .maxstack  2
   IL_0000:  ldc.i4.2
   IL_0001:  ldc.i4.3
-  IL_0002:  call       "Function C.M1(Integer, Integer) As (Integer, Integer)"
+  IL_0002:  call       "Function C.M1(Integer, Integer) As System.ValueTuple(Of Integer, Integer)"
   IL_0007:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_000c:  call       "Sub System.Console.WriteLine(Integer)"
   IL_0011:  ret
@@ -906,22 +906,22 @@ hello
 {
   // Code size       67 (0x43)
   .maxstack  2
-  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)) V_0) //t
+  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))) V_0) //t
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)).Rest As (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)"
-  IL_0007:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, (Integer, Integer, String, Integer)).Rest As (Integer, Integer, String, Integer)"
+  IL_0002:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))"
+  IL_0007:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer)).Rest As System.ValueTuple(Of Integer, Integer, String, Integer)"
   IL_000c:  ldstr      "hello"
   IL_0011:  stfld      "System.ValueTuple(Of Integer, Integer, String, Integer).Item3 As String"
   IL_0016:  ldloca.s   V_0
-  IL_0018:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)).Rest As (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)"
+  IL_0018:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))"
   IL_001d:  ldloc.0
-  IL_001e:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)).Rest As (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)"
-  IL_0023:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, (Integer, Integer, String, Integer)).Rest As (Integer, Integer, String, Integer)"
+  IL_001e:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))"
+  IL_0023:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer)).Rest As System.ValueTuple(Of Integer, Integer, String, Integer)"
   IL_0028:  ldfld      "System.ValueTuple(Of Integer, Integer, String, Integer).Item3 As String"
-  IL_002d:  stfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, (Integer, Integer, String, Integer)).Item5 As String"
+  IL_002d:  stfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer)).Item5 As String"
   IL_0032:  ldloc.0
-  IL_0033:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)).Rest As (Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer, String, Integer)"
-  IL_0038:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, (Integer, Integer, String, Integer)).Item5 As String"
+  IL_0033:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer))"
+  IL_0038:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, String, Integer, Integer, System.ValueTuple(Of Integer, Integer, String, Integer)).Item5 As String"
   IL_003d:  call       "Sub System.Console.WriteLine(String)"
   IL_0042:  ret
 }
@@ -1100,22 +1100,22 @@ False
 {
   // Code size       74 (0x4a)
   .maxstack  2
-  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)) V_0) //t
+  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))) V_0) //t
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
-  IL_0007:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer)"
+  IL_0002:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))"
+  IL_0007:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer)).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer)"
   IL_000c:  ldc.i4.s   42
   IL_000e:  stfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer).Item3 As Integer"
   IL_0013:  ldloca.s   V_0
-  IL_0015:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
+  IL_0015:  ldflda     "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))"
   IL_001a:  ldloc.0
-  IL_001b:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
-  IL_0020:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer)"
+  IL_001b:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))"
+  IL_0020:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer)).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer)"
   IL_0025:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer).Item3 As Integer"
-  IL_002a:  stfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Item5 As Integer"
+  IL_002a:  stfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer)).Item5 As Integer"
   IL_002f:  ldloc.0
-  IL_0030:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
-  IL_0035:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Item5 As Integer"
+  IL_0030:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))).Rest As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer))"
+  IL_0035:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, System.ValueTuple(Of Integer, Integer, Integer, Integer)).Item5 As Integer"
   IL_003a:  call       "Sub System.Console.WriteLine(Integer)"
   IL_003f:  call       "Sub C.TestArray()"
   IL_0044:  call       "Sub C.TestNullable()"
@@ -2049,7 +2049,7 @@ End Module
 {
   // Code size       86 (0x56)
   .maxstack  3
-  .locals init (System.ValueTuple(Of Integer, (Integer, Integer)) V_0, //x
+  .locals init (System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)) V_0, //x
                 System.ValueTuple(Of Object, Object) V_1,
                 System.ValueTuple(Of Integer, Integer) V_2)
   IL_0000:  ldc.i4.1
@@ -2073,10 +2073,10 @@ End Module
   IL_0035:  ldloc.2
   IL_0036:  br.s       IL_003d
   IL_0038:  unbox.any  "System.ValueTuple(Of Integer, Integer)"
-  IL_003d:  newobj     "Sub System.ValueTuple(Of Integer, (Integer, Integer))..ctor(Integer, (Integer, Integer))"
+  IL_003d:  newobj     "Sub System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))..ctor(Integer, System.ValueTuple(Of Integer, Integer))"
   IL_0042:  stloc.0
   IL_0043:  ldloca.s   V_0
-  IL_0045:  constrained. "System.ValueTuple(Of Integer, (Integer, Integer))"
+  IL_0045:  constrained. "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))"
   IL_004b:  callvirt   "Function Object.ToString() As String"
   IL_0050:  call       "Sub System.Console.WriteLine(String)"
   IL_0055:  ret
@@ -2133,7 +2133,7 @@ long            ]]>)
   IL_0011:  ldloc.0
   IL_0012:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_0017:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_001c:  call       "Sub C.Test((Integer, Integer))"
+  IL_001c:  call       "Sub C.Test(System.ValueTuple(Of Integer, Integer))"
   IL_0021:  dup
   IL_0022:  stloc.0
   IL_0023:  ldloc.0
@@ -2141,7 +2141,7 @@ long            ]]>)
   IL_0029:  ldloc.0
   IL_002a:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_002f:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_0034:  call       "Sub C.Test((Integer, Integer))"
+  IL_0034:  call       "Sub C.Test(System.ValueTuple(Of Integer, Integer))"
   IL_0039:  stloc.0
   IL_003a:  ldloc.0
   IL_003b:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2156,7 +2156,7 @@ long            ]]>)
   IL_0054:  ldfld      "System.ValueTuple(Of Long, Integer).Item2 As Integer"
   IL_0059:  conv.i8
   IL_005a:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_005f:  call       "Sub C.Test((Long, Long))"
+  IL_005f:  call       "Sub C.Test(System.ValueTuple(Of Long, Long))"
   IL_0064:  ret
 }
 ]]>)
@@ -2186,16 +2186,16 @@ End Module
 {
   // Code size       62 (0x3e)
   .maxstack  3
-  .locals init ((x As Byte, y As Byte)? V_0, //i
+  .locals init (System.ValueTuple(Of Byte, Byte)? V_0, //i
                 System.ValueTuple(Of Integer, Double) V_1, //x
                 System.ValueTuple(Of Byte, Byte) V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   100
   IL_0004:  ldc.i4.s   100
   IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
-  IL_000b:  call       "Sub (x As Byte, y As Byte)?..ctor((x As Byte, y As Byte))"
+  IL_000b:  call       "Sub System.ValueTuple(Of Byte, Byte)?..ctor(System.ValueTuple(Of Byte, Byte))"
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function (x As Byte, y As Byte)?.get_Value() As (x As Byte, y As Byte)"
+  IL_0012:  call       "Function System.ValueTuple(Of Byte, Byte)?.get_Value() As System.ValueTuple(Of Byte, Byte)"
   IL_0017:  stloc.2
   IL_0018:  ldloc.2
   IL_0019:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2238,7 +2238,7 @@ End Module
   // Code size       57 (0x39)
   .maxstack  3
   .locals init (System.ValueTuple(Of Byte, Byte) V_0, //i
-                (Integer, Double)? V_1, //x
+                System.ValueTuple(Of Integer, Double)? V_1, //x
                 System.ValueTuple(Of Byte, Byte) V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   100
@@ -2253,9 +2253,9 @@ End Module
   IL_0016:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_001b:  conv.r8
   IL_001c:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
-  IL_0021:  call       "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_0021:  call       "Sub System.ValueTuple(Of Integer, Double)?..ctor(System.ValueTuple(Of Integer, Double))"
   IL_0026:  ldloca.s   V_1
-  IL_0028:  constrained. "(Integer, Double)?"
+  IL_0028:  constrained. "System.ValueTuple(Of Integer, Double)?"
   IL_002e:  callvirt   "Function Object.ToString() As String"
   IL_0033:  call       "Sub System.Console.WriteLine(String)"
   IL_0038:  ret
@@ -2287,24 +2287,24 @@ End Module
 {
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init ((x As Byte, y As Byte)? V_0, //i
-                (Integer, Double)? V_1, //x
-                (Integer, Double)? V_2,
+  .locals init (System.ValueTuple(Of Byte, Byte)? V_0, //i
+                System.ValueTuple(Of Integer, Double)? V_1, //x
+                System.ValueTuple(Of Integer, Double)? V_2,
                 System.ValueTuple(Of Byte, Byte) V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   100
   IL_0004:  ldc.i4.s   100
   IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
-  IL_000b:  call       "Sub (x As Byte, y As Byte)?..ctor((x As Byte, y As Byte))"
+  IL_000b:  call       "Sub System.ValueTuple(Of Byte, Byte)?..ctor(System.ValueTuple(Of Byte, Byte))"
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function (x As Byte, y As Byte)?.get_HasValue() As Boolean"
+  IL_0012:  call       "Function System.ValueTuple(Of Byte, Byte)?.get_HasValue() As Boolean"
   IL_0017:  brtrue.s   IL_0024
   IL_0019:  ldloca.s   V_2
-  IL_001b:  initobj    "(Integer, Double)?"
+  IL_001b:  initobj    "System.ValueTuple(Of Integer, Double)?"
   IL_0021:  ldloc.2
   IL_0022:  br.s       IL_0043
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       "Function (x As Byte, y As Byte)?.GetValueOrDefault() As (x As Byte, y As Byte)"
+  IL_0026:  call       "Function System.ValueTuple(Of Byte, Byte)?.GetValueOrDefault() As System.ValueTuple(Of Byte, Byte)"
   IL_002b:  stloc.3
   IL_002c:  ldloc.3
   IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2312,10 +2312,10 @@ End Module
   IL_0033:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_0038:  conv.r8
   IL_0039:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
-  IL_003e:  newobj     "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_003e:  newobj     "Sub System.ValueTuple(Of Integer, Double)?..ctor(System.ValueTuple(Of Integer, Double))"
   IL_0043:  stloc.1
   IL_0044:  ldloca.s   V_1
-  IL_0046:  constrained. "(Integer, Double)?"
+  IL_0046:  constrained. "System.ValueTuple(Of Integer, Double)?"
   IL_004c:  callvirt   "Function Object.ToString() As String"
   IL_0051:  call       "Sub System.Console.WriteLine(String)"
   IL_0056:  ret
@@ -2347,24 +2347,24 @@ End Module
 {
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init ((Byte, Byte)? V_0, //i
-                (Integer, Double)? V_1, //x
-                (Integer, Double)? V_2,
+  .locals init (System.ValueTuple(Of Byte, Byte)? V_0, //i
+                System.ValueTuple(Of Integer, Double)? V_1, //x
+                System.ValueTuple(Of Integer, Double)? V_2,
                 System.ValueTuple(Of Byte, Byte) V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   100
   IL_0004:  ldc.i4.s   100
   IL_0006:  newobj     "Sub System.ValueTuple(Of Byte, Byte)..ctor(Byte, Byte)"
-  IL_000b:  call       "Sub (Byte, Byte)?..ctor((Byte, Byte))"
+  IL_000b:  call       "Sub System.ValueTuple(Of Byte, Byte)?..ctor(System.ValueTuple(Of Byte, Byte))"
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function (Byte, Byte)?.get_HasValue() As Boolean"
+  IL_0012:  call       "Function System.ValueTuple(Of Byte, Byte)?.get_HasValue() As Boolean"
   IL_0017:  brtrue.s   IL_0024
   IL_0019:  ldloca.s   V_2
-  IL_001b:  initobj    "(Integer, Double)?"
+  IL_001b:  initobj    "System.ValueTuple(Of Integer, Double)?"
   IL_0021:  ldloc.2
   IL_0022:  br.s       IL_0043
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       "Function (Byte, Byte)?.GetValueOrDefault() As (Byte, Byte)"
+  IL_0026:  call       "Function System.ValueTuple(Of Byte, Byte)?.GetValueOrDefault() As System.ValueTuple(Of Byte, Byte)"
   IL_002b:  stloc.3
   IL_002c:  ldloc.3
   IL_002d:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2372,10 +2372,10 @@ End Module
   IL_0033:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_0038:  conv.r8
   IL_0039:  newobj     "Sub System.ValueTuple(Of Integer, Double)..ctor(Integer, Double)"
-  IL_003e:  newobj     "Sub (Integer, Double)?..ctor((Integer, Double))"
+  IL_003e:  newobj     "Sub System.ValueTuple(Of Integer, Double)?..ctor(System.ValueTuple(Of Integer, Double))"
   IL_0043:  stloc.1
   IL_0044:  ldloca.s   V_1
-  IL_0046:  constrained. "(Integer, Double)?"
+  IL_0046:  constrained. "System.ValueTuple(Of Integer, Double)?"
   IL_004c:  callvirt   "Function Object.ToString() As String"
   IL_0051:  call       "Sub System.Console.WriteLine(String)"
   IL_0056:  ret
@@ -2436,8 +2436,8 @@ End Class
   IL_0010:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0015:  conv.i8
   IL_0016:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_001b:  call       "Function C1.op_Implicit((Long, Long)) As C1"
-  IL_0020:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_001b:  call       "Function C1.op_Implicit(System.ValueTuple(Of Long, Long)) As C1"
+  IL_0020:  call       "Function C1.op_Implicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_0025:  stloc.1
   IL_0026:  ldloc.1
   IL_0027:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2455,8 +2455,8 @@ End Class
   IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0050:  conv.i8
   IL_0051:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_0056:  call       "Function C1.op_Implicit((Long, Long)) As C1"
-  IL_005b:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_0056:  call       "Function C1.op_Implicit(System.ValueTuple(Of Long, Long)) As C1"
+  IL_005b:  call       "Function C1.op_Implicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_0060:  stloc.1
   IL_0061:  ldloc.1
   IL_0062:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2523,8 +2523,8 @@ End Class
   IL_0010:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0015:  conv.i8
   IL_0016:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_001b:  call       "Function C1.op_Explicit((Long, Long)) As C1"
-  IL_0020:  call       "Function C1.op_Explicit(C1) As (c As Byte, d As Byte)"
+  IL_001b:  call       "Function C1.op_Explicit(System.ValueTuple(Of Long, Long)) As C1"
+  IL_0020:  call       "Function C1.op_Explicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_0025:  stloc.1
   IL_0026:  ldloc.1
   IL_0027:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2542,8 +2542,8 @@ End Class
   IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0050:  conv.i8
   IL_0051:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_0056:  call       "Function C1.op_Explicit((Long, Long)) As C1"
-  IL_005b:  call       "Function C1.op_Explicit(C1) As (c As Byte, d As Byte)"
+  IL_0056:  call       "Function C1.op_Explicit(System.ValueTuple(Of Long, Long)) As C1"
+  IL_005b:  call       "Function C1.op_Explicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_0060:  stloc.1
   IL_0061:  ldloc.1
   IL_0062:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
@@ -2614,18 +2614,18 @@ End Class
   IL_0013:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0018:  conv.i8
   IL_0019:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_001e:  call       "Function C1.op_Implicit((Long, Long)) As C1"
+  IL_001e:  call       "Function C1.op_Implicit(System.ValueTuple(Of Long, Long)) As C1"
   IL_0023:  stloc.1
   IL_0024:  ldloc.1
-  IL_0025:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_0025:  call       "Function C1.op_Implicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_002a:  stloc.3
   IL_002b:  ldloc.3
   IL_002c:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
   IL_0031:  ldloc.3
   IL_0032:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_0037:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_003c:  newobj     "Sub (Integer, Integer)?..ctor((Integer, Integer))"
-  IL_0041:  box        "(Integer, Integer)?"
+  IL_003c:  newobj     "Sub System.ValueTuple(Of Integer, Integer)?..ctor(System.ValueTuple(Of Integer, Integer))"
+  IL_0041:  box        "System.ValueTuple(Of Integer, Integer)?"
   IL_0046:  call       "Sub System.Console.WriteLine(Object)"
   IL_004b:  ldloc.0
   IL_004c:  stloc.2
@@ -2636,16 +2636,16 @@ End Class
   IL_0055:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_005a:  conv.i8
   IL_005b:  newobj     "Sub System.ValueTuple(Of Long, Long)..ctor(Long, Long)"
-  IL_0060:  call       "Function C1.op_Implicit((Long, Long)) As C1"
-  IL_0065:  call       "Function C1.op_Implicit(C1) As (c As Byte, d As Byte)"
+  IL_0060:  call       "Function C1.op_Implicit(System.ValueTuple(Of Long, Long)) As C1"
+  IL_0065:  call       "Function C1.op_Implicit(C1) As System.ValueTuple(Of Byte, Byte)"
   IL_006a:  stloc.3
   IL_006b:  ldloc.3
   IL_006c:  ldfld      "System.ValueTuple(Of Byte, Byte).Item1 As Byte"
   IL_0071:  ldloc.3
   IL_0072:  ldfld      "System.ValueTuple(Of Byte, Byte).Item2 As Byte"
   IL_0077:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_007c:  newobj     "Sub (Integer, Integer)?..ctor((Integer, Integer))"
-  IL_0081:  box        "(Integer, Integer)?"
+  IL_007c:  newobj     "Sub System.ValueTuple(Of Integer, Integer)?..ctor(System.ValueTuple(Of Integer, Integer))"
+  IL_0081:  box        "System.ValueTuple(Of Integer, Integer)?"
   IL_0086:  call       "Sub System.Console.WriteLine(Object)"
   IL_008b:  ret
 }
@@ -3752,7 +3752,7 @@ System.Object
   IL_0017:  ldloc.0
   IL_0018:  ldfld      "System.ValueTuple(Of Object, String).Item2 As String"
   IL_001d:  newobj     "Sub System.ValueTuple(Of Object, Object)..ctor(Object, Object)"
-  IL_0022:  call       "Function C.Test(Of Object)((Object, Object)) As (Object, Object)"
+  IL_0022:  call       "Function C.Test(Of Object)(System.ValueTuple(Of Object, Object)) As System.ValueTuple(Of Object, Object)"
   IL_0027:  pop
   IL_0028:  box        "System.ValueTuple(Of Object, String)"
   IL_002d:  call       "Sub System.Console.WriteLine(Object)"
@@ -4314,17 +4314,17 @@ End Module
   // Code size       54 (0x36)
   .maxstack  5
   .locals init (System.ValueTuple(Of Integer, String) V_0, //x
-                System.ValueTuple(Of Integer, (Integer, Integer)) V_1)
+                System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)) V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
   IL_0005:  ldc.i4.4
   IL_0006:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_000b:  newobj     "Sub System.ValueTuple(Of Integer, (Integer, Integer))..ctor(Integer, (Integer, Integer))"
+  IL_000b:  newobj     "Sub System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))..ctor(Integer, System.ValueTuple(Of Integer, Integer))"
   IL_0010:  stloc.1
   IL_0011:  ldloca.s   V_1
-  IL_0013:  constrained. "System.ValueTuple(Of Integer, (Integer, Integer))"
+  IL_0013:  constrained. "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))"
   IL_0019:  callvirt   "Function Object.ToString() As String"
   IL_001e:  call       "Sub System.ValueTuple(Of Integer, String)..ctor(Integer, String)"
   IL_0023:  ldloca.s   V_0
@@ -4501,30 +4501,30 @@ End Module
 {
   // Code size       87 (0x57)
   .maxstack  4
-  .locals init (System.ValueTuple(Of Integer, (C As Integer, D As Integer)) V_0) //x
+  .locals init (System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)) V_0) //x
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  ldc.i4.2
   IL_0004:  ldc.i4.3
   IL_0005:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_000a:  call       "Sub System.ValueTuple(Of Integer, (C As Integer, D As Integer))..ctor(Integer, (C As Integer, D As Integer))"
+  IL_000a:  call       "Sub System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))..ctor(Integer, System.ValueTuple(Of Integer, Integer))"
   IL_000f:  ldloca.s   V_0
-  IL_0011:  ldflda     "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_0011:  ldflda     "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item2 As System.ValueTuple(Of Integer, Integer)"
   IL_0016:  ldflda     "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
   IL_001b:  call       "Function Integer.ToString() As String"
   IL_0020:  call       "Sub System.Console.WriteLine(String)"
   IL_0025:  ldloca.s   V_0
-  IL_0027:  ldflda     "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_0027:  ldflda     "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item2 As System.ValueTuple(Of Integer, Integer)"
   IL_002c:  ldc.i4.s   39
   IL_002e:  stfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0033:  ldloc.0
-  IL_0034:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item1 As Integer"
+  IL_0034:  ldfld      "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item1 As Integer"
   IL_0039:  ldloc.0
-  IL_003a:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_003a:  ldfld      "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item2 As System.ValueTuple(Of Integer, Integer)"
   IL_003f:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
   IL_0044:  add.ovf
   IL_0045:  ldloc.0
-  IL_0046:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_0046:  ldfld      "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item2 As System.ValueTuple(Of Integer, Integer)"
   IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_0050:  add.ovf
   IL_0051:  call       "Sub System.Console.WriteLine(Integer)"
@@ -4757,7 +4757,7 @@ End Class
 {
   // Code size       67 (0x43)
   .maxstack  6
-  .locals init (System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer))) V_0) //v
+  .locals init (System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))) V_0) //v
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
@@ -4767,16 +4767,16 @@ End Class
   IL_000b:  ldc.i4.3
   IL_000c:  ldc.i4.4
   IL_000d:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_0012:  newobj     "Sub System.ValueTuple(Of Integer, (E As Integer, F As Integer))..ctor(Integer, (E As Integer, F As Integer))"
-  IL_0017:  call       "Sub System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer)))..ctor(Integer, (C As Integer, D As (E As Integer, F As Integer)))"
+  IL_0012:  newobj     "Sub System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))..ctor(Integer, System.ValueTuple(Of Integer, Integer))"
+  IL_0017:  call       "Sub System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)))..ctor(Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)))"
   IL_001c:  ldloc.0
-  IL_001d:  call       "Function C.Test(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer))))((Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))) As System.Collections.Generic.Dictionary(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer))))"
+  IL_001d:  call       "Function C.Test(Of System.ValueTuple(Of Integer, Integer), System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))))(System.ValueTuple(Of Integer, Integer), System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)))) As System.Collections.Generic.Dictionary(Of System.ValueTuple(Of Integer, Integer), System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))))"
   IL_0022:  ldc.i4.1
   IL_0023:  ldc.i4.2
   IL_0024:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
-  IL_0029:  callvirt   "Function System.Collections.Generic.Dictionary(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))).get_Item((Integer, Integer)) As (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))"
-  IL_002e:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer))).Item2 As (C As Integer, D As (E As Integer, F As Integer))"
-  IL_0033:  ldfld      "System.ValueTuple(Of Integer, (E As Integer, F As Integer)).Item2 As (E As Integer, F As Integer)"
+  IL_0029:  callvirt   "Function System.Collections.Generic.Dictionary(Of System.ValueTuple(Of Integer, Integer), System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)))).get_Item(System.ValueTuple(Of Integer, Integer)) As System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)))"
+  IL_002e:  ldfld      "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))).Item2 As System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer))"
+  IL_0033:  ldfld      "System.ValueTuple(Of Integer, System.ValueTuple(Of Integer, Integer)).Item2 As System.ValueTuple(Of Integer, Integer)"
   IL_0038:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
   IL_003d:  call       "Sub System.Console.Write(Integer)"
   IL_0042:  ret
@@ -4812,7 +4812,7 @@ End Class
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As (f1 As $CLS0, f2 As $CLS0)"
+  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As System.ValueTuple(Of $CLS0, $CLS0)"
   IL_0006:  ldfld      "System.ValueTuple(Of $CLS0, $CLS0).Item2 As $CLS0"
   IL_000b:  ret
 }
@@ -4846,7 +4846,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As (f1 As $CLS0, f2 As $CLS0)"
+  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As System.ValueTuple(Of $CLS0, $CLS0)"
   IL_0006:  constrained. "System.ValueTuple(Of $CLS0, $CLS0)"
   IL_000c:  callvirt   "Function Object.ToString() As String"
   IL_0011:  ret
@@ -5034,7 +5034,7 @@ End Class
     IL_0011:  ldarg.0
     IL_0012:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
     IL_0017:  newobj     "Sub System.ValueTuple(Of SM$T, SM$T)..ctor(SM$T, SM$T)"
-    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As System.ValueTuple(Of SM$T, SM$T)"
     IL_0021:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -5073,7 +5073,7 @@ End Class
     IL_007b:  ldloca.s   V_2
     IL_007d:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
     IL_0083:  ldarg.0
-    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As System.ValueTuple(Of SM$T, SM$T)"
     IL_0089:  ldfld      "System.ValueTuple(Of SM$T, SM$T).Item1 As SM$T"
     IL_008e:  stloc.0
     IL_008f:  leave.s    IL_00b5
@@ -5153,7 +5153,7 @@ End Class
     IL_0011:  ldarg.0
     IL_0012:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
     IL_0017:  newobj     "Sub System.ValueTuple(Of SM$T, SM$T)..ctor(SM$T, SM$T)"
-    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As System.ValueTuple(Of SM$T, SM$T)"
     IL_0021:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
     IL_0026:  stloc.3
     IL_0027:  ldloca.s   V_3
@@ -5192,7 +5192,7 @@ End Class
     IL_007b:  ldloca.s   V_2
     IL_007d:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
     IL_0083:  ldarg.0
-    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As System.ValueTuple(Of SM$T, SM$T)"
     IL_0089:  constrained. "System.ValueTuple(Of SM$T, SM$T)"
     IL_008f:  callvirt   "Function Object.ToString() As String"
     IL_0094:  stloc.0
@@ -10055,13 +10055,13 @@ additionalReferences:=s_valueTupleRefs)
             Dim partialParamType = partialNamesMethod.Parameters.Single().Type
             Assert.False(partialParamType.IsErrorType())
             Assert.True(partialParamType.IsTupleType)
-            Assert.Equal("ValueTuple(Of (e1 As System.Int32, System.Int32))", partialParamType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of (e1 As System.Int32, System.Int32))", partialParamType.ToTestDisplayString())
 
             Dim allNullNamesMethod = c.GetMember(Of MethodSymbol)("AllNullNamesMethod")
             Dim allNullParamType = allNullNamesMethod.Parameters.Single().Type
             Assert.False(allNullParamType.IsErrorType())
             Assert.True(allNullParamType.IsTupleType)
-            Assert.Equal("ValueTuple(Of (System.Int32, System.Int32))", allNullParamType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of (System.Int32, System.Int32))", allNullParamType.ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -11038,7 +11038,7 @@ End Module
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_0061
     IL_000a:  ldarg.0
-    IL_000b:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_000b:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As System.ValueTuple(Of Integer, Integer)"
     IL_0010:  ldc.i4.5
     IL_0011:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
     IL_0016:  ldloca.s   V_2
@@ -11085,7 +11085,7 @@ End Module
     IL_0084:  ldloca.s   V_3
     IL_0086:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
     IL_008c:  ldarg.0
-    IL_008d:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_008d:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As System.ValueTuple(Of Integer, Integer)"
     IL_0092:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
     IL_0097:  conv.i8
     IL_0098:  stloc.0
@@ -16116,14 +16116,14 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a6 As System.Int32",
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item7 As System.Int32",
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a7 As System.Int32",
-"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Rest As ValueTuple(Of System.Int32)",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Rest As System.ValueTuple(Of System.Int32)",
 "Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor()",
-"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As ValueTuple(Of System.Int32))",
+"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As System.ValueTuple(Of System.Int32))",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(obj As System.Object) As System.Boolean",
-"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, ValueTuple(Of System.Int32))) As System.Boolean",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.ValueTuple(Of System.Int32))) As System.Boolean",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
-"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, ValueTuple(Of System.Int32))) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.ValueTuple(Of System.Int32))) As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).GetHashCode() As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
@@ -16180,22 +16180,22 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
             AssertTupleTypeEquality(m8TupleRestTuple)
 
             AssertTestDisplayString(m8TupleRestTuple.GetMembers(),
-"ValueTuple(Of System.Int32).Item1 As System.Int32",
-"Sub ValueTuple(Of System.Int32)..ctor()",
-"Sub ValueTuple(Of System.Int32)..ctor(item1 As System.Int32)",
-"Function ValueTuple(Of System.Int32).Equals(obj As System.Object) As System.Boolean",
-"Function ValueTuple(Of System.Int32).Equals(other As ValueTuple(Of System.Int32)) As System.Boolean",
-"Function ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
-"Function ValueTuple(Of System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
-"Function ValueTuple(Of System.Int32).CompareTo(other As ValueTuple(Of System.Int32)) As System.Int32",
-"Function ValueTuple(Of System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
-"Function ValueTuple(Of System.Int32).GetHashCode() As System.Int32",
-"Function ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
-"Function ValueTuple(Of System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
-"Function ValueTuple(Of System.Int32).ToString() As System.String",
-"Function ValueTuple(Of System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
-"Function ValueTuple(Of System.Int32).System.ITupleInternal.get_Size() As System.Int32",
-"ReadOnly Property ValueTuple(Of System.Int32).System.ITupleInternal.Size As System.Int32"
+"System.ValueTuple(Of System.Int32).Item1 As System.Int32",
+"Sub System.ValueTuple(Of System.Int32)..ctor()",
+"Sub System.ValueTuple(Of System.Int32)..ctor(item1 As System.Int32)",
+"Function System.ValueTuple(Of System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function System.ValueTuple(Of System.Int32).Equals(other As System.ValueTuple(Of System.Int32)) As System.Boolean",
+"Function System.ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function System.ValueTuple(Of System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function System.ValueTuple(Of System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32)) As System.Int32",
+"Function System.ValueTuple(Of System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function System.ValueTuple(Of System.Int32).GetHashCode() As System.Int32",
+"Function System.ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function System.ValueTuple(Of System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function System.ValueTuple(Of System.Int32).ToString() As System.String",
+"Function System.ValueTuple(Of System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function System.ValueTuple(Of System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property System.ValueTuple(Of System.Int32).System.ITupleInternal.Size As System.Int32"
 )
 
         End Sub
@@ -23339,13 +23339,13 @@ True
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (ImplicitConversionTargetType(Of (Integer, Boolean)?) V_0, //Test1
-                (Integer, Boolean)? V_1)
+  .locals init (ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?) V_0, //Test1
+                System.ValueTuple(Of Integer, Boolean)? V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_1
-  IL_0003:  initobj    "(Integer, Boolean)?"
+  IL_0003:  initobj    "System.ValueTuple(Of Integer, Boolean)?"
   IL_0009:  ldloc.1
-  IL_000a:  call       "Function ImplicitConversionTargetType(Of (Integer, Boolean)?).op_Implicit((Integer, Boolean)?) As ImplicitConversionTargetType(Of (Integer, Boolean)?)"
+  IL_000a:  call       "Function ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?).op_Implicit(System.ValueTuple(Of Integer, Boolean)?) As ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?)"
   IL_000f:  stloc.0
   IL_0010:  br.s       IL_0012
   IL_0012:  ldloc.0
@@ -23357,13 +23357,13 @@ True
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (ImplicitConversionTargetType(Of (SomeInt As Integer, SomeBool As Boolean)?) V_0, //Test2
-                (Integer, Boolean)? V_1)
+  .locals init (ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?) V_0, //Test2
+                System.ValueTuple(Of Integer, Boolean)? V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_1
-  IL_0003:  initobj    "(Integer, Boolean)?"
+  IL_0003:  initobj    "System.ValueTuple(Of Integer, Boolean)?"
   IL_0009:  ldloc.1
-  IL_000a:  call       "Function ImplicitConversionTargetType(Of (SomeInt As Integer, SomeBool As Boolean)?).op_Implicit((SomeInt As Integer, SomeBool As Boolean)?) As ImplicitConversionTargetType(Of (SomeInt As Integer, SomeBool As Boolean)?)"
+  IL_000a:  call       "Function ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?).op_Implicit(System.ValueTuple(Of Integer, Boolean)?) As ImplicitConversionTargetType(Of System.ValueTuple(Of Integer, Boolean)?)"
   IL_000f:  stloc.0
   IL_0010:  br.s       IL_0012
   IL_0012:  ldloc.0

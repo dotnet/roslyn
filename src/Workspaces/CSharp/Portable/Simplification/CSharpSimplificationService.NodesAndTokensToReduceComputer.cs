@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (_simplifyAllDescendants)
                     {
                         // One of the ancestor node is within a simplification span, but this node is outside all simplification spans.
-                        // Add DontSimplifyAnnotation to node to ensure it doesn't get simplified.
-                        return node.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+                        // Add DoNotSimplifyAnnotation to node to ensure it doesn't get simplified.
+                        return node.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
                     }
                     else
                     {
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (_simplifyAllDescendants)
                     {
                         // One of the ancestor node is within a simplification span, but this token is outside all simplification spans.
-                        // Add DontSimplifyAnnotation to token to ensure it doesn't get simplified.
-                        return token.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+                        // Add DoNotSimplifyAnnotation to token to ensure it doesn't get simplified.
+                        return token.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
                     }
                     else
                     {

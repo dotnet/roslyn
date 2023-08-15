@@ -11,10 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
@@ -22,14 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PassInCapturedVariables), Shared]
     internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string CS8421 = nameof(CS8421); // A static local function can't contain a reference to <variable>.
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public PassInCapturedVariablesAsArgumentsCodeFixProvider()
         {
         }
 
-        //  "CS8421: A static local function can't contain a reference to <variable>."
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS8421);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -56,28 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => WrapFixAsync(
                 document,
                 diagnostics,
-                (d, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
-                        d,
-                        localFunction,
-                        captures,
-                        editor,
-                        fallbackOptions,
-                        cancellationToken),
+                (document, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
+                    document, localFunction, captures, editor, fallbackOptions, cancellationToken),
                 cancellationToken);
 
-        // The purpose of this wrapper is to share some common logic between FixOne and FixAll.
-        // The main reason we chose this approach over the typical "FixOne calls FixAll" approach is
-        // to avoid duplicate code.
+        // The purpose of this wrapper is to share some common logic between FixOne and FixAll. The main reason we chose
+        // this approach over the typical "FixOne calls FixAll" approach is to avoid duplicate code.
         private static async Task WrapFixAsync(
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             Func<Document, LocalFunctionStatementSyntax, ImmutableArray<ISymbol>, Task> fixer,
             CancellationToken cancellationToken)
         {
-            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // Even when the language version doesn't support staic local function, the compiler will still
-            // generate this error. So we need to check to make sure we don't provide incorrect fix.
+            // Even when the language version doesn't support static local function, the compiler will still generate
+            // this error. So we need to check to make sure we don't provide incorrect fix.
             if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(root.SyntaxTree.Options.LanguageVersion()))
                 return;
 
@@ -89,18 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 .ToImmutableArrayOrEmpty();
 
             if (localFunctions.Length == 0)
-            {
                 return;
-            }
 
-            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var localFunction in localFunctions)
             {
                 if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
-                {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
-                }
             }
         }
     }

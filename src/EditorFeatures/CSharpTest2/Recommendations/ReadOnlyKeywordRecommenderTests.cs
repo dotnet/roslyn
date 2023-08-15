@@ -100,7 +100,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -109,7 +109,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -269,7 +269,7 @@ $$");
         public async Task TestAfterPublic()
             => await VerifyKeywordAsync(@"public $$");
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
             => await VerifyKeywordAsync(SourceCodeKind.Regular, @"file $$");
 
@@ -395,7 +395,7 @@ $$");
             => await VerifyKeywordAsync(@"$$ ref struct { }");
 
         [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
             => await VerifyAbsenceAsync(@"new $$");
 
@@ -422,9 +422,9 @@ $$");
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInMethods()
+        public async Task TestRefReadonlyAsParameterModifierInMethods()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     public static void Test(ref $$ p) { }
@@ -433,9 +433,9 @@ class Program
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
+        public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     public static void Test(int p1, ref $$ p2) { }
@@ -444,47 +444,42 @@ class Program
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
+        public async Task TestRefReadonlyAsParameterModifierInDelegates()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 public delegate int Delegate(ref $$ int p);");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
-        public async Task TestRefReadonlyNotAsParameterModifierInLocalFunctions(bool topLevelStatement)
+        public async Task TestRefReadonlyAsParameterModifierInLocalFunctions(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"void localFunc(ref $$ int p) { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
+        public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 public delegate int Delegate(ref int p);
 
 class Program
 {
     public static void Test()
     {
-        // This is bad. We can't put 'ref $ int p' like in the other tests here because in this scenario:
-        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly' keyword),
-        // the syntax tree is completely broken and there is no lambda expression at all here.
-        // 'ref' starts a new local declaration and therefore we do offer 'readonly'.
-        // Fixing that would have to involve either changing the parser or doing some really nasty hacks.
-        // Delegate lambda = (ref $$ int p) => p;
+        Delegate lambda = (ref $$ int p) => p;
     }
 }");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
+        public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 public delegate int Delegate(ref int p);
 
 class Program
@@ -543,7 +538,7 @@ class Program
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
         [CombinatorialData]
         public async Task TestRefReadonlyInStatementContext(bool topLevelStatement)
         {
@@ -575,7 +570,18 @@ class Program
         public async Task TestRefReadonlyNotInRefExpression(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"ref int x = ref $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+@"ref int x = ref $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions,
+                // Top level statement with script tested below, so skip it here.
+                scriptOptions: topLevelStatement ? CSharp9ParseOptions : null);
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInRefExpression_TopLevelStatementScript()
+        {
+            // Recognized as parameter context, so readonly keyword is suggested.
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$", topLevelStatement: true), options: CSharp9ParseOptions.WithKind(SourceCodeKind.Script));
         }
 
         [Fact]

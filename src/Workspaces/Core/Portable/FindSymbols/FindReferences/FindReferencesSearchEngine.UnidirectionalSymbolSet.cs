@@ -22,32 +22,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// runtime.  See the docs of <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> for more
         /// information on this.
         /// </summary>
-        private sealed class UnidirectionalSymbolSet : SymbolSet
+        private sealed class UnidirectionalSymbolSet(
+            FindReferencesSearchEngine engine,
+            MetadataUnifyingSymbolHashSet initialSymbols,
+            MetadataUnifyingSymbolHashSet upSymbols) : SymbolSet(engine)
         {
-            private readonly MetadataUnifyingSymbolHashSet _initialAndDownSymbols;
 
             /// <summary>
             /// When we're doing a unidirectional find-references, the initial set of up-symbols can never change.
             /// That's because we have computed the up set entirely up front, and no down symbols can produce new
             /// up-symbols (as going down then up would not be unidirectional).
             /// </summary>
-            private readonly ImmutableHashSet<ISymbol> _upSymbols;
-
-            public UnidirectionalSymbolSet(
-                FindReferencesSearchEngine engine,
-                MetadataUnifyingSymbolHashSet initialSymbols,
-                MetadataUnifyingSymbolHashSet upSymbols)
-                : base(engine)
-            {
-                _initialAndDownSymbols = initialSymbols;
-                _upSymbols = upSymbols.ToImmutableHashSet(MetadataUnifyingEquivalenceComparer.Instance);
-            }
+            private readonly ImmutableHashSet<ISymbol> _upSymbols = upSymbols.ToImmutableHashSet(MetadataUnifyingEquivalenceComparer.Instance);
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
             {
                 var result = new MetadataUnifyingSymbolHashSet();
                 result.AddRange(_upSymbols);
-                result.AddRange(_initialAndDownSymbols);
+                result.AddRange(initialSymbols);
                 return result.ToImmutableArray();
             }
 
@@ -55,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Start searching using the existing set of symbols found at the start (or anything found below that).
                 var workQueue = new Stack<ISymbol>();
-                workQueue.Push(_initialAndDownSymbols);
+                workQueue.Push(initialSymbols);
 
                 var projects = ImmutableHashSet.Create(project);
 
@@ -64,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var current = workQueue.Pop();
 
                     // Keep adding symbols downwards in this project as long as we keep finding new symbols.
-                    await AddDownSymbolsAsync(this.Engine, current, _initialAndDownSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
+                    await AddDownSymbolsAsync(this.Engine, current, initialSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

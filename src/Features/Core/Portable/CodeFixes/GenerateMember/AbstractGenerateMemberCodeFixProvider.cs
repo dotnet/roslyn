@@ -65,33 +65,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             var token = root.FindToken(span.Start);
             if (token.Span.IntersectsWith(span))
             {
+                var first = true;
                 foreach (var ancestor in token.GetAncestors<SyntaxNode>())
                 {
-                    // If we're crossing a local function/lambda point then stop looking higher.
-                    // We've clearly gone past the point of the original diagnostic and should
-                    // not consider this node as something to consider.
+                    // If we're crossing a local function/lambda point then stop looking higher. We've clearly gone past
+                    // the point of the original diagnostic and should not consider this node as something to consider.
                     //
-                    // Note: it's ok if we are on a lambda that was the direct node with the 
-                    // diagnostic (i.e. if the compiler was reporting a diagnostic on a lambda
-                    // itself).  However, once we start walking upwards, we don't want to cross
-                    // a lambda.
-                    if (syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
+                    // Note: it's ok if we are on a lambda that was the direct node with the diagnostic (i.e. if the
+                    // compiler was reporting a diagnostic on a lambda itself).  However, once we start walking upwards,
+                    // we don't want to cross a lambda.
+                    if (!first &&
+                        syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
                         ancestor.SpanStart < token.SpanStart)
                     {
                         break;
                     }
 
+                    first = false;
                     if (!IsCandidate(ancestor, token, diagnostic))
-                    {
                         continue;
-                    }
 
                     var name = GetTargetNode(ancestor);
 
                     if (name != null)
-                    {
                         yield return name;
-                    }
                 }
             }
         }

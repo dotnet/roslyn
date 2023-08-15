@@ -54,10 +54,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return false;
                 }
 
-                if (extension.Length > 0 && extension[0] == '.')
-                {
-                    extension = extension[1..];
-                }
+                if (extension is ['.', .. var rest])
+                    extension = rest;
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))
                 {

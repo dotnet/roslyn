@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => kind = trivia.Kind();
 
         public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
             => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
@@ -45,14 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {
             if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
-            {
                 return false;
-            }
 
             var text = trivia.ToFullString();
-            return text.Length >= 4
-                && text[text.Length - 1] == '/'
-                && text[text.Length - 2] == '*';
+            return text is [.., _, _, '*', '/'];
         }
 
         public static bool IsDocComment(this SyntaxTrivia trivia)

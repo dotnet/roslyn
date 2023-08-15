@@ -112,7 +112,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -121,7 +121,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -264,7 +264,7 @@ $$");
    $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord2()
         {
             // The recommender doesn't work in record in script
@@ -274,7 +274,7 @@ $$");
    public $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord3()
         {
             // The recommender doesn't work in record in script
@@ -306,7 +306,7 @@ $$");
 @"abstract $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -391,7 +391,7 @@ $$");
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -401,7 +401,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -411,7 +411,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214

@@ -36,32 +36,16 @@ namespace Microsoft.CodeAnalysis
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new DefaultSupportedChangesService(workspaceServices.Workspace);
 
-        private sealed class DefaultSupportedChangesService : ISupportedChangesService
+        private sealed class DefaultSupportedChangesService(Workspace workspace) : ISupportedChangesService
         {
-            private readonly Workspace _workspace;
-
-            public DefaultSupportedChangesService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
-
             public bool CanApplyChange(ApplyChangesKind kind)
-                => _workspace.CanApplyChange(kind);
+                => workspace.CanApplyChange(kind);
 
             public bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
-                => _workspace.CanApplyCompilationOptionChange(oldOptions, newOptions, project);
+                => workspace.CanApplyCompilationOptionChange(oldOptions, newOptions, project);
 
             public bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
-                => _workspace.CanApplyParseOptionChange(oldOptions, newOptions, project);
+                => workspace.CanApplyParseOptionChange(oldOptions, newOptions, project);
         }
-    }
-
-    internal static class SupportedChangesServiceExtensions
-    {
-        public static bool CanApplyChange(this Solution solution, ApplyChangesKind kind)
-            => solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyChange(kind);
-
-        public static bool CanApplyParseOptionChange(this Project project, ParseOptions oldOptions, ParseOptions newOptions)
-            => project.Solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyParseOptionChange(oldOptions, newOptions, project);
     }
 }

@@ -5,20 +5,18 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.LanguageService;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddParameterCheck), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
-    internal class CSharpAddParameterCheckCodeRefactoringProvider :
+    internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
             BaseTypeDeclarationSyntax,
             ParameterSyntax,

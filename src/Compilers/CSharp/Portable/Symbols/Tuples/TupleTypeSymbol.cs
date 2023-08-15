@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
                 }
 
-                diagnostics.Add(useSiteInfo, syntax?.GetLocation() ?? Location.None);
+                diagnostics.Add(useSiteInfo, static syntax => syntax?.Location ?? Location.None, syntax);
             }
 
             return member;

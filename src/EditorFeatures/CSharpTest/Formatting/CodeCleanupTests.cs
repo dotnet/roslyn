@@ -137,7 +137,7 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
         public Task GroupUsings()
         {
             var code = @"using M;
@@ -181,7 +181,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
         }
 
-        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
         public Task SortAndGroupUsings()
         {
             var code = @"using M;
@@ -442,7 +442,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -484,7 +484,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -508,7 +508,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -534,7 +534,7 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new();
+            List<int> list = [];
             Console.WriteLine(list.Length);
         }
     }
@@ -563,8 +563,8 @@ namespace A
             var expectedNumberOfUnsupportedDiagnosticIds =
                 language switch
                 {
-                    LanguageNames.CSharp => 40,
-                    LanguageNames.VisualBasic => 77,
+                    LanguageNames.CSharp => 46,
+                    LanguageNames.VisualBasic => 83,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 

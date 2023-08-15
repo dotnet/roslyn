@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InferredLambdaReturnType InferredReturnType { get; }
 
+        internal bool InAnonymousFunctionConversion { get; private set; }
+
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
@@ -87,6 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax is ExpressionSyntax && LambdaUtilities.IsLambdaBody(syntax, allowReducedLambdas: true) || // query lambdas
                 LambdaUtilities.IsQueryPairLambda(syntax)                                                       // "pair" lambdas in queries
             );
+        }
+
+        internal BoundLambda WithInAnonymousFunctionConversion()
+        {
+            if (InAnonymousFunctionConversion)
+            {
+                return this;
+            }
+
+            var result = (BoundLambda)MemberwiseClone();
+            result.InAnonymousFunctionConversion = true;
+            return result;
         }
 
         public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
@@ -448,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
             => Data.HasExplicitReturnType(out refKind, out returnType);
+        public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            => Data.GetWithParametersBinder(lambdaSymbol, binder);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
@@ -766,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
@@ -863,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var numParametersToCheck = Math.Min(targetParameterTypes.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
-                    if (targetParameterTypes[i].Type.IsUnsafe())
+                    if (targetParameterTypes[i].Type.ContainsPointer())
                     {
                         this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }

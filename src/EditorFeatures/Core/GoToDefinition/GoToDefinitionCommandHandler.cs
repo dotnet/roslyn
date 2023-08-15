@@ -28,27 +28,19 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToDefinition)]
-    internal class GoToDefinitionCommandHandler :
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class GoToDefinitionCommandHandler(
+        IGlobalOptionService globalOptionService,
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor executor,
+        IAsynchronousOperationListenerProvider listenerProvider) :
         ICommandHandler<GoToDefinitionCommandArgs>
     {
-        private readonly IGlobalOptionService _globalOptionService;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IUIThreadOperationExecutor _executor;
-        private readonly IAsynchronousOperationListener _listener;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public GoToDefinitionCommandHandler(
-            IGlobalOptionService globalOptionService,
-            IThreadingContext threadingContext,
-            IUIThreadOperationExecutor executor,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _globalOptionService = globalOptionService;
-            _threadingContext = threadingContext;
-            _executor = executor;
-            _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
-        }
+        private readonly IGlobalOptionService _globalOptionService = globalOptionService;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IUIThreadOperationExecutor _executor = executor;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 

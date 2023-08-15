@@ -1,14 +1,13 @@
 # Shallow checkout sources on Unix
 
-steps:
-  - checkout: none
+parameters:
+- name: depth
+  type: number
+  default: 1
 
-  - script: |
-      set -x
-      git init
-      git config --local checkout.workers 0
-      git config --local fetch.parallel 0
-      git remote add origin "$(Build.Repository.Uri)"
-      git fetch --no-tags --no-auto-maintenance --depth=1 origin "$(Build.SourceVersion)"
-      git checkout "$(Build.SourceVersion)"
-    displayName: Shallow Checkout
+steps:
+  - checkout: self
+    fetchDepth: ${{ parameters.depth }}
+    fetchTags: false
+
+  

@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
     {
         public const string GeneratedEnglishClassName = "HelloWorld";
         public const string GeneratedSpanishClassName = "HolaMundo";
+        public const string GeneratedFolderName = "Folder";
+        public const string GeneratedFolderClassName = "HelloFolder";
 
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -40,6 +42,10 @@ internal class " + GeneratedSpanishClassName + @"
     }
 }
 ", encoding: Encoding.UTF8));
+
+            context.AddSource($"{GeneratedFolderName}/{GeneratedFolderClassName}", $$"""
+                class {{GeneratedFolderClassName}} { }
+                """);
         }
     }
 }

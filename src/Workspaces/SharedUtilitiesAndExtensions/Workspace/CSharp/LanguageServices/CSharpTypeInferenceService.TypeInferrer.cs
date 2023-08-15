@@ -109,12 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (typeInferenceInfo.InferredType == null)
                         {
                             var allSymbols = symbolInfo.GetAllSymbols();
-                            if (allSymbols.Length == 1 &&
-                                allSymbols[0].Kind == SymbolKind.Method)
-                            {
-                                var method = allSymbols[0];
+                            if (allSymbols is [IMethodSymbol method])
                                 typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
-                            }
                         }
 
                         if (IsUsableTypeFunc(typeInferenceInfo))
@@ -247,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
+                    SwitchExpressionSyntax switchExpression => InferTypeInSwitchExpression(switchExpression, token),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
@@ -295,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent?.Parent is ObjectCreationExpressionSyntax creation)
+                    if (argument.Parent?.Parent is BaseObjectCreationExpressionSyntax creation)
                     {
                         // new Outer(Goo());
                         //
@@ -326,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
+                    argument.Parent.Parent.Parent.Parent?.Parent is BaseObjectCreationExpressionSyntax objectCreation)
                 {
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
@@ -612,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
-            private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
+            private static IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
             {
                 // No need to instantiate if this isn't a generic method.
                 if (method.TypeArguments.Length == 0)
@@ -658,14 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.ConstructedFrom.Construct(typeArguments);
             }
 
-            private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
+            private static Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
             {
                 var result = new Dictionary<ITypeParameterSymbol, ITypeSymbol>();
                 DetermineTypeParameterMapping(inferredType, returnType, result);
                 return result;
             }
 
-            private void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
+            private static void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
             {
                 if (inferredType == null || returnType == null)
                 {
@@ -1971,9 +1968,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.LogicalNotExpression:
                         // !Goo()
                         return CreateResult(SpecialType.System_Boolean);
+
+                    case SyntaxKind.AddressOfExpression:
+                        return InferTypeInAddressOfExpression(prefixUnaryExpression);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInAddressOfExpression(PrefixUnaryExpressionSyntax prefixUnaryExpression)
+            {
+                foreach (var inferredType in InferTypes(prefixUnaryExpression))
+                {
+                    if (inferredType.InferredType is IPointerTypeSymbol pointerType)
+                    {
+                        // If the code is `int* x = &...` then we want to infer `int` for `...`
+                        yield return new TypeInferenceInfo(pointerType.PointedAtType);
+                    }
+                    else if (inferredType.InferredType is IFunctionPointerTypeSymbol functionPointerType)
+                    {
+                        // If the code is `delegate*<int, void> x = &...` then we want to infer a signature of `void
+                        // M(int)` here (which we encode as Action/Func as necessary). Higher layers (like
+                        // generate-method), then can figure out what to do with that signature.
+                        yield return new TypeInferenceInfo(functionPointerType.Signature.ConvertToType(this.Compilation));
+                    }
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAwaitExpression(AwaitExpressionSyntax awaitExpression, SyntaxToken? previousToken = null)
@@ -2097,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arm.Parent is SwitchExpressionSyntax switchExpression)
                 {
-                    // see if we can figure out an appropriate type from a prior arm.
+                    // see if we can figure out an appropriate type from a prior/next arm.
                     var armIndex = switchExpression.Arms.IndexOf(arm);
                     if (armIndex > 0)
                     {
@@ -2107,10 +2126,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return priorArmTypes;
                     }
 
+                    if (armIndex < switchExpression.Arms.Count - 1)
+                    {
+                        var nextArm = switchExpression.Arms[armIndex + 1];
+                        var priorArmTypes = GetTypes(nextArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
                     // if a prior arm gave us nothing useful, or we're the first arm, then try to infer looking at
                     // what type gets inferred for the switch expression itself.
                     return InferTypes(switchExpression);
                 }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpression(SwitchExpressionSyntax switchExpression, SyntaxToken token)
+            {
+                if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken)
+                    return GetTypes(switchExpression.GoverningExpression);
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }

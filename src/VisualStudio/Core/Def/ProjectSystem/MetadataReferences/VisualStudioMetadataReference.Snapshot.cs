@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private string GetDebuggerDisplay()
                 => "Metadata File: " + FilePath;
 
-            public IEnumerable<ITemporaryStreamStorageInternal> GetStorages()
+            public IReadOnlyList<ITemporaryStreamStorageInternal> GetStorages()
                 => _provider.GetStorages(this.FilePath, _timestamp.Value);
         }
     }

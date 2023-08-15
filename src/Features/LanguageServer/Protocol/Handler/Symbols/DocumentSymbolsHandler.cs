@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (navBarItems.IsEmpty)
                 return Array.Empty<object>();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
             return service.Create(
-                item.Text,
+                GetDocumentSymbolName(item.Text),
                 containerName,
                 ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 new LSP.Location
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a document symbol from a specified nav bar item.
         /// </summary>
-        private static DocumentSymbol? GetDocumentSymbol(
+        private static RoslynDocumentSymbol? GetDocumentSymbol(
             RoslynNavigationBarItem item, SourceText text, CancellationToken cancellationToken)
         {
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem ||
@@ -108,30 +108,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var inDocumentInfo = symbolItem.Location.InDocumentInfo.Value;
-            if (inDocumentInfo.spans.Length == 0)
+            var (spans, navigationSpan) = symbolItem.Location.InDocumentInfo.Value;
+            if (spans.Length == 0)
                 return null;
 
-            return new DocumentSymbol
+            return new RoslynDocumentSymbol
             {
-                Name = symbolItem.Name,
+                Name = GetDocumentSymbolName(symbolItem.Name),
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
+                Glyph = (int)item.Glyph,
                 Deprecated = symbolItem.IsObsolete,
-                Range = ProtocolConversions.TextSpanToRange(inDocumentInfo.spans.First(), text),
-                SelectionRange = ProtocolConversions.TextSpanToRange(inDocumentInfo.navigationSpan, text),
+                Range = ProtocolConversions.TextSpanToRange(spans.First(), text),
+                SelectionRange = ProtocolConversions.TextSpanToRange(navigationSpan, text),
                 Children = GetChildren(item.ChildItems, text, cancellationToken),
             };
 
-            static DocumentSymbol[] GetChildren(
+            static RoslynDocumentSymbol[] GetChildren(
                 ImmutableArray<RoslynNavigationBarItem> items, SourceText text, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var list);
+                using var _ = ArrayBuilder<RoslynDocumentSymbol>.GetInstance(items.Length, out var list);
                 foreach (var item in items)
                     list.AddIfNotNull(GetDocumentSymbol(item, text, cancellationToken));
 
                 return list.ToArray();
             }
+        }
+
+        /// <summary>
+        /// DocumentSymbol name cannot be null or empty. Check if the name is invalid,
+        /// and if so return a substitute string.
+        /// </summary>
+        /// <param name="proposedName">Name proposed for DocumentSymbol</param>
+        /// <returns>Valid name for DocumentSymbol</returns>
+        private static string GetDocumentSymbolName(string proposedName)
+        {
+            return String.IsNullOrEmpty(proposedName) ? "." : proposedName;
         }
     }
 }

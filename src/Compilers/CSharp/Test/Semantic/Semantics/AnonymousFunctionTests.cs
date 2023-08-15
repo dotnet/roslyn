@@ -1356,10 +1356,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,31): error CS1660: Cannot convert lambda expression to type 'delegate*<void>' because it is not a delegate type
+                // (6,41): error CS1660: Cannot convert lambda expression to type 'delegate*<void>' because it is not a delegate type
                 //         delegate*<void> ptr = static () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static () => { }").WithArguments("lambda expression", "delegate*<void>").WithLocation(6, 31)
-                );
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "delegate*<void>").WithLocation(6, 41));
         }
 
         [Fact]
@@ -1398,10 +1397,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,31): error CS1660: Cannot convert anonymous method to type 'delegate*<void>' because it is not a delegate type
+                // (6,38): error CS1660: Cannot convert anonymous method to type 'delegate*<void>' because it is not a delegate type
                 //         delegate*<void> ptr = static delegate() { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate() { }").WithArguments("anonymous method", "delegate*<void>").WithLocation(6, 31)
-                );
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "delegate*<void>").WithLocation(6, 38));
         }
 
         [Fact]

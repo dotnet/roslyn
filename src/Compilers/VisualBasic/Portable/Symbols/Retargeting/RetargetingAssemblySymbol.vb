@@ -222,6 +222,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return _underlyingAssembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
             Return _underlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
         End Function
@@ -264,5 +268,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _underlyingAssembly.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingAssembly.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

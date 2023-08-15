@@ -86,7 +86,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         public async Task DeclaringGenericTypeWith1ParameterUnterminated()
         {
             var markup = @"
@@ -308,7 +308,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         public async Task InvokingGenericMethodWith1ParameterUnterminated()
         {
             var markup = @"
@@ -373,7 +373,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"

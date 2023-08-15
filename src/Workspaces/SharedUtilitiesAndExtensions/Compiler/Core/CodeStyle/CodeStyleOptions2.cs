@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
 
-        /// <remarks>
-        /// When user preferences are not yet set for a style, we fall back to the default value.
-        /// One such default(s), is that the feature is turned on, so that codegen consumes it,
-        /// but with silent enforcement, so that the user is not prompted about their usage.
-        /// </remarks>
-        internal static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
-        internal static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
-
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string name)
             => CreatePerLanguageOption(CodeStyleOptionGroups.ThisOrMe, name, defaultValue: SimplifierOptions.DefaultQualifyAccess);
 
@@ -77,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInDeclaration,
             name: "dotnet_style_predefined_type_for_locals_parameters_members")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
 
@@ -86,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInMemberAccess,
             name: "dotnet_style_predefined_type_for_member_access")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
 
@@ -99,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             "dotnet_style_collection_initializer",
             IdeCodeStyleOptions.CommonDefaults.PreferCollectionInitializer);
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpression = CreatePerLanguageOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
+            "dotnet_style_prefer_collection_expression",
+            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpression);
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
@@ -324,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
-            "CodeStyleOptions_PreferSystemHashCode",
+            "dotnet_prefer_system_hash_code",
             IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
             group: CodeStyleOptionGroups.ExpressionLevelPreferences);
 
@@ -348,17 +343,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup CodeStyle = new("", priority: 1);
+        public static readonly OptionGroup CodeStyle = new(name: "code_style", description: "", priority: 1);
 
-        public static readonly OptionGroup Usings = new(CompilerExtensionsResources.Organize_usings, priority: 1, parent: CodeStyle);
-        public static readonly OptionGroup ThisOrMe = new(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2, parent: CodeStyle);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new(CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3, parent: CodeStyle);
-        public static readonly OptionGroup Parentheses = new(CompilerExtensionsResources.Parentheses_preferences, priority: 4, parent: CodeStyle);
-        public static readonly OptionGroup Modifier = new(CompilerExtensionsResources.Modifier_preferences, priority: 5, parent: CodeStyle);
-        public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 6, parent: CodeStyle);
-        public static readonly OptionGroup Field = new(CompilerExtensionsResources.Field_preferences, priority: 7, parent: CodeStyle);
-        public static readonly OptionGroup Parameter = new(CompilerExtensionsResources.Parameter_preferences, priority: 8, parent: CodeStyle);
-        public static readonly OptionGroup Suppressions = new(CompilerExtensionsResources.Suppression_preferences, priority: 9, parent: CodeStyle);
-        public static readonly OptionGroup NewLinePreferences = new(CompilerExtensionsResources.New_line_preferences, priority: 10, parent: CodeStyle);
+        public static readonly OptionGroup Usings = new("usings", description: CompilerExtensionsResources.Organize_usings, priority: 1, parent: CodeStyle);
+        public static readonly OptionGroup ThisOrMe = new("this_or_me", description: CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2, parent: CodeStyle);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new("predefined_type_name_usage", description: CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3, parent: CodeStyle);
+        public static readonly OptionGroup Parentheses = new("parentheses", description: CompilerExtensionsResources.Parentheses_preferences, priority: 4, parent: CodeStyle);
+        public static readonly OptionGroup Modifier = new("modifier", description: CompilerExtensionsResources.Modifier_preferences, priority: 5, parent: CodeStyle);
+        public static readonly OptionGroup ExpressionLevelPreferences = new("expression_level_preferences", description: CompilerExtensionsResources.Expression_level_preferences, priority: 7, parent: CodeStyle);
+        public static readonly OptionGroup Field = new("field", description: CompilerExtensionsResources.Field_preferences, priority: 8, parent: CodeStyle);
+        public static readonly OptionGroup Parameter = new("parameter", description: CompilerExtensionsResources.Parameter_preferences, priority: 9, parent: CodeStyle);
+        public static readonly OptionGroup Suppressions = new("suppressions", description: CompilerExtensionsResources.Suppression_preferences, priority: 10, parent: CodeStyle);
+        public static readonly OptionGroup NewLinePreferences = new("new_line_preferences", description: CompilerExtensionsResources.New_line_preferences, priority: 11, parent: CodeStyle);
     }
 }

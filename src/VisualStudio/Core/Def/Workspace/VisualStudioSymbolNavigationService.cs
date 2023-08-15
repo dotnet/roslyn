@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Should we prefer navigating to the Object Browser over metadata-as-source?
-            if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
+            if (_globalOptions.GetOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, project.Language))
             {
                 var libraryService = project.Services.GetService<ILibraryService>();
                 if (libraryService == null)

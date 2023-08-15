@@ -18,23 +18,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Provides C# analyzers a convenient access to editorconfig options with fallback to IDE default values.
 /// </summary>
-internal readonly struct CSharpAnalyzerOptionsProvider
+internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options, IdeAnalyzerOptions fallbackOptions)
 {
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly IOptionsReader _options;
+    private readonly IOptionsReader _options = options;
 
     /// <summary>
     /// Fallback options - the default options in Code Style layer.
     /// </summary>
-    private readonly IdeAnalyzerOptions _fallbackOptions;
-
-    public CSharpAnalyzerOptionsProvider(IOptionsReader options, IdeAnalyzerOptions fallbackOptions)
-    {
-        _options = options;
-        _fallbackOptions = fallbackOptions;
-    }
+    private readonly IdeAnalyzerOptions _fallbackOptions = fallbackOptions;
 
     public CSharpAnalyzerOptionsProvider(IOptionsReader options, AnalyzerOptions fallbackOptions)
         : this(options, fallbackOptions.GetIdeOptions())
@@ -90,6 +84,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement => GetOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement, FallbackCodeStyleOptions.UnusedValueExpressionStatement);
     public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment => GetOption(CSharpCodeStyleOptions.UnusedValueAssignment, FallbackCodeStyleOptions.UnusedValueAssignment);
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, FallbackCodeStyleOptions.PreferMethodGroupConversion);
+    public CodeStyleOption2<bool> PreferPrimaryConstructors => GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, FallbackCodeStyleOptions.PreferPrimaryConstructors);
 
     // CodeGenerationOptions
 
@@ -98,6 +93,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferReadOnlyStruct => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, FallbackCodeStyleOptions.PreferReadOnlyStruct);
+    public CodeStyleOption2<bool> PreferReadOnlyStructMember => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, FallbackCodeStyleOptions.PreferReadOnlyStructMember);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
@@ -217,12 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
 
-            ArrayBuilder<MethodSymbol> operators = ArrayBuilder<MethodSymbol>.GetInstance();
-            foreach (MethodSymbol candidate in candidates.OfType<MethodSymbol>())
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
+            foreach (var candidate in candidates)
             {
-                if (candidate.MethodKind == MethodKind.UserDefinedOperator || candidate.MethodKind == MethodKind.Conversion)
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
                 {
-                    operators.Add(candidate);
+                    operators.Add(method);
                 }
             }
 
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract bool IsFileLocal { get; }
+
         /// <summary>
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>
@@ -535,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CalculateRequiredMembersIfRequired();
+                EnsureRequiredMembersCalculated();
                 Debug.Assert(!_lazyRequiredMembers.IsDefault);
                 return _lazyRequiredMembers == RequiredMembersErrorSentinel;
             }
@@ -560,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CalculateRequiredMembersIfRequired();
+                EnsureRequiredMembersCalculated();
                 Debug.Assert(!_lazyRequiredMembers.IsDefault);
                 if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
                 {
@@ -571,60 +573,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CalculateRequiredMembersIfRequired()
+        private void EnsureRequiredMembersCalculated()
         {
             if (!_lazyRequiredMembers.IsDefault)
             {
                 return;
             }
 
-            ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
-            bool success = TryCalculateRequiredMembers(ref builder);
+            bool success = tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? builder);
 
             var requiredMembers = success
-                ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                ? builder?.ToImmutable() ?? BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
                 : RequiredMembersErrorSentinel;
 
             RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
-        }
 
-        /// <summary>
-        /// Attempts to calculate the required members for this type. Returns false if there were errors.
-        /// </summary>
-        private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
-        {
-            var lazyRequiredMembers = _lazyRequiredMembers;
-            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
+            bool tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
             {
-                return false;
-            }
+                requiredMembersBuilder = null;
+                if (BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError == true)
+                {
+                    return false;
+                }
 
-            if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
-            {
-                return false;
-            }
-
-            // We need to make sure that members from a base type weren't hidden by members from the current type.
-            if (!HasDeclaredRequiredMembers && requiredMembersBuilder == null)
-            {
-                return true;
-            }
-
-            return addCurrentTypeMembers(ref requiredMembersBuilder);
-
-            bool addCurrentTypeMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
-            {
-                requiredMembersBuilder ??= ImmutableSegmentedDictionary.CreateBuilder<string, Symbol>();
+                var baseAllRequiredMembers = BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                var hasDeclaredRequiredMembers = HasDeclaredRequiredMembers;
 
                 foreach (var member in GetMembersUnordered())
                 {
-                    if (requiredMembersBuilder.ContainsKey(member.Name))
+                    if (member is PropertySymbol { ParameterCount: > 0 } prop)
+                    {
+                        if (prop.IsRequired)
+                        {
+                            // Bad metadata. Indexed properties cannot be required.
+                            return false;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (baseAllRequiredMembers.TryGetValue(member.Name, out var existingMember))
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
-                            || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
-                            || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
+                            || !overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.AllNullableIgnoreOptions))
                         {
                             return false;
                         }
@@ -634,6 +629,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
+
+                    if (!hasDeclaredRequiredMembers)
+                    {
+                        // Bad metadata. Type claimed it didn't declare any required members, but we found one.
+                        return false;
+                    }
+
+                    requiredMembersBuilder ??= baseAllRequiredMembers.ToBuilder();
 
                     requiredMembersBuilder[member.Name] = member;
                 }
@@ -677,20 +680,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers();
 
         /// <summary>
-        /// Get all the members of this symbol that are types that have a particular name, of any arity.
-        /// </summary>
-        /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
-        /// If this symbol has no type members with this name,
-        /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
-
-        /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
         /// </summary>
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
+        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity);
 
         /// <summary>
         /// Get all instance field and event members.
@@ -1617,6 +1612,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+#nullable enable
+        internal abstract bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+#nullable disable
 
         /// <summary>
         /// Requires less computation than <see cref="TypeSymbol.TypeKind"/> == <see cref="TypeKind.Interface"/>.

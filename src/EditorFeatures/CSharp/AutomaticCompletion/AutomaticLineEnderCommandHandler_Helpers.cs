@@ -541,10 +541,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// This would change field to property, and change event field to event declaration.
         /// </summary>
         private static bool ShouldAddBraceForBaseFieldDeclaration(BaseFieldDeclarationSyntax baseFieldDeclarationNode)
-            => baseFieldDeclarationNode.Declaration.Variables.Count == 1
-               && baseFieldDeclarationNode.Declaration.Variables[0].Initializer == null
-               && !baseFieldDeclarationNode.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
-               && baseFieldDeclarationNode.SemicolonToken.IsMissing;
+            => baseFieldDeclarationNode is { Declaration.Variables: [{ Initializer: null }], SemicolonToken.IsMissing: true }
+               && !baseFieldDeclarationNode.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
 
         private static bool ShouldAddBraceForAccessorDeclaration(AccessorDeclarationSyntax accessorDeclarationNode)
         {

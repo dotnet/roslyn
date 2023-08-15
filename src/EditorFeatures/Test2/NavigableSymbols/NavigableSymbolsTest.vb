@@ -44,7 +44,7 @@ class {|target:C|}
             End Using
         End Function
 
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         <WpfFact>
         Public Async Function TestCharpLiteral() As Task
             Dim markup = "int x = 1$$23;"
@@ -58,7 +58,7 @@ class {|target:C|}
             End Using
         End Function
 
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         <WpfFact>
         Public Async Function TestCharpStringLiteral() As Task
             Dim markup = "string x = ""w$$ow"";"
@@ -88,7 +88,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBLiteral() As Task
             Dim markup = "Dim x as Integer = 1$$23"
             Dim text As String = Nothing
@@ -101,7 +101,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBStringLiteral() As Task
             Dim markup = "Dim x as String = ""w$$ow"";"
             Dim text As String = Nothing

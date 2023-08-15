@@ -437,14 +437,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
                     => VisitNestedFunction(node.Symbol.OriginalDefinition, node.Body);
 
-                public override BoundNode VisitCall(BoundCall node)
+                protected override void VisitArguments(BoundCall node)
                 {
                     if (node.Method.MethodKind == MethodKind.LocalFunction)
                     {
                         // Use OriginalDefinition to strip generic type parameters
                         AddIfCaptured(node.Method.OriginalDefinition, node.Syntax);
                     }
-                    return base.VisitCall(node);
+
+                    base.VisitArguments(node);
                 }
 
                 public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

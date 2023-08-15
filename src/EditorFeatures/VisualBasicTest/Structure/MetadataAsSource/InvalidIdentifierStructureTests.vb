@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
 
-        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function PrependDollarSign() As Task
             Const code = "
 {|hint:{|textspan:$$Class C
@@ -46,7 +46,7 @@ End Class|}|}
                 Region("textspan", "hint", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
-        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function SymbolsAndPunctuation() As Task
             Const code = "
 $$Class C
@@ -56,7 +56,7 @@ End Class
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "
 {|hint1:{|textspan1:$$Class C

@@ -485,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
                     return ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.FieldAccess:
@@ -733,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (binaryOperatorKind.IsLifted())
             {
-                binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
+                binaryOperandType = _compilation.GetOrCreateNullableType(binaryOperandType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
                 boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
             }
@@ -853,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)transformedExpression;
-                    return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments);
+                    return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments, indexerAccess.ArgumentRefKindsOpt);
 
                 case BoundKind.DynamicIndexerAccess:
                     var dynamicIndexerAccess = (BoundDynamicIndexerAccess)transformedExpression;

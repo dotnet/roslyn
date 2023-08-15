@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where AliasDeclarationTypeNode : SyntaxNode
     {
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsTypeContext;
+            => syntaxContext.IsTypeContext || syntaxContext.IsEnumBaseListContext;
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();

@@ -28,7 +28,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                // We do not use OOP for FAR for body-level symbols (like locals/local-functions/etc.).  There's no
+                // point in sending to OOP as it will do nothing but add overhead.  Specifically, a body level symbol
+                // already came from source, and it roots the Compilation it came from (through its
+                // ISourceAssemblySymbol). 
+                //
+                // Since we literally only need to examine the symbol's containing method-like-body to look for other
+                // references, it's much better to just stay in process.As we have a local, it's highly likely that the
+                // caller of this also got that local symbol from a semantic model that they are also holding.  So, in
+                // most cases there's no additional semantic costs at all, and this just becomes a walk of the existing
+                // bound nodes with the same name to find hits, which is the fastest we could hope for without a
+                // dedicated compiler API.
+                if (!SymbolKey.IsBodyLevelSymbol(symbol) && SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     if (client != null)

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
+#if DEBUG
+        private int _expectedStackDepth = 0;
+#endif
+
         private void EmitStatement(BoundStatement statement)
         {
             switch (statement.Kind)
@@ -107,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
             if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                _builder.AssertStackEmpty();
+                _builder.AssertStackDepth(_expectedStackDepth);
             }
 #endif
 
@@ -415,43 +420,84 @@ oneMoreTime:
             switch (condition.Kind)
             {
                 case BoundKind.BinaryOperator:
+
                     var binOp = (BoundBinaryOperator)condition;
-                    bool testBothArgs = sense;
+                    Debug.Assert(binOp.ConstantValueOpt is null);
 
-                    switch (binOp.OperatorKind.OperatorWithLogical())
+#nullable enable 
+                    if (binOp.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr or BinaryOperatorKind.LogicalAnd)
                     {
-                        case BinaryOperatorKind.LogicalOr:
-                            testBothArgs = !testBothArgs;
-                            // Fall through
-                            goto case BinaryOperatorKind.LogicalAnd;
+                        var stack = ArrayBuilder<(BoundExpression? condition, StrongBox<object?> destBox, bool sense)>.GetInstance();
+                        var destBox = new StrongBox<object?>(dest);
+                        stack.Push((binOp, destBox, sense));
 
-                        case BinaryOperatorKind.LogicalAnd:
-                            if (testBothArgs)
+                        do
+                        {
+                            (BoundExpression? condition, StrongBox<object?> destBox, bool sense) top = stack.Pop();
+
+                            if (top.condition is null)
                             {
-                                // gotoif(a != sense) fallThrough
-                                // gotoif(b == sense) dest
-                                // fallThrough:
-
-                                object fallThrough = null;
-
-                                EmitCondBranch(binOp.Left, ref fallThrough, !sense);
-                                EmitCondBranch(binOp.Right, ref dest, sense);
-
+                                // This is a special entry to indicate that it is time to append the block
+                                object? fallThrough = top.destBox.Value;
                                 if (fallThrough != null)
                                 {
                                     _builder.MarkLabel(fallThrough);
                                 }
                             }
-                            else
+                            else if (top.condition.ConstantValueOpt is null &&
+                                     top.condition is BoundBinaryOperator binary &&
+                                     binary.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr or BinaryOperatorKind.LogicalAnd)
                             {
-                                // gotoif(a == sense) labDest
-                                // gotoif(b == sense) labDest
+                                if (binary.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr ? !top.sense : top.sense)
+                                {
+                                    // gotoif(a != sense) fallThrough
+                                    // gotoif(b == sense) dest
+                                    // fallThrough:
 
-                                EmitCondBranch(binOp.Left, ref dest, sense);
-                                condition = binOp.Right;
+                                    var fallThrough = new StrongBox<object?>();
+
+                                    // Note, operations are pushed to the stack in opposite order
+                                    stack.Push((null, fallThrough, true)); // This is a special entry to indicate that it is time to append the fallThrough block
+                                    stack.Push((binary.Right, top.destBox, top.sense));
+                                    stack.Push((binary.Left, fallThrough, !top.sense));
+                                }
+                                else
+                                {
+                                    // gotoif(a == sense) labDest
+                                    // gotoif(b == sense) labDest
+
+                                    // Note, operations are pushed to the stack in opposite order
+                                    stack.Push((binary.Right, top.destBox, top.sense));
+                                    stack.Push((binary.Left, top.destBox, top.sense));
+                                }
+                            }
+                            else if (stack.Count == 0 && ReferenceEquals(destBox, top.destBox))
+                            {
+                                // Instead of recursion we can restart from the top with new condition
+                                condition = top.condition;
+                                sense = top.sense;
+                                dest = destBox.Value;
+                                stack.Free();
                                 goto oneMoreTime;
                             }
-                            return;
+                            else
+                            {
+                                EmitCondBranch(top.condition, ref top.destBox.Value, top.sense);
+                            }
+                        }
+                        while (stack.Count != 0);
+
+                        dest = destBox.Value;
+                        stack.Free();
+                        return;
+                    }
+#nullable disable
+
+                    switch (binOp.OperatorKind.OperatorWithLogical())
+                    {
+                        case BinaryOperatorKind.LogicalOr:
+                        case BinaryOperatorKind.LogicalAnd:
+                            throw ExceptionUtilities.Unreachable();
 
                         case BinaryOperatorKind.Equal:
                         case BinaryOperatorKind.NotEqual:
@@ -526,6 +572,28 @@ oneMoreTime:
                             EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
+                        }
+                    }
+                    return;
+
+                case BoundKind.LoweredIsPatternExpression:
+                    {
+                        var loweredIs = (BoundLoweredIsPatternExpression)condition;
+                        dest ??= new object();
+
+                        EmitSideEffects(loweredIs.Statements);
+
+                        if (sense)
+                        {
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                        }
+                        else
+                        {
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
                         }
                     }
                     return;
@@ -623,6 +691,54 @@ oneMoreTime:
 
         private void EmitBlock(BoundBlock block)
         {
+            if (block.Instrumentation is not null)
+            {
+                EmitInstrumentedBlock(block.Instrumentation, block);
+            }
+            else
+            {
+                EmitUninstrumentedBlock(block);
+            }
+        }
+
+        private void EmitInstrumentedBlock(BoundBlockInstrumentation instrumentation, BoundBlock block)
+        {
+            _builder.OpenLocalScope();
+            DefineLocal(instrumentation.Local, block.Syntax);
+
+            if (_emitPdbSequencePoints)
+            {
+                EmitHiddenSequencePoint();
+            }
+
+            EmitStatement(instrumentation.Prologue);
+
+            _builder.AssertStackEmpty();
+
+            _builder.OpenLocalScope(ScopeType.TryCatchFinally);
+
+            _builder.OpenLocalScope(ScopeType.Try);
+            EmitUninstrumentedBlock(block);
+            _builder.CloseLocalScope(); // try
+
+            _builder.OpenLocalScope(ScopeType.Finally);
+
+            if (_emitPdbSequencePoints)
+            {
+                EmitHiddenSequencePoint();
+            }
+
+            EmitStatement(instrumentation.Epilogue);
+            _builder.CloseLocalScope(); // finally
+
+            _builder.CloseLocalScope(); // try-finally
+
+            FreeLocal(instrumentation.Local);
+            _builder.CloseLocalScope();
+        }
+
+        private void EmitUninstrumentedBlock(BoundBlock block)
+        {
             var hasLocals = !block.Locals.IsEmpty;
 
             if (hasLocals)
@@ -644,7 +760,15 @@ oneMoreTime:
             if (_indirectReturnState == IndirectReturnState.Needed &&
                 IsLastBlockInMethod(block))
             {
-                HandleReturn();
+                if (block.Instrumentation != null)
+                {
+                    // jump out of try-finally
+                    _builder.EmitBranch(ILOpCode.Br, s_returnLabel);
+                }
+                else
+                {
+                    HandleReturn();
+                }
             }
 
             if (hasLocals)
@@ -1647,7 +1771,7 @@ oneMoreTime:
                 MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics.DiagnosticBag);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
-                    local.Locations.FirstOrDefault() ?? Location.None,
+                    local.GetFirstLocationOrNone(),
                     compileTimeValue,
                     dynamicTransformFlags: dynamicTransformFlags,
                     tupleElementNames: tupleElementNames);

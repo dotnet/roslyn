@@ -231,56 +231,56 @@ $$"));
 @"await foreach (var $$"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForEachRefLoop0()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref $$"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForEachRefLoop1()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref $$ x"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForEachRefLoop2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref v$$ x"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForEachRefReadonlyLoop0()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"foreach (ref readonly $$ x"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForRefLoop0()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for (ref $$"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForRefLoop1()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for (ref v$$"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForRefReadonlyLoop0()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for (ref readonly $$"));
         }
 
-        [Fact, WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37223")]
         public async Task TestInForRefReadonlyLoop1()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -330,14 +330,14 @@ $$"));
     const $$");
         }
 
-        [Fact, WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12121")]
         public async Task TestAfterOutKeywordInArgument()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"M(out $$"));
         }
 
-        [Fact, WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12121")]
         public async Task TestAfterOutKeywordInParameter()
         {
             await VerifyAbsenceAsync(
@@ -416,7 +416,7 @@ $$"));
 @"ref int x = ref $$"));
         }
 
-        [Fact, WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10170")]
         public async Task TestInPropertyPattern()
         {
             await VerifyKeywordAsync(

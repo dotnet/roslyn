@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -42,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
                        includeFormatCommandHandler:=False)
 
-            Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, True)
+            Workspace.GlobalOptions.SetGlobalOption(SnippetsOptionsStorage.Snippets, True)
 
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
@@ -103,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                </Workspace>
 
             Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), WorkspaceKind.Interactive)
-            state.Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, False)
+            state.Workspace.GlobalOptions.SetGlobalOption(SnippetsOptionsStorage.Snippets, False)
             Return state
         End Function
 

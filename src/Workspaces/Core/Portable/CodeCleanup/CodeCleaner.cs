@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static async Task<Document> CleanupAsync(Document document, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return await CleanupAsync(document, new TextSpan(0, text.Length), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 

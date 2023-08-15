@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Enqueue re-analysis of active document with high-priority right away.
                     if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
                     {
-                        AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
+                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
                     }
 
                     // Enqueue remaining re-analysis with normal priority on a separate task queue
@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
                     {
                         // Enqueue re-analysis of open documents.
-                        AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
+                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: Workspace.GetOpenDocumentIds(), highPriority: false);
 
                         // Enqueue re-analysis of projects, if required.
                         foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
                         {
                             if (GlobalOptions.IsFullSolutionAnalysisEnabled(projectsByLanguage.Key))
                             {
-                                AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
+                                AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id), documentIds: null, highPriority: false);
                             }
                         }
                     }, cancellationToken);

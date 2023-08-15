@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 ? string.Format(FeaturesResources.Pull_0_up, selectedMembers.Single().ToNameDisplayString())
                 : FeaturesResources.Pull_selected_members_up;
 
-            var nestedCodeAction = CodeActionWithNestedActions.Create(
+            var nestedCodeAction = CodeAction.Create(
                 title,
                 allActions, isInlinable: true);
 

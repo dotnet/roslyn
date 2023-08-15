@@ -339,9 +339,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32?, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0150: A constant value is expected
+                // (8,28): error CS9135: A constant value of type 'int' is expected
                 //         if (/*<bind>*/x is y/*</bind>*/) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "y").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "y").WithArguments("int").WithLocation(8, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

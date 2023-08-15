@@ -9,17 +9,12 @@ namespace Microsoft.CodeAnalysis.Classification
     /// <summary>
     /// Use this attribute to export a <see cref="IEmbeddedLanguageClassifier"/>.
     /// </summary>
-    internal class ExportEmbeddedLanguageClassifierAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
+    internal class ExportEmbeddedLanguageClassifierAttribute(
+        string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers) : ExportEmbeddedLanguageFeatureServiceAttribute(typeof(IEmbeddedLanguageClassifier), name, languages, supportsUnannotatedAPIs, identifiers)
     {
         public ExportEmbeddedLanguageClassifierAttribute(
             string name, string[] languages, params string[] identifiers)
             : this(name, languages, supportsUnannotatedAPIs: false, identifiers)
-        {
-        }
-
-        public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageClassifier), name, languages, supportsUnannotatedAPIs, identifiers)
         {
         }
     }

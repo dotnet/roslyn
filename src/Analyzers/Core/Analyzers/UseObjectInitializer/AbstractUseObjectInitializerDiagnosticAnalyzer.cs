@@ -67,8 +67,15 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
                 if (syntaxKinds.ImplicitObjectCreationExpression != null)
                     matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+                var matchKindsArray = matchKinds.ToImmutableAndClear();
 
-                context.RegisterSyntaxNodeAction(AnalyzeNode, matchKinds.ToImmutableAndClear());
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+                // and eventually report fading diagnostics with location outside this node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(AnalyzeNode, matchKindsArray));
             });
         }
 
@@ -91,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
-            if (matches == null || matches.Value.Length == 0)
+            if (matches.IsDefaultOrEmpty)
                 return;
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             if (!IsValidContainingStatement(containingStatement))
                 return;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
                 return;
 
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 locations,
                 properties: null));
 
-            FadeOutCode(context, matches.Value, locations);
+            FadeOutCode(context, matches, locations);
         }
 
         private void FadeOutCode(

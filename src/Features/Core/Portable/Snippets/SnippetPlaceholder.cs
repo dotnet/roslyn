@@ -32,13 +32,21 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
         {
-            if (identifier.Length == 0)
+            if (string.IsNullOrEmpty(identifier))
             {
-                throw new ArgumentException($"{nameof(identifier)} must not be an empty string.");
+                throw new ArgumentException($"{nameof(identifier)} must not be an null or empty.");
             }
 
             Identifier = identifier;
             PlaceHolderPositions = placeholderPositions;
+        }
+
+        /// <summary>
+        /// Initialize a placeholder with a single position
+        /// </summary>
+        public SnippetPlaceholder(string identifier, int placeholderPosition)
+            : this(identifier, ImmutableArray.Create(placeholderPosition))
+        {
         }
     }
 }

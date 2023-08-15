@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 if (recordChildActions.Length > 0)
                 {
                     context.RegisterRefactoring(
-                        CodeAction.CodeActionWithNestedActions.Create(
+                        CodeAction.Create(
                             FeaturesResources.Convert_to_record_struct,
                             recordChildActions,
                             isInlinable: false),
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             if (childActions.Length > 0)
             {
                 context.RegisterRefactoring(
-                    CodeAction.CodeActionWithNestedActions.Create(
+                    CodeAction.Create(
                         FeaturesResources.Convert_to_struct,
                         childActions,
                         isInlinable: false),

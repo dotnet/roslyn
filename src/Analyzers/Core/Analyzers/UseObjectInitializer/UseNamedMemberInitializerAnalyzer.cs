@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly ObjectPool<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
             = SharedPools.Default<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
 
-        public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze(
+        public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
             var analyzer = s_pool.Allocate();
-            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
             try
             {
                 return analyzer.AnalyzeWorker();
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
         }
 
-        protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
+        protected override bool TryAddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
@@ -180,6 +180,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                     statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
             }
+
+            return true;
         }
 
         private static bool IsExplicitlyImplemented(
@@ -236,27 +238,19 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax>
+        TAssignmentStatementSyntax>(
+        TAssignmentStatementSyntax statement,
+        TMemberAccessExpressionSyntax memberAccessExpression,
+        TExpressionSyntax initializer,
+        string memberName)
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
     {
-        public readonly TAssignmentStatementSyntax Statement;
-        public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-        public readonly TExpressionSyntax Initializer;
-        public readonly string MemberName;
-
-        public Match(
-            TAssignmentStatementSyntax statement,
-            TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer,
-            string memberName)
-        {
-            Statement = statement;
-            MemberAccessExpression = memberAccessExpression;
-            Initializer = initializer;
-            MemberName = memberName;
-        }
+        public readonly TAssignmentStatementSyntax Statement = statement;
+        public readonly TMemberAccessExpressionSyntax MemberAccessExpression = memberAccessExpression;
+        public readonly TExpressionSyntax Initializer = initializer;
+        public readonly string MemberName = memberName;
     }
 }

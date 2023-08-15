@@ -275,9 +275,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode? child1)
         {
             int code = (int)(flags) ^ kind;
-            // the only child is never null
-            // https://github.com/dotnet/roslyn/issues/41539
-            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1!), code);
+            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code);
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;

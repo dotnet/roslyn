@@ -1539,7 +1539,7 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (14,19): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                // (14,19): error CS8178: A reference returned by a call to 'Program.RefReturning(ref int)' cannot be preserved across 'await' or 'yield' boundary.
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
                 );
@@ -2494,8 +2494,8 @@ public readonly struct S1
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
-        public void InParamGenericReadonly()
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonly([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2514,12 +2514,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(" + modifier + @" T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(" + modifier + @" T arg)
         {
             arg.M3();
         }
@@ -2543,7 +2543,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2558,8 +2558,8 @@ public readonly struct S1
 }");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
-        public void InParamGenericReadonlyROstruct()
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonlyROstruct([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2575,12 +2575,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(" + modifier + @" T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(" + modifier + @" T arg)
         {
             arg.M3();
         }
@@ -2601,7 +2601,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2637,8 +2637,8 @@ class Program
         }
 
         [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
-        [Fact]
-        public void InParamsNullable()
+        [Theory, CombinatorialData]
+        public void InParamsNullable([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2655,7 +2655,7 @@ class Program
         Test2(ref ns);
     }
 
-    static void Test1(in S1? arg)
+    static void Test1(" + modifier + @" S1? arg)
     {
         // cannot not mutate
         System.Console.Write(arg.GetValueOrDefault());
@@ -2693,7 +2693,7 @@ struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
-            comp.VerifyIL("Program.Test1(in S1?)", @"
+            comp.VerifyIL($"Program.Test1({modifier} S1?)", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -4387,8 +4387,8 @@ class Derived : Test { }
 ");
         }
 
-        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-        public void ConstrainedCallOnInParameter()
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var source = @"
 using System;
@@ -4406,7 +4406,7 @@ public class C
         M(in valueRef);
         Console.Write(valueRef);
     }
-    public static void M(in S value)
+    public static void M(" + modifier + @" S value)
     {
         foreach (var x in value) { }
     }
@@ -4459,8 +4459,8 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver()
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var source = @"
 using System;
@@ -4478,7 +4478,7 @@ public class C
         M(in valueRef);
         Console.Write(valueRef);
     }
-    public static void M<T>(in T value) where T : struct, IEnumerable<int>
+    public static void M<T>(" + modifier + @" T value) where T : struct, IEnumerable<int>
     {
         foreach (var x in value) { }
     }
@@ -4493,7 +4493,7 @@ public struct S : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "00");
-            verifier.VerifyIL("C.M<T>(in T)", """
+            verifier.VerifyIL($"C.M<T>({modifier} T)", """
 {
   // Code size       51 (0x33)
   .maxstack  1
@@ -4695,8 +4695,8 @@ public struct S : IEnumerable<int>
 """);
         }
 
-        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-        public void InvokeStructToStringOverrideOnInParameter()
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 using System;
@@ -4709,7 +4709,7 @@ class C
         Console.Write(M(in s));
         Console.Write(M(in s));
     }
-    static string M(in S1 s)
+    static string M(" + modifier + @" S1 s)
     {
         return s.ToString();
     }
@@ -4739,8 +4739,8 @@ struct S1
 """);
         }
 
-        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-        public void InvokeAddedStructToStringOverrideOnInParameter()
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var libOrig_cs = """
 public struct S
@@ -4761,10 +4761,10 @@ public struct S
 """;
             var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
 
-            var libUser_cs = """
+            var libUser_cs = $$"""
 public class C
 {
-    public static string M(in S s)
+    public static string M({{modifier}} S s)
     {
         return s.ToString();
     }

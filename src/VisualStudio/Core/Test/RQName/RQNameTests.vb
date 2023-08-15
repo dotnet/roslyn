@@ -126,7 +126,7 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <Fact, WorkItem(608534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608534")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608534")>
         Public Async Function TestRQNameClassInModule() As Task
             Dim markup = "
 Module Module1
@@ -156,7 +156,7 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <Fact, WorkItem(792487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792487")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792487")>
         Public Async Function TestRQNameForOperator() As Task
             Dim markup = "
 class MyClass
@@ -190,7 +190,7 @@ class Program
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <Fact, WorkItem(837914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837914")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837914")>
         Public Async Function TestRQNameForMethodInConstructedTypeReturnsNull() As Task
             Dim markup = "
 class G<T>
@@ -215,7 +215,7 @@ class C
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <Fact, WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         Public Async Function TestRQNameForAlias() As Task
             Dim markup = "
 using d = System.Globalization.DigitShapes;

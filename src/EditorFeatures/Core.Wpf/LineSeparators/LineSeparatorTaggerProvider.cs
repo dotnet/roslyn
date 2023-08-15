@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             if (document == null)
                 return;
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
+            if (!GlobalOptions.GetOption(LineSeparatorsOptionsStorage.LineSeparator, document.Project.Language))
                 return;
 
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))

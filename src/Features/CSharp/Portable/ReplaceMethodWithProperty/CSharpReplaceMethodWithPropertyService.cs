@@ -68,10 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var expressionBodyPreference = options.PreferExpressionBodiedProperties.Value;
             if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
-                if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
-                    propertyDeclaration.AccessorList?.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
+                if (propertyDeclaration.AccessorList is { Accessors: [(kind: SyntaxKind.GetAccessorDeclaration) getAccessor] })
                 {
-                    var getAccessor = propertyDeclaration.AccessorList.Accessors[0];
                     if (getAccessor.ExpressionBody != null)
                     {
                         return propertyDeclaration.WithExpressionBody(getAccessor.ExpressionBody)
@@ -285,16 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return (TNode)rewriter.Visit(node);
         }
 
-        private class Rewriter : CSharpSyntaxRewriter
+        private class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly IParameterSymbol _parameter;
-
-            public Rewriter(SemanticModel semanticModel, IParameterSymbol parameter)
-            {
-                _semanticModel = semanticModel;
-                _parameter = parameter;
-            }
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly IParameterSymbol _parameter = parameter;
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {

@@ -90,19 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
-            option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
-                (CSharpCodeStyleOptions.PreferThrowExpression, option));
+                (CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
-            option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
+            var option = new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_using_directive_placement = inside_namespace:warning",

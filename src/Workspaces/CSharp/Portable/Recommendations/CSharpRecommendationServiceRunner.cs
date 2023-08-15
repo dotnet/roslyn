@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -28,6 +29,15 @@ internal partial class CSharpRecommendationService
             : base(context, filterOutOfScopeLocals, cancellationToken)
         {
         }
+
+        protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
+            => lambdaSyntax switch
+            {
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
+                SimpleLambdaExpressionSyntax => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
+            };
 
         public override RecommendedSymbols GetRecommendedSymbols()
         {
@@ -101,6 +111,10 @@ internal partial class CSharpRecommendationService
             {
                 return GetSymbolsForNamespaceDeclarationNameContext<BaseNamespaceDeclarationSyntax>();
             }
+            else if (_context.IsEnumBaseListContext)
+            {
+                return GetSymbolsForEnumBaseList(container: null);
+            }
 
             return ImmutableArray<ISymbol>.Empty;
         }
@@ -109,6 +123,19 @@ internal partial class CSharpRecommendationService
         {
             // Ensure that we have the correct token in A.B| case
             var node = _context.TargetToken.GetRequiredParent();
+
+            if (node.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+            {
+                // We are in enum's base list. Valid nodes here are:
+                // 1) QualifiedNameSyntax, e.g. `enum E : System.$$`
+                // 2) AliasQualifiedNameSyntax, e.g. `enum E : global::$$`
+                // If there is anything else then this is not valid syntax, so just return empty recommendations
+                if (node is not (QualifiedNameSyntax or AliasQualifiedNameSyntax))
+                {
+                    return default;
+                }
+            }
+
             return node switch
             {
                 MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
@@ -116,20 +143,56 @@ internal partial class CSharpRecommendationService
                 MemberAccessExpressionSyntax(SyntaxKind.PointerMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
-                // This code should be executing only if the cursor is between two dots in a dotdot token.
-                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfExpression(rangeExpression.LeftOperand),
+                // This code should be executing only if the cursor is between two dots in a `..` token.
+                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
                 AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
-                MemberBindingExpressionSyntax _ => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
+                MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
         }
 
+        private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
+        {
+            // This commonly occurs when someone has existing dots and types another dot to bring up completion. For example:
+            //
+            //      collection$$.Any()
+            //
+            // producing
+            //
+            //      collection..Any();
+            //
+            // We can get good completion by just getting symbols off of 'collection' there, but with a small catch.
+            // Specifically, we only want to allow this if the precedence would allow for a member-access-expression
+            // here.  This is because the range-expression is much lower precedence so it allows for all sorts of
+            // expressions on the LHS that would not parse into member access expression.
+            //
+            // Note: This can get complex because of cases like   `(int)o..Whatever();`
+            //
+            // Here, we want completion off of `o`, despite the LHS being the entire `(int)o` expr.  So we attempt to
+            // walk down the RHS of the expression before the .., looking to get the final term that the `.` should
+            // actually bind to.
+
+            var currentExpression = rangeExpression.LeftOperand;
+            if (currentExpression is not null)
+            {
+                while (currentExpression.ChildNodesAndTokens().Last().AsNode() is ExpressionSyntax child &&
+                       child.GetOperatorPrecedence() < OperatorPrecedence.Primary)
+                {
+                    currentExpression = child;
+                }
+
+                var precedence = currentExpression.GetOperatorPrecedence();
+                if (precedence != OperatorPrecedence.None && precedence < OperatorPrecedence.Primary)
+                    return default;
+            }
+
+            return GetSymbolsOffOfExpression(currentExpression);
+        }
+
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()
         {
-            var syntaxTree = _context.SyntaxTree;
-            var position = _context.Position;
-            var token = _context.LeftToken;
+            var token = _context.TargetToken;
 
             // The following code is a hack to get around a binding problem when asking binding
             // questions immediately after a using directive. This is special-cased in the binder
@@ -140,16 +203,8 @@ internal partial class CSharpRecommendationService
             // using System;
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
-                token.Parent.IsKind(SyntaxKind.UsingDirective) &&
-                position >= token.Span.End)
-            {
-                var compUnit = (CompilationUnitSyntax)syntaxTree.GetRoot(_cancellationToken);
-                if (compUnit.Usings.Count > 0 && compUnit.Usings.Last().SemicolonToken == token)
-                {
-                    token = token.GetNextToken(includeZeroWidth: true);
-                }
-            }
+            if (_context.IsRightAfterUsingOrImportDirective)
+                token = token.GetNextToken(includeZeroWidth: true);
 
             var symbols = _context.SemanticModel.LookupSymbols(token.SpanStart);
 
@@ -177,6 +232,10 @@ internal partial class CSharpRecommendationService
             if (aliasSymbol == null)
                 return default;
 
+            // If we are in case like `enum E : global::$$` we need to show only `System` namespace
+            if (alias.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+                return new(GetSymbolsForEnumBaseList(aliasSymbol.Target));
+
             return new RecommendedSymbols(_context.SemanticModel.LookupNamespacesAndTypes(
                 alias.SpanStart,
                 aliasSymbol.Target));
@@ -202,9 +261,9 @@ internal partial class CSharpRecommendationService
                 return symbols.WhereAsArray(s => s.IsNamespace());
             }
 
-            if (_context.TargetToken.IsStaticKeywordInUsingDirective())
+            if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
             {
-                return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                return symbols.WhereAsArray(s => !s.IsDelegateType());
             }
 
             return symbols;
@@ -279,6 +338,9 @@ internal partial class CSharpRecommendationService
             if (_context.IsNameOfContext)
                 return new RecommendedSymbols(_context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol));
 
+            if (name.GetAncestor<BaseListSyntax>()?.Parent is EnumDeclarationSyntax)
+                return new(GetSymbolsForEnumBaseList(symbol));
+
             var symbols = _context.SemanticModel.LookupNamespacesAndTypes(
                 position: name.SpanStart,
                 container: symbol);
@@ -300,7 +362,7 @@ internal partial class CSharpRecommendationService
             if (usingDirective != null && usingDirective.Alias == null)
             {
                 return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
-                    ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                    ? symbols.WhereAsArray(s => !s.IsDelegateType())
                     : symbols.WhereAsArray(s => s.IsNamespace()));
             }
 

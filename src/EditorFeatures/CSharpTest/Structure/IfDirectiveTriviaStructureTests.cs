@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new IfDirectiveTriviaStructureProvider();
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEnabledIfDisabledElifDisabledElse()
         {
             const string code = @"
@@ -40,7 +40,7 @@ class E
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfEnabledElifDisabledElse()
         {
             const string code = @"
@@ -63,7 +63,7 @@ class E
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfDisabledElifEnabledElse()
         {
             const string code = @"
@@ -86,7 +86,7 @@ class D
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEmptyEnabledRegion()
         {
             const string code = @"
@@ -105,7 +105,7 @@ class E
             await VerifyBlockSpansAsync(code);
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif1()
         {
             const string code = @"
@@ -118,7 +118,7 @@ class C
             await VerifyBlockSpansAsync(code);
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif2()
         {
             const string code = @"
@@ -140,7 +140,7 @@ class E
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif3()
         {
             const string code = @"

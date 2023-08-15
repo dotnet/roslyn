@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
         }
 
-        [Fact, WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40705")]
         public static void TestPascalCaseRuleWithKeyCapitalization()
         {
             var dictionary = new Dictionary<string, string>()
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("property,method,invalid", new object[] { SymbolKind.Property, MethodKind.Ordinary })]
         [InlineData("invalid", new object[] { })]
         [InlineData("", new object[] { })]
-        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20907")]
         public static void TestApplicableKindsParse(string specification, object[] typeOrSymbolKinds)
         {
             var rule = new Dictionary<string, string>()
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("internal,protected,invalid", new[] { Accessibility.Internal, Accessibility.Protected })]
         [InlineData("invalid", new Accessibility[] { })]
         [InlineData("", new Accessibility[] { })]
-        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20907")]
         public static void TestApplicableAccessibilitiesParse(string specification, Accessibility[] accessibilities)
         {
             var rule = new Dictionary<string, string>()
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                          vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
         }
 
-        [Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")]
         public static void TestPrefixParse()
         {
             var rule = new Dictionary<string, string>()

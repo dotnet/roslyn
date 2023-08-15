@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
         // Checksums for this solution state
-        private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
+        private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
 
         /// <summary>
         /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
         /// to an OOP host.  Lock this specific field before reading/writing to it.
         /// </summary>
-        private readonly Dictionary<ProjectId, ValueSource<SolutionStateChecksums>> _lazyProjectChecksums = new();
+        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
 
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
-                c => ComputeChecksumsAsync(projectsToInclude: null, c), cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
 
             CheckInvariants();
 
@@ -1633,8 +1632,14 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var doc = this.GetRequiredDocumentState(documentId);
-                var tree = doc.GetSyntaxTree(cancellationToken);
+                var allDocumentIds = GetRelatedDocumentIds(documentId);
+                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
+
+                foreach (var currentDocumentId in allDocumentIds)
+                {
+                    var document = this.GetRequiredDocumentState(currentDocumentId);
+                    builder.Add((document, document.GetSyntaxTree(cancellationToken)));
+                }
 
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
@@ -1658,13 +1663,19 @@ namespace Microsoft.CodeAnalysis
                         return currentPartialSolution!;
                     }
 
-                    // if we don't have one or it is stale, create a new partial solution
-                    var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+                    var newIdToProjectStateMap = _projectIdToProjectStateMap;
+                    var newIdToTrackerMap = _projectIdToTrackerMap;
 
-                    Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
-                    var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
-                    var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
+                    foreach (var (doc, tree) in builder)
+                    {
+                        // if we don't have one or it is stale, create a new partial solution
+                        var tracker = this.GetCompilationTracker(doc.Id.ProjectId);
+                        var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+
+                        Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
+                        newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
+                        newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
+                    }
 
                     currentPartialSolution = this.Branch(
                         idToProjectStateMap: newIdToProjectStateMap,
@@ -1684,6 +1695,48 @@ namespace Microsoft.CodeAnalysis
                 throw ExceptionUtilities.Unreachable();
             }
         }
+
+        public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+        {
+            var projectState = this.GetProjectState(documentId.ProjectId);
+            if (projectState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var documentState = projectState.DocumentStates.GetState(documentId);
+            if (documentState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var filePath = documentState.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // this document can't have any related document. only related document is itself.
+                return ImmutableArray.Create(documentId);
+            }
+
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return FilterDocumentIdsByLanguage(this, documentIds, projectState.ProjectInfo.Language);
+        }
+
+        private static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
+            => documentIds.WhereAsArray(
+                static (documentId, args) =>
+                {
+                    var projectState = args.solution.GetProjectState(documentId.ProjectId);
+                    if (projectState == null)
+                    {
+                        // this document no longer exist
+                        return false;
+                    }
+
+                    return projectState.ProjectInfo.Language == args.language;
+                },
+                (solution, language));
 
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
@@ -2006,18 +2059,11 @@ namespace Microsoft.CodeAnalysis
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(SolutionState solutionState)
         {
-            private readonly SolutionState _solutionState;
-
-            public TestAccessor(SolutionState solutionState)
-            {
-                _solutionState = solutionState;
-            }
-
             public GeneratorDriver? GetGeneratorDriver(Project project)
             {
-                return project.SupportsCompilation ? _solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+                return project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
             }
         }
     }

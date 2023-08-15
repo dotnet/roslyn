@@ -341,6 +341,11 @@ namespace Microsoft.CodeAnalysis
 
         private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, TimeSpan? runTime = null, bool isInit = false)
         {
+            if (CodeAnalysisEventSource.Log.IsEnabled())
+            {
+                CodeAnalysisEventSource.Log.GeneratorException(generator.GetGeneratorType().Name, e.ToString());
+            }
+
             var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
 
             // ISSUE: Diagnostics don't currently allow descriptions with arguments, so we have to manually create the diagnostic description
@@ -372,14 +377,20 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)
         {
+            if (generatorDiagnostics.IsEmpty)
+            {
+                return generatorDiagnostics;
+            }
+
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
-                var filtered = compilation.Options.FilterDiagnostic(diag, cancellationToken);
-                if (filtered is object)
+                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
+                    suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
                 {
-                    filteredDiagnostics.Add(filtered);
-                    driverDiagnostics?.Add(filtered);
+                    filteredDiagnostics.Add(effective);
+                    driverDiagnostics?.Add(effective);
                 }
             }
             return filteredDiagnostics.ToImmutableAndFree();

@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 _ = new VisualStudioTaskListTable(workspace, _threadingContext, _tableManagerProvider, this);
 
                 // Now that we've hooked everything up, kick off the work to actually start computing and reporting items.
-                RegisterIncrementalAnalayzerAndStartComputingTaskListItems();
+                RegisterIncrementalAnalyzerAndStartComputingTaskListItems();
             }
             catch (OperationCanceledException)
             {
@@ -149,11 +149,15 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 ? values
                 : ImmutableArray<TaskListItem>.Empty;
 
-        private void RegisterIncrementalAnalayzerAndStartComputingTaskListItems()
+        private void RegisterIncrementalAnalyzerAndStartComputingTaskListItems()
         {
             // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
             var diagnosticMode = _globalOptions.GetDiagnosticMode();
             if (diagnosticMode == DiagnosticMode.LspPull)
+                return;
+
+            // Do not register if solution crawler is explicitly off.
+            if (!_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
                 return;
 
             var services = _workspace.Services.SolutionServices;

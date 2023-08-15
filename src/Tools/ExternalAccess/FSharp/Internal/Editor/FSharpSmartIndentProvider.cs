@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
 
         public ISmartIndent? CreateSmartIndent(ITextView textView)
-            => _globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter) ? new SmartIndent(textView, this) : null;
+            => _globalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter) ? new SmartIndent(textView, this) : null;
 
         private sealed class SmartIndent : ISmartIndent
         {

@@ -23,22 +23,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     [DataContract]
-    internal readonly struct AnalyzerPerformanceInfo
+    internal readonly struct AnalyzerPerformanceInfo(string analyzerId, bool builtIn, TimeSpan timeSpan)
     {
         [DataMember(Order = 0)]
-        public readonly string AnalyzerId;
+        public readonly string AnalyzerId = analyzerId;
 
         [DataMember(Order = 1)]
-        public readonly bool BuiltIn;
+        public readonly bool BuiltIn = builtIn;
 
         [DataMember(Order = 2)]
-        public readonly TimeSpan TimeSpan;
-
-        public AnalyzerPerformanceInfo(string analyzerId, bool builtIn, TimeSpan timeSpan)
-        {
-            AnalyzerId = analyzerId;
-            BuiltIn = builtIn;
-            TimeSpan = timeSpan;
-        }
+        public readonly TimeSpan TimeSpan = timeSpan;
     }
 }

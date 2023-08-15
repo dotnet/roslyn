@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.NavigationBar)>
     Partial Public Class VisualBasicNavigationBarTests
-        <Theory, CombinatorialData, WorkItem(545000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>
         Public Async Function TestEventsInInterfaces(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Goo", Glyph.EventPublic, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
         Public Async Function TestEmptyStructure(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("S", Glyph.StructureInternal, bolded:=True, children:={}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
         Public Async Function TestEmptyInterface(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("I", Glyph.InterfaceInternal, bolded:=True, children:={}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(797455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
         Public Async Function TestUserDefinedOperators(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -89,7 +89,7 @@ End Class
                     Item("Operator -", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(797455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
         Public Async Function TestSingleConversion(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -110,7 +110,7 @@ End Class
                     Item("Narrowing Operator CType", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(797455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
         Public Async Function TestMultipleConversions(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -136,7 +136,7 @@ End Class
                     Item("Narrowing Operator CType(C) As String", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544993")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544993")>
         Public Async Function TestNestedClass(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -156,7 +156,7 @@ End Class
                 Item("Nested (N.C)", Glyph.ClassPublic, bolded:=True))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544997")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544997")>
         Public Async Function TestDelegate(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -170,7 +170,7 @@ End Class
                 Item("Goo", Glyph.DelegateInternal, children:={}, bolded:=True))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544995"), WorkItem(545283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545283")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544995"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545283")>
         Public Async Function TestGenericType(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -185,7 +185,7 @@ End Class
                 Item("C(Of In T)", Glyph.InterfaceInternal, bolded:=True))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545113")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545113")>
         Public Async Function TestMethodGroupWithGenericMethod(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -209,7 +209,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545113")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545113")>
         Public Async Function TestSingleGenericMethod(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -229,7 +229,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545285")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545285")>
         Public Async Function TestSingleGenericFunction(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -269,7 +269,7 @@ End Class
                      Item("S", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544994")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544994")>
         Public Async Function TestSelectedItemForNestedClass(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -287,7 +287,7 @@ End Class
                 Item("Nested (C)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(899330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899330")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899330")>
         Public Async Function TestSelectedItemForNestedClassAlphabeticallyBeforeContainingClass(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -305,7 +305,7 @@ End Class
                 Item("Nested (Z)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544990")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544990")>
         Public Async Function TestFinalizer(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -324,7 +324,7 @@ End Class
                     Item("Finalize", Glyph.MethodProtected, bolded:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(556, "https://github.com/dotnet/roslyn/issues/556")>
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/556")>
         Public Async Function TestFieldsAndConstants(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -345,7 +345,7 @@ End Class
                     Item("F", Glyph.FieldPrivate, bolded:=True)}))
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(544988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544988")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544988")>
         Public Async Function TestGenerateFinalizer(host As TestHost) As Task
             Await AssertGeneratedResultIsAsync(
                 <Workspace>
@@ -476,7 +476,7 @@ End Class
                      Item("Goo", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(544991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544991")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544991")>
         Public Async Function TestWithEventsField(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -496,7 +496,7 @@ End Class
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(1185589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589")>
         Public Async Function TestWithEventsField_EventsFromInheritedInterfaces(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -537,7 +537,7 @@ End Class
                      Item("I3Event", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(1185589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem(530506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
         Public Async Function TestDoNotIncludeShadowedEvents(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -579,7 +579,7 @@ End Class
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)})) ' Only one E for WithEvents handling
         End Function
 
-        <Theory, CombinatorialData, WorkItem(1185589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem(530506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
         Public Async Function TestEventList_EnsureInternalEventsInEventListAndInInheritedEventList(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -610,7 +610,7 @@ End Class
 
         End Function
 
-        <Theory, CombinatorialData, WorkItem(1185589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem(530506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
         Public Async Function TestEventList_EnsurePrivateEventsInEventListButNotInInheritedEventList(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -638,7 +638,7 @@ End Class
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(1185589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem(530506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185589"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530506")>
         Public Async Function TestEventList_TestAccessibilityThroughNestedAndDerivedTypes(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -727,7 +727,7 @@ End Class
                 </Result>)
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(529946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529946")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529946")>
         Public Async Function TestGenerateEventHandlerWithEscapedName(host As TestHost) As Task
             Await AssertGeneratedResultIsAsync(
                 <Workspace>
@@ -752,7 +752,7 @@ End Class
                 </Result>)
         End Function
 
-        <WorkItem(546152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546152")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546152")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGenerateEventHandlerWithRemName(host As TestHost) As Task
             Await AssertGeneratedResultIsAsync(
@@ -787,8 +787,8 @@ End Class
         End Function
 
         <ConditionalWpfTheory(GetType(IsEnglishLocal)), CombinatorialData>
-        <WorkItem(25763, "https://github.com/dotnet/roslyn/issues/25763")>
-        <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25763")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/18792")>
         Public Async Function TestGenerateEventHandlerWithDuplicate(host As TestHost) As Task
             Await AssertGeneratedResultIsAsync(
                 <Workspace>
@@ -836,7 +836,7 @@ End Class
                     bolded:=True))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(530657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530657")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530657")>
         Public Async Function TestCodeGenerationItemsShouldNotAppearWhenWorkspaceDoesNotSupportDocumentChanges(host As TestHost) As Task
             Dim workspaceSupportsChangeDocument = False
             Await AssertItemsAreAsync(
@@ -860,7 +860,7 @@ End Class
                 Item("M", Glyph.FieldPrivate, indent:=1, hasNavigationSymbolId:=False))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
         Public Async Function TestEnum(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -961,7 +961,7 @@ End Class
                 rightItemToSelectText:="TargetMethod")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(566752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566752")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566752")>
         Public Async Function TestNavigationWithMethodWithLineContinuation(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -984,7 +984,7 @@ End Class
                 rightItemToSelectText:="SomeNumbers")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(531586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531586")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531586")>
         Public Async Function TestNavigationWithMethodWithNoTerminator(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1002,7 +1002,7 @@ End Class
                 rightItemToSelectText:="S")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(531586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531586")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531586")>
         Public Async Function TestNavigationWithMethodWithDocumentationComment(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1021,7 +1021,7 @@ End Class
                 rightItemToSelectText:="S")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(567914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567914")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567914")>
         Public Async Function TestNavigationWithMethodWithMultipleLineDeclaration(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1043,7 +1043,7 @@ End Class
                 rightItemToSelectText:="S")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(605074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
         Public Async Function TestNavigationWithMethodContainingComment(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1063,7 +1063,7 @@ End Class
                 rightItemToSelectText:="S")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(605074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
         Public Async Function TestNavigationWithMethodContainingBlankLineWithSpaces(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1083,7 +1083,7 @@ End Class
                 rightItemToSelectText:="S")
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(605074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
         Public Async Function TestNavigationWithMethodContainingBlankLineWithNoSpaces(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1104,7 +1104,7 @@ End Class
                 expectedVirtualSpace:=8)
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(605074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
+        <WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605074")>
         Public Async Function TestNavigationWithMethodContainingBlankLineWithSomeSpaces(host As TestHost) As Task
             Await AssertNavigationPointAsync(
                 <Workspace>
@@ -1126,7 +1126,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
+        <WorkItem("https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
         Public Async Function DifferentMembersMetadataName(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -1153,7 +1153,7 @@ End Class
                     Item("P", Glyph.PropertyPublic, bolded:=True)}))
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(37621, "https://github.com/dotnet/roslyn/issues/37621")>
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/37621")>
         Public Async Function TestGenerateEventWithAttributedDelegateType(host As TestHost) As Task
             Await AssertGeneratedResultIsAsync(
                 <Workspace>

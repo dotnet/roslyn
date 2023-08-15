@@ -797,17 +797,7 @@ ref @scoped F4() { }";
         public void Method_12(LanguageVersion langVersion)
         {
             string source = "void F(scoped ref readonly int a) { }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,19): error CS1031: Type expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(1, 19),
-                // (1,19): error CS1001: Identifier expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(1, 19),
-                // (1,19): error CS1003: Syntax error, ',' expected
-                // void F(scoped ref readonly int a) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 19)
-                );
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.MethodDeclaration);
             {
@@ -823,15 +813,6 @@ ref @scoped F4() { }";
                     {
                         N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -11531,16 +11512,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS1514: { expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 32),
-                // (3,32): error CS1513: } expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 32),
-                // (3,33): error CS1525: Invalid expression term ')'
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 33)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -11597,24 +11569,12 @@ readonly scoped record struct C();
                 {
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParenthesizedExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

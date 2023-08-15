@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ErrorReporting
@@ -71,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' lazily populated with the bound imports
         Private _lazyBoundImports As BoundImports
+        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
@@ -349,14 +351,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsAreBound(cancellationToken As CancellationToken)
             If _lazyBoundImports Is Nothing Then
                 If Interlocked.CompareExchange(_lazyBoundImports, BindImports(cancellationToken), Nothing) Is Nothing Then
-                    ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, _lazyBoundImports.Diagnostics)
+                    EnsureImportsAreValidated()
                 End If
+            End If
+        End Sub
+
+        Private Sub EnsureImportsAreValidated()
+            If _lazyBoundImportsAdditionalDiagnostics Is Nothing Then
+                Dim diagnosticBag = BindingDiagnosticBag.GetInstance()
+                ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, diagnosticBag)
+                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
             End If
         End Sub
 
         ' Bind the project level imports.
         Private Function BindImports(cancellationToken As CancellationToken) As BoundImports
-            Dim diagBag As New BindingDiagnosticBag
+            Dim diagBag = BindingDiagnosticBag.GetInstance()
 
             Dim membersMap = New HashSet(Of NamespaceOrTypeSymbol)
             Dim aliasesMap = New Dictionary(Of String, AliasAndImportsClausePosition)(IdentifierComparison.Comparer)
@@ -396,13 +406,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     aliasesBuilder.ToImmutable(),
                     aliasesInfoBuilder.ToImmutable(),
                     If(xmlNamespaces.Count > 0, xmlNamespaces, Nothing),
-                    diagBag)
+                    diagBag.ToReadOnly())
             Finally
                 membersBuilder.Free()
                 membersInfoBuilder.Free()
                 aliasesBuilder.Free()
                 aliasesInfoBuilder.Free()
                 diagBagForThisImport.Free()
+                diagBag.Free()
             End Try
         End Function
 
@@ -640,6 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub GetAllDeclarationErrors(diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, ByRef hasExtensionMethods As Boolean)
             ' Bind project level imports
             EnsureImportsAreBound(cancellationToken)
+            EnsureImportsAreValidated()
 
             ' Force all source files to generate errors for imports and the like.
             If ContainingSourceAssembly.DeclaringCompilation.Options.ConcurrentBuild Then
@@ -700,6 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Accumulate all the errors that were generated.
             diagnostics.AddRange(Me._diagnosticBagDeclare)
             diagnostics.AddRange(Me._lazyBoundImports.Diagnostics, allowMismatchInDependencyAccumulation:=True)
+            diagnostics.AddRange(Me._lazyBoundImportsAdditionalDiagnostics.Value, allowMismatchInDependencyAccumulation:=True)
             diagnostics.AddRange(Me._lazyLinkedAssemblyDiagnostics)
 
             For Each tree In SyntaxTrees
@@ -1103,6 +1116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).HasDebuggableAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).ExperimentalAttributeData = attrData.DecodeObsoleteAttribute(ObsoleteAttributeKind.Experimental)
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
@@ -1207,5 +1222,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return Nothing
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+                If attributesBag IsNot Nothing AndAlso attributesBag.IsDecodedWellKnownAttributeDataComputed Then
+                    Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonModuleWellKnownAttributeData)?.ExperimentalAttributeData
+                End If
+
+                Dim mergedAttributes = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol).GetAttributeDeclarations()
+                If mergedAttributes.IsEmpty Then
+                    Return Nothing
+                End If
+
+                Return ObsoleteAttributeData.Uninitialized
+            End Get
+        End Property
+
     End Class
 End Namespace

@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string LinkProjectNameAttributeName = "LinkProjectName";
         private const string LinkFilePathAttributeName = "LinkFilePath";
         private const string MarkupAttributeName = "Markup";
+        private const string NormalizeAttributeName = "Normalize";
         private const string PreprocessorSymbolsAttributeName = "PreprocessorSymbols";
         private const string AnalyzerDisplayAttributeName = "Name";
         private const string AnalyzerFullPathAttributeName = "FullPath";

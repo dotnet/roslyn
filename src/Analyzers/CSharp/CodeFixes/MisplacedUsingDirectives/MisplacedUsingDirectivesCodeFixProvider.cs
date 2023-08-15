@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static async Task<SyntaxNode> ExpandUsingDirectiveAsync(Document document, UsingDirectiveSyntax usingDirective, CancellationToken cancellationToken)
         {
-            var newName = await Simplifier.ExpandAsync(usingDirective.Name, document, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return usingDirective.WithName(newName);
+            var newType = await Simplifier.ExpandAsync(usingDirective.NamespaceOrType, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return usingDirective.WithNamespaceOrType(newType);
         }
 
         private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit)
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
             // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
+            if (firstMemberTrivia is [(kind: SyntaxKind.EndOfLineTrivia), ..])
                 return node;
 
             var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));

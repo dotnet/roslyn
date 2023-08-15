@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
-                    containingDocumentName: null);
+                    containingDocumentName: null,
+                    isPrimaryConstructor: false);
             }
             catch (InvalidOperationException)
             {
@@ -540,7 +541,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 RoslynDebug.AssertNotNull(importString);
 
-                if (importString.Length > 0 && importString[0] == '*')
+                if (importString is ['*', ..])
                 {
                     string? alias = null;
                     string? target = null;

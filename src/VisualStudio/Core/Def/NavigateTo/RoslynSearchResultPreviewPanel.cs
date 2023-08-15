@@ -36,7 +36,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
                     Task.FromResult(new TextDocumentLocation(uri, projectGuid, span)),
                     provider._threadingContext.JoinableTaskFactory),
-                isEditable: false);
+                isEditable: true);
         }
     }
 }

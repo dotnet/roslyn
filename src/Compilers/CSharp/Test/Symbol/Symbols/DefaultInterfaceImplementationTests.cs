@@ -68992,5 +68992,161 @@ public struct S : MyEnumerable
 }
 """);
         }
+
+        [Fact]
+        public void InParameters_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator !(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ~(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ++(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator --(in I1 x)
+    {
+        return x;
+    }
+
+    public static bool operator true(in I1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(in I1 x)
+    {
+        return false;
+    }
+
+    public static I1 operator +(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator *(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""*"");
+        return x;
+    }
+
+    public static I1 operator /(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""/"");
+        return x;
+    }
+
+    public static I1 operator %(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""%"");
+        return x;
+    }
+
+    public static I1 operator &(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""&"");
+        return x;
+    }
+
+    public static I1 operator |(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""|"");
+        return x;
+    }
+
+    public static I1 operator ^(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""^"");
+        return x;
+    }
+
+    public static I1 operator <<(in I1 x, in int y)
+    {
+        System.Console.WriteLine(""<<"");
+        return x;
+    }
+
+    public static I1 operator >>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>"");
+        return x;
+    }
+
+    public static I1 operator >(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">"");
+        return x;
+    }
+
+    public static I1 operator <(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<"");
+        return x;
+    }
+
+    public static I1 operator >=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">="");
+        return x;
+    }
+
+    public static I1 operator <=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<="");
+        return x;
+    }
+
+    public static I1 operator >>>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    foreach (var p in m01.Parameters)
+                    {
+                        Assert.Equal(RefKind.In, p.RefKind);
+                        Assert.Empty(p.RefCustomModifiers);
+                    }
+                }
+            }
+        }
     }
 }

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -88,9 +87,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
                 var newLine = Options.FormattingOptions.NewLine;
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
-                newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+                var newSourceText = OriginalSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End, OriginalSourceText.Length), newLine));
 
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                         // Make our code action low priority.  This option will be offered *a lot*, and 
                         // much of  the time will not be something the user particularly wants to do.  
                         // It should be offered after all other normal refactorings.
-                        result.Add(CodeActionWithNestedActions.Create(
+                        result.Add(CodeAction.Create(
                             wrappingActions[0].ParentTitle, sorted,
                             group.IsInlinable, CodeActionPriority.Low));
                     }

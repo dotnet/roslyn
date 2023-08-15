@@ -5,36 +5,31 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.CodeGeneration;
 #endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
     internal record class SimplifierOptions
     {
-        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2<bool>.Default;
-        public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = new(value: true, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2.FalseWithSilentEnforcement;
 
         /// <summary>
         /// Language agnostic defaults.
         /// </summary>
         internal static readonly SimplifierOptions CommonDefaults = new();
 
-        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = DefaultPreferPredefinedTypeKeyword;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
+        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
 
         private protected SimplifierOptions()
         {
@@ -80,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Simplification
     internal static partial class SimplifierOptionsProviders
     {
 #if !CODE_STYLE
-        public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, SimplifierOptions? fallbackOptions, LanguageServices languageServices)
+        public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices, SimplifierOptions? fallbackOptions)
             => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options, fallbackOptions);
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return configOptions.GetSimplifierOptions(fallbackOptions, document.Project.Services);
+            return configOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions);
         }
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

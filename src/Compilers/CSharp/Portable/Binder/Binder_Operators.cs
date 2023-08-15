@@ -2407,7 +2407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
@@ -2502,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
-            diagnostics.Add(node.Location, useSiteInfo);
+            diagnostics.Add(node, useSiteInfo);
 
             if (!hasErrors)
             {
@@ -2528,7 +2528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// variables have underlying memory which may be moved by the runtime. The spec defines anything
         /// not fixed as moveable and specifies the expressions which are fixed.
         /// </summary>
-
         internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
@@ -2585,6 +2584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expr = receiver;
                             continue;
                         }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expr;
+
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expr = elementAccess.Expression;
+                                continue;
+                            }
+
+                            goto default;
+                        }
                     case BoundKind.RangeVariable:
                         {
                             // NOTE: there are cases where you can take the address of a range variable.
@@ -2598,7 +2609,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundParameter parameterAccess = (BoundParameter)expr;
                             ParameterSymbol parameterSymbol = parameterAccess.ParameterSymbol;
                             accessedLocalOrParameterOpt = parameterSymbol;
-                            return parameterSymbol.RefKind != RefKind.None;
+
+                            if (parameterSymbol.RefKind != RefKind.None)
+                            {
+                                return true;
+                            }
+
+                            if (parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameterSymbol))
+                            {
+                                // See 'case BoundKind.FieldAccess' above. Receiver in our case is 'this' parameter.
+                                // If we are in a class, its type is reference type.
+                                // If we are in a struct, 'this' RefKind is not None.
+                                // Therefore, movable in either case. 
+                                return true;
+                            }
+
+                            return false;
                         }
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
@@ -4074,7 +4101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);

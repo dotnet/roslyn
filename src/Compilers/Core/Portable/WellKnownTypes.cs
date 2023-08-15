@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple,
         System_ValueTuple_T1,
         System_ValueTuple_T2,
-        System_ValueTuple_T3,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T3,
         System_ValueTuple_T4,
         System_ValueTuple_T5,
         System_ValueTuple_T6,
@@ -265,12 +265,14 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker,
         System_Runtime_CompilerServices_NullableAttribute,
         System_Runtime_CompilerServices_NullableContextAttribute,
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
+        System_Runtime_CompilerServices_RequiresLocationAttribute,
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
         System_Runtime_InteropServices_InAttribute,
         System_ObsoleteAttribute,
@@ -310,6 +312,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
+        System_Runtime_InteropServices_MemoryMarshal,
 
         System_Text_StringBuilder,
 
@@ -328,6 +331,7 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+        System_Runtime_CompilerServices_Unsafe,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -574,10 +578,10 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple",
             "System.ValueTuple`1",
             "System.ValueTuple`2",
-            "System.ValueTuple`3",
 
             "", // extension marker
 
+            "System.ValueTuple`3",
             "System.ValueTuple`4",
             "System.ValueTuple`5",
             "System.ValueTuple`6",
@@ -587,6 +591,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.TupleElementNamesAttribute",
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
+            "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker",
 
             "System.Runtime.CompilerServices.NullableAttribute",
             "System.Runtime.CompilerServices.NullableContextAttribute",
@@ -594,6 +599,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.RequiresLocationAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
             "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
@@ -633,6 +639,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NativeIntegerAttribute",
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
+            "System.Runtime.InteropServices.MemoryMarshal",
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
@@ -647,6 +654,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.Unsafe",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
 
-            var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment);
+            var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
             if (useInlineAdornment)
             {
                 if (!_textView.HasAggregateFocus)

@@ -239,7 +239,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60340")]
         public async Task TestNotIfAlreadyAsyncBeforeOtherMember()
         {
             await VerifyAbsenceAsync(@"
@@ -251,7 +251,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60340")]
         public async Task TestNotIfAlreadyAsyncAsLastMember()
         {
             await VerifyAbsenceAsync(@"
@@ -261,7 +261,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(578061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578061")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578061")]
         public async Task TestNotInNamespace()
         {
             await VerifyAbsenceAsync(@"
@@ -271,7 +271,7 @@ namespace Goo
 }");
         }
 
-        [Fact, WorkItem(578069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578069")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578069")]
         public async Task TestNotAfterPartialInNamespace()
         {
             await VerifyAbsenceAsync(@"
@@ -281,7 +281,7 @@ namespace Goo
 }");
         }
 
-        [Fact, WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
         public async Task TestNotAfterPartialInClass()
         {
             await VerifyAbsenceAsync(@"
@@ -291,7 +291,7 @@ class Goo
 }");
         }
 
-        [Fact, WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
         public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(@"
@@ -303,7 +303,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction(bool topLevelStatement)
         {
@@ -313,7 +313,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction2(bool topLevelStatement)
         {
@@ -323,7 +323,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction3(bool topLevelStatement)
         {
@@ -333,7 +333,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction4(bool topLevelStatement)
         {
@@ -341,7 +341,7 @@ class Goo
 @"$$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction5()
         {
@@ -360,7 +360,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction6(bool topLevelStatement)
         {
@@ -370,7 +370,7 @@ class Goo
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction7(bool topLevelStatement)
         {

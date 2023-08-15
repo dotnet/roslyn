@@ -17,18 +17,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
-        private sealed class FailureInlineRenameInfo : IInlineRenameInfo
+        private sealed class FailureInlineRenameInfo(string localizedErrorMessage) : IInlineRenameInfo
         {
-            public FailureInlineRenameInfo(string localizedErrorMessage)
-                => this.LocalizedErrorMessage = localizedErrorMessage;
-
             public bool CanRename => false;
 
             public bool HasOverloads => false;
 
             public bool MustRenameOverloads => false;
 
-            public string LocalizedErrorMessage { get; }
+            public string LocalizedErrorMessage { get; } = localizedErrorMessage;
 
             public TextSpan TriggerSpan => default;
 

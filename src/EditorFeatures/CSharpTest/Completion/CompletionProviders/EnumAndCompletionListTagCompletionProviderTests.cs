@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -52,7 +50,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
             var markup = @"
@@ -80,7 +78,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberNever()
         {
             var markup = @"
@@ -108,7 +106,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
             var markup = @"
@@ -149,7 +147,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
         public async Task NotInComment()
         {
             var markup = @"class Program
@@ -180,7 +178,7 @@ readonly struct Colors
             await VerifyNoItemsExistAsync(markup + colorsLike);
         }
 
-        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInMethod(string typeName)
@@ -203,7 +201,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInLocalFunction(string typeName)
@@ -229,7 +227,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InAsyncMethodReturnStatement(string typeName)
@@ -637,7 +635,7 @@ class Program
             await VerifyItemExistsAsync(markup, "TypeContainer.Foo2");
         }
 
-        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias(string fullTypeName)
@@ -658,7 +656,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias2(string fullTypeName)
@@ -684,7 +682,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias3(string fullTypeName)
@@ -714,7 +712,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [Fact, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         public async Task NotInParameterNameContext()
         {
             var enumE = @"
@@ -744,7 +742,7 @@ class C
             await VerifyItemIsAbsentAsync(enumLikeE + markup, "E");
         }
 
-        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedProperty()
         {
             var markup =
@@ -774,7 +772,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedMethod()
         {
             var markup =
@@ -804,7 +802,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task NotAfterAsync1()
         {
             var markup = @"
@@ -816,7 +814,7 @@ class Test
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task NotAfterAsync2()
         {
             var markup = @"
@@ -865,7 +863,7 @@ readonly struct E
             await VerifyNoItemsExistAsync(markup + enumLikeE);
         }
 
-        [Fact, WorkItem(18359, "https://github.com/dotnet/roslyn/issues/18359")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18359")]
         public async Task NotAfterDotWithTextTyped()
         {
             var markup =
@@ -901,7 +899,7 @@ readonly struct E
             await VerifyNoItemsExistAsync(markup + enumLikeE);
         }
 
-        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer1()
         {
             var markup =
@@ -920,7 +918,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer2()
         {
             var markup =
@@ -939,7 +937,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer3()
         {
             var markup =
@@ -958,7 +956,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer4()
         {
             var markup =
@@ -977,7 +975,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer5()
         {
             var markup =
@@ -1011,6 +1009,145 @@ class C
     }
 }";
             await VerifyItemExistsAsync(markup, "FileAttributes");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression1()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression2()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { $$
+                    }
+                }
+                """;
+            await VerifyItemExistsAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression3()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression4()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression5()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0 $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression6()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0, $$
+                    }
+                }
+                """;
+            await VerifyItemExistsAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
+        public async Task TestInSwitchExpression7()
+        {
+            var markup = """
+                using System;
+
+                class C
+                {
+                    void M(ConsoleColor color)
+                    {
+                        var number = color switch { ConsoleColor.Black => 0 } $$
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68240")]
+        public async Task TestNotCompilerGeneratedField()
+        {
+            var markup = """
+                class Sample
+                {
+                    public static Sample Instance { get; } = new Sample();
+
+                    private sealed class Nested
+                    {
+                        Sample A()
+                        {
+                            return $$
+                        }
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "Sample.<Instance>k__BackingField");
         }
 
         #region enum members

@@ -10,13 +10,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -35,9 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal sealed class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal sealed class HighlighterViewTaggerProvider(
+        IThreadingContext threadingContext,
+        IHighlightingService highlightingService,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<KeywordHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
     {
-        private readonly IHighlightingService _highlightingService;
+        private readonly IHighlightingService _highlightingService = highlightingService;
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => new List<TextSpan>());
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
@@ -45,20 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(FeatureOnOffOptions.KeywordHighlighting);
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public HighlighterViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IHighlightingService highlightingService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
-        {
-            _highlightingService = highlightingService;
-        }
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
@@ -86,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
+            if (!GlobalOptions.GetOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

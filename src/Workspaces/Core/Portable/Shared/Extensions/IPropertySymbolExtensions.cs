@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class IPropertySymbolExtensions
+    internal static partial class IPropertySymbolExtensions
     {
         public static IPropertySymbol RenameParameters(this IPropertySymbol property, ImmutableArray<string> parameterNames)
         {
@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)
             => property.SetMethod != null || ContainsBackingField(property);
-
-        public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
-            => property.ContainingType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));
 
         private static bool ContainsBackingField(IPropertySymbol property)
             => property.GetBackingFieldIfAny() != null;

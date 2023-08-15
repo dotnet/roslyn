@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
+                context.IsUsingAliasTypeContext ||
                 ValidTypeContext(context) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken);
 
-            static bool ValidTypeContext(CSharpSyntaxContext context)
+            bool ValidTypeContext(CSharpSyntaxContext context)
                 => (context.IsNonAttributeExpressionContext || context.IsTypeContext)
                    && !context.IsConstantExpressionContext
-                   && !context.LeftToken.IsTopLevelOfUsingAliasDirective();
+                   && !context.SyntaxTree.IsUsingStaticContext(position, cancellationToken);
         }
 
         private static bool IsAfterAsyncKeywordInExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     context.TargetToken,
                     attributes: false,
                     cancellationToken: cancellationToken,
-                    semanticModelOpt: context.SemanticModel);
+                    semanticModel: context.SemanticModel);
         }
     }
 }

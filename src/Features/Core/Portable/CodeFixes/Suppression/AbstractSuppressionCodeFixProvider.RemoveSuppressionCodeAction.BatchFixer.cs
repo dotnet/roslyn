@@ -26,12 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                    => _suppressionFixProvider = suppressionFixProvider;
+                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,

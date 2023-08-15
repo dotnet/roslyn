@@ -61,11 +61,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 while (true)
                 {
                     var members = innermostNamespace.GetMembers().ToList();
-                    if (members.Count == 1 &&
-                        members[0] is INamespaceSymbol &&
+                    if (members is [INamespaceSymbol childNamespace] &&
                         CodeGenerationNamespaceInfo.GetImports(innermostNamespace).Count == 0)
                     {
-                        var childNamespace = (INamespaceSymbol)members[0];
                         names.Add(childNamespace.Name);
                         innermostNamespace = childNamespace;
                         continue;

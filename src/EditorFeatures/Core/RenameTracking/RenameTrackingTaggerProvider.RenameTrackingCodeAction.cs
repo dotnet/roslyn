@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -45,10 +44,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _globalOptions = globalOptions;
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
             }
 
             public override string Title => _title;
-            internal override CodeActionPriority Priority => CodeActionPriority.High;
+
+            protected sealed override CodeActionPriority ComputePriority()
+                => CodeActionPriority.High;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                if (!_globalOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview, _document.Project.Language) ||
+                if (!_globalOptions.GetOption(RenameTrackingOptionsStorage.RenameTrackingPreview, _document.Project.Language) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
@@ -107,16 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return false;
             }
 
-            private sealed class RenameTrackingCommitterOperation : CodeActionOperation
+            private sealed class RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext) : CodeActionOperation
             {
-                private readonly RenameTrackingCommitter _committer;
-                private readonly IThreadingContext _threadingContext;
-
-                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext)
-                {
-                    _committer = committer;
-                    _threadingContext = threadingContext;
-                }
+                private readonly RenameTrackingCommitter _committer = committer;
+                private readonly IThreadingContext _threadingContext = threadingContext;
 
                 internal override async Task<bool> TryApplyAsync(
                     Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)

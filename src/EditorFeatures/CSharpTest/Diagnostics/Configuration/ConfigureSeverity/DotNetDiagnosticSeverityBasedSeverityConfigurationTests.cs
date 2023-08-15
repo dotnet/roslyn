@@ -203,7 +203,7 @@ dotnet_diagnostic.XYZ0001.severity = none
             }
 
             [ConditionalFact(typeof(IsEnglishLocal))]
-            [WorkItem(45446, "https://github.com/dotnet/roslyn/issues/45446")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/45446")]
             public async Task ConfigureEditorconfig_MissingRule_None()
             {
                 var input = @"
