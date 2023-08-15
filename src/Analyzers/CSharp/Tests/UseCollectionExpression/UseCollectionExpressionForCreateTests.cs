@@ -822,17 +822,17 @@ public class UseCollectionExpressionForCreateTests
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableArray<int> v = ImmutableArray.Create(1, 2, 3);
+                    void M()
+                    {
+                        ImmutableArray<int> v = ImmutableArray.Create(1, 2, 3);
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
@@ -844,51 +844,51 @@ public class UseCollectionExpressionForCreateTests
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableArray<int> v = [|ImmutableArray.[|Create|](|]1, 2, 3);
+                    void M()
+                    {
+                        ImmutableArray<int> v = [|ImmutableArray.[|Create|](|]1, 2, 3);
+                    }
                 }
-            }
-            """,
+                """,
             FixedCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableArray<int> v = [1, 2, 3];
+                    void M()
+                    {
+                        ImmutableArray<int> v = [1, 2, 3];
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507"), WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
     public async Task NotForImmutableListNet70()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = ImmutableList.Create(1, 2, 3);
+                    void M()
+                    {
+                        ImmutableList<int> v = ImmutableList.Create(1, 2, 3);
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
@@ -900,29 +900,29 @@ public class UseCollectionExpressionForCreateTests
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = [|ImmutableList.[|Create|](|]1, 2, 3);
+                    void M()
+                    {
+                        ImmutableList<int> v = [|ImmutableList.[|Create|](|]1, 2, 3);
+                    }
                 }
-            }
-            """,
+                """,
             FixedCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = [1, 2, 3];
+                    void M()
+                    {
+                        ImmutableList<int> v = [1, 2, 3];
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();

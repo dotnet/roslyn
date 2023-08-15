@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -658,20 +659,33 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task NotForImmutableListNet70()
     {
+        // This should fail once https://github.com/dotnet/roslyn/issues/69521 is fixed
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = ImmutableList<int>.Empty;
+                    void M()
+                    {
+                        ImmutableList<int> v = ImmutableList<int>.[|Empty|];
+                    }
                 }
-            }
-            """,
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableList<int> v = {|CS1729:[]|};
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
@@ -683,29 +697,29 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = ImmutableList<int>.[|Empty|];
+                    void M()
+                    {
+                        ImmutableList<int> v = ImmutableList<int>.[|Empty|];
+                    }
                 }
-            }
-            """,
+                """,
             FixedCode = """
-            using System;
-            using System.Collections.Immutable;
+                using System;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    ImmutableList<int> v = [];
+                    void M()
+                    {
+                        ImmutableList<int> v = [];
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
