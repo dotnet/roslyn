@@ -120,7 +120,12 @@ internal static class UseCollectionExpressionHelpers
                     return true;
 
                 // At this point, all that is left are collection-initializer types.  These need to derive from
-                // System.Collections.IEnumerable, and have an accessible no-arg constructor.
+                // System.Collections.IEnumerable, and have an invokable no-arg constructor.
+
+                // Abstract type don't have invokable constructors at all.
+                if (namedType.IsAbstract)
+                    return false;
+
                 if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
                 {
                     // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
