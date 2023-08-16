@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly int _topLevelMethodOrdinal;
         private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
+
+        /// <summary>
+        /// Additional locals that will be added to the containing block.
+        /// This is used for inline array temporaries where the scope of the
+        /// temporary must match the scope of references to that temporary.
+        /// </summary>
         private ArrayBuilder<LocalSymbol>? _additionalLocals;
 
         /// <summary>
