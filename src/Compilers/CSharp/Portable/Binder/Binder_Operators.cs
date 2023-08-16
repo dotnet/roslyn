@@ -109,6 +109,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
             }
 
+            if (left.Kind == BoundKind.UnconvertedSwitchExpression)
+            {
+                var switchExpression = (BoundUnconvertedSwitchExpression)left;
+                var switchExpressionDiagnostics = diagnostics;
+                if (!switchExpression.IsRef)
+                {
+                    Error(diagnostics, ErrorCode.ERR_RequiresRefReturningSwitchExpression, node.OperatorToken);
+                    // Ignore further binding errors, potentially including unavailable conversions
+                    switchExpressionDiagnostics = BindingDiagnosticBag.Discarded;
+                }
+
+                left = this.ConvertSwitchExpression(switchExpression, destination: left.Type, null, switchExpressionDiagnostics);
+            }
+
             // A compound operator, say, x |= y, is bound as x = (X)( ((T)x) | ((T)y) ). We must determine
             // the binary operator kind, the type conversions from each side to the types expected by
             // the operator, and the type conversion from the return type of the operand to the left hand side.

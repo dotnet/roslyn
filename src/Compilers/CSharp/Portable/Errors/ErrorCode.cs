@@ -2275,6 +2275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_MismatchedRefEscapeInSwitchExpression = 9300,
         WRN_MismatchedRefEscapeInSwitchExpression = 9301,
+        ERR_RequiresRefReturningSwitchExpression = 9302,
 
         #endregion
 

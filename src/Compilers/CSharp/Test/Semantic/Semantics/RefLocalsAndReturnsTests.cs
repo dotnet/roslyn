@@ -5351,41 +5351,52 @@ void M(out int x) => throw null;
             const string expressionIL =
                 """
                 {
-                  // Code size       64 (0x40)
-                  .maxstack  1
-                  .locals init (int& V_0)
-                  // sequence point: direction sw ...     }
-                  IL_0000:  ldarg.1
-                  IL_0001:  switch    (
-                        IL_0018,
-                        IL_0021,
-                        IL_002a,
-                        IL_0033)
-                  IL_0016:  br.s       IL_003c
-                  IL_0018:  ldarg.0
-                  IL_0019:  ldflda     "int C.northField"
-                  IL_001e:  stloc.0
-                  IL_001f:  br.s       IL_003e
-                  IL_0021:  ldarg.0
-                  IL_0022:  ldflda     "int C.southField"
-                  IL_0027:  stloc.0
-                  IL_0028:  br.s       IL_003e
-                  IL_002a:  ldarg.0
-                  IL_002b:  ldflda     "int C.eastField"
-                  IL_0030:  stloc.0
-                  IL_0031:  br.s       IL_003e
-                  IL_0033:  ldarg.0
-                  IL_0034:  ldflda     "int C.westField"
-                  IL_0039:  stloc.0
-                  IL_003a:  br.s       IL_003e
-                  IL_003c:  ldnull
-                  IL_003d:  throw
-                  IL_003e:  ldloc.0
-                  IL_003f:  ret
+                  // Code size       72 (0x48)
+                  .maxstack  3
+                  .locals init (int& V_0,
+                                int& V_1)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: direction sw ...   } += value
+                  IL_0001:  ldarg.1
+                  IL_0002:  switch    (
+                        IL_0019,
+                        IL_0022,
+                        IL_002b,
+                        IL_0034)
+                  IL_0017:  br.s       IL_003d
+                  IL_0019:  ldarg.0
+                  IL_001a:  ldflda     "int C.NorthField"
+                  IL_001f:  stloc.0
+                  IL_0020:  br.s       IL_003f
+                  IL_0022:  ldarg.0
+                  IL_0023:  ldflda     "int C.SouthField"
+                  IL_0028:  stloc.0
+                  IL_0029:  br.s       IL_003f
+                  IL_002b:  ldarg.0
+                  IL_002c:  ldflda     "int C.EastField"
+                  IL_0031:  stloc.0
+                  IL_0032:  br.s       IL_003f
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldflda     "int C.WestField"
+                  IL_003a:  stloc.0
+                  IL_003b:  br.s       IL_003f
+                  IL_003d:  ldnull
+                  IL_003e:  throw
+                  IL_003f:  ldloc.0
+                  IL_0040:  stloc.1
+                  IL_0041:  ldloc.1
+                  IL_0042:  ldloc.1
+                  IL_0043:  ldind.i4
+                  IL_0044:  ldarg.2
+                  IL_0045:  add
+                  IL_0046:  stind.i4
+                  // sequence point: }
+                  IL_0047:  ret
                 }
                 """;
 
-            verifier.VerifyMethodBody("C.GetDirectionField", expressionIL);
+            verifier.VerifyMethodBody("C.IncrementDirectionField", expressionIL);
         }
 
         #endregion

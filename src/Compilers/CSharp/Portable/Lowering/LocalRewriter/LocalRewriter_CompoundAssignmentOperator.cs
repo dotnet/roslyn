@@ -699,6 +699,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((BoundConditionalOperator)originalLHS).IsRef);
                     break;
 
+                case BoundKind.ConvertedSwitchExpression:
+                    Debug.Assert(((BoundSwitchExpression)originalLHS).IsRef);
+                    break;
+
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)originalLHS).IsRef);
                     break;

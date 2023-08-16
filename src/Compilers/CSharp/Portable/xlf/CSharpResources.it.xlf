@@ -1722,6 +1722,11 @@
         <target state="translated">I tipi e gli alias non possono essere denominati 'obbligatori'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': il runtime di destinazione non supporta tipi covarianti negli override. Il tipo deve essere '{2}' in modo da corrispondere al membro '{1}' di cui è stato eseguito l'override</target>

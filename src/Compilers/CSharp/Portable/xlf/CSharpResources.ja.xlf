@@ -1722,6 +1722,11 @@
         <target state="translated">型とエイリアスに 'required' という名前を付けることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': ターゲットのランタイムはオーバーライドで covariant 型をサポートしていません。型は、オーバーライドされるメンバー '{1}' と一致する '{2}' にする必要があります</target>

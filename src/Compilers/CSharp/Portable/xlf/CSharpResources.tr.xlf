@@ -1722,6 +1722,11 @@
         <target state="translated">Türler ve diğer adlar 'gerekli' olarak adlandırılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': Hedef çalışma zamanı, geçersiz kılmalarda birlikte değişken türleri desteklemiyor. Tür, geçersiz kılınan '{1}' üyesiyle eşleşmek için '{2}' olmalıdır</target>

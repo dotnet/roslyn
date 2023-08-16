@@ -1722,6 +1722,11 @@
         <target state="translated">类型和别名不能命名为 “required”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">“{0}”: 目标运行时不支持替代中的协变类型。类型必须为“{2}”才能匹配替代成员“{1}”</target>

@@ -1722,6 +1722,11 @@
         <target state="translated">유형 및 별칭은 '필수'로 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': 대상 런타임이 재정의에서 공변(covariant) 형식을 지원하지 않습니다. 재정의된 멤버 '{1}'과(와) 일치하려면 '{2}' 형식이어야 합니다.</target>

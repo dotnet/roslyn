@@ -495,8 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.Kind == BoundKind.UnconvertedSwitchExpression && valueKind is BindValueKind.RValue or BindValueKind.Assignable)
             {
-                var converted = this.ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
-                return converted;
+                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr.Syntax, expr, valueKind, checkingReceiver: false, diagnostics: diagnostics) ||
@@ -556,6 +555,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
+
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
+                    return CheckSwitchExpressionValueKind((BoundSwitchExpression)expr, valueKind, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -1404,8 +1407,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = arm.Value;
 
-                if (expression is BoundThrowExpression)
+                if (expression is BoundConversion conversion)
+                {
+                    Debug.Assert(conversion is { Operand: BoundThrowExpression });
                     continue;
+                }
 
                 uint expressionEscape = GetValEscape(expression, currentScope);
                 if (expressionEscapes.Count > 0)
@@ -1580,6 +1586,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
 
+        }
+
+        private bool CheckSwitchExpressionValueKind(BoundSwitchExpression expression, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(expression is not null);
+
+            switch (valueKind)
+            {
+                case BindValueKind.CompoundAssignment:
+                    if (!expression.IsRef)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RequiresRefReturningSwitchExpression, expression.Syntax);
+                        return false;
+                    }
+                    return true;
+            }
+
+            return true;
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
