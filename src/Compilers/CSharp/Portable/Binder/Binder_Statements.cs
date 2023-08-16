@@ -1971,7 +1971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.UnconvertedSwitchExpression:
                     var switchExpression = (BoundUnconvertedSwitchExpression)expression;
-                    //var conversion = this.Conversions.ClassifyConversionFromExpression(expression, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                     return ConvertSwitchExpression(switchExpression, destination, null, diagnostics);
 
                 default:

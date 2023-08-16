@@ -493,6 +493,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (expr.Kind == BoundKind.UnconvertedSwitchExpression && valueKind is BindValueKind.RValue or BindValueKind.Assignable)
+            {
+                var converted = this.ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
+                return converted;
+            }
+
             if (!hasResolutionErrors && CheckValueKind(expr.Syntax, expr, valueKind, checkingReceiver: false, diagnostics: diagnostics) ||
                 expr.HasAnyErrors && valueKind == BindValueKind.RValueOrMethodGroup)
             {
@@ -802,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var arm in switchExpression.SwitchArms)
                         {
                             // Specially handle throw expressions in arms because they are not treated the same elsewhere
-                            if (arm.Value is BoundThrowExpression)
+                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
                                 continue;
 
                             check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
@@ -3118,9 +3124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // otherwise it is an RValue
                     break;
 
-                case BoundKind.ConvertedSwitchExpression:
                 case BoundKind.UnconvertedSwitchExpression:
-                    var switchExpression = (BoundSwitchExpression)expr;
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+
+                case BoundKind.ConvertedSwitchExpression:
+                    var switchExpression = (BoundConvertedSwitchExpression)expr;
 
                     if (switchExpression.IsRef)
                     {
@@ -3128,8 +3136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         uint maxScope = uint.MinValue;
                         foreach (var arm in switchExpression.SwitchArms)
                         {
-                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
+                            if (arm.Value is BoundConversion boundConversion)
+                            {
+                                Debug.Assert(boundConversion is { Operand: BoundThrowExpression });
                                 continue;
+                            }
 
                             maxScope = Math.Max(GetRefEscape(arm.Value, scopeOfTheContainingExpression), maxScope);
                         }
