@@ -3261,7 +3261,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
@@ -3285,7 +3285,7 @@ class C
             CreateCompilation(source).GetDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
