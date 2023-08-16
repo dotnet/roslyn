@@ -659,7 +659,6 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task NotForImmutableListNet70()
     {
-        // This should fail once https://github.com/dotnet/roslyn/issues/69521 is fixed
         await new VerifyCS.Test
         {
             TestCode = """
@@ -670,19 +669,7 @@ public class UseCollectionExpressionForEmptyTests
                 {
                     void M()
                     {
-                        ImmutableList<int> v = ImmutableList<int>.[|Empty|];
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                using System.Collections.Immutable;
-
-                class C
-                {
-                    void M()
-                    {
-                        ImmutableList<int> v = {|CS1729:[]|};
+                        ImmutableList<int> v = ImmutableList<int>.Empty;
                     }
                 }
                 """,
@@ -788,6 +775,57 @@ public class UseCollectionExpressionForEmptyTests
                     public void Add(T x) { }
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithCapacityConstructor()
+    {
+        var collectionType = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(int capacity) { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionType,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionType,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
