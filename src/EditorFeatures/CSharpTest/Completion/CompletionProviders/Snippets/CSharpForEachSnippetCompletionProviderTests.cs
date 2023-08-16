@@ -372,29 +372,36 @@ static void Main(string[] args)
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact]
-        public async Task InsertInlineForEachSnippetForCorrectTypeTest()
+        [WpfTheory]
+        [InlineData("List<int>")]
+        [InlineData("int[]")]
+        [InlineData("IEnumerable<int>")]
+        [InlineData("ArrayList")]
+        [InlineData("IEnumerable")]
+        public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
         {
-            var markupBeforeCommit = """
+            var markupBeforeCommit = $$"""
                 using System.Collections.Generic;
+                using System.Collections;
 
                 class C
                 {
-                    void M(List<int> list)
+                    void M({{collectionType}} enumerable)
                     {
-                        list.$$
+                        enumerable.$$
                     }
                 }
                 """;
 
-            var expectedCodeAfterCommit = """
+            var expectedCodeAfterCommit = $$"""
                 using System.Collections.Generic;
+                using System.Collections;
                 
                 class C
                 {
-                    void M(List<int> list)
+                    void M({{collectionType}} enumerable)
                     {
-                        foreach (var item in list)
+                        foreach (var item in enumerable)
                         {
                             $$
                         }

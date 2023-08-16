@@ -234,7 +234,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool CanBeEnumerated(this ITypeSymbol type)
-            => type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+        {
+            // Type itself is IEnumerable/IEnumerable<SomeType>
+            if (type.OriginalDefinition is { SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable })
+            {
+                return true;
+            }
+
+            return type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+        }
 
         public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, Compilation compilation)
         {
