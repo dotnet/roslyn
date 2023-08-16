@@ -51,11 +51,8 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (originalTypeInfo.ConvertedType.OriginalDefinition is INamedTypeSymbol { IsValueType: true } structType &&
-            !IsValidStructType(compilation, structType))
-        {
+        if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
-        }
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
         // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
@@ -104,30 +101,58 @@ internal static class UseCollectionExpressionHelpers
 
         return true;
 
-        // Special case.  Block value types without an explicit no-arg constructor, which also do not have the
-        // collection-builder-attribute on them.  This prevents us from offering to convert value-type-collections who
-        // are invalid in their `default` state (like ImmutableArray<T>).  The presumption is that if the
-        // collection-initializer pattern is valid for these value types that they will supply an explicit constructor
-        // to initialize themselves.
-        static bool IsValidStructType(Compilation compilation, INamedTypeSymbol structType)
+        bool IsConstructibleCollectionType(ITypeSymbol type)
         {
-            // Span<> and ReadOnlySpan<> are always valid targets.
-            if (structType.Equals(compilation.SpanOfTType()) || structType.Equals(compilation.ReadOnlySpanOfTType()))
+            // Arrays are always a valid collection expression type.
+            if (type is IArrayTypeSymbol)
                 return true;
 
-            // If we have a real no-arg constructor, then presume the type is intended to be new-ed up and used as a
-            // collection initializer.
-            var noArgConstructor = structType.Constructors.FirstOrDefault(c => !c.IsStatic && c.Parameters.Length == 0);
-            if (noArgConstructor is { IsImplicitlyDeclared: false })
-                return true;
+            // Has to be a real named type at this point.
+            if (type is INamedTypeSymbol namedType)
+            {
+                // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
+                if (namedType.Equals(compilation.SpanOfTType()) || namedType.Equals(compilation.ReadOnlySpanOfTType()))
+                    return true;
 
-            // If it has a [CollectionBuilder] attribute on it, it can definitely be used for a collection expression.
-            var collectionBuilderType = compilation.CollectionBuilderAttribute();
-            if (structType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
-                return true;
+                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+                var collectionBuilderType = compilation.CollectionBuilderAttribute();
+                if (namedType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+                    return true;
 
-            // Otherwise, presume this is unsafe to use with collection expressions.
+                // At this point, all that is left are collection-initializer types.  These need to derive from
+                // System.Collections.IEnumerable, and have an accessible no-arg constructor.
+                if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
+                {
+                    // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
+                    var constructors = namedType.Constructors;
+                    var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                    if (capacityConstructor != null)
+                        return true;
+
+                    var noArgConstructor =
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                    if (noArgConstructor != null)
+                    {
+                        // If we have a struct, and the constructor we find is implicitly declared, don't consider this
+                        // a constructible type.  It's likely the user would just get the `default` instance of the
+                        // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
+                        // does have an explicit constructor though, that's a good sign it can actually be constructed
+                        // safely with the no-arg `new S()` call.
+                        if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
+                            return true;
+                    }
+                }
+            }
+
+            // Anything else is not constructible.
             return false;
+        }
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
     }
 

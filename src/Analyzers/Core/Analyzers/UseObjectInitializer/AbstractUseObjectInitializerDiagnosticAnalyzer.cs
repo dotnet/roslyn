@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetAnalyzerOptions().PreferObjectInitializer;
@@ -95,8 +96,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
+            using var analyzer = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
             if (matches.IsDefaultOrEmpty)
                 return;
