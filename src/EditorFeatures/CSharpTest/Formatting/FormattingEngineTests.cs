@@ -201,8 +201,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
         public void DoNotFormatRangeOrFormatTokenOnOpenBraceOnSameLine()
         {
             var code = @"class C
@@ -222,8 +221,7 @@ int y;
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/pull/14491")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/14491")]
         public void DoNotFormatRangeButFormatTokenOnOpenBraceOnNextLine()
         {
             var code = @"class C
@@ -245,8 +243,7 @@ int y;
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
         public void FormatPragmaWarningInbetweenDelegateDeclarationStatement()
         {
             var code = @"using System;
@@ -278,8 +275,7 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
         public void FormatHashRegion()
         {
             var code = @"using System;
@@ -303,8 +299,7 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
         public void FormatHashEndRegion()
         {
             var code = @"using System;
@@ -330,8 +325,7 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
         public async Task FormatSpansIndividuallyWithoutCollapsing()
         {
             var code = @"class C
@@ -423,8 +417,7 @@ class Program
             Assert.Equal(expected, node.ToFullString());
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
         public void SemicolonInCommentOnLastLineDoesNotFormat()
         {
             var code = @"using System;
@@ -449,9 +442,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideSingleLineRegularComment_1()
         {
             var code = @"class Program
@@ -474,9 +467,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideSingleLineRegularComment_2()
         {
             var code = @"class Program
@@ -499,9 +492,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineRegularComment_1()
         {
             var code = @"class Program
@@ -522,9 +515,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineRegularComment_2()
         {
             var code = @"class Program
@@ -547,9 +540,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineRegularComment_3()
         {
             var code = @"class Program
@@ -572,9 +565,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideSingleLineDocComment_1()
         {
             var code = @"class Program
@@ -597,9 +590,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideSingleLineDocComment_2()
         {
             var code = @"class Program
@@ -622,9 +615,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineDocComment_1()
         {
             var code = @"class Program
@@ -647,9 +640,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineDocComment_2()
         {
             var code = @"class Program
@@ -674,9 +667,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideMultiLineDocComment_3()
         {
             var code = @"class Program
@@ -701,9 +694,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideInactiveCode()
         {
             var code = @"class Program
@@ -732,9 +725,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideStringLiteral()
         {
             var code = @"class Program
@@ -755,9 +748,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideCharLiteral()
         {
             var code = @"class Program
@@ -778,9 +771,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
-        [WpfFact]
         public void NoFormattingInsideCommentsOfPreprocessorDirectives()
         {
             var code = @"class Program
@@ -805,9 +798,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void ColonInSwitchCase()
         {
             var code = @"class Program
@@ -836,9 +829,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void ColonInDefaultSwitchCase()
         {
             var code = @"class Program
@@ -869,8 +862,7 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9097")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/9097")]
         public void ColonInPatternSwitchCase01()
         {
             var code = @"class Program
@@ -897,9 +889,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void ColonInLabeledStatement()
         {
             var code = @"class Program
@@ -920,9 +912,9 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInTargetAttribute()
         {
             var code = @"using System;
@@ -939,9 +931,9 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInBaseList()
         {
             var code = @"class C   :$$   Attribute
@@ -954,9 +946,9 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInThisConstructor()
         {
             var code = @"class Goo
@@ -983,9 +975,9 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInConditionalOperator()
         {
             var code = @"class Program
@@ -1006,9 +998,9 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInArgument()
         {
             var code = @"class Program
@@ -1029,9 +1021,9 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WpfFact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
-        [WpfFact]
         public void DoNotFormatColonInTypeParameter()
         {
             var code = @"class Program<T>
@@ -1054,8 +1046,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
         public void DoNotSmartFormatBracesOnSmartIndentNone()
         {
             var code = @"class Program<T>
@@ -1140,8 +1131,8 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
         public void KeepTabsInCommentsWhenFormattingIsOff()
         {
             // There are tabs in this test case.  Tools that touch the Roslyn repo should
@@ -1172,8 +1163,8 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
         public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
             // There are tabs in this test case.  Tools that touch the Roslyn repo should
@@ -1522,8 +1513,7 @@ class C
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
         {
             var code = @"class C
@@ -1547,8 +1537,7 @@ class C
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
         public void FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
         {
             var code = @"class C
@@ -1570,8 +1559,7 @@ class C
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11642")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11642")]
         public void FormatArbitraryNodeParenthesizedLambdaExpression()
         {
             // code equivalent to an expression synthesized like so:
@@ -1695,8 +1683,7 @@ if (true)
             await AssertFormatAsync(expected, expected, spans: null);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
         {
             var code =
@@ -1722,8 +1709,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff2()
         {
             var code =
@@ -1749,8 +1735,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff3()
         {
             // We only smart indent the { if it's on it's own line.
@@ -1775,8 +1760,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff4()
         {
             // We only smart indent the { if it's on it's own line.
@@ -1801,8 +1785,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff5()
         {
             // Typing the { should not affect the formating of the preceding tokens.
@@ -1829,8 +1812,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff6()
         {
             // Typing the { should not affect the formating of the preceding tokens.
@@ -1855,8 +1837,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff7()
         {
             var code =
@@ -1876,8 +1857,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
         {
             var code =
@@ -1905,8 +1885,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff2()
         {
             // Note that the { is not updated since we are not formatting.
@@ -1933,8 +1912,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff3()
         {
             var code =
@@ -1956,8 +1934,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30787")]
         public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff4()
         {
             // Should not affect formatting of open brace
@@ -2003,8 +1980,7 @@ class MyClass
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30518")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30518")]
         public void FormatGeneratedNodeInInitializer()
         {
             var code = @"new bool[] {
@@ -2149,8 +2125,7 @@ record C(int Property, int Property2)
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public void SeparateGroups_KeepMultipleLinesBetweenGroups()
         {
             var code = @"$$
@@ -2174,8 +2149,7 @@ using MS.B;
             AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
         {
             var code = @"$$
@@ -2203,8 +2177,7 @@ using MS.B;
             AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public void SeparateGroups_DoNotGroupIfNotSorted()
         {
             var code = @"$$
@@ -2224,8 +2197,7 @@ using MS.A;
             AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public void SeparateGroups_GroupIfSorted()
         {
             var code = @"$$
@@ -2246,8 +2218,7 @@ using MS.B;
             AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
         public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
         {
             var code = @"$$
