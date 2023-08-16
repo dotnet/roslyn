@@ -34,6 +34,10 @@
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
+
+    <!-- TODO: Remove NuGet version requirements once testing library moves to >= 6.7.0 -->
+    <PackageReference Include="NuGet.Common" Version="$(NuGetCommonVersion)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetProtocolVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
