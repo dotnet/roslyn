@@ -35,6 +35,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
     [UseExportProvider]
     public abstract class DocumentOutlineTestsBase
     {
+        private const string PathRoot = "C:\\\ue25b\\";
+
         private readonly TestOutputLspLogger _logger;
         protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
         {
@@ -66,7 +68,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             internal ITextBuffer TextBuffer { get; }
 
             internal string FilePath
-                => "C:\\" + _workspace.Documents.Single().FilePath!;
+                => PathRoot + _workspace.Documents.Single().FilePath!;
 
             public ValueTask DisposeAsync()
                 => _disposable.DisposeAsync();
@@ -121,7 +123,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 if (document.IsSourceGenerated)
                     continue;
 
-                solution = solution.WithDocumentFilePath(document.Id, "C:\\" + document.Name);
+                solution = solution.WithDocumentFilePath(document.Id, PathRoot + document.Name);
 
                 var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
                 solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
@@ -130,7 +132,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             foreach (var project in workspace.Projects)
             {
                 // Ensure all the projects have a valid file path.
-                solution = solution.WithProjectFilePath(project.Id, "C:\\" + project.Name);
+                solution = solution.WithProjectFilePath(project.Id, PathRoot + project.Name);
             }
 
             solution = solution.WithAnalyzerReferences(new[] { new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()) });

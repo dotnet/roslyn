@@ -2267,6 +2267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_RefReadonlyParameterDefaultValue = 9200,
         WRN_UseDefViolationRefField = 9201,
 
+        ERR_FeatureNotAvailableInVersion12 = 9202,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

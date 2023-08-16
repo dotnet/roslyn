@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersionExtensions.CSharpNext);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersionExtensions.CSharpNext);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63551")]
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                         return func;
                     }
                 }
-                """, LanguageVersionExtensions.CSharpNext);
+                """, LanguageVersion.CSharp12);
         }
     }
 }

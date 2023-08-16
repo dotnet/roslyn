@@ -18,7 +18,7 @@ internal sealed record class ProjectDiagnosticSource(Project Project, Func<Diagn
     public Project GetProject() => Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Project.FilePath)
-            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.GetUriFromFilePath(Project.FilePath) }
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.CreateAbsoluteUri(Project.FilePath) }
             : null;
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(

@@ -692,6 +692,11 @@
         <target state="translated">Die Funktion "{0}" ist in C# 11.0 nicht verfügbar. Bitte verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion12">
+        <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Das Feature "{0}" ist in C# 8.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
@@ -6678,8 +6683,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er in-Parameter aufweist.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er in-Parameter aufweist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -12674,8 +12679,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">Der erste Parameter der in-Erweiterungsmethode "{0}" muss ein konkreter (nicht generischer) Werttyp sein.</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Der erste Parameter der in-Erweiterungsmethode "{0}" muss ein konkreter (nicht generischer) Werttyp sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

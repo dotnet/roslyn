@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -59,19 +60,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected override bool TryAddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
-            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
-            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.Parent;
-
-            // In case of top-level code parent of the statement will be GlobalStatementSyntax,
-            // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
-            {
-                containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent;
-            }
-
-            var foundStatement = false;
-
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
             var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
@@ -87,26 +75,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var subsequentStatement in UseCollectionInitializerHelpers.GetSubsequentStatements(_syntaxFacts, _containingStatement))
             {
-                if (child.IsToken)
-                    continue;
-
-                var childNode = child.AsNode();
-                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
-
-                if (!foundStatement)
-                {
-                    if (extractedChild == _containingStatement)
-                    {
-                        foundStatement = true;
-                        continue;
-                    }
-
-                    continue;
-                }
-
-                if (extractedChild is not TAssignmentStatementSyntax statement)
+                if (subsequentStatement is not TAssignmentStatementSyntax statement)
                     break;
 
                 if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))

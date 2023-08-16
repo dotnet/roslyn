@@ -3351,7 +3351,7 @@ namespace NS
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12,
-                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -3371,7 +3371,7 @@ namespace NS
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12,
-                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -3392,7 +3392,7 @@ namespace NS
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12,
-                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]
@@ -3413,7 +3413,7 @@ namespace NS
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12,
-                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [WpfFact]

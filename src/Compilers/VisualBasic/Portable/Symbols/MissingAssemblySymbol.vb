@@ -165,6 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return Nothing
+            End Get
+        End Property
+
     End Class
 
     ''' <summary>

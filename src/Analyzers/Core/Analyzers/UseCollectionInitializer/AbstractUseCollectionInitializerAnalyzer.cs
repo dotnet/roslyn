@@ -8,9 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TIfStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer> : AbstractObjectCreationExpressionAnalyzer<
             TExpressionSyntax,
@@ -36,8 +34,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
-        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
             TExpressionSyntax,
@@ -46,8 +42,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {
@@ -56,8 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
         protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
 
-        protected abstract void GetPartsOfForeachStatement(TForeachStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
-        protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
+        protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
         public static TAnalyzer Allocate()
             => s_pool.Allocate();
@@ -99,19 +92,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool TryAddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
         {
-            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
-            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.GetRequiredParent();
-
-            // In case of top-level code parent of the statement will be GlobalStatementSyntax,
-            // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
-            {
-                containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent!;
-            }
-
-            var foundStatement = false;
-
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
@@ -135,36 +115,20 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (seenIndexAssignment && _analyzeForCollectionExpression)
                 return false;
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var subsequentStatement in UseCollectionInitializerHelpers.GetSubsequentStatements(_syntaxFacts, _containingStatement))
             {
-                if (child.IsToken)
-                    continue;
-
-                var childNode = child.AsNode();
-                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
-
-                if (!foundStatement)
-                {
-                    if (extractedChild == _containingStatement)
-                    {
-                        foundStatement = true;
-                    }
-
-                    continue;
-                }
-
-                if (extractedChild is TExpressionStatementSyntax expressionStatement &&
+                if (subsequentStatement is TExpressionStatementSyntax expressionStatement &&
                     TryProcessExpressionStatement(expressionStatement))
                 {
                     continue;
                 }
-                else if (extractedChild is TForeachStatementSyntax foreachStatement &&
-                    TryProcessForeachStatement(foreachStatement))
+                else if (_syntaxFacts.IsForEachStatement(subsequentStatement) &&
+                    TryProcessForeachStatement(subsequentStatement))
                 {
                     continue;
                 }
-                else if (extractedChild is TIfStatementSyntax ifStatement &&
-                    TryProcessIfStatement(ifStatement))
+                else if (_syntaxFacts.IsIfStatement(subsequentStatement) &&
+                    TryProcessIfStatement(subsequentStatement))
                 {
                     continue;
                 }
@@ -222,13 +186,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            bool TryProcessForeachStatement(TForeachStatementSyntax foreachStatement)
+            bool TryProcessForeachStatement(TStatementSyntax foreachStatement)
             {
                 // if we're not producing a collection expression, then we cannot convert any foreach'es into
                 // `[..expr]` elements.
                 if (_analyzeForCollectionExpression)
                 {
-                    this.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+                    this.SyntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
                     // must be of the form:
                     //
                     //      foreach (var x in expr)
@@ -253,7 +217,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            bool TryProcessIfStatement(TIfStatementSyntax ifStatement)
+            bool TryProcessIfStatement(TStatementSyntax ifStatement)
             {
                 if (!_analyzeForCollectionExpression)
                     return false;
@@ -270,7 +234,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 //  else
                 //      expr.Add(z)
 
-                this.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
+                this.SyntaxHelper.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
                 var whenTrueStatements = whenTrue.ToImmutableArray();
 
                 if (whenTrueStatements is [TExpressionStatementSyntax trueChildStatement] &&

@@ -11295,17 +11295,15 @@ scoped readonly ref struct C { }
                 );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void TypeScopeModifier_02(LanguageVersion langVersion)
+        [Fact]
+        public void TypeScopeModifier_02_CSharp10()
         {
             var source =
 @"scoped record A { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
             comp.VerifyDiagnostics(
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
@@ -11337,9 +11335,55 @@ readonly scoped record struct C();
                 // (3,24): error CS1002: ; expected
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 32)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
+                );
+        }
+
+        [Fact]
+        public void TypeScopeModifier_02_CSharp11()
+        {
+            var source =
+@"scoped record A { }
+scoped readonly record struct B;
+readonly scoped record struct C();
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0118: 'record' is a variable but is used like a type
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
+                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
+                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
+                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
+                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
+                // (3,17): warning CS0168: The variable 'record' is declared but never used
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
+                // (3,24): error CS1002: ; expected
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
+                // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // readonly scoped record struct C();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
                 );
         }
 
@@ -16840,7 +16884,7 @@ class B2 : A<string>
 
         [CombinatorialData]
         [Theory]
-        public void Overrides_02(bool useCompilationReference)
+        public void Overrides_02(bool useCompilationReference, [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var sourceA =
 @"public abstract class A<T>
@@ -16849,8 +16893,8 @@ class B2 : A<string>
     public abstract ref T F2(scoped out T t);
     public abstract ref T F3(ref T t);
     public abstract ref T F4(scoped ref T t);
-    public abstract ref T F5(in T t);
-    public abstract ref T F6(scoped in T t);
+    public abstract ref T F5(" + modifier + @" T t);
+    public abstract ref T F6(scoped " + modifier + @" T t);
 }";
             var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -16863,8 +16907,8 @@ class B2 : A<string>
     public override ref int F2(scoped out int i) => throw null;
     public override ref int F3(ref int i) => throw null;
     public override ref int F4(scoped ref int i) => throw null;
-    public override ref int F5(in int i) => throw null;
-    public override ref int F6(scoped in int i) => throw null;
+    public override ref int F5(" + modifier + @" int i) => throw null;
+    public override ref int F6(scoped " + modifier + @" int i) => throw null;
 }
 class B2 : A<string>
 {
@@ -16872,8 +16916,8 @@ class B2 : A<string>
     public override ref string F2(out string s) => throw null;
     public override ref string F3(scoped ref string s) => throw null;
     public override ref string F4(ref string s) => throw null; // 1
-    public override ref string F5(scoped in string s) => throw null;
-    public override ref string F6(in string s) => throw null; // 2
+    public override ref string F5(scoped " + modifier + @" string s) => throw null;
+    public override ref string F6(" + modifier + @" string s) => throw null; // 2
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(

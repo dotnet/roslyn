@@ -5824,7 +5824,7 @@ parse_member_name:;
                         // Note: we check if we got 'MustBeType' which triggers for predefined types,
                         // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
                         // of things that must be types (int*, void**, etc.).
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
 
@@ -5850,8 +5850,8 @@ parse_member_name:;
                     // }
 
                     case ScanTypeFlags.NullableType:
-                        // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        // See above.  If we have `X<Y?,` or `X<Y?>` then this is definitely a type argument list.
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         if (isDefinitelyTypeArgumentList)
                         {
                             result = ScanTypeFlags.GenericTypeOrMethod;
@@ -5900,17 +5900,15 @@ parse_member_name:;
             }
 
             greaterThanToken = this.EatToken();
-            return result;
-        }
 
-        private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
-        {
-            if (!isDefinitelyTypeArgumentList)
+            // If we have `X<Y>)` then this would definitely be a type argument list.
+            isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CloseParenToken;
+            if (isDefinitelyTypeArgumentList)
             {
-                isDefinitelyTypeArgumentList = this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
+                result = ScanTypeFlags.GenericTypeOrMethod;
             }
 
-            return isDefinitelyTypeArgumentList;
+            return result;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
@@ -11798,7 +11796,7 @@ done:;
 
             this.EatToken();
 
-            var type = this.ScanType(forPattern: forPattern);
+            var type = this.ScanType(forPattern);
             if (type == ScanTypeFlags.NotType)
             {
                 return false;
@@ -12838,8 +12836,6 @@ done:;
             {
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
-                // 'params' and 'readonly' are is not actually legal in a lambda, but we allow it for error recovery
-                // purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:

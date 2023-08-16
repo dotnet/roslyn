@@ -5401,9 +5401,9 @@ class C
 using VT2 = (int, int);
 ";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,13): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int, int)").WithArguments("using type alias", "12.0").WithLocation(2, 13),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.

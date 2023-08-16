@@ -3197,13 +3197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax ||
-                expression.IsKind(SyntaxKind.ThisExpression) ||
-                expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                expression.IsKind(SyntaxKind.InvocationExpression) ||
-                expression.IsKind(SyntaxKind.ElementAccessExpression) ||
-                expression.IsKind(SyntaxKind.MemberBindingExpression))
+                expression.Kind()
+                    is SyntaxKind.ThisExpression
+                    or SyntaxKind.BaseExpression
+                    or SyntaxKind.ParenthesizedExpression
+                    or SyntaxKind.SimpleMemberAccessExpression
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.ElementAccessExpression
+                    or SyntaxKind.MemberBindingExpression)
             {
                 return expression;
             }

@@ -504,7 +504,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -547,7 +547,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -591,7 +591,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -634,7 +634,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -678,7 +678,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -722,7 +722,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -767,7 +767,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -811,7 +811,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -855,7 +855,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -899,7 +899,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -953,7 +953,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1015,7 +1015,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1077,7 +1077,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1138,7 +1138,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11, expectedDiagnostics);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext, expectedDiagnostics);
+            UsingDeclaration(source, TestOptions.Regular12, expectedDiagnostics);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.RegularPreview, expectedDiagnostics);
@@ -1190,7 +1190,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -1233,7 +1233,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source);
@@ -1276,7 +1276,7 @@ class Test
             UsingDeclaration(source, TestOptions.Regular11);
             verifyNodes();
 
-            UsingDeclaration(source, TestOptions.RegularNext);
+            UsingDeclaration(source, TestOptions.Regular12);
             verifyNodes();
 
             UsingDeclaration(source, TestOptions.Regular9);
@@ -1313,6 +1313,133 @@ class Test
                 }
                 EOF();
             }
+        }
+
+        [Theory, CombinatorialData]
+        public void ArgumentModifier_RefReadonly(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingExpression("M(ref x, in y, ref readonly z)", TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,20): error CS1525: Invalid expression term 'readonly'
+                // M(ref x, in y, ref readonly z)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(1, 20),
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // M(ref x, in y, ref readonly z)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(1, 20),
+                // (1,29): error CS1003: Syntax error, ',' expected
+                // M(ref x, in y, ref readonly z)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(",").WithLocation(1, 29));
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "M");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "z");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ArgumentModifier_ReadonlyRef(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingExpression("M(readonly ref x)", TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,3): error CS1041: Identifier expected; 'readonly' is a keyword
+                // M(readonly ref x)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "readonly").WithArguments("", "readonly").WithLocation(1, 3));
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "M");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ArgumentModifier_Readonly(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingExpression("M(readonly x)", TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,3): error CS1041: Identifier expected; 'readonly' is a keyword
+                // M(readonly x)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "readonly").WithArguments("", "readonly").WithLocation(1, 3));
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "M");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
         }
     }
 }

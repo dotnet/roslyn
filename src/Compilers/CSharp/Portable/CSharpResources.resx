@@ -1486,7 +1486,7 @@
     <value>Cannot return 'this' by reference.</value>
   </data>
   <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
-    <value>Cannot use attribute constructor '{0}' because it has 'in' parameters.</value>
+    <value>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
@@ -5903,7 +5903,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</value>
+    <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
@@ -6633,6 +6633,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion12" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>

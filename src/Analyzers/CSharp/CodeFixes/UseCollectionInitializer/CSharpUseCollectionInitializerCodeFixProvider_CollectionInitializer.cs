@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         ? statement.SemicolonToken.TrailingTrivia
                         : default;
 
-                    var expression = ConvertExpression(statement.Expression, indent: null)
+                    var expression = ConvertExpression(statement.Expression)
                         .WithTrailingTrivia()
                         .WithLeadingTrivia(leadingTrivia);
 
@@ -87,6 +87,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
 
                 return SeparatedList<TNode>(nodesAndTokens);
+            }
+
+            static ExpressionSyntax ConvertExpression(
+                ExpressionSyntax expression)
+            {
+                // This must be called from an expression from the original tree.  Not something we're already transforming.
+                // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+                Contract.ThrowIfNull(expression.Parent);
+                return expression switch
+                {
+                    InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
+                    AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
+                    _ => throw new InvalidOperationException(),
+                };
+            }
+
+            static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
+            {
+                var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
+                return assignment.WithLeft(
+                    ImplicitElementAccess(elementAccess.ArgumentList));
+            }
+
+            static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
+            {
+                var arguments = invocation.ArgumentList.Arguments;
+
+                if (arguments.Count == 1)
+                {
+                    // Assignment expressions in a collection initializer will cause the compiler to 
+                    // report an error.  This is because { a = b } is the form for an object initializer,
+                    // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
+                    // avoid the ambiguity.
+                    var expression = arguments[0].Expression;
+                    return SyntaxFacts.IsAssignmentExpression(expression.Kind())
+                        ? ParenthesizedExpression(expression)
+                        : expression;
+                }
+                else
+                {
+                    return InitializerExpression(
+                        SyntaxKind.ComplexElementInitializerExpression,
+                        Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
+                        SeparatedList(
+                            arguments.Select(a => a.Expression),
+                            arguments.GetSeparators()),
+                        Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+                }
             }
         }
     }
