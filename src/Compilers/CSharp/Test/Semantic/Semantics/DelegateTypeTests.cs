@@ -4693,7 +4693,48 @@ class Program
                     public static void F1(this A a, object x, Func<int, int> f) => Console.Write("B");
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: "B").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: "B").VerifyDiagnostics();
+            var comp = verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            Assert.Equal("int () => y", lambdaSyntax.ToString());
+            var targetType = comp.GetMember<IMethodSymbol>("A.F2").Parameters.Single().Type;
+            Assert.Equal("System.Func<System.Int32>", targetType.ToTestDisplayString());
+            var conversion = model.ClassifyConversion(lambdaSyntax, targetType);
+            Assert.True(conversion.IsValid);
+            Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void OverloadResolution_54()
+        {
+            // wrong body expression type; correct explicitly declared return type
+            var source = """
+                class C
+                {
+                    void M1() => M2(int () => "string");
+                    void M2(System.Func<int> f) { }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (3,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //     void M1() => M2(int () => "string");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""string""").WithArguments("string", "int").WithLocation(3, 31),
+                // (3,31): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //     void M1() => M2(int () => "string");
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, @"""string""").WithArguments("lambda expression").WithLocation(3, 31));
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            Assert.Equal("int () => \"string\"", lambdaSyntax.ToString());
+            var targetType = comp.GetMember<MethodSymbol>("C.M2").Parameters.Single().Type.GetPublicSymbol();
+            Assert.Equal("System.Func<System.Int32>", targetType.ToTestDisplayString());
+            var conversion = model.ClassifyConversion(lambdaSyntax, targetType);
+            Assert.True(conversion.IsValid);
+            Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
         [Fact]
