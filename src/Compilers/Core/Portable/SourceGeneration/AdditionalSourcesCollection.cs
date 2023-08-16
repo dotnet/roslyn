@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     internal sealed class AdditionalSourcesCollection
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
-
         private readonly string _fileExtension;
 
         private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
@@ -82,11 +81,6 @@ namespace Microsoft.CodeAnalysis
             if (source.Encoding is null)
             {
                 throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
-            }
-
-            if (Path.IsPathRooted(hintName) || !Path.GetFullPath(hintName).StartsWith(Environment.CurrentDirectory, _hintNameComparison))
-            {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameNotWithinCurrentDirectory, hintName), nameof(hintName));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
