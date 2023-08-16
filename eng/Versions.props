@@ -5,7 +5,7 @@
   <!-- Set the default versions of dependencies -->
   <PropertyGroup>
     <PostSharpEngineeringVersion>2023.2.32</PostSharpEngineeringVersion>
-  <MetalamaBackstageVersion>2023.3.1-preview</MetalamaBackstageVersion></PropertyGroup>
+  </PropertyGroup>
 
   <!-- Set the deafult versions of auto-updated dependencies -->
   <Import Project="..\eng-Metalama\AutoUpdatedVersions.props" />
