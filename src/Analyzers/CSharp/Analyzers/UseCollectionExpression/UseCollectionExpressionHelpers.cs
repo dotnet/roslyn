@@ -51,7 +51,7 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (!IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
+        if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
@@ -101,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
 
         return true;
 
-        static bool IsConstructibleCollectionType(Compilation compilation, ITypeSymbol type)
+        bool IsConstructibleCollectionType(ITypeSymbol type)
         {
             // Arrays are always a valid collection expression type.
             if (type is IArrayTypeSymbol)
@@ -124,12 +124,15 @@ internal static class UseCollectionExpressionHelpers
                 if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
                 {
                     // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
-                    var capacityConstructor = namedType.Constructors.FirstOrDefault(c => !c.IsStatic && c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
-                    if (capacityConstructor != null && capacityConstructor.IsAccessibleWithin(compilation.Assembly))
+                    var constructors = namedType.Constructors;
+                    var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                    if (capacityConstructor != null)
                         return true;
 
-                    var noArgConstructor = namedType.Constructors.FirstOrDefault(c => !c.IsStatic && c.Parameters.All(p => p.IsOptional || p.IsParams));
-                    if (noArgConstructor != null && noArgConstructor.IsAccessibleWithin(compilation.Assembly))
+                    var noArgConstructor =
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                    if (noArgConstructor != null)
                     {
                         // If we have a struct, and the constructor we find is implicitly declared, don't consider this
                         // a constructible type.  It's likely the user would just get the `default` instance of the
@@ -144,6 +147,12 @@ internal static class UseCollectionExpressionHelpers
 
             // Anything else is not constructible.
             return false;
+        }
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
     }
 

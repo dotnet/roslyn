@@ -832,6 +832,96 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForValueTypeWithInvalidCapacityConstructor()
+    {
+        var collectionType = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(string capacity) { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionType,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithInvalidCapacityButValidEmptyConstructor()
+    {
+        var collectionType = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(string capacity) { }
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionType,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionType,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task ForValueTypeWithNoArgConstructorAndWithoutCollectionBuilderAttribute()
     {
         var collectionDefinition = """
