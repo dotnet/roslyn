@@ -2588,11 +2588,41 @@ class C
         [WpfFact]
         public void FormatCollectionExpressionAfterEquals()
         {
-            var code = @"$$
-var   v  =   [  1  , 2  , 3  ]  ;";
+            var code = """
+                $$
+                var   v  =   [  1  , 2  , 3  ]  ;
+                """;
 
-            var expected = @"$$
-var v = [1, 2, 3];";
+            var expected = """
+                $$
+                var v = [1, 2, 3];
+                """;
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatCollectionExpressionAfterEquals2()
+        {
+            var code = """
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = [     ]  ;$$
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = [];$$
+                    }
+                }
+                """;
 
             AssertFormatWithView(expected, code);
         }
