@@ -860,7 +860,7 @@ public class UseCollectionExpressionForEmptyTests
                 {
                     void M()
                     {
-                        V<int> v = V<int>.[|Empty|];
+                        V<int> v = V<int>.Empty;
                     }
                 }
                 """ + collectionType,
