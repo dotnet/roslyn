@@ -6,7 +6,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -27,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.IsKind(SyntaxKind.AttributeList))
+                token.Parent.IsKind(SyntaxKind.AttributeList) &&
+                token.Parent.FirstAncestorOrSelf<SyntaxNode>(n => n is
+                    PropertyDeclarationSyntax or
+                    EventDeclarationSyntax or
+                    ClassDeclarationSyntax { ParameterList: not null }) is not null)
             {
-                if (token.GetAncestor<PropertyDeclarationSyntax>() != null ||
-                    token.GetAncestor<EventDeclarationSyntax>() != null)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;

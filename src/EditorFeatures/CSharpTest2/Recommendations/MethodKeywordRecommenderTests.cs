@@ -196,5 +196,16 @@ $$");
 @"enum E {
     [$$");
         }
+
+        [Fact]
+        public async Task TestPrimaryConstructor()
+        {
+            await VerifyKeywordAsync("""
+                [$$
+                class C()
+                {
+                }
+                """);
+        }
     }
 }
