@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             };
 
         internal virtual string GetDisplayName(IEventSymbol symbol)
-            =>  FeaturesResources.event_;
+            => FeaturesResources.event_;
 
         internal virtual string GetDisplayName(IPropertySymbol symbol)
             => symbol.IsAutoProperty() ? FeaturesResources.auto_property : FeaturesResources.property_;

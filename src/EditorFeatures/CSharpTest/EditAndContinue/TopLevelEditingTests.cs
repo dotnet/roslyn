@@ -13595,7 +13595,6 @@ partial class C
             edits.VerifySemanticDiagnostics(
                 new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "c", GetResource("lambda")) },
                 capabilities: EditAndContinueCapabilities.Baseline);
-            
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2504")]
