@@ -15,10 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
-
-    <!-- TODO: Remove NuGet version requirements once testing library moves to >= 6.7.0 -->
-    <PackageReference Include="NuGet.Common" Version="$(NuGetCommonVersion)" />
-    <PackageReference Include="NuGet.Protocol" Version="$(NuGetProtocolVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
