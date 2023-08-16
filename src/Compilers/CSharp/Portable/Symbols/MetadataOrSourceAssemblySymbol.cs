@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeConversions TypeConversions
+        internal sealed override TypeConversions TypeConversions
         {
             get
             {
