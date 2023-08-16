@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (singleDeclaration != null)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var location = singleDeclaration.NameLocation;
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (singleDeclaration != null)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var location = singleDeclaration.NameLocation;
 
                 foreach (var pair in interfaces)
