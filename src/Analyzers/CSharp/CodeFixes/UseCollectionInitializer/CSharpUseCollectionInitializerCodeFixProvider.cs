@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
-            ForEachStatementSyntax,
-            IfStatementSyntax,
             VariableDeclaratorSyntax,
             CSharpUseCollectionInitializerAnalyzer>
     {
