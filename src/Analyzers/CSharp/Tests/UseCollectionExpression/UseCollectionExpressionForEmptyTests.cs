@@ -783,7 +783,7 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task ForValueTypeWithCapacityConstructor()
     {
-        var collectionType = """
+        var collectionDefinition = """
 
             struct V<T> : IEnumerable<T>
             {
@@ -812,7 +812,7 @@ public class UseCollectionExpressionForEmptyTests
                         V<int> v = V<int>.[|Empty|];
                     }
                 }
-                """ + collectionType,
+                """ + collectionDefinition,
             FixedCode = """
                 using System;
                 using System.Collections;
@@ -825,7 +825,7 @@ public class UseCollectionExpressionForEmptyTests
                         V<int> v = [];
                     }
                 }
-                """ + collectionType,
+                """ + collectionDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -834,7 +834,7 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task NotForValueTypeWithInvalidCapacityConstructor()
     {
-        var collectionType = """
+        var collectionDefinition = """
 
             struct V<T> : IEnumerable<T>
             {
@@ -863,7 +863,7 @@ public class UseCollectionExpressionForEmptyTests
                         V<int> v = V<int>.Empty;
                     }
                 }
-                """ + collectionType,
+                """ + collectionDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -872,7 +872,7 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task ForValueTypeWithInvalidCapacityButValidEmptyConstructor()
     {
-        var collectionType = """
+        var collectionDefinition = """
 
             struct V<T> : IEnumerable<T>
             {
@@ -902,7 +902,7 @@ public class UseCollectionExpressionForEmptyTests
                         V<int> v = V<int>.[|Empty|];
                     }
                 }
-                """ + collectionType,
+                """ + collectionDefinition,
             FixedCode = """
                 using System;
                 using System.Collections;
@@ -915,7 +915,7 @@ public class UseCollectionExpressionForEmptyTests
                         V<int> v = [];
                     }
                 }
-                """ + collectionType,
+                """ + collectionDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
