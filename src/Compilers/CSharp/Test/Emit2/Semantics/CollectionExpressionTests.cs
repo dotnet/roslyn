@@ -4,12 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Console.Write(builder.ToString());
                     Console.Write(", ");
                 }
-                private static string GetTypeName(Type type)
+                internal static string GetTypeName(this Type type)
                 {
                     if (type.IsArray)
                     {
@@ -970,6 +972,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,25): error CS0103: The name 'Unknown1' does not exist in the current context
                 //         [Unknown2].Zip([Unknown1]);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown1").WithArguments("Unknown1").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData("System.Span<T>", "T[]", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.IEnumerable<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.HashSet<T>", "System.Span<System.Int32>")]
+        [InlineData("RefStructCollection<T>", "T[]", "RefStructCollection<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "object[]", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "long[]", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "short[]", null)] // cannot convert int to short
+        [InlineData("System.ReadOnlySpan<object>", "T[]", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<long>", "T[]", null)] // cannot convert long to int
+        [InlineData("System.ReadOnlySpan<object>", "long[]", null)]
+        [InlineData("System.ReadOnlySpan<long>", "object[]", "System.ReadOnlySpan<System.Int64>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Span<T>", "System.Span<System.Int32>")] // implicit conversion from Span<T> to ReadOnlySpan<T>
+        [InlineData("System.ReadOnlySpan<T>", "System.Span<int>", "System.Span<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<object>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<object>
+        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<long>
+        [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<object> and ReadOnlySpan<long>
+        public void BetterConversionFromExpression(string type1, string type2, string expectedType)
+        {
+            string sourceA = $$"""
+                using System;
+                class Program
+                {
+                    {{generateMethod("F1", type1)}}
+                    {{generateMethod("F1", type2)}}
+                    {{generateMethod("F2", type2)}}
+                    {{generateMethod("F2", type1)}}
+                    static void Main()
+                    {
+                        var x = F1([1, 2, 3]);
+                        Console.WriteLine(x.GetTypeName());
+                        var y = F2([4, 5]);
+                        Console.WriteLine(y.GetTypeName());
+                    }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(RefStructCollectionBuilder), nameof(RefStructCollectionBuilder.Create))]
+                ref struct RefStructCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                }
+                static class RefStructCollectionBuilder
+                {
+                    public static RefStructCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB, s_collectionExtensions, CollectionBuilderAttributeDefinition },
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            if (expectedType is { })
+            {
+                CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput($"""
+                    {expectedType}
+                    {expectedType}
+                    """));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<long>)' and 'Program.F1(ReadOnlySpan<object>)'
+                    //         var x = F1([1, 2, 3]);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments(generateMethodSignature("F1", type1), generateMethodSignature("F1", type2)).WithLocation(10, 17),
+                    // 0.cs(12,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(ReadOnlySpan<object>)' and 'Program.F2(ReadOnlySpan<long>)'
+                    //         var y = F2([4, 5]);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments(generateMethodSignature("F2", type2), generateMethodSignature("F2", type1)).WithLocation(12, 17));
+            }
+
+            static string getTypeParameters(string type) =>
+                type.Contains("T[]") || type.Contains("<T>") ? "<T>" : "";
+
+            static string generateMethod(string methodName, string parameterType) =>
+                $"static Type {methodName}{getTypeParameters(parameterType)}({parameterType} value) => typeof({parameterType});";
+
+            static string generateMethodSignature(string methodName, string parameterType) =>
+                $"Program.{methodName}{getTypeParameters(parameterType)}({parameterType})";
         }
 
         [Fact]
