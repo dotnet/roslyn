@@ -54,7 +54,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = GetArguments(invocationExpression, unwrapArgument);
+        var arguments = UseCollectionExpressionHelpers.GetArguments(invocationExpression, unwrapArgument);
 
         var dummyObjectAnnotation = new SyntaxAnnotation();
         var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)
@@ -77,34 +77,5 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
             cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(invocationExpression, collectionExpression);
-    }
-
-    private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
-    {
-        var arguments = invocationExpression.ArgumentList.Arguments;
-
-        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
-        // expressions the user wrote out.
-        if (!unwrapArgument)
-            return arguments;
-
-        Contract.ThrowIfTrue(arguments.Count != 1);
-        var expression = arguments.Single().Expression;
-
-        var initializer = expression switch
-        {
-            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
-            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
-            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
-            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
-            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-
-        return initializer is null
-            ? default
-            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
-                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
 }
