@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -458,7 +459,8 @@ internal static class UseCollectionExpressionHelpers
 
     public static bool IsCollectionFactoryCreate(
         SemanticModel semanticModel,
-        ExpressionSyntax expression,
+        InvocationExpressionSyntax invocationExpression,
+        [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
         out bool unwrapArgument,
         CancellationToken cancellationToken)
     {
@@ -466,8 +468,7 @@ internal static class UseCollectionExpressionHelpers
         const string CreateRangeName = nameof(ImmutableArray.CreateRange);
 
         unwrapArgument = false;
-        if (expression is not InvocationExpressionSyntax invocationExpression)
-            return false;
+        memberAccess = null;
 
         // Looking for `XXX.Create(...)`
         if (invocationExpression.Expression is not MemberAccessExpressionSyntax
@@ -479,6 +480,7 @@ internal static class UseCollectionExpressionHelpers
             return false;
         }
 
+        memberAccess = memberAccessExpression;
         var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol as IMethodSymbol;
         if (createMethod is not { IsStatic: true })
             return false;
@@ -728,5 +730,34 @@ internal static class UseCollectionExpressionHelpers
 
             return false;
         }
+    }
+
+    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
+    {
+        var arguments = invocationExpression.ArgumentList.Arguments;
+
+        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
+        // expressions the user wrote out.
+        if (!unwrapArgument)
+            return arguments;
+
+        Contract.ThrowIfTrue(arguments.Count != 1);
+        var expression = arguments.Single().Expression;
+
+        var initializer = expression switch
+        {
+            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
+            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
+            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
+            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        return initializer is null
+            ? default
+            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
+                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
 }

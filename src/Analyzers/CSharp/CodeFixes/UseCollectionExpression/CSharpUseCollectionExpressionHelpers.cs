@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
 
-internal static class CSharpCollectionExpressionRewriter
+internal static class CSharpUseCollectionExpressionHelpers
 {
     /// <summary>
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref

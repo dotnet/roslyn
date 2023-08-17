@@ -19,6 +19,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
+using static CSharpUseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
 internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
@@ -67,7 +69,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
         var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
 
-        var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+        var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             fallbackOptions,
             dummyObjectCreation,
@@ -77,34 +79,5 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
             cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(invocationExpression, collectionExpression);
-    }
-
-    private static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
-    {
-        var arguments = invocationExpression.ArgumentList.Arguments;
-
-        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
-        // expressions the user wrote out.
-        if (!unwrapArgument)
-            return arguments;
-
-        Contract.ThrowIfTrue(arguments.Count != 1);
-        var expression = arguments.Single().Expression;
-
-        var initializer = expression switch
-        {
-            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
-            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
-            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
-            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
-            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-
-        return initializer is null
-            ? default
-            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
-                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
 }

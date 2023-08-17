@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer;
+using static CSharpUseCollectionExpressionHelpers;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForBuilder), Shared]
@@ -65,7 +66,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         analysisResult = TrackAnalysisResult(root, analysisResult);
 
         // Get the new collection expression.
-        var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+        var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
             fallbackOptions,
             dummyObjectCreation,

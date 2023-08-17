@@ -45,7 +45,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var unwrapArgument, cancellationToken))
+        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
@@ -55,10 +55,9 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
         var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
 
-        var memberAccessExpression = (MemberAccessExpressionSyntax)invocationExpression.Expression;
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            memberAccessExpression.Name.Identifier.GetLocation(),
+            memberAccess.Name.Identifier.GetLocation(),
             option.Notification.Severity,
             additionalLocations: locations,
             properties));

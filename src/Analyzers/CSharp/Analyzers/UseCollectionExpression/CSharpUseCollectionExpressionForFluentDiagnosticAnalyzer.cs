@@ -79,7 +79,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
         }
 
-        if (!AnalyzeInvocation(semanticModel, invocation, cancellationToken))
+        var analysisResult = AnalyzeInvocation(semanticModel, invocation, addMatches: true, cancellationToken);
+        if (analysisResult.IsDefault)
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -96,20 +97,26 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// Analyzes an expression looking for one of the form <c>CollectionCreation</c>, followed by some number of 
     /// <c>.Add(...)/.AddRange(...)</c> or <c>.ToXXX()</c> calls
     /// </summary>
-    private static bool AnalyzeInvocation(SemanticModel semanticModel, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
-    {
-        if (!AnalyzeInvocationRecursive(semanticModel, invocation, cancellationToken))
-            return false;
-
-        if (!CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
-            return false;
-
-        return true;
-    }
-
-    private static bool AnalyzeInvocationRecursive(
+    public static ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
+        bool addMatches,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>.GetInstance(out var matches);
+        if (!AnalyzeInvocation(semanticModel, invocation, addMatches ? matches : null, cancellationToken))
+            return default;
+
+        if (!CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
+            return default;
+
+        return matches.ToImmutable();
+    }
+
+    private static bool AnalyzeInvocation(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
         CancellationToken cancellationToken)
     {
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
@@ -130,7 +137,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
             // left hand side of the expression.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsSyntacticMatch(currentMemberAccess, currentInvocation))
+                IsSyntacticMatch(currentMemberAccess, currentInvocation, matches))
             {
                 stack.Push(currentMemberAccess.Expression);
                 continue;
@@ -138,26 +145,50 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
             // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
             // always list-like this is safe to move over.
-            if (current is ArrayCreationExpressionSyntax { Initializer: not null } or ImplicitArrayCreationExpressionSyntax)
+            if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer })
+            {
+                AddInitializerMatches(initializer);
                 return true;
+            }
+
+            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+            {
+                AddInitializerMatches(implicitArrayCreation.Initializer);
+                return true;
+            }
+
+            // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.  Because the
+            // collection is empty, we don't have to add any matches.
+            if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
+                return IsListLike(current);
 
             // `new X()` or `new X { a, b, c}` or `new X() { a, b, c }` are fine base cases.
             if (current is ObjectCreationExpressionSyntax
                 {
                     ArgumentList: null or { Arguments.Count: 0 },
                     Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                })
+                } objectCreation)
             {
-                return IsListLike(current);
+                if (!IsListLike(current))
+                    return false;
+
+                AddInitializerMatches(objectCreation.Initializer);
+                return true;
             }
 
-            // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.
-            if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
-                return IsListLike(current);
-
             // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
-            if (IsCollectionFactoryCreate(semanticModel, current, out _, cancellationToken))
-                return IsListLike(current);
+            if (current is InvocationExpressionSyntax currentInvocationExpression &&
+                IsCollectionFactoryCreate(semanticModel, currentInvocationExpression, out var factoryMemberAccess, out var unwrapArgument, cancellationToken))
+            {
+                if (!IsListLike(current))
+                    return false;
+
+                if (matches != null)
+                {
+                    foreach (var argument in GetArguments(currentInvocationExpression, unwrapArgument))
+                        matches.Add(new(argument.Expression, UseSpread: false));
+                }
+            }
 
             // Something we didn't understand.
             return false;
@@ -192,11 +223,21 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
             return false;
         }
+
+        void AddInitializerMatches(InitializerExpressionSyntax? initializer)
+        {
+            if (initializer is null || matches is null)
+                return;
+
+            foreach (var expression in initializer.Expressions)
+                matches.Add(new(expression, UseSpread: false));
+        }
     }
 
     private static bool IsSyntacticMatch(
         MemberAccessExpressionSyntax memberAccess,
-        InvocationExpressionSyntax invocation)
+        InvocationExpressionSyntax invocation,
+        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches)
     {
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
             return false;
@@ -205,7 +246,13 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         // `.Add(x)` can be a legal component
         if (name == nameof(ImmutableArray<int>.Add))
-            return invocation.ArgumentList.Arguments.Count == 1;
+        {
+            if (invocation.ArgumentList.Arguments.Count != 1)
+                return false;
+
+            matches?.Add(new(invocation.ArgumentList.Arguments[0].Expression, UseSpread: false));
+            return true;
+        }
 
         // `.AddRange(x, ...)` can be a legal component.
         if (name == nameof(ImmutableArray<int>.AddRange))

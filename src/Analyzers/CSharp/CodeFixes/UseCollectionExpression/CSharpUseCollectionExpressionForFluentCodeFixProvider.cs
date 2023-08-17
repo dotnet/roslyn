@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
+using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
 internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
