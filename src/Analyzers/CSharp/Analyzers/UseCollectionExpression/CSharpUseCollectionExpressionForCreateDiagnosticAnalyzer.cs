@@ -16,9 +16,6 @@ using static UseCollectionExpressionHelpers;
 internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
-    private const string CreateName = nameof(ImmutableArray.Create);
-    private const string CreateRangeName = nameof(ImmutableArray.CreateRange);
-
     public const string UnwrapArgument = nameof(UnwrapArgument);
 
     private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
@@ -49,7 +46,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
 
-        if (IsCollectionFactoryCreate(semanticModel, invocationExpression, out var unwrapArgument, cancellationToken))
+        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var unwrapArgument, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.

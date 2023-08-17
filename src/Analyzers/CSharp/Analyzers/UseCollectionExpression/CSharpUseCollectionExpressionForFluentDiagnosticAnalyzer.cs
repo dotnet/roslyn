@@ -157,9 +157,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
                 return true;
 
-            // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
-            if (IsCollectionFactoryCreate(semanticModel, current, cancellationToken))
-                return true;
+            //// Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
+            //if (IsCollectionFactoryCreate(semanticModel, current, cancellationToken))
+            //    return true;
 
             // Something we didn't understand.
             return false;
