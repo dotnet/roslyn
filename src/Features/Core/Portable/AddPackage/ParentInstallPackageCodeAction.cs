@@ -12,6 +12,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddPackage;
 
+/// <summary>
+/// Data used to create the 'Install Nuget Package' top level code-action. It will have children to 'Install Latest',
+/// 'Install Version 'X' ..., and 'Install with package manager'.
+/// </summary>
+/// <param name="packageSource">The nuget source to use.  Currently this is only <see
+/// cref="PackageSourceHelper.NugetOrgSourceName"/> ("::nuget::")</param>
+/// <param name="packageName">The name of the package to install.</param>
+/// <param name="packageVersionOpt">A preferred version if known.</param>
+/// <param name="textChanges">Additional text changes to make to the <see cref="Document"/>.  Generally, this would be
+/// the import to add if not present.</param>
 internal readonly struct InstallPackageData(string packageSource, string packageName, string packageVersionOpt, ImmutableArray<TextChange> textChanges)
 {
     public readonly string PackageSource = packageSource;
