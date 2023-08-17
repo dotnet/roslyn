@@ -29,14 +29,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(Array),
         nameof(Span<int>),
         nameof(ReadOnlySpan<int>),
-        nameof(Enumerable),
         nameof(List<int>),
         nameof(HashSet<int>),
         nameof(LinkedList<int>),
         nameof(Queue<int>),
         nameof(SortedSet<int>),
         nameof(Stack<int>),
-        nameof(IEnumerable<int>),
         nameof(ICollection<int>),
         nameof(IReadOnlyCollection<int>),
         nameof(IList<int>),
@@ -74,7 +72,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // We want to analyze and report on the highest applicable invocation in an invocation chain.
         // So bail out if our parent is a match.
         if (invocation.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax parentInvocation } parentMemberAccess &&
-            IsSyntacticMatch(parentMemberAccess, parentInvocation))
+            IsSyntacticMatch(parentMemberAccess, parentInvocation, allowLinq: true, matches: null))
         {
             return;
         }
@@ -122,8 +120,10 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
             return false;
 
-        // Topmost invocation must be a syntactic match for one of our collection manipulation forms.
-        if (!IsSyntacticMatch(memberAccess, invocation))
+        // Topmost invocation must be a syntactic match for one of our collection manipulation forms.  At the top level
+        // we don't want to end with a linq method as that would be lazy, and a collection expression will eagerly
+        // realize the collection.
+        if (!IsSyntacticMatch(memberAccess, invocation, allowLinq: false, matches))
             return false;
 
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
@@ -135,9 +135,10 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
-            // left hand side of the expression.
+            // left hand side of the expression.  In the inner expressions we can have things like `.Concat` calls as
+            // the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsSyntacticMatch(currentMemberAccess, currentInvocation, matches))
+                IsSyntacticMatch(currentMemberAccess, currentInvocation, allowLinq: true, matches))
             {
                 stack.Push(currentMemberAccess.Expression);
                 continue;
@@ -237,6 +238,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     private static bool IsSyntacticMatch(
         MemberAccessExpressionSyntax memberAccess,
         InvocationExpressionSyntax invocation,
+        bool allowLinq,
         ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches)
     {
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
