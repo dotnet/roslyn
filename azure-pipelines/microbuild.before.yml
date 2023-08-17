@@ -8,6 +8,7 @@ steps:
     outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
     outputformat: text
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  retryCountOnTaskFailure: 3 # fails when the cloud service is overloaded
 
 - task: MicroBuildSigningPlugin@4
   inputs:
