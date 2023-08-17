@@ -155,12 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     when refKind is RefKind.None:
                         refKind = RefKind.Ref;
                         break;
-
-                    case RefKind.RefReadOnlyParameter:
-                    case RefKind.RefReadOnly:
-                        // We ignore escape safety here, and only normalize to ref readonly
-                        refKind = RefKind.RefReadOnly;
-                        break;
                 }
             }
 

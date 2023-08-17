@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression armResult = armBinder.BindValue(unwrappedExpression, diagnostics, bindValueKind);
-            // TODO: Get whether the underlying expression is readonly
-
             var label = new GeneratedLabelSymbol("arm");
             return new BoundSwitchExpressionArm(node, locals, pattern, whenClause, armResult, label, refKind, hasErrors | pattern.HasErrors);
         }

@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.Kind == BoundKind.UnconvertedSwitchExpression && valueKind is BindValueKind.RValue or BindValueKind.Assignable)
             {
-                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
+                expr = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr.Syntax, expr, valueKind, checkingReceiver: false, diagnostics: diagnostics) ||
@@ -558,7 +559,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.ConvertedSwitchExpression:
-                    return CheckSwitchExpressionValueKind((BoundSwitchExpression)expr, valueKind, diagnostics);
+                    bool check = CheckSwitchExpressionValueKind((BoundSwitchExpression)expr, valueKind, diagnostics);
+                    if (!check)
+                        return false;
+
+                    break;
             }
 
             // easy out for a very common RValue case.
@@ -574,6 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
                 return false;
             }
+
+            var errorSpan = node.FullSpan;
 
             switch (expr.Kind)
             {
@@ -802,28 +809,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConvertedSwitchExpression:
                     var switchExpression = (BoundSwitchExpression)expr;
 
-                    if (switchExpression.IsRef)
+                    Debug.Assert(switchExpression.IsRef);
+                    Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
+
+                    // defer check to the switch arms' values
+                    bool check = true;
+                    foreach (var arm in switchExpression.SwitchArms)
                     {
-                        Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
+                        // Specially handle throw expressions in arms because they are not treated the same elsewhere
+                        if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
+                            continue;
 
-                        // defer check to the switch arms' values
-                        bool check = true;
-                        foreach (var arm in switchExpression.SwitchArms)
-                        {
-                            // Specially handle throw expressions in arms because they are not treated the same elsewhere
-                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
-                                continue;
-
-                            check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
-                            if (!check)
-                            {
-                                check = false;
-                                break;
-                            }
-                        }
-                        if (check)
-                            return true;
+                        check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
                     }
+                    if (check)
+                        return true;
+
+                    var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
+                    errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
 
                     break;
 
@@ -833,7 +836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
-            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+            var errorLocation = Location.Create(node.SyntaxTree, errorSpan);
+            Error(diagnostics, GetStandardLvalueError(valueKind), errorLocation);
             return false;
 
             bool checkArrayAccessValueKind(SyntaxNode node, BindValueKind valueKind, ImmutableArray<BoundExpression> indices, BindingDiagnosticBag diagnostics)

@@ -5497,6 +5497,85 @@ void M(out int x) => throw null;
                 );
         }
 
+        [Fact]
+        public void RefSwitchStatement_Readonly01()
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public unsafe ref int M(Direction direction, in int south, in int west)
+                    {
+                        const int east = 431;
+
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref EastField,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+                
+                        ref int xx = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref east,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+                
+                        ref readonly int y = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref east,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+
+                        return ref y;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (12,25): error CS1510: A ref or out value must be an assignable variable
+                //         ref int x = ref direction switch
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "direction switch").WithLocation(12, 25),
+                // (15,36): error CS8329: Cannot use variable 'south' as a ref or out value because it is a readonly variable
+                //             Direction.South => ref south,
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "south").WithArguments("variable", "south").WithLocation(15, 36),
+                // (17,35): error CS8329: Cannot use variable 'west' as a ref or out value because it is a readonly variable
+                //             Direction.West => ref west,
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "west").WithArguments("variable", "west").WithLocation(17, 35),
+                // (25,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             Direction.East => ref east,
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "east").WithLocation(25, 35),
+                // (34,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             Direction.East => ref east,
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "east").WithLocation(34, 35),
+                // (39,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "y").WithLocation(39, 20)
+                );
+        }
+
         #endregion
     }
 }
