@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -115,6 +116,37 @@ internal readonly struct UpdateExpressionState<
             {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    public bool TryAnalyzeInvocationForCollectionExpression(
+        TExpressionSyntax invocationExpression,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        out bool useSpread)
+    {
+        // Look for a call to Add or AddRange
+        if (this.TryAnalyzeAddInvocation(
+                invocationExpression,
+                requiredArgumentName: null,
+                forCollectionExpression: true,
+                cancellationToken,
+                out instance))
+        {
+            useSpread = false;
+            return true;
+        }
+
+        if (this.TryAnalyzeAddRangeInvocation(
+                invocationExpression,
+                requiredArgumentName: null,
+                cancellationToken,
+                out instance,
+                out useSpread))
+        {
+            return true;
         }
 
         return false;
@@ -308,26 +340,9 @@ internal readonly struct UpdateExpressionState<
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeAddInvocation(
-                    expression,
-                    requiredArgumentName: null,
-                    forCollectionExpression: true,
-                    cancellationToken,
-                    out var instance) &&
+            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, cancellationToken, out var instance, out var useSpread) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
-            }
-
-            if (@this.TryAnalyzeAddRangeInvocation(
-                    expression,
-                    requiredArgumentName: null,
-                    cancellationToken,
-                    out instance,
-                    out var useSpread) &&
-                @this.ValuePatternMatches(instance))
-            {
-                // AddRange(x) will become `..x` when we make it into a collection expression.
                 return new Match<TStatementSyntax>(expressionStatement, useSpread);
             }
 
