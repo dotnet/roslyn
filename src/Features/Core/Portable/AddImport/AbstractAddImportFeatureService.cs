@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
-                AddImportFixKind.PackageSymbol => ParentInstallPackageCodeAction.TryCreateAction(
+                AddImportFixKind.PackageSymbol => ParentInstallPackageCodeAction.TryCreateCodeAction(
                     document, new InstallPackageData(fixData.PackageSource, fixData.PackageName, fixData.PackageVersionOpt, fixData.TextChanges), installerService),
                 _ => throw ExceptionUtilities.Unreachable(),
             };
