@@ -10149,6 +10149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
                 Debug.Assert(node.HasErrors);
                 VisitRvalue(node.Expression);
+                Visit(node.AwaitOpt);
                 return;
             }
 
