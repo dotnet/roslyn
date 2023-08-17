@@ -61,7 +61,7 @@ internal sealed class ParentInstallPackageCodeAction : CodeAction.CodeActionWith
     {
     }
 
-    public static CodeAction? TryCreateAction(
+    public static CodeAction? TryCreateCodeAction(
         Document document,
         InstallPackageData fixData,
         IPackageInstallerService? installerService)
