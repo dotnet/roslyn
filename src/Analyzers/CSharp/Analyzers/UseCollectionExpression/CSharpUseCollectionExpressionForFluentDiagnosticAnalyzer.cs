@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -49,7 +48,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(ImmutableSortedSet<int>),
         nameof(ImmutableStack<int>));
 
-
     public CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId,
                EnforceOnBuildValues.UseCollectionExpressionForFluent)
@@ -62,7 +60,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
-        var syntaxTree = semanticModel.SyntaxTree;
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
@@ -122,7 +119,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (!IsSyntacticMatch(memberAccess, invocation))
             return false;
 
-        using var _ = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
+        using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
         stack.Push(memberAccess.Expression);
 
         while (stack.Count > 0)
@@ -139,7 +136,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 continue;
             }
 
-            // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.
+            // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
+            // always list-like this is safe to move over.
             if (current is ArrayCreationExpressionSyntax { Initializer: not null } or ImplicitArrayCreationExpressionSyntax)
                 return true;
 
@@ -150,22 +148,50 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
                 })
             {
-                return true;
+                return IsListLike(current);
             }
 
             // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.
             if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
-                return true;
+                return IsListLike(current);
 
-            //// Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
-            //if (IsCollectionFactoryCreate(semanticModel, current, cancellationToken))
-            //    return true;
+            // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
+            if (IsCollectionFactoryCreate(semanticModel, current, out _, cancellationToken))
+                return IsListLike(current);
 
             // Something we didn't understand.
             return false;
         }
 
         return false;
+
+        // We only want to offer this feature when the original collection was list-like (as opposed to being something
+        // like a hash-set).  For example: `new List<int> { x, y, z }.ToImmutableArray()` produces different results
+        // than `new HashSet<int> { x, y, z }.ToImmutableArray()` in the presence of duplicates.
+        bool IsListLike(ExpressionSyntax expression)
+        {
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (type is null or IErrorTypeSymbol)
+                return false;
+
+            return
+                Implements(type, semanticModel.Compilation.IListOfTType()) ||
+                Implements(type, semanticModel.Compilation.IReadOnlyListOfTType());
+        }
+
+        static bool Implements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+        {
+            if (interfaceType != null)
+            {
+                foreach (var baseInterface in type.AllInterfaces)
+                {
+                    if (interfaceType.Equals(baseInterface.OriginalDefinition))
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static bool IsSyntacticMatch(
