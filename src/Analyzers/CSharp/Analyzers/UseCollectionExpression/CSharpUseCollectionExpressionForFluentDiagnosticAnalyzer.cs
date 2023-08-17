@@ -202,9 +202,16 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return false;
 
         var name = memberAccess.Name.Identifier.ValueText;
-        if (name is nameof(ImmutableArray<int>.Add) or nameof(ImmutableArray<int>.AddRange))
-            return true;
 
+        // `.Add(x)` can be a legal component
+        if (name == nameof(ImmutableArray<int>.Add))
+            return invocation.ArgumentList.Arguments.Count == 1;
+
+        // `.AddRange(x, ...)` can be a legal component.
+        if (name == nameof(ImmutableArray<int>.AddRange))
+            return invocation.ArgumentList.Arguments.Count >= 1;
+
+        // Now check for ToXXX/AsXXX.  All of these need no args.
         if (invocation.ArgumentList.Arguments.Count > 0)
             return false;
 
