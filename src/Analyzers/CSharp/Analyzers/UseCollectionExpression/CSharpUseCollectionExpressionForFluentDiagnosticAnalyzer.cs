@@ -79,7 +79,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
         }
 
-        if (!AnalyzeExpression(semanticModel, invocation, cancellationToken))
+        if (!AnalyzeInvocation(semanticModel, invocation, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -96,9 +96,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// Analyzes an expression looking for one of the form <c>CollectionCreation</c>, followed by some number of 
     /// <c>.Add(...)/.AddRange(...)</c> or <c>.ToXXX()</c> calls
     /// </summary>
-    private static bool AnalyzeExpression(SemanticModel semanticModel, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
+    private static bool AnalyzeInvocation(SemanticModel semanticModel, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
     {
-        if (!AnalyzeExpressionRecursive(semanticModel, invocation, cancellationToken))
+        if (!AnalyzeInvocationRecursive(semanticModel, invocation, cancellationToken))
             return false;
 
         if (!CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
@@ -107,7 +107,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         return true;
     }
 
-    private static bool AnalyzeExpressionRecursive(
+    private static bool AnalyzeInvocationRecursive(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         CancellationToken cancellationToken)
