@@ -569,21 +569,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
-            foreach (var eventDef in _changes.GetDeletedEvents(typeDef))
-            {
-                RoslynDebug.AssertNotNull(deletedMethodDefinitions);
-
-                var oldEventDef = (IEventDefinition)eventDef.GetCciAdapter();
-
-                // Because deleted event information comes from the associated symbol of the deleted accessors, its safe
-                // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
-                var adder = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Adder];
-                var remover = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Remover];
-                var caller = oldEventDef.Caller is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Caller];
-                var newEventDef = new DeletedEventDefinition(oldEventDef, adder, remover, caller, typeDef, _typesUsedByDeletedMembers);
-                _eventDefs.AddUpdated(newEventDef);
-            }
-
             foreach (var fieldDef in typeDef.GetFields(this.Context))
             {
                 var fieldChange = _changes.GetChangeForPossibleReAddedMember(fieldDef, DefinitionExistsInAnyPreviousGeneration);
@@ -617,20 +602,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 var propertyChange = _changes.GetChangeForPossibleReAddedMember(propertyDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
-            }
-
-            foreach (var propertyDef in _changes.GetDeletedProperties(typeDef))
-            {
-                RoslynDebug.AssertNotNull(deletedMethodDefinitions);
-
-                var oldPropertyDef = (IPropertyDefinition)propertyDef.GetCciAdapter();
-
-                // Because deleted property information comes from the associated symbol of the deleted accessors, its safe
-                // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
-                var getter = oldPropertyDef.Getter is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldPropertyDef.Getter];
-                var setter = oldPropertyDef.Setter is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldPropertyDef.Setter];
-                var newPropertyDef = new DeletedPropertyDefinition(oldPropertyDef, getter, setter, typeDef, _typesUsedByDeletedMembers);
-                _propertyDefs.AddUpdated(newPropertyDef);
             }
 
             var implementingMethods = ArrayBuilder<int>.GetInstance();
@@ -765,8 +736,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     defIndex.AddUpdated(def);
                     return false;
                 case SymbolChange.ContainsChanges:
-                    Debug.Assert(def is INestedTypeDefinition);
-                    // Changes to members within nested type only.
+                    Debug.Assert(def is INestedTypeDefinition or IPropertyDefinition or IEventDefinition);
                     return false;
                 default:
                     // No changes to member or container.

@@ -555,7 +555,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreEventsEqual([event] As EventSymbol, other As EventSymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals([event].Name, other.Name))
-                Return Me._comparer.Equals([event].Type, other.Type)
+                ' Events can't be overloaded on type.
+                ' ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name [ERROR]
+                Return True
             End Function
 
             Private Function AreFieldsEqual(field As FieldSymbol, other As FieldSymbol) As Boolean
@@ -611,6 +613,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function ArePropertiesEqual([property] As PropertySymbol, other As PropertySymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals([property].Name, other.Name))
+
+                ' Properties may be overloaded on their signature.
+                ' ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name+Type [ERROR]
                 Return Me._comparer.Equals([property].Type, other.Type) AndAlso
                     [property].Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual)
             End Function
