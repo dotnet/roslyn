@@ -45,7 +45,6 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-
         if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var unwrapArgument, cancellationToken))
             return;
 

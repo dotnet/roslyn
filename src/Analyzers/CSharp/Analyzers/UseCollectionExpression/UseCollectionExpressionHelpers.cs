@@ -624,8 +624,109 @@ internal static class UseCollectionExpressionHelpers
         }
     }
 
-    public static bool IsCollectionEmptyAccess(SemanticModel semanticModel, ExpressionSyntax current, CancellationToken cancellationToken)
+    public static bool IsCollectionEmptyAccess(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        const string EmptyName = nameof(Array.Empty);
+
+        if (expression is MemberAccessExpressionSyntax memberAccess)
+        {
+            // X<T>.Empty
+            return IsEmptyProperty(memberAccess);
+        }
+        else if (expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax innerMemberAccess } invocation)
+        {
+            // X.Empty<T>()
+            return IsEmptyMethodCall(invocation, innerMemberAccess);
+        }
+        else
+        {
+            return false;
+        }
+
+        // X<T>.Empty
+        bool IsEmptyProperty(MemberAccessExpressionSyntax memberAccess)
+        {
+            if (!IsPossiblyDottedGenericName(memberAccess.Expression))
+                return false;
+
+            if (memberAccess.Name is not IdentifierNameSyntax { Identifier.ValueText: EmptyName })
+                return false;
+
+            var expressionSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol;
+            if (expressionSymbol is not INamedTypeSymbol)
+                return false;
+
+            var emptySymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+            if (emptySymbol is not { IsStatic: true })
+                return false;
+
+            if (emptySymbol is not IFieldSymbol and not IPropertySymbol)
+                return false;
+
+            return true;
+        }
+
+        // X.Empty<T>()
+        bool IsEmptyMethodCall(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess)
+        {
+            if (invocation.ArgumentList.Arguments.Count != 0)
+                return false;
+
+            if (memberAccess.Name is not GenericNameSyntax
+                {
+                    TypeArgumentList.Arguments.Count: 1,
+                    Identifier.ValueText: EmptyName,
+                })
+            {
+                return false;
+            }
+
+            if (!IsPossiblyDottedName(memberAccess.Expression))
+                return false;
+
+            var expressionSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol;
+            if (expressionSymbol is not INamedTypeSymbol)
+                return false;
+
+            var emptySymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+            if (emptySymbol is not { IsStatic: true })
+                return false;
+
+            if (emptySymbol is not IMethodSymbol)
+                return false;
+
+            return true;
+        }
+
+        static bool IsPossiblyDottedGenericName(ExpressionSyntax expression)
+        {
+            if (expression is GenericNameSyntax)
+                return true;
+
+            if (expression is MemberAccessExpressionSyntax { Expression: ExpressionSyntax childName, Name: GenericNameSyntax } &&
+                IsPossiblyDottedName(childName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool IsPossiblyDottedName(ExpressionSyntax name)
+        {
+            if (name is IdentifierNameSyntax)
+                return true;
+
+            if (name is MemberAccessExpressionSyntax { Expression: ExpressionSyntax childName, Name: IdentifierNameSyntax } &&
+                IsPossiblyDottedName(childName))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
