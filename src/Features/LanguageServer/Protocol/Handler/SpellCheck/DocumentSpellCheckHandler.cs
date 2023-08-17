@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         {
             if (requestParams.PreviousResultId != null && requestParams.TextDocument != null)
             {
-                return ImmutableArray.Create(new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument, null));
+                return ImmutableArray.Create(new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
             }
 
             // The client didn't provide us with a previous result to look for, so we can't lookup anything.

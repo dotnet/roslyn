@@ -103,7 +103,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
     {
         if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
         {
-            return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument, diagnosticsParams.Identifier));
+            return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }
 
         return null;

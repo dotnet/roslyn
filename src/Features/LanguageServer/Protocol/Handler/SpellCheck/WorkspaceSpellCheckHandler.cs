@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceSpellCheckableParams requestParams) => null;
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceSpellCheckableParams requestParams)
-            => requestParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!, null)).ToImmutableArray();
+            => requestParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context, CancellationToken cancellationToken)
         {

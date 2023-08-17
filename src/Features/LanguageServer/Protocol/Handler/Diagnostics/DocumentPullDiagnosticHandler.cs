@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
             {
-                return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument, null));
+                return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
             }
 
             // The client didn't provide us with a previous result to look for, so we can't lookup anything.
@@ -136,20 +136,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 Debug.Assert(!taskList);
 
-                // Compiler does not report any non-local diagnostics, so we bail out when those are requested.
-                // Additionally, all analyzer reported non-local diagnostics are classified as semantic diagnostics,
-                // so we bail out when only analyzer syntax diagnostics are requested.
-                if (diagnosticKind is DiagnosticKind.CompilerSyntax or DiagnosticKind.CompilerSemantic or DiagnosticKind.AnalyzerSyntax)
-                    return ImmutableArray<IDiagnosticSource>.Empty;
+                // This code path is currently only invoked from the public LSP handler, which always uses 'DiagnosticKind.All'
+                Debug.Assert(diagnosticKind == DiagnosticKind.All);
 
-                // Non-local document diagnostics are reported only when full solution analysis is enabled.
+                // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
                 if (globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.FullSolution)
                     return ImmutableArray<IDiagnosticSource>.Empty;
 
-                // NOTE: We compute diagnostics using WorkspaceDocumentDiagnosticSource to ensure full project is analyzed to get the reported diagnostics.
-                //       Additionally, we only request non-local document diagnostics here as local document diagnostics are reported with DocumentDiagnosticSource above.
-                return ImmutableArray.Create<IDiagnosticSource>(new WorkspaceDocumentDiagnosticSource(document, ShouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: true));
+                return ImmutableArray.Create<IDiagnosticSource>(new NonLocalDocumentDiagnosticSource(document, ShouldIncludeAnalyzer));
 
+                // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
                 bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
             }
         }

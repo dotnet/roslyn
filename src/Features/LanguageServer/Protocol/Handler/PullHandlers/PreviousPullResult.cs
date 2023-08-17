@@ -6,5 +6,5 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal record struct PreviousPullResult(string PreviousResultId, TextDocumentIdentifier TextDocument, string? DiagnosticSourceIdentifier);
+    internal record struct PreviousPullResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
 }

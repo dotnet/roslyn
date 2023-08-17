@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => CreateReport(identifier, diagnostics: null, resultId);
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!, null)).ToImmutableArray();
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 foreach (var document in documents)
                 {
                     if (!ShouldSkipDocument(context, document))
-                        result.Add(new WorkspaceDocumentDiagnosticSource(document, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true));
+                        result.Add(new WorkspaceDocumentDiagnosticSource(document, shouldIncludeAnalyzer));
                 }
 
                 // Finally, add the project source to get project specific diagnostics, not associated with any document.

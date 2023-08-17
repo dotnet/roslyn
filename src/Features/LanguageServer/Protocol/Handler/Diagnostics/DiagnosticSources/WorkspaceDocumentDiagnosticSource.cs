@@ -14,15 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
     private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer;
-    private readonly bool _includeLocalDocumentDiagnostics;
-    private readonly bool _includeNonLocalDocumentDiagnostics;
 
-    public WorkspaceDocumentDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics)
+    public WorkspaceDocumentDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : base(document)
     {
         _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-        _includeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
-        _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
     }
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -44,7 +40,7 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                 Document.Project.Solution, Document.Project.Id, Document.Id,
                 diagnosticIds: null, _shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
-                _includeLocalDocumentDiagnostics, _includeNonLocalDocumentDiagnostics, cancellationToken).ConfigureAwait(false);
+                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
             return documentDiagnostics;
         }
     }
