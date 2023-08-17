@@ -56,7 +56,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = GetArguments(invocationExpression, unwrapArgument);
+        var arguments = UseCollectionExpressionHelpers.GetArguments(invocationExpression, unwrapArgument);
 
         var dummyObjectAnnotation = new SyntaxAnnotation();
         var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)

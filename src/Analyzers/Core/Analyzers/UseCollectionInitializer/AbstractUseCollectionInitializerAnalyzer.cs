@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             {
                 // Look for a call to Add or AddRange
                 if (this.State.TryAnalyzeAddInvocation(
-                        expressionStatement,
+                        (TExpressionSyntax)this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement),
                         requiredArgumentName: null,
                         forCollectionExpression: false,
                         cancellationToken,
