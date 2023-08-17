@@ -147,27 +147,37 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             {
                 return true;
             }
+
+            // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.
+            if (IsCollectionEmptyAccess(semanticModel, current))
+                return true;
+
+            // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
+            if (IsCollectionFactoryCreate(semanticModel, current))
+                return true;
+
+            // Something we didn't understand.
+            return false;
         }
 
         return false;
     }
 
-        static bool IsSyntacticMatch(
-            MemberAccessExpressionSyntax memberAccess,
-            InvocationExpressionSyntax invocation)
-        {
-            if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
-                return false;
+    private static bool IsSyntacticMatch(
+        MemberAccessExpressionSyntax memberAccess,
+        InvocationExpressionSyntax invocation)
+    {
+        if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
+            return false;
 
-            var name = memberAccess.Name.Identifier.ValueText;
-            if (name is nameof(ImmutableArray<int>.Add) or nameof(ImmutableArray<int>.AddRange))
-                return true;
+        var name = memberAccess.Name.Identifier.ValueText;
+        if (name is nameof(ImmutableArray<int>.Add) or nameof(ImmutableArray<int>.AddRange))
+            return true;
 
-            if (invocation.ArgumentList.Arguments.Count > 0)
-                return false;
+        if (invocation.ArgumentList.Arguments.Count > 0)
+            return false;
 
-            return IsNameMatch(name);
-        }
+        return IsNameMatch(name);
 
         static bool IsNameMatch(string name)
         {
@@ -192,11 +202,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             }
 
             return false;
-        }
-
-        static bool AnalyzeExpression(ExpressionSyntax expression)
-        {
-            if (expression is InvocationExpressionSyntax)
         }
     }
 }
