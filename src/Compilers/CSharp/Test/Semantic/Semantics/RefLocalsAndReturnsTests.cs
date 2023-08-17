@@ -5399,6 +5399,104 @@ void M(out int x) => throw null;
             verifier.VerifyMethodBody("C.IncrementDirectionField", expressionIL);
         }
 
+        [Fact]
+        public void RefSwitchStatement_RefEscapeWithStackalloc()
+        {
+            string source =
+                $$"""
+                using System;
+
+                public class C
+                {
+                    public unsafe ref int M(Axis axis, int index)
+                    {
+                        const int size = 5;
+                        Span<int> x = stackalloc int[size];
+                        Span<int> y = stackalloc int[size];
+                
+                        return ref axis switch
+                        {
+                            Axis.X => ref x[index],
+                            Axis.Y => ref y[index],
+                        };
+                    }
+                }
+
+                public enum Axis
+                {
+                    X,
+                    Y,
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (11,25): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Axis)2' is not covered.
+                //         return ref axis switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Axis)2").WithLocation(11, 25),
+                // (13,27): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+                //             Axis.X => ref x[index],
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(13, 27),
+                // (14,27): warning CS9080: Use of variable 'y' in this context may expose referenced variables outside of their declaration scope
+                //             Axis.Y => ref y[index],
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("y").WithLocation(14, 27)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchStatement_RefOverScopedVariables()
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public unsafe ref int M(Direction direction, ref int input)
+                    {
+                        input = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                            _ => throw null!,
+                        };
+                
+                        int outer = 10;
+                        input = ref outer;
+                        {
+                            int inner = 10;
+                            input = ref inner;
+                        }
+
+                        return ref input;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (20,9): warning CS9085: This ref-assigns 'outer' to 'input' but 'outer' has a narrower escape scope than 'input'.
+                //         input = ref outer;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "input = ref outer").WithArguments("input", "outer").WithLocation(20, 9),
+                // (23,13): warning CS9085: This ref-assigns 'inner' to 'input' but 'inner' has a narrower escape scope than 'input'.
+                //             input = ref inner;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "input = ref inner").WithArguments("input", "inner").WithLocation(23, 13)
+                );
+        }
+
         #endregion
     }
 }
