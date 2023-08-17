@@ -77,6 +77,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "property getter" => CSharpFeaturesResources.property_getter,
                 "property setter" => CSharpFeaturesResources.property_setter,
                 "auto-property" => FeaturesResources.auto_property,
+                "event" => FeaturesResources.event_,
+                "event field" => CSharpFeaturesResources.event_field,
                 "indexer" => CSharpFeaturesResources.indexer,
                 "indexer getter" => CSharpFeaturesResources.indexer_getter,
                 "indexer setter" => CSharpFeaturesResources.indexer_setter,
