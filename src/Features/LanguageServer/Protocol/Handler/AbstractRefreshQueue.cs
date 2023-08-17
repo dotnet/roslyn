@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _notificationManager = notificationManager;
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             if (_refreshQueue is null && GetRefreshSupport(clientCapabilities) is true)
             {

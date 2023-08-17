@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -17,10 +18,16 @@ using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticRep
 
 internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>, IOnInitialized
 {
-    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
+        // Dynamically register a non-local document diagnostic source if Full solution background analysis is enabled
+        // for analyzer execution. This diagnostic source reports diagnostics in open documents that are reported
+        // when analyzing other documents or at compilation end.
+        if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true && IsFsaEnabled())
         {
+            // TODO: Hookup an option changed handler for changes to BackgroundAnalysisScopeOption
+            //       to dynamically register/unregister the non-local document diagnostic source.
+
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams()
@@ -39,6 +46,17 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
                     }
                 },
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        bool IsFsaEnabled()
+        {
+            foreach (var language in context.SupportedLanguages)
+            {
+                if (GlobalOptions.GetBackgroundAnalysisScope(language) == BackgroundAnalysisScope.FullSolution)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

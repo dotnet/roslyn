@@ -4,11 +4,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface IOnInitialized
 {
-    Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+    Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken);
 }
