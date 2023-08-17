@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -974,26 +973,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown1").WithArguments("Unknown1").WithLocation(6, 25));
         }
 
+        private const string example_RefStructCollection = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(RefStructCollectionBuilder), nameof(RefStructCollectionBuilder.Create))]
+                ref struct RefStructCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                }
+                static class RefStructCollectionBuilder
+                {
+                    public static RefStructCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => default;
+                }
+                """;
+
+        private const string example_GenericClassCollection = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(GenericClassCollectionBuilder), nameof(GenericClassCollectionBuilder.Create))]
+                class GenericClassCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                }
+                static class GenericClassCollectionBuilder
+                {
+                    public static GenericClassCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+
+        private const string example_NonGenericClassCollection = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(NonGenericClassCollectionBuilder), nameof(NonGenericClassCollectionBuilder.Create))]
+                class NonGenericClassCollection
+                {
+                    public IEnumerator<object> GetEnumerator() => null;
+                }
+                static class NonGenericClassCollectionBuilder
+                {
+                    public static NonGenericClassCollection Create(ReadOnlySpan<object> items) => default;
+                }
+                """;
+
         [Theory]
         [InlineData("System.Span<T>", "T[]", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.IEnumerable<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.IReadOnlyCollection<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.IReadOnlyList<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.ICollection<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.IList<T>", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.HashSet<T>", "System.Span<System.Int32>")]
-        [InlineData("RefStructCollection<T>", "T[]", "RefStructCollection<System.Int32>")]
+        [InlineData("RefStructCollection<T>", "T[]", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection })]
+        [InlineData("RefStructCollection<int>", "GenericClassCollection<object>", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_GenericClassCollection })]
+        [InlineData("RefStructCollection<object>", "GenericClassCollection<int>", null, new[] { example_RefStructCollection, example_GenericClassCollection })] // cannot convert object to int
+        [InlineData("RefStructCollection<int>", "NonGenericClassCollection", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_NonGenericClassCollection })]
+        [InlineData("GenericClassCollection<T>", "T[]", null, new[] { example_GenericClassCollection })] // rule requires ref struct
+        [InlineData("NonGenericClassCollection", "object[]", null, new[] { example_NonGenericClassCollection })] // rule requires ref struct
         [InlineData("System.ReadOnlySpan<T>", "object[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "long[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "short[]", null)] // cannot convert int to short
-        [InlineData("System.ReadOnlySpan<object>", "T[]", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<long>", "T[]", null)] // cannot convert long to int
-        [InlineData("System.ReadOnlySpan<object>", "long[]", null)]
+        [InlineData("System.ReadOnlySpan<object>", "long[]", null)] // cannot convert object to long
         [InlineData("System.ReadOnlySpan<long>", "object[]", "System.ReadOnlySpan<System.Int64>")]
         [InlineData("System.ReadOnlySpan<T>", "System.Span<T>", "System.Span<System.Int32>")] // implicit conversion from Span<T> to ReadOnlySpan<T>
         [InlineData("System.ReadOnlySpan<T>", "System.Span<int>", "System.Span<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<object>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<object>
         [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<long>
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<object> and ReadOnlySpan<long>
-        public void BetterConversionFromExpression(string type1, string type2, string expectedType)
+        [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
+        [InlineData("int[]", "object[]", null)] // rule requires ref struct
+        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires ref struct
+        public void BetterConversionFromExpression_01(string type1, string type2, string expectedType, string[] additionalSources = null)
         {
-            string sourceA = $$"""
+            string source = $$"""
                 using System;
                 class Program
                 {
@@ -1010,22 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            string sourceB = """
-                using System;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(RefStructCollectionBuilder), nameof(RefStructCollectionBuilder.Create))]
-                ref struct RefStructCollection<T>
-                {
-                    public IEnumerator<T> GetEnumerator() => null;
-                }
-                static class RefStructCollectionBuilder
-                {
-                    public static RefStructCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => default;
-                }
-                """;
             var comp = CreateCompilation(
-                new[] { sourceA, sourceB, s_collectionExtensions, CollectionBuilderAttributeDefinition },
+                getSources(source, additionalSources),
                 targetFramework: TargetFramework.Net80,
                 options: TestOptions.ReleaseExe);
             if (expectedType is { })
@@ -1054,6 +1096,142 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             static string generateMethodSignature(string methodName, string parameterType) =>
                 $"Program.{methodName}{getTypeParameters(parameterType)}({parameterType})";
+
+            static string[] getSources(string source, string[] additionalSources)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                builder.Add(source);
+                builder.Add(s_collectionExtensions);
+                builder.Add(CollectionBuilderAttributeDefinition);
+                if (additionalSources is { }) builder.AddRange(additionalSources);
+                return builder.ToArrayAndFree();
+            }
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_02()
+        {
+            string sourceA = """
+                using System;
+                using static System.Console;
+
+                partial class Program
+                {
+                    static void Generic<T>(Span<T> value) { WriteLine("Span<T>"); }
+                    static void Generic<T>(T[] value)     { WriteLine("T[]"); }
+
+                    static void Identical(Span<string> value) { WriteLine("Span<string>"); }
+                    static void Identical(string[] value)     { WriteLine("string[]"); }
+
+                    static void SpanDerived(Span<string> value) { WriteLine("Span<string>"); }
+                    static void SpanDerived(object[] value)     { WriteLine("object[]"); }
+
+                    static void ArrayDerived(Span<object> value) { WriteLine("Span<object>"); }
+                    static void ArrayDerived(string[] value)     { WriteLine("string[]"); }
+                }
+                """;
+
+            string sourceB1 = """
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        Generic(new[] { string.Empty }); // Generic(T[])
+                        Identical(new[] { string.Empty }); // Identical(string[])
+                        ArrayDerived(new[] { string.Empty }); // ArrayDerived(string[])
+
+                        Generic([string.Empty]); // Generic(Span<T>)
+                        Identical([string.Empty]); // Identical(Span<string>)
+                        SpanDerived([string.Empty]); // SpanDerived(Span<string>)
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB1 },
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+                T[]
+                string[]
+                string[]
+                Span<T>
+                Span<string>
+                Span<string>
+                """));
+
+            string sourceB2 = """
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        SpanDerived(new[] { string.Empty }); // ambiguous
+                        ArrayDerived([string.Empty]); // ambiguous
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
+                //         SpanDerived(new[] { string.Empty }); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "SpanDerived").WithArguments("Program.SpanDerived(System.Span<string>)", "Program.SpanDerived(object[])").WithLocation(5, 9),
+                // 1.cs(6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.ArrayDerived(Span<object>)' and 'Program.ArrayDerived(string[])'
+                //         ArrayDerived([string.Empty]); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "ArrayDerived").WithArguments("Program.ArrayDerived(System.Span<object>)", "Program.ArrayDerived(string[])").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_03()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F1(int[] x, int[] y) { throw null; }
+                    static void F1(Span<object> x, ReadOnlySpan<int> y) { }
+                    static void F2(object x, string[] y) { throw null; }
+                    static void F2(string x, Span<object> y) { }
+                    static void Main()
+                    {
+                        F1([1], [2]);
+                        F2("3", ["4"]);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(""));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_04()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F1(Span<int> x, int[] y) { throw null; }
+                    static void F1(int[] x, ReadOnlySpan<int> y) { }
+                    static void F2(string x, string[] y) { throw null; }
+                    static void F2(object x, Span<string> y) { }
+                    static void Main()
+                    {
+                        F1([1], [2]);
+                        F2("3", ["4"]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(Span<int>, int[])' and 'Program.F1(int[], ReadOnlySpan<int>)'
+                //         F1([1], [2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(System.Span<int>, int[])", "Program.F1(int[], System.ReadOnlySpan<int>)").WithLocation(10, 9),
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(string, string[])' and 'Program.F2(object, Span<string>)'
+                //         F2("3", ["4"]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(string, string[])", "Program.F2(object, System.Span<string>)").WithLocation(11, 9));
         }
 
         [Fact]

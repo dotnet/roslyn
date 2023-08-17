@@ -2542,17 +2542,13 @@ outerDefault:
                 switch (t1.IsRefLikeType, t2.IsRefLikeType)
                 {
                     case (false, true):
-                        if (Conversions.ClassifyImplicitConversionFromType(e2.Type, e1.Type, ref useSiteInfo).IsImplicit)
-                        {
-                            return BetterResult.Right;
-                        }
-                        break;
+                        return Conversions.ClassifyImplicitConversionFromType(e2.Type, e1.Type, ref useSiteInfo).IsImplicit ?
+                            BetterResult.Right :
+                            BetterResult.Neither;
                     case (true, false):
-                        if (Conversions.ClassifyImplicitConversionFromType(e1.Type, e2.Type, ref useSiteInfo).IsImplicit)
-                        {
-                            return BetterResult.Left;
-                        }
-                        break;
+                        return Conversions.ClassifyImplicitConversionFromType(e1.Type, e2.Type, ref useSiteInfo).IsImplicit ?
+                            BetterResult.Left :
+                            BetterResult.Neither;
                 }
             }
 
