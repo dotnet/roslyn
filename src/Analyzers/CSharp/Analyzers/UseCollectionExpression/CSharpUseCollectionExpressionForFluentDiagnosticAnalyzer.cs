@@ -82,7 +82,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
         }
 
-        if (!AnalyzeExpression(semanticModel, invocation))
+        if (!AnalyzeExpression(semanticModel, invocation, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -99,22 +99,26 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// Analyzes an expression looking for one of the form <c>CollectionCreation</c>, followed by some number of 
     /// <c>.Add(...)/.AddRange(...)</c> or <c>.ToXXX()</c> calls
     /// </summary>
-    private static bool AnalyzeExpression(SemanticModel semanticModel, InvocationExpressionSyntax invocation)
+    private static bool AnalyzeExpression(SemanticModel semanticModel, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
     {
-        if (!AnalyzeExpressionRecursive(semanticModel, invocation))
+        if (!AnalyzeExpressionRecursive(semanticModel, invocation, cancellationToken))
             return false;
 
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
             return false;
 
         return true;
     }
 
-    private static bool AnalyzeExpressionRecursive(SemanticModel semanticModel, InvocationExpressionSyntax invocation)
+    private static bool AnalyzeExpressionRecursive(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        CancellationToken cancellationToken)
     {
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
             return false;
 
+        // Topmost invocation must be a syntactic match for one of our collection manipulation forms.
         if (!IsSyntacticMatch(memberAccess, invocation))
             return false;
 
@@ -123,6 +127,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         while (stack.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
