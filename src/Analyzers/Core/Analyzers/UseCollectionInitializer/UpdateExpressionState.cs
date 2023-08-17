@@ -123,16 +123,15 @@ internal readonly struct UpdateExpressionState<
     /// <summary>
     /// Analyze an expression statement to see if it is a legal call of the form <c>val.Add(...)</c>.
     /// </summary>
-    public bool TryAnalyzeAddInvocation<TExpressionStatementSyntax>(
-        TExpressionStatementSyntax statement,
+    public bool TryAnalyzeAddInvocation(
+        TExpressionSyntax invocationExpression,
         string? requiredArgumentName,
         bool forCollectionExpression,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance)
-        where TExpressionStatementSyntax : TStatementSyntax
     {
         if (!TryAnalyzeInvocation(
-                statement,
+                invocationExpression,
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
                 requiredArgumentName,
                 cancellationToken,
@@ -153,17 +152,16 @@ internal readonly struct UpdateExpressionState<
     /// <summary>
     /// Analyze an expression statement to see if it is a legal call of the form <c>val.AddRange(...)</c>.
     /// </summary>
-    public bool TryAnalyzeAddRangeInvocation<TExpressionStatementSyntax>(
-        TExpressionStatementSyntax statement,
+    public bool TryAnalyzeAddRangeInvocation(
+        TExpressionSyntax invocationExpression,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
         out bool useSpread)
-        where TExpressionStatementSyntax : TStatementSyntax
     {
         useSpread = false;
         if (!TryAnalyzeInvocation(
-                statement,
+                invocationExpression,
                 AddRangeName,
                 requiredArgumentName,
                 cancellationToken,
@@ -215,22 +213,17 @@ internal readonly struct UpdateExpressionState<
         return true;
     }
 
-    private bool TryAnalyzeInvocation<TExpressionStatementSyntax>(
-        TExpressionStatementSyntax statement,
+    private bool TryAnalyzeInvocation(
+        TExpressionSyntax invocationExpression,
         string addName,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
         out SeparatedSyntaxList<SyntaxNode> arguments)
-        where TExpressionStatementSyntax : TStatementSyntax
     {
         arguments = default;
         instance = null;
 
-        if (!this.SyntaxFacts.IsExpressionStatement(statement))
-            return false;
-
-        var invocationExpression = this.SyntaxFacts.GetExpressionOfExpressionStatement(statement);
         if (!this.SyntaxFacts.IsInvocationExpression(invocationExpression))
             return false;
 
@@ -312,9 +305,11 @@ internal readonly struct UpdateExpressionState<
 
         Match<TStatementSyntax>? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
         {
+            var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
+
             // Look for a call to Add or AddRange
             if (@this.TryAnalyzeAddInvocation(
-                    expressionStatement,
+                    expression,
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -325,7 +320,7 @@ internal readonly struct UpdateExpressionState<
             }
 
             if (@this.TryAnalyzeAddRangeInvocation(
-                    expressionStatement,
+                    expression,
                     requiredArgumentName: null,
                     cancellationToken,
                     out instance,
@@ -349,9 +344,10 @@ internal readonly struct UpdateExpressionState<
             //
             // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
             // being added to `dest`.
-            if (foreachStatements.ToImmutableArray() is [TStatementSyntax childExpressionStatement] &&
+            if (foreachStatements.ToImmutableArray() is [TStatementSyntax childStatement] &&
+                @this.SyntaxFacts.IsExpressionStatement(childStatement) &&
                 @this.TryAnalyzeAddInvocation(
-                    childExpressionStatement,
+                    (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(childStatement),
                     requiredArgumentName: identifier.Text,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -383,8 +379,9 @@ internal readonly struct UpdateExpressionState<
             var whenTrueStatements = whenTrue.ToImmutableArray();
 
             if (whenTrueStatements is [TStatementSyntax trueChildStatement] &&
+                @this.SyntaxFacts.IsExpressionStatement(trueChildStatement) &&
                 @this.TryAnalyzeAddInvocation(
-                    trueChildStatement,
+                    (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(trueChildStatement),
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
@@ -399,8 +396,9 @@ internal readonly struct UpdateExpressionState<
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();
                 if (whenFalseStatements is [TStatementSyntax falseChildStatement] &&
+                    @this.SyntaxFacts.IsExpressionStatement(falseChildStatement) &&
                     @this.TryAnalyzeAddInvocation(
-                        falseChildStatement,
+                        (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(falseChildStatement),
                         requiredArgumentName: null,
                         forCollectionExpression: true,
                         cancellationToken,
