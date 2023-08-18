@@ -869,7 +869,7 @@ public class UseCollectionExpressionForFluentTests
                 
                 class C
                 {
-                    void M(int[] x)
+                    void M(int x)
                     {
                         List<int> list = [1, 2, 3, x];
                     }
