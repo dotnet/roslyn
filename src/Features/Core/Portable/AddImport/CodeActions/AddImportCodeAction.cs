@@ -47,9 +47,9 @@ internal abstract class AddImportCodeAction : CodeAction
         FixData = fixData;
 
         Title = fixData.Title;
-        Tags = fixData.Tags.AddRange(additionalTags);
+        Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
         _priority = fixData.Priority;
-        _textChanges = fixData.TextChanges;
+        _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
 
         // Backdoor that allows this provider to use the high-priority bucket.
         this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
