@@ -30,16 +30,14 @@ object DebugBuild : BuildType({
     artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/AssemblyLocator/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTime/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTimeTroubleshooting/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CrashReports/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Extract/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/ExtractExceptions/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Logs/**/*=>logs"
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
     }
 
     steps {
-        // Step to kill all dotnet or VBCSCompiler processes that might be locking files we delete in during cleanup.
         powerShell {
             name = "Kill background processes before cleanup"
             scriptMode = file {
@@ -49,7 +47,7 @@ object DebugBuild : BuildType({
             param("jetbrains_powershell_scriptArguments", "tools kill")
         }
         powerShell {
-            name = "Build [Debug]"
+            name = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
@@ -83,29 +81,24 @@ object DebugBuild : BuildType({
     }
 
     triggers {
-
         vcs {
             watchChangesInDependencies = true
             branchFilter = "+:<default>"
             // Build will not trigger automatically if the commit message contains comment value.
             triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
-        }        
-
+        }
     }
 
     dependencies {
-
         dependency(AbsoluteId("Metalama_Metalama20231_MetalamaBackstage_DebugBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
 
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
             }
-
         }
 
      }
@@ -119,16 +112,14 @@ object ReleaseBuild : BuildType({
     artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/AssemblyLocator/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTime/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTimeTroubleshooting/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CrashReports/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Extract/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/ExtractExceptions/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Logs/**/*=>logs"
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
     }
 
     steps {
-        // Step to kill all dotnet or VBCSCompiler processes that might be locking files we delete in during cleanup.
         powerShell {
             name = "Kill background processes before cleanup"
             scriptMode = file {
@@ -138,7 +129,7 @@ object ReleaseBuild : BuildType({
             param("jetbrains_powershell_scriptArguments", "tools kill")
         }
         powerShell {
-            name = "Build [Release]"
+            name = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
@@ -172,18 +163,15 @@ object ReleaseBuild : BuildType({
     }
 
     dependencies {
-
         dependency(AbsoluteId("Metalama_Metalama20231_MetalamaBackstage_ReleaseBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
 
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
             }
-
         }
 
      }
@@ -197,16 +185,14 @@ object PublicBuild : BuildType({
     artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/AssemblyLocator/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTime/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CompileTimeTroubleshooting/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/CrashReports/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Extract/**/.completed=>logs\n+:%system.teamcity.build.tempDir%/Metalama/ExtractExceptions/**/*=>logs\n+:%system.teamcity.build.tempDir%/Metalama/Logs/**/*=>logs"
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
     }
 
     steps {
-        // Step to kill all dotnet or VBCSCompiler processes that might be locking files we delete in during cleanup.
         powerShell {
             name = "Kill background processes before cleanup"
             scriptMode = file {
@@ -216,7 +202,7 @@ object PublicBuild : BuildType({
             param("jetbrains_powershell_scriptArguments", "tools kill")
         }
         powerShell {
-            name = "Build [Public]"
+            name = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
@@ -250,18 +236,15 @@ object PublicBuild : BuildType({
     }
 
     dependencies {
-
         dependency(AbsoluteId("Metalama_Metalama20231_MetalamaBackstage_PublicBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
 
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
             }
-
         }
 
      }
@@ -275,9 +258,8 @@ object PublicDeployment : BuildType({
     type = Type.DEPLOYMENT
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("PublishArguments", "", label = "Publish Arguments", description = "Arguments to append to the 'Publish' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
@@ -285,12 +267,12 @@ object PublicDeployment : BuildType({
 
     steps {
         powerShell {
-            name = "Deploy [Public]"
+            name = "Publish"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "publish --configuration Public %BuildArguments%")
+            param("jetbrains_powershell_scriptArguments", "publish --configuration Public %PublishArguments%")
         }
     }
 
@@ -319,39 +301,30 @@ object PublicDeployment : BuildType({
     }
 
     dependencies {
-
         dependency(AbsoluteId("Metalama_Metalama20231_MetalamaBackstage_PublicBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
 
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
             }
-
         }
-
         dependency(AbsoluteId("Metalama_Metalama20231_MetalamaBackstage_PublicDeployment")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
-
-
         }
-
         dependency(PublicBuild) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
 
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults"
             }
-
         }
 
      }
@@ -363,9 +336,8 @@ object VersionBump : BuildType({
     name = "Version Bump"
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("BumpArguments", "", label = "Bump Arguments", description = "Arguments to append to the 'Bump' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
@@ -373,12 +345,12 @@ object VersionBump : BuildType({
 
     steps {
         powerShell {
-            name = "Version Bump"
+            name = "Bump"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "bump %BuildArguments%")
+            param("jetbrains_powershell_scriptArguments", "bump %BumpArguments%")
         }
     }
 
@@ -413,9 +385,8 @@ object DownstreamMerge : BuildType({
     name = "Downstream Merge"
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the engineering command.", allowEmpty = true)
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.",
-              regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("DownstreamMergeArguments", "", label = "Merge downstream Arguments", description = "Arguments to append to the 'Merge downstream' build step.", allowEmpty = true)
+        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
     vcs {
         root(DslContext.settingsRoot)
@@ -423,12 +394,12 @@ object DownstreamMerge : BuildType({
 
     steps {
         powerShell {
-            name = "Downstream Merge"
+            name = "Merge downstream"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools git merge-downstream %BuildArguments%")
+            param("jetbrains_powershell_scriptArguments", "tools git merge-downstream %DownstreamMergeArguments%")
         }
     }
 
@@ -457,24 +428,19 @@ object DownstreamMerge : BuildType({
     }
 
     triggers {
-
         vcs {
             watchChangesInDependencies = true
             branchFilter = "+:<default>"
             // Build will not trigger automatically if the commit message contains comment value.
             triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
-        }        
-
+        }
     }
 
     dependencies {
-
         dependency(DebugBuild) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
-
-
         }
 
      }
