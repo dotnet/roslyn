@@ -2188,9 +2188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = argRefKindsOpt[argIndex];
                     }
                     if (refKind == RefKind.None &&
-                        parameter?.RefKind == RefKind.In)
+                        parameter?.RefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                     {
-                        refKind = RefKind.In;
+                        refKind = parameter.RefKind;
                     }
 
                     escapeArguments.Add(new EscapeArgument(parameter, argument, refKind));
@@ -4989,7 +4989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     return IsAnyReadOnly(addressKind) ||
-                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
+                        ((BoundParameter)expression).ParameterSymbol.RefKind is not (RefKind.In or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly
@@ -5023,7 +5023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     var lhsRefKind = assignment.Left.GetRefKind();
                     return lhsRefKind == RefKind.Ref ||
-                        (IsAnyReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
+                        (IsAnyReadOnly(addressKind) && lhsRefKind is RefKind.RefReadOnly or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(

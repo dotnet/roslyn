@@ -179,7 +179,7 @@ internal sealed class LanguageServerProjectSystem
                 tasks.Add(Task.Run(async () =>
                 {
                     var errorKind = await LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken);
-                    if (errorKind is not null)
+                    if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
                         var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, value: 1, comparand: 0) == 0;

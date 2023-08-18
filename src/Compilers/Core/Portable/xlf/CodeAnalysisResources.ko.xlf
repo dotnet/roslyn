@@ -89,11 +89,6 @@
         <target state="translated">hintName '{0}'의 위치 {2}에 잘못된 세그먼트 '{1}'이(가) 있습니다.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotWithinCurrentDirectory">
-        <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="translated">hintName '{0}'이(가) 현재 디렉터리에 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">추가된 원본 파일의 hintName ‘{0}’은(는) 생성기 내에서 고유해야 합니다.</target>

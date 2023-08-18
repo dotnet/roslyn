@@ -51,6 +51,9 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
+        if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
+            return false;
+
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
         // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
         // but it's possible we'll end up with different types at runtime that may cause problems.
@@ -97,6 +100,65 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         return true;
+
+        bool IsConstructibleCollectionType(ITypeSymbol type)
+        {
+            // Arrays are always a valid collection expression type.
+            if (type is IArrayTypeSymbol)
+                return true;
+
+            // Has to be a real named type at this point.
+            if (type is INamedTypeSymbol namedType)
+            {
+                // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
+                if (namedType.Equals(compilation.SpanOfTType()) || namedType.Equals(compilation.ReadOnlySpanOfTType()))
+                    return true;
+
+                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+                var collectionBuilderType = compilation.CollectionBuilderAttribute();
+                if (namedType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+                    return true;
+
+                // At this point, all that is left are collection-initializer types.  These need to derive from
+                // System.Collections.IEnumerable, and have an invokable no-arg constructor.
+
+                // Abstract type don't have invokable constructors at all.
+                if (namedType.IsAbstract)
+                    return false;
+
+                if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
+                {
+                    // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
+                    var constructors = namedType.Constructors;
+                    var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                    if (capacityConstructor != null)
+                        return true;
+
+                    var noArgConstructor =
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                    if (noArgConstructor != null)
+                    {
+                        // If we have a struct, and the constructor we find is implicitly declared, don't consider this
+                        // a constructible type.  It's likely the user would just get the `default` instance of the
+                        // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
+                        // does have an explicit constructor though, that's a good sign it can actually be constructed
+                        // safely with the no-arg `new S()` call.
+                        if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
+                            return true;
+                    }
+                }
+            }
+
+            // Anything else is not constructible.
+            return false;
+        }
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
+        }
     }
 
     private static bool IsInTargetTypedLocation(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
@@ -296,7 +358,7 @@ internal static class UseCollectionExpressionHelpers
         return false;
     }
 
-    public static ImmutableArray<CollectionExpressionMatch> TryGetMatches<TArrayCreationExpressionSyntax>(
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
@@ -310,7 +372,7 @@ internal static class UseCollectionExpressionHelpers
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
             return default;
 
-        using var _ = ArrayBuilder<CollectionExpressionMatch>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<CollectionExpressionMatch<StatementSyntax>>.GetInstance(out var matches);
 
         var initializer = getInitializer(expression);
         if (size is OmittedArraySizeExpressionSyntax)

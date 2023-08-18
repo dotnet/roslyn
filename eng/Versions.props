@@ -15,13 +15,13 @@
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
-    <MicrosoftNetCompilersToolsetVersion>4.7.0-3.23329.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>4.8.0-1.23408.8</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.23364.2</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23364.2</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23357.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>

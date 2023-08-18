@@ -141,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? IAsyncEnumeratorOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
 
+        public static INamedTypeSymbol? ImmutableArrayOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
+
         public static INamedTypeSymbol? SerializableAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
 
@@ -185,6 +188,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? OnSerializedAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
+
+        public static INamedTypeSymbol? CollectionBuilderAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.CollectionBuilderAttribute");
 
         public static INamedTypeSymbol? ComRegisterFunctionAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);

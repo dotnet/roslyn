@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // an initializer, we know we've assigned to the member and
                 // have given any applicable warnings about a bad value going in.
                 // Therefore we skip this check when the member has an initializer to reduce noise.
-                if (HasInitializer(member))
+                if (HasInitializer(member) && constructor.IncludeFieldInitializersInBody())
                 {
                     return;
                 }
@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AreParameterAnnotationsCompatible(RefKind.Out, overriddenType, overriddenAnnotations, overridingType, overridingAnnotations);
             }
 
-            if (refKind == RefKind.None || refKind == RefKind.In)
+            if (refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
             {
                 // pre-condition attributes
                 // Check whether we can assign a value from overridden parameter to overriding
@@ -6682,6 +6682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As far as we can tell, there is no scenario relevant to nullability analysis
                     // where splitting an L-value (for instance with a ref conditional) would affect the result.
                     Visit(argument);
+                    Unsplit();
 
                     // We'll want to use the l-value type, rather than the result type, for method re-inference
                     UseLvalueOnly(argument);
@@ -10148,6 +10149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
                 Debug.Assert(node.HasErrors);
                 VisitRvalue(node.Expression);
+                Visit(node.AwaitOpt);
                 return;
             }
 

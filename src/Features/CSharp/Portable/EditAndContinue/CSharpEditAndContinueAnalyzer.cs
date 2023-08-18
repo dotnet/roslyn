@@ -983,9 +983,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 || ((BaseTypeDeclarationSyntax)syntaxRefs.Single().GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword);
         }
 
-        protected override SyntaxNode GetSymbolDeclarationSyntax(ISymbol symbol, Func<ImmutableArray<SyntaxReference>, SyntaxReference> selector, CancellationToken cancellationToken)
+        protected override SyntaxNode? GetSymbolDeclarationSyntax(ISymbol symbol, Func<ImmutableArray<SyntaxReference>, SyntaxReference?> selector, CancellationToken cancellationToken)
         {
-            var syntax = selector(symbol.DeclaringSyntaxReferences).GetSyntax(cancellationToken);
+            // TODO: Workaround for https://github.com/dotnet/roslyn/issues/68510
+            // symbol.IsImplicitlyDeclared should only be true if symbol.DeclaringSyntaxReferences is non-empty
+
+            var syntax = symbol switch
+            {
+                IMethodSymbol
+                {
+                    IsImplicitlyDeclared: true,
+                    ContainingType.IsRecord: true,
+                    Name:
+                        WellKnownMemberNames.PrintMembersMethodName or
+                        WellKnownMemberNames.ObjectEquals or
+                        WellKnownMemberNames.ObjectGetHashCode or
+                        WellKnownMemberNames.ObjectToString or
+                        WellKnownMemberNames.DeconstructMethodName
+                } => null,
+                _ => selector(symbol.DeclaringSyntaxReferences)?.GetSyntax(cancellationToken)
+            };
 
             // Use the parameter list to represent primary constructor declaration.
             return symbol.Kind == SymbolKind.Method && syntax is TypeDeclarationSyntax { ParameterList: { } parameterList } ? parameterList : syntax;
@@ -1805,6 +1822,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ => base.GetDisplayName(symbol)
             };
 
+        internal override string GetDisplayName(IEventSymbol symbol)
+            => symbol.AddMethod?.IsImplicitlyDeclared != false ? CSharpFeaturesResources.event_field : base.GetDisplayName(symbol);
+
         internal override string GetDisplayName(IPropertySymbol symbol)
             => symbol.IsIndexer ? CSharpFeaturesResources.indexer : base.GetDisplayName(symbol);
 
@@ -1817,6 +1837,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 MethodKind.Destructor => CSharpFeaturesResources.destructor,
                 MethodKind.Conversion => CSharpFeaturesResources.conversion_operator,
                 MethodKind.LocalFunction => FeaturesResources.local_function,
+                MethodKind.LambdaMethod => CSharpFeaturesResources.lambda,
+                MethodKind.Ordinary when symbol.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName => CSharpFeaturesResources.top_level_code,
                 _ => base.GetDisplayName(symbol)
             };
 
@@ -2553,7 +2575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
-        internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal override void ReportStateMachineSuspensionPointRudeEdits(DiagnosticContext diagnosticContext, SyntaxNode oldNode, SyntaxNode newNode)
         {
             if (newNode.IsKind(SyntaxKind.AwaitExpression) && oldNode.IsKind(SyntaxKind.AwaitExpression))
             {
@@ -2564,79 +2586,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (!SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) &&
                     !HasNoSpilledState(newNode, newContainingStatementPart))
                 {
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span));
+                    diagnosticContext.Report(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span);
                 }
             }
-        }
-
-        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
-        {
-            // Handle deletion of await keyword from await foreach statement.
-            if (deletedSuspensionPoint is CommonForEachStatementSyntax deletedForeachStatement &&
-                match.Matches.TryGetValue(deletedSuspensionPoint, out var newForEachStatement) &&
-                newForEachStatement is CommonForEachStatementSyntax &&
-                deletedForeachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.ChangingFromAsynchronousToSynchronous,
-                    GetDiagnosticSpan(newForEachStatement, EditKind.Update),
-                    newForEachStatement,
-                    new[] { GetDisplayName(newForEachStatement, EditKind.Update) }));
-
-                return;
-            }
-
-            // Handle deletion of await keyword from await using declaration.
-            if (deletedSuspensionPoint.IsKind(SyntaxKind.VariableDeclarator) &&
-                match.Matches.TryGetValue(deletedSuspensionPoint.Parent!.Parent!, out var newLocalDeclaration) &&
-                !((LocalDeclarationStatementSyntax)newLocalDeclaration).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.ChangingFromAsynchronousToSynchronous,
-                        GetDiagnosticSpan(newLocalDeclaration, EditKind.Update),
-                        newLocalDeclaration,
-                        new[] { GetDisplayName(newLocalDeclaration, EditKind.Update) }));
-
-                return;
-            }
-
-            base.ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedSuspensionPoint);
-        }
-
-        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
-        {
-            // Handle addition of await keyword to foreach statement.
-            if (insertedSuspensionPoint is CommonForEachStatementSyntax insertedForEachStatement &&
-                match.ReverseMatches.TryGetValue(insertedSuspensionPoint, out var oldNode) &&
-                oldNode is CommonForEachStatementSyntax oldForEachStatement &&
-                !oldForEachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.Insert,
-                    insertedForEachStatement.AwaitKeyword.Span,
-                    insertedForEachStatement,
-                    new[] { insertedForEachStatement.AwaitKeyword.ToString() }));
-
-                return;
-            }
-
-            // Handle addition of using keyword to using declaration.
-            if (insertedSuspensionPoint.IsKind(SyntaxKind.VariableDeclarator) &&
-                match.ReverseMatches.TryGetValue(insertedSuspensionPoint.Parent!.Parent!, out var oldLocalDeclaration) &&
-                !((LocalDeclarationStatementSyntax)oldLocalDeclaration).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                var newLocalDeclaration = (LocalDeclarationStatementSyntax)insertedSuspensionPoint!.Parent!.Parent!;
-
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.Insert,
-                    newLocalDeclaration.AwaitKeyword.Span,
-                    newLocalDeclaration,
-                    new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
-
-                return;
-            }
-
-            base.ReportStateMachineSuspensionPointInsertedRudeEdit(diagnostics, match, insertedSuspensionPoint, aroundActiveStatement);
         }
 
         private static SyntaxNode FindContainingStatementPart(SyntaxNode node)

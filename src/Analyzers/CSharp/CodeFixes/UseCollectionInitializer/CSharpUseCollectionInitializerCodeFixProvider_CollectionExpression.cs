@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 document,
                 fallbackOptions,
                 objectCreation,
-                matches.SelectAsArray(m => new CollectionExpressionMatch(m.Statement, m.UseSpread)),
+                matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
                 static objectCreation => objectCreation.Initializer,
                 static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
                 cancellationToken);

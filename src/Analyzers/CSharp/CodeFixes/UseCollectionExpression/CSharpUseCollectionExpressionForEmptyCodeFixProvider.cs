@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForEmpty), Shared]
-internal partial class CSharpUseCollectionExpressionForEmptyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    private static readonly CollectionExpressionSyntax EmptyCollection = CollectionExpression();
+    private static readonly CollectionExpressionSyntax s_emptyCollection = CollectionExpression();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,7 +57,7 @@ internal partial class CSharpUseCollectionExpressionForEmptyCodeFixProvider : Sy
             var expression = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             editor.ReplaceNode(
                 expression,
-                (current, _) => EmptyCollection.WithTriviaFrom(current));
+                (current, _) => s_emptyCollection.WithTriviaFrom(current));
         }
 
         return;

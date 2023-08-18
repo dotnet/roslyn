@@ -10843,12 +10843,12 @@ class Program
                 // (6,35): warning CS0168: The variable 'r' is declared but never used
                 //         var f1 = (scoped scoped R r) => { };
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(6, 35),
-                // (6,36): error CS1002: ; expected
+                // (6,36): error CS1003: Syntax error, ',' expected
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 36),
-                // (6,36): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 36),
+                // (6,41): error CS1002: ; expected
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 36),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
                 // (7,19): error CS1525: Invalid expression term 'ref'
                 //         var f2 = (ref scoped scoped R r) => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(7, 19),
@@ -10867,12 +10867,12 @@ class Program
                 // (7,39): warning CS0168: The variable 'r' is declared but never used
                 //         var f2 = (ref scoped scoped R r) => { };
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(7, 39),
-                // (7,40): error CS1002: ; expected
+                // (7,40): error CS1003: Syntax error, ',' expected
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(7, 40),
-                // (7,40): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(7, 40),
+                // (7,45): error CS1002: ; expected
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(7, 40),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(7, 45),
                 // (8,19): error CS0103: The name 'scoped' does not exist in the current context
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -10891,13 +10891,12 @@ class Program
                 // (8,39): warning CS0168: The variable 'r' is declared but never used
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(8, 39),
-                // (8,40): error CS1002: ; expected
+                // (8,40): error CS1003: Syntax error, ',' expected
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 40),
-                // (8,40): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(8, 40),
+                // (8,45): error CS1002: ; expected
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 40)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 45));
         }
 
         [Fact]
@@ -16884,7 +16883,7 @@ class B2 : A<string>
 
         [CombinatorialData]
         [Theory]
-        public void Overrides_02(bool useCompilationReference)
+        public void Overrides_02(bool useCompilationReference, [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var sourceA =
 @"public abstract class A<T>
@@ -16893,8 +16892,8 @@ class B2 : A<string>
     public abstract ref T F2(scoped out T t);
     public abstract ref T F3(ref T t);
     public abstract ref T F4(scoped ref T t);
-    public abstract ref T F5(in T t);
-    public abstract ref T F6(scoped in T t);
+    public abstract ref T F5(" + modifier + @" T t);
+    public abstract ref T F6(scoped " + modifier + @" T t);
 }";
             var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -16907,8 +16906,8 @@ class B2 : A<string>
     public override ref int F2(scoped out int i) => throw null;
     public override ref int F3(ref int i) => throw null;
     public override ref int F4(scoped ref int i) => throw null;
-    public override ref int F5(in int i) => throw null;
-    public override ref int F6(scoped in int i) => throw null;
+    public override ref int F5(" + modifier + @" int i) => throw null;
+    public override ref int F6(scoped " + modifier + @" int i) => throw null;
 }
 class B2 : A<string>
 {
@@ -16916,8 +16915,8 @@ class B2 : A<string>
     public override ref string F2(out string s) => throw null;
     public override ref string F3(scoped ref string s) => throw null;
     public override ref string F4(ref string s) => throw null; // 1
-    public override ref string F5(scoped in string s) => throw null;
-    public override ref string F6(in string s) => throw null; // 2
+    public override ref string F5(scoped " + modifier + @" string s) => throw null;
+    public override ref string F6(" + modifier + @" string s) => throw null; // 2
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
