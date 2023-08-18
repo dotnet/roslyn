@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -86,7 +87,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
 
         var analysisResult = AnalyzeInvocation(state, invocation, addMatches: true, cancellationToken);
-        if (analysisResult.IsDefault)
+        if (analysisResult is null)
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -103,28 +104,30 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// Analyzes an expression looking for one of the form <c>CollectionCreation</c>, followed by some number of 
     /// <c>.Add(...)/.AddRange(...)</c> or <c>.ToXXX()</c> calls
     /// </summary>
-    public static ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> AnalyzeInvocation(
+    public static AnalysisResult? AnalyzeInvocation(
         FluentState state,
         InvocationExpressionSyntax invocation,
         bool addMatches,
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>.GetInstance(out var matches);
-        if (!AnalyzeInvocation(state, invocation, addMatches ? matches : null, cancellationToken))
-            return default;
+        if (!AnalyzeInvocation(state, invocation, addMatches ? matches : null, out var existingInitializer, cancellationToken))
+            return null;
 
         if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
-            return default;
+            return null;
 
-        return matches.ToImmutable();
+        return new AnalysisResult(existingInitializer, invocation, matches.ToImmutable());
     }
 
     private static bool AnalyzeInvocation(
         FluentState state,
         InvocationExpressionSyntax invocation,
         ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
+        out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
+        existingInitializer = null;
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
             return false;
 
@@ -158,15 +161,13 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // always list-like this is safe to move over.
             if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer })
             {
-                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
-                // directly to the collection expression.
+                existingInitializer = initializer;
                 return true;
             }
 
             if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
             {
-                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
-                // directly to the collection expression.
+                existingInitializer = implicitArrayCreation.Initializer;
                 return true;
             }
 
@@ -185,8 +186,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
-                // directly to the collection expression.
+                existingInitializer = objectCreation.Initializer;
                 return true;
             }
 
@@ -296,4 +296,22 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return false;
         }
     }
+
+    /// <summary>
+    /// Result of analyzing a fluent chain of collection additions (<c>XXX.Create().Add(...).AddRange(...).ToYYY()</c>
+    /// expression to see if it can be replaced with a collection expression.
+    /// </summary>
+    /// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
+    /// expression.</param>
+    /// <param name="existingInitializer">Optional existing initializer (for example: <c>new[] { 1, 2, 3 }</c>). Used to
+    /// help determine the best collection expression final syntax.</param>
+    /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
+    /// replaced with the collection expression</param>
+    /// <param name="Matches">The statements that are mutating the builder that will be converted into elements in the final
+    /// collection expression.</param>
+    public readonly record struct AnalysisResult(
+        // Location DiagnosticLocation,
+        InitializerExpressionSyntax? existingInitializer,
+        InvocationExpressionSyntax CreationExpression,
+        ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> Matches);
 }
