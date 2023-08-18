@@ -127,7 +127,9 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
-        /// True if the type is a record.
+        /// For source symbols, true if the type is a record.
+        /// For metadata symbols, true if the type is a record and a reference type.
+        /// Note: returns false for record structs in metadata since they don't have any distinctive marker.
         /// </summary>
         bool IsRecord { get; }
 
