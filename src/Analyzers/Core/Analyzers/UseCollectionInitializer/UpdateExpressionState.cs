@@ -25,8 +25,10 @@ internal readonly struct UpdateExpressionState<
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
-    private const string AddRangeName = nameof(List<int>.AddRange);
-    private const string ConcatName = nameof(Enumerable.Concat);
+    private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames = ImmutableArray.Create(
+        (nameof(List<int>.AddRange), isLinq: false),
+        (nameof(Enumerable.Concat), isLinq: true),
+        (nameof(Enumerable.Append), isLinq: true));
 
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;
@@ -141,24 +143,15 @@ internal readonly struct UpdateExpressionState<
             return true;
         }
 
-        // Then a call to AddRange, taking 1-n args
-        if (this.TryAnalyzeMultiAddInvocation(
-                invocationExpression,
-                AddRangeName,
-                requiredArgumentName: null,
-                cancellationToken,
-                out instance,
-                out useSpread))
+        // Then a call to AddRange/Concat/Append, taking 1-n args
+        foreach (var (multiAddName, isLinq) in s_multiAddNames)
         {
-            return true;
-        }
+            if (isLinq && !allowLinq)
+                continue;
 
-        // Then a call to Concat, taking 1-n args
-        if (allowLinq)
-        {
             if (this.TryAnalyzeMultiAddInvocation(
                     invocationExpression,
-                    ConcatName,
+                    multiAddName,
                     requiredArgumentName: null,
                     cancellationToken,
                     out instance,
@@ -168,6 +161,7 @@ internal readonly struct UpdateExpressionState<
             }
         }
 
+        useSpread = false;
         return false;
     }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -837,6 +839,65 @@ public class UseCollectionExpressionForFluentTests
                     }
                 }
                 """ + singleArgConcat,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAppend1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int x)
+                    {
+                        List<int> list = new int[] { 1, 2, 3 }.Append(x).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> list = [1, 2, 3, x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotEndingWithAppend()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int x)
+                    {
+                        IEnumerable<int> list = new int[] { 1, 2, 3 }.Append(x);
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -1783,7 +1844,7 @@ public class UseCollectionExpressionForFluentTests
                 
                 class C
                 {
-                    void M()
+                    void M(int[] x)
                     {
                         List<int> list = [.. x];
                     }
@@ -1817,7 +1878,7 @@ public class UseCollectionExpressionForFluentTests
                 
                 class C
                 {
-                    void M()
+                    void M(int[] x, int[] y)
                     {
                         List<int> list = [.. x, .. y];
                     }
@@ -1836,6 +1897,7 @@ public class UseCollectionExpressionForFluentTests
             TestCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {
@@ -1848,6 +1910,7 @@ public class UseCollectionExpressionForFluentTests
             FixedCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {
@@ -1870,6 +1933,7 @@ public class UseCollectionExpressionForFluentTests
             TestCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {
@@ -1882,6 +1946,7 @@ public class UseCollectionExpressionForFluentTests
             FixedCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {
@@ -1904,6 +1969,7 @@ public class UseCollectionExpressionForFluentTests
             TestCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {
@@ -1916,6 +1982,7 @@ public class UseCollectionExpressionForFluentTests
             FixedCode = """
                 using System.Linq;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
                 
                 class C
                 {

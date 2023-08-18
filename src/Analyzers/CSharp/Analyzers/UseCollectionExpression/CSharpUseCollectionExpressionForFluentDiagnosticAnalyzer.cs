@@ -24,7 +24,8 @@ using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
-    private static readonly ImmutableArray<string> s_prefixes = ImmutableArray.Create("To");
+    private const string ToPrefix = "To";
+
     private static readonly ImmutableArray<string> s_suffixes = ImmutableArray.Create(
         nameof(Array),
         nameof(Span<int>),
@@ -145,8 +146,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
-            // left hand side of the expression.  In the inner expressions we can have things like `.Concat` calls as
-            // the outer expressions will realize the collection.
+            // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
+            // calls as the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
                 IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, cancellationToken))
             {
@@ -156,14 +157,20 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
             // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
             // always list-like this is safe to move over.
-            if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer } && IsLegalInitializer(initializer))
+            if (current is ArrayCreationExpressionSyntax { Initializer: var initializer } arrayCreation)
             {
+                if (initializer is null || !IsLegalInitializer(initializer))
+                    return false;
+
                 existingInitializer = initializer;
                 return true;
             }
 
-            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation && IsLegalInitializer(implicitArrayCreation.Initializer))
+            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
             {
+                if (!IsLegalInitializer(implicitArrayCreation.Initializer))
+                    return false;
+
                 existingInitializer = implicitArrayCreation.Initializer;
                 return true;
             }
@@ -174,12 +181,20 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return IsListLike(current);
 
             // `new X()` or `new X { a, b, c}` or `new X() { a, b, c }` are fine base cases.
-            if (current is ObjectCreationExpressionSyntax
-                {
-                    ArgumentList: null or { Arguments.Count: 0 },
-                    Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                } objectCreation && IsLegalInitializer(objectCreation.Initializer))
+            if (current is ObjectCreationExpressionSyntax objectCreation)
             {
+                if (objectCreation is not
+                    {
+                        ArgumentList: null or { Arguments.Count: 0 },
+                        Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
+                    })
+                {
+                    return false;
+                }
+
+                if (!IsLegalInitializer(objectCreation.Initializer))
+                    return false;
+
                 if (!IsListLike(current))
                     return false;
 
@@ -207,6 +222,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (IsIterable(current))
             {
                 matchesInReverse?.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(current), UseSpread: true));
+                return true;
             }
 
             // Something we didn't understand.
@@ -309,24 +325,24 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (invocation.ArgumentList.Arguments.Count > 0)
             return false;
 
-        return IsNameMatch(name);
+        return IsAnyNameMatch(name);
 
-        static bool IsNameMatch(string name)
+        static bool IsAnyNameMatch(string name)
         {
-            foreach (var prefix in s_prefixes)
-            {
-                if (name.StartsWith(prefix, StringComparison.Ordinal))
-                    return HasSuffix(name, prefix);
-            }
+            if (name == "AsSpan")
+                return true;
 
-            return false;
+            if (!name.StartsWith(ToPrefix, StringComparison.Ordinal))
+                return false;
+
+            return HasAnySuffix(name);
         }
 
-        static bool HasSuffix(string name, string prefix)
+        static bool HasAnySuffix(string name)
         {
             foreach (var suffix in s_suffixes)
             {
-                if (name.Length == (prefix.Length + suffix.Length) &&
+                if (name.Length == (ToPrefix.Length + suffix.Length) &&
                     name.EndsWith(suffix, StringComparison.Ordinal))
                 {
                     return true;
