@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -158,13 +159,13 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
             // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
             // always list-like this is safe to move over.
-            if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer })
+            if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer } && IsLegalInitializer(initializer))
             {
                 existingInitializer = initializer;
                 return true;
             }
 
-            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation && IsLegalInitializer(implicitArrayCreation.Initializer))
             {
                 existingInitializer = implicitArrayCreation.Initializer;
                 return true;
@@ -180,7 +181,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 {
                     ArgumentList: null or { Arguments.Count: 0 },
                     Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                } objectCreation)
+                } objectCreation && IsLegalInitializer(objectCreation.Initializer))
             {
                 if (!IsListLike(current))
                     return false;
@@ -236,6 +237,21 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             }
 
             return false;
+        }
+
+        static bool IsLegalInitializer(InitializerExpressionSyntax? initializer)
+        {
+            // We can't convert any initializer that contains an initializer in it.  For example `new SomeType() { { 1,
+            // 2, 3 } }`.  These become `.Add(1, 2, 3)` calls that collection expressions do not support.
+            if (initializer != null)
+            {
+                foreach (var expression in initializer.Expressions)
+                {
+                    if (expression is InitializerExpressionSyntax)
+                        return false;
+                }
+            }
+            return true;
         }
     }
 

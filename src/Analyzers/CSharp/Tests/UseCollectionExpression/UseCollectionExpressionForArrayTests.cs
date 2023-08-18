@@ -2644,7 +2644,7 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
-    public async Task TestGlobalStatement()
+    public async Task TestGlobalStatement1()
     {
         await new VerifyCS.Test
         {
@@ -2653,6 +2653,35 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 int[] i = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """,
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             TestState =

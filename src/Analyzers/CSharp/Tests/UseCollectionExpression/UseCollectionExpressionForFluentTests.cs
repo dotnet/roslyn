@@ -1146,6 +1146,57 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
+    public async Task TestNotWithInnerCollectionInitializer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        KeyValuePair<int, int>[] array = new Dictionary<int, int>()
+                        {
+                            { 1, 2 }
+                        }.ToArray();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnEmptyDictionary()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        KeyValuePair<int, int>[] array = new Dictionary<int, int>()
+                        {
+                        }.ToArray();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestEndsWithAdd1()
     {
         await new VerifyCS.Test
@@ -1569,7 +1620,7 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
-    public async Task TestGlobalStatement()
+    public async Task TestGlobalStatement1()
     {
         await new VerifyCS.Test
         {
@@ -1584,6 +1635,42 @@ public class UseCollectionExpressionForFluentTests
                 using System.Collections.Generic;
                 
                 List<int> list = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                ImmutableArray<int> list = ImmutableArray<int>.Empty.Add(1 +
+                    2).Add(3 +
+                    4).[|ToList|]();
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                ImmutableArray<int> list =
+                [
+                    1 +
+                        2,
+                    3 +
+                        4,
+                ];
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,

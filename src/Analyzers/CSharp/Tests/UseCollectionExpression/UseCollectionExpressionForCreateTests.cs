@@ -928,7 +928,7 @@ public class UseCollectionExpressionForCreateTests
     }
 
     [Fact]
-    public async Task TestGlobalstatement()
+    public async Task TestGlobalStatement1()
     {
         await new VerifyCS.Test
         {
@@ -937,6 +937,34 @@ public class UseCollectionExpressionForCreateTests
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
                 MyCollection<int> i = [];
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]1 +
+                    2, 3 +
+                    4);
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                MyCollection<int> i =
+                [
+                    1 +
+                        2,
+                    3 +
+                        4,
+                ];
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
