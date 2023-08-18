@@ -148,13 +148,15 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // always list-like this is safe to move over.
             if (current is ArrayCreationExpressionSyntax { Initializer: { } initializer })
             {
-                AddInitializerMatches(initializer);
+                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
+                // directly to the collection expression.
                 return true;
             }
 
             if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
             {
-                AddInitializerMatches(implicitArrayCreation.Initializer);
+                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
+                // directly to the collection expression.
                 return true;
             }
 
@@ -173,7 +175,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                AddInitializerMatches(objectCreation.Initializer);
+                // Don't need to anything from the initializer.  All the expressions in it will just be moved over
+                // directly to the collection expression.
                 return true;
             }
 
@@ -223,15 +226,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             }
 
             return false;
-        }
-
-        void AddInitializerMatches(InitializerExpressionSyntax? initializer)
-        {
-            if (initializer is null || matches is null)
-                return;
-
-            foreach (var expression in initializer.Expressions)
-                matches.Add(new(expression, UseSpread: false));
         }
     }
 
