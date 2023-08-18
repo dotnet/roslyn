@@ -5,13 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -82,7 +79,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // We want to analyze and report on the highest applicable invocation in an invocation chain.
         // So bail out if our parent is a match.
         if (invocation.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax parentInvocation } parentMemberAccess &&
-            IsSyntacticMatch(state, parentMemberAccess, parentInvocation, allowLinq: true, matches: null, cancellationToken))
+            IsSyntacticMatch(state, parentMemberAccess, parentInvocation, allowLinq: true, matchesInReverse: null, cancellationToken))
         {
             return;
         }
@@ -111,20 +108,21 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         bool addMatches,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var matches);
-        if (!AnalyzeInvocation(state, invocation, addMatches ? matches : null, out var existingInitializer, cancellationToken))
+        using var _ = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var matchesInReverse);
+        if (!AnalyzeInvocation(state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
             return null;
 
         if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
             return null;
 
-        return new AnalysisResult(existingInitializer, invocation, matches.ToImmutable());
+        matchesInReverse.ReverseContents();
+        return new AnalysisResult(existingInitializer, invocation, matchesInReverse.ToImmutable());
     }
 
     private static bool AnalyzeInvocation(
         FluentState state,
         InvocationExpressionSyntax invocation,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matches,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
         out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
@@ -135,7 +133,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Topmost invocation must be a syntactic match for one of our collection manipulation forms.  At the top level
         // we don't want to end with a linq method as that would be lazy, and a collection expression will eagerly
         // realize the collection.
-        if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matches, cancellationToken))
+        if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matchesInReverse, cancellationToken))
             return false;
 
         var semanticModel = state.SemanticModel;
@@ -152,7 +150,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat` calls as
             // the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matches, cancellationToken))
+                IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, cancellationToken))
             {
                 stack.Push(currentMemberAccess.Expression);
                 continue;
@@ -198,10 +196,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                if (matches != null)
+                if (matchesInReverse != null)
                 {
-                    foreach (var argument in GetArguments(currentInvocationExpression, unwrapArgument))
-                        matches.Add(new(argument, UseSpread: false));
+                    AddArguments(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
                 }
 
                 return true;
@@ -242,12 +239,23 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
     }
 
+    private static void AddArguments(
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>> matchesInReverse,
+        SeparatedSyntaxList<ArgumentSyntax> arguments,
+        bool useSpread)
+    {
+        Contract.ThrowIfTrue(useSpread && arguments.Count != 1);
+
+        for (var i = arguments.Count - 1; i >= 0; i--)
+            matchesInReverse.Add(new(arguments[i], useSpread));
+    }
+
     private static bool IsSyntacticMatch(
         FluentState state,
         MemberAccessExpressionSyntax memberAccess,
         InvocationExpressionSyntax invocation,
         bool allowLinq,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matches,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
         CancellationToken cancellationToken)
     {
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
@@ -258,11 +266,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Check for Add/AddRange/Concat
         if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
         {
-            Contract.ThrowIfTrue(useSpread && invocation.ArgumentList.Arguments.Count != 1);
-            if (matches != null)
+            if (matchesInReverse != null)
             {
-                foreach (var argument in invocation.ArgumentList.Arguments)
-                    matches.Add(new(argument, useSpread));
+                AddArguments(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
             }
 
             return true;
@@ -304,8 +310,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// Result of analyzing a fluent chain of collection additions (<c>XXX.Create().Add(...).AddRange(...).ToYYY()</c>
     /// expression to see if it can be replaced with a collection expression.
     /// </summary>
-    /// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
-    /// expression.</param>
     /// <param name="ExistingInitializer">Optional existing initializer (for example: <c>new[] { 1, 2, 3 }</c>). Used to
     /// help determine the best collection expression final syntax.</param>
     /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
