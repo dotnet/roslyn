@@ -9,6 +9,7 @@
     <Summary>Analyzers for .NET Compiler Platform ("Roslyn")</Summary>
     <ReleaseNotes>Diagnostic analyzers for the Microsoft .NET Compiler Platform (Roslyn)</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <PackageReadmeFile>documentation\readme.md</PackageReadmeFile>
     <IsShippingPackage>true</IsShippingPackage>
 
     <!-- 
@@ -22,6 +23,7 @@
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
+    <PackageReadmeFileSource Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\readme.md"/>
   </ItemGroup>
 
   <ItemGroup>
