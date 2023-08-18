@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
             return ConvertToLocalType(compilation, call, this.Type, diagnostics);

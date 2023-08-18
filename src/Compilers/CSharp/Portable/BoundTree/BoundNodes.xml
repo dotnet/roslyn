@@ -24,6 +24,7 @@
   <ValueType Name="ConversionKind"/>
   <ValueType Name="Conversion"/>
   <ValueType Name="TextSpan"/>
+  <ValueType Name="ThreeState"/>
   <ValueType Name="UnaryOperatorKind"/>
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
@@ -1786,6 +1787,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -2142,6 +2145,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
@@ -2161,6 +2166,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
