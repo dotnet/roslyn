@@ -1521,4 +1521,28 @@ public class UseCollectionExpressionForStackAllocTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestGlobalStatement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
+                """,
+            FixedCode = """
+                using System;
+
+                ReadOnlySpan<int> x = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
 }

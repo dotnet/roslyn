@@ -1287,4 +1287,30 @@ public partial class UseCollectionExpressionForBuilderTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestGlobalStatement(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                {{pattern}}
+                [|builder.Add(|]0);
+                ImmutableArray<int> array = builder.ToImmutable();
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                ImmutableArray<int> array = [0];
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
 }

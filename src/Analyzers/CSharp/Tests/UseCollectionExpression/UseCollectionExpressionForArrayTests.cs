@@ -2642,4 +2642,23 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestGlobalStatement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i = [|{|] 1, 2, 3 };
+                """,
+            FixedCode = """
+                int[] i = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
 }

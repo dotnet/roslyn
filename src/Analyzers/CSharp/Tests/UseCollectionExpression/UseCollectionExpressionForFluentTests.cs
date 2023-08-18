@@ -178,6 +178,28 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
+    public async Task TestExplicitArrayCreation_NoInitializer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = new int[3].ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestArrayEmpty()
     {
         await new VerifyCS.Test
@@ -624,6 +646,29 @@ public class UseCollectionExpressionForFluentTests
                     void M()
                     {
                         List<int> list = ImmutableHashSet<int>.Empty.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnNonListCreate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = ImmutableHashSet.Create(1, 1, 1).ToList();
                     }
                 }
                 """,
@@ -1486,6 +1531,66 @@ public class UseCollectionExpressionForFluentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTrivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = /*leading*/ new[] { 1, 2, 3 }.[|ToList|]() /*trailing*/;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = /*leading*/ [1, 2, 3] /*trailing*/;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                List<int> list = new[] { 1, 2, 3 }.[|ToList|]();
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                List<int> list = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
         }.RunAsync();
     }
 }
