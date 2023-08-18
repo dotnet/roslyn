@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
@@ -423,6 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N(\r\n)")]
         [InlineData("M.N(\r)")]
         [InlineData("M.N(\n)")]
+        [InlineData("🤔"), WorkItem(59258, "https://github.com/dotnet/roslyn/issues/59258")]
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

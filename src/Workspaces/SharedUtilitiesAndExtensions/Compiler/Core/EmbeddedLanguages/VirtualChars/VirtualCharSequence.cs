@@ -32,8 +32,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
             => new(new ImmutableSegmentedListChunk(virtualChars));
 
-        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
+        /// <summary>
+        /// Creates a <see cref="VirtualCharSequence"/> made of <see cref="StringChunk"/>. No validation for restrictions
+        /// are done for <see cref="StringChunk"/>. Use <see cref="SafeCreateFromUnvalidatedString(string)"/> if the string
+        /// has not been validated for surrogate pairs.
+        /// </summary>
+        public static VirtualCharSequence UnsafeCreateFromAlreadyValidatedString(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));
+
+        /// <summary>
+        /// Takes in a string value and returns the <see cref="VirtualChar"/>s corresponding to
+        /// each char in the string using <see cref="VirtualChar.CreateNextInString(string, int, int)"/>.
+        /// Should be used over <see cref="UnsafeCreateFromAlreadyValidatedString(int, string)"/>
+        /// in cases where the string is arbitrary input (such as clipboard text). 
+        /// </summary>
+        public static VirtualCharSequence SafeCreateFromUnvalidatedString(string text)
+        {
+            var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+            for (var i = 0; i < text.Length; /* intentionally empty */)
+            {
+                var (virtualChar, consumedCharacters) = VirtualChar.CreateNextInString(
+                    text,
+                    i,
+                    offset: 0);
+
+                i += consumedCharacters;
+                builder.Add(virtualChar);
+            }
+
+            return Create(builder.ToImmutable());
+        }
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.

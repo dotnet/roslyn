@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // equivalents ">" and "<" so we can parse correctly
             callstack = WebUtility.HtmlDecode(callstack);
 
-            var sequence = VirtualCharSequence.Create(0, callstack);
+            var sequence = VirtualCharSequence.SafeCreateFromUnvalidatedString(callstack);
 
             foreach (var line in SplitLines(sequence))
             {

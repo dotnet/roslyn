@@ -176,7 +176,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
                     index += result[^1].Span.Length;
-                    continue;
+                }
+                else
+                {
+                    var (virtualChar, consumedCharacters) = VirtualChar.CreateNextInString(
+                        tokenText,
+                        index,
+                        offset);
+
+                    result.Add(virtualChar);
+                    index += consumedCharacters;
                 }
 
                 index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
@@ -238,7 +247,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                var sequence = VirtualCharSequence.Create(offset, tokenText);
+                var sequence = VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(offset, tokenText);
                 return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
