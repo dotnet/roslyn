@@ -50,7 +50,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(ImmutableList<int>),
         nameof(ImmutableQueue<int>),
         nameof(ImmutableSortedSet<int>),
-        nameof(ImmutableStack<int>));
+        nameof(ImmutableStack<int>),
+        nameof(System.Collections.Immutable));
 
     public CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId,
@@ -202,6 +203,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     foreach (var argument in GetArguments(currentInvocationExpression, unwrapArgument))
                         matches.Add(new(argument, UseSpread: false));
                 }
+
+                return true;
             }
 
             // Something we didn't understand.
