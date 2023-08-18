@@ -20,15 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static UseCollectionExpressionHelpers;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
-/// <summary>
-/// Analyzer/fixer that looks for code of the form <c>X.Empty&lt;T&gt;()</c> or <c>X&lt;T&gt;.Empty</c> and offers to
-/// replace with <c>[]</c> if legal to do so.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
-    private static readonly ImmutableArray<string> s_prefixes = ImmutableArray.Create("To", "As");
+    private static readonly ImmutableArray<string> s_prefixes = ImmutableArray.Create("To");
     private static readonly ImmutableArray<string> s_suffixes = ImmutableArray.Create(
         nameof(Array),
         nameof(Span<int>),
@@ -138,6 +134,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return false;
 
         var semanticModel = state.SemanticModel;
+        var compilation = semanticModel.Compilation;
 
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
         stack.Push(memberAccess.Expression);
@@ -205,6 +202,13 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return true;
             }
 
+            // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
+            // can be iterated, we can conver this to `[.. x, .. y]`.
+            if (IsIterable(current))
+            {
+                matchesInReverse?.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(current), UseSpread: true));
+            }
+
             // Something we didn't understand.
             return false;
         }
@@ -221,8 +225,19 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return false;
 
             return
-                Implements(type, semanticModel.Compilation.IListOfTType()) ||
-                Implements(type, semanticModel.Compilation.IReadOnlyListOfTType());
+                Implements(type, compilation.IListOfTType()) ||
+                Implements(type, compilation.IReadOnlyListOfTType());
+        }
+
+        bool IsIterable(ExpressionSyntax expression)
+        {
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (type is null or IErrorTypeSymbol)
+                return false;
+
+            return Implements(type, compilation.IEnumerableOfTType()) ||
+                type.Equals(compilation.SpanOfTType()) ||
+                type.Equals(compilation.ReadOnlySpanOfTType());
         }
 
         static bool Implements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
