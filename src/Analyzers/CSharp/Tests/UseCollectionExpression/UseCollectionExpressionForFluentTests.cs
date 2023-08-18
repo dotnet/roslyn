@@ -1646,6 +1646,97 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
+    public async Task TestMultiLine6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.AddRange(
+                            1 +
+                                2,
+                            3 +
+                                4).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list =
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4,
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiLine7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.AddRange(
+                            1 +
+                                2, 3 +
+                            4).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list =
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4,
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestTrivia1()
     {
         await new VerifyCS.Test
