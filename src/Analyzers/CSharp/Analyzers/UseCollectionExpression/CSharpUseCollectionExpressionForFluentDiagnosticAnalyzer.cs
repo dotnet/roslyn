@@ -304,6 +304,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             matchesInReverse.Add(new(arguments[i], useSpread));
     }
 
+    /// <summary>
+    /// Tests if this single `expr.SomeInvocation(...)` syntactically matches one of the allowed forms
+    /// (ToList/AsSpan/etc.).  That includes that the arguments present to the invocation are acceptable for that
+    /// particular method call.  If <paramref name="matchesInReverse"/> is provided, the arguments to the method will be
+    /// appropriately extracted so that they can be placed in the final collection expression.
+    /// </summary>
     private static bool IsSyntacticMatch(
         FluentState state,
         MemberAccessExpressionSyntax memberAccess,
