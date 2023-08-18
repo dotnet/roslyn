@@ -815,6 +815,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConvertedSwitchExpression:
                     var switchExpression = (BoundSwitchExpression)expr;
 
+                    var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
+                    errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
+
                     if (switchExpression.IsRef)
                     {
                         Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
@@ -831,10 +834,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (check)
                             return true;
-
-                        var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
-                        errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
                         break;
+                    }
+                    else
+                    {
+                        if (RequiresReferenceToLocation(valueKind))
+                        {
+                            break;
+                        }
                     }
 
                     return true;

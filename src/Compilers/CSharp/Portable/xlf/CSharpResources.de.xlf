@@ -1267,6 +1267,11 @@
         <target state="translated">Muster fehlt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingRefInSwitchExpressionArm">
+        <source>The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</source>
+        <target state="new">The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
         <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Der Modulinitialisierer kann nicht mit dem Attribut "UnmanagedCallersOnly" versehen werden.</target>
@@ -2050,6 +2055,11 @@
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">Nicht abgeschlossenes Zeichenfolgenliteral.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnusedSwitchExpressionRef">
+        <source>The reference of a ref-returning switch expression may not be discarded</source>
+        <target state="new">The reference of a ref-returning switch expression may not be discarded</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">

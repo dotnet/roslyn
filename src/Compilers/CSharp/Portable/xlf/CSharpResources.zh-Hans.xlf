@@ -1267,6 +1267,11 @@
         <target state="translated">模式缺失</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingRefInSwitchExpressionArm">
+        <source>The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</source>
+        <target state="new">The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
         <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">无法使用 "UnmanagedCallersOnly" 对模块初始值设定项进行特性化。</target>
@@ -2050,6 +2055,11 @@
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">未终止的字符串字面量。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnusedSwitchExpressionRef">
+        <source>The reference of a ref-returning switch expression may not be discarded</source>
+        <target state="new">The reference of a ref-returning switch expression may not be discarded</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">

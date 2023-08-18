@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? naturalType = InferResultType(switchArms, out var refKind, diagnostics);
             bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol? defaultLabel, diagnostics);
 
+            CheckSwitchExpressionRefInArms(refKind, switchArms, diagnostics);
+
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
@@ -40,6 +42,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundUnconvertedSwitchExpression(
                 node, boundInputExpression, switchArms, decisionDag,
                 defaultLabel, reportedNotExhaustive, refKind, type: naturalType);
+        }
+
+        private void CheckSwitchExpressionRefInArms(
+            RefKind refKind,
+            ImmutableArray<BoundSwitchExpressionArm> switchArms,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (refKind == RefKind.Ref)
+            {
+                foreach (var arm in switchArms)
+                {
+                    if (arm.RefKind is not RefKind.Ref && arm.Value.Kind is not BoundKind.ThrowExpression)
+                    {
+                        Debug.Assert(arm.Syntax is SwitchExpressionArmSyntax);
+                        var armSyntax = (SwitchExpressionArmSyntax)arm.Syntax;
+                        diagnostics.Add(ErrorCode.ERR_MissingRefInSwitchExpressionArm, armSyntax.EqualsGreaterThanToken.GetLocation());
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -52,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics"></param>
         /// <returns>true if there was a non-exhaustive warning reported</returns>
         private bool CheckSwitchExpressionExhaustive(
-            SwitchExpressionSyntax node,
-            BoundExpression boundInputExpression,
-            ImmutableArray<BoundSwitchExpressionArm> switchArms,
-            out BoundDecisionDag decisionDag,
-            [NotNullWhen(true)] out LabelSymbol? defaultLabel,
-            BindingDiagnosticBag diagnostics)
+        SwitchExpressionSyntax node,
+        BoundExpression boundInputExpression,
+        ImmutableArray<BoundSwitchExpressionArm> switchArms,
+        out BoundDecisionDag decisionDag,
+        [NotNullWhen(true)] out LabelSymbol? defaultLabel,
+        BindingDiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
@@ -151,8 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (arm.RefKind)
                 {
-                    case RefKind.Ref
-                    when refKind is RefKind.None:
+                    case RefKind.Ref:
                         refKind = RefKind.Ref;
                         break;
                 }

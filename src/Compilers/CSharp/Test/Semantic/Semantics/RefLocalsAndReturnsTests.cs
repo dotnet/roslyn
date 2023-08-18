@@ -5576,6 +5576,97 @@ void M(out int x) => throw null;
                 );
         }
 
+        [Fact]
+        public void RefSwitchStatement_MissingRefInArms()
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => EastField,
+                            Direction.West => WestField,
+                            _ => throw null!,
+                        };
+                
+                        return x;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (14,28): error CS9303: The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression
+                //             Direction.East => EastField,
+                Diagnostic(ErrorCode.ERR_MissingRefInSwitchExpressionArm, "=>").WithLocation(14, 28),
+                // (15,28): error CS9303: The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression
+                //             Direction.West => WestField,
+                Diagnostic(ErrorCode.ERR_MissingRefInSwitchExpressionArm, "=>").WithLocation(15, 28)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchStatement_RefInNonRefSwitch()
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => NorthField,
+                            Direction.South => SouthField,
+                            Direction.East => EastField,
+                            Direction.West => WestField,
+                            _ => throw null!,
+                        };
+                
+                        return x;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,25): error CS1510: A ref or out value must be an assignable variable
+                //         ref int x = ref direction switch
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "direction switch").WithLocation(10, 25)
+                );
+        }
+
         #endregion
     }
 }

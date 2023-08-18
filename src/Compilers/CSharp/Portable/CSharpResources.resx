@@ -7805,4 +7805,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RequiresRefReturningSwitchExpression" xml:space="preserve">
     <value>The switch expression in the left side of a compound assignment must return a by-ref expression</value>
   </data>
+  <data name="ERR_MissingRefInSwitchExpressionArm" xml:space="preserve">
+    <value>The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</value>
+  </data>
+  <data name="ERR_UnusedSwitchExpressionRef" xml:space="preserve">
+    <value>The reference of a ref-returning switch expression may not be discarded</value>
+  </data>
 </root>

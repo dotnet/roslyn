@@ -2403,6 +2403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_MismatchedRefEscapeInSwitchExpression:
                 case ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression:
                 case ErrorCode.ERR_RequiresRefReturningSwitchExpression:
+                case ErrorCode.ERR_MissingRefInSwitchExpressionArm:
+                case ErrorCode.ERR_UnusedSwitchExpressionRef:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
