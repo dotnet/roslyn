@@ -465,6 +465,7 @@ class {|caret:BCD|}
             var existingDocument = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id);
             var existingDocumentUri = existingDocument.GetURI();
 
+            Assert.Contains(Path.Combine("dir1", "dir2", "dir3"), existingDocument.FilePath);
             var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(
                 Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
             var workspaceEdit = new WorkspaceEdit()
