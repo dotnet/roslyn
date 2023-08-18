@@ -1680,4 +1680,84 @@ public class UseCollectionExpressionForFluentTests
             },
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNested1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<List<int>> list = new[] { new[] { 1, 2, 3 }.ToList() }.[|ToList|]();
+                    }
+                }
+                """,
+            FixedState =
+            {
+                Sources =
+                { """
+                    using System.Linq;
+                    using System.Collections.Generic;
+                
+                    class C
+                    {
+                        void M()
+                        {
+                            List<List<int>> list = [new[] { 1, 2, 3 }.ToList()];
+                        }
+                    }
+                    """,
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(8,51): info IDE0305: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(8, 51, 8, 57).WithSpan(8, 33, 8, 59).WithSeverity(DiagnosticSeverity.Info),
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNested2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<List<int>> list = [new[] { 1, 2, 3 }.[|ToList|]()];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<List<int>> list = [[1, 2, 3]];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
 }

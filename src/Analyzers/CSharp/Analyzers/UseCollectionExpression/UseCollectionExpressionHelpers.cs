@@ -91,7 +91,12 @@ internal static class UseCollectionExpressionHelpers
         // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
         // (for example, we're trying to replace an expression that is converted to something that isn't even a
         // collection type).
+        //
+        // Note: an identity conversion is always legal without needing any more checks.
         var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (conversion.IsIdentity)
+            return true;
+
         if (!conversion.IsCollectionExpression)
             return false;
 
@@ -177,6 +182,7 @@ internal static class UseCollectionExpressionHelpers
             // Similar rules for switches.
             SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm),
             InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression),
+            CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
@@ -218,6 +224,17 @@ internal static class UseCollectionExpressionHelpers
 
             // All arms do not have a type, this is target typed if the switch itself is target typed.
             return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedCollectionElement(CollectionElementSyntax collectionElement)
+        {
+            // We do not currently target type spread expressions in a collection expression.
+            if (collectionElement is not ExpressionElementSyntax)
+                return false;
+
+            // The element it target typed if the parent collection is itself target typed.
+            var collectionExpression = (CollectionExpressionSyntax)collectionElement.GetRequiredParent();
+            return IsInTargetTypedLocation(semanticModel, collectionExpression, cancellationToken);
         }
 
         bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)

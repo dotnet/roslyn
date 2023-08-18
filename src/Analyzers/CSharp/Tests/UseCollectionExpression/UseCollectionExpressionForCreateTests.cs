@@ -974,4 +974,39 @@ public class UseCollectionExpressionForCreateTests
             },
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNested1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [|ImmutableArray.[|Create|](|]ImmutableArray.Create(1, 2, 3));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [[1, 2, 3]];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
 }
