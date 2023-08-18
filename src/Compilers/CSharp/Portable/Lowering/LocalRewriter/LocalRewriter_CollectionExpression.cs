@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var call = new BoundCall(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: constructMethod,
                 arguments: ImmutableArray.Create(span),
                 argumentNamesOpt: default,

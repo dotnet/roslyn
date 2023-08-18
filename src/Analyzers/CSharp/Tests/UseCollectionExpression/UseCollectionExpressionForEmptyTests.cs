@@ -1028,4 +1028,99 @@ public class UseCollectionExpressionForEmptyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForAbstractClassWithoutCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+            
+            abstract class V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = null;
+
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.Empty;
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForAbstractClassWithCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+
+            [System.Runtime.CompilerServices.CollectionBuilder(typeof(V), "Create")]
+            abstract class V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = null;
+
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            
+            static class V
+            {
+                public static V<T> Create<T>(ReadOnlySpan<T> values) => default;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
