@@ -433,29 +433,10 @@ internal static class CSharpCollectionExpressionRewriter
             if (preferredIndentation is null)
                 return expression.WithoutLeadingTrivia();
 
-            // we're starting with something either like:
-            //
-            //      collection.Add(some_expr +
-            //          cont);
-            //
-            // or
-            //
-            //      collection.Add(
-            //          some_expr +
-            //              cont);
-            //
-            // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
-            // that we can accurately determine where the preferred indentation should move all of it.
-
-            // If the expression is parented by a statement, use that statement to determine the indentation point.
-            // Otherwise, default to the indentation of the line the expression is on.
-            var expressionFirstToken = expression.GetFirstToken();
-            var startLine = document.Text.AreOnSameLine(expressionFirstToken.GetPreviousToken(), expressionFirstToken) && expression.FirstAncestorOrSelf<StatementSyntax>() is { } statement
-                ? document.Text.Lines.GetLineFromPosition(statement.SpanStart)
-                : document.Text.Lines.GetLineFromPosition(expression.SpanStart);
-
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
+            var expressionFirstToken = expression.GetFirstToken();
             var updatedExpression = expression.ReplaceTokens(
                 expression.DescendantTokens(),
                 (currentToken, _) =>
@@ -469,6 +450,38 @@ internal static class CSharpCollectionExpressionRewriter
 
             // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
             return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
+
+            SyntaxNode GetAnchorNode(SyntaxNode node)
+            {
+                // we're starting with something either like:
+                //
+                //      collection.Add(some_expr +
+                //          cont);
+                //
+                // or
+                //
+                //      collection.Add(
+                //          some_expr +
+                //              cont);
+                //
+                // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+                // that we can accurately determine where the preferred indentation should move all of it.
+
+                // If the expression is parented by a statement or member-decl (like a field/prop), use that container
+                // to determine the indentation point. Otherwise, default to the indentation of the line the expression
+                // is on.
+                var firstToken = node.GetFirstToken();
+                if (document.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current is StatementSyntax or MemberDeclarationSyntax)
+                            return current;
+                    }
+                }
+
+                return node;
+            }
         }
 
         SyntaxToken IndentToken(
