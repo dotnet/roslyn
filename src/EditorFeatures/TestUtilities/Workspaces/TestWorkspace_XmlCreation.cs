@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
+                // Each document is expecting to have a containing folder if it is not null.
                 if (fileContainingFolders != null)
                 {
                     Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify containing folder for each file.");
