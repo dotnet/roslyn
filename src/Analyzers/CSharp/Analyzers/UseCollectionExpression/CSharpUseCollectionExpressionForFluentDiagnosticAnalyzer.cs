@@ -26,6 +26,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 {
     private const string ToPrefix = "To";
 
+    /// <summary>
+    /// Standard names to look at for the final <c>ToXXX</c> method.  For example "ToList", "ToArray", "ToImmutable",
+    /// etc.  Note: this will just be done for a syntactic check of the method being called.  Additional checks will
+    /// ensure that we are preserving semantics.
+    /// </summary>
     private static readonly ImmutableArray<string> s_suffixes = ImmutableArray.Create(
         nameof(Array),
         nameof(Span<int>),
@@ -106,6 +111,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         bool addMatches,
         CancellationToken cancellationToken)
     {
+        // Because we're recursing from top to bottom in the expression tree, we build up the matches in reverse.  Right
+        // before returning them, we'll reverse them again to get the proper order.
         using var _ = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var matchesInReverse);
         if (!AnalyzeInvocation(state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
             return null;
@@ -211,7 +218,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
                 if (matchesInReverse != null)
                 {
-                    AddArguments(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
+                    AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
                 }
 
                 return true;
@@ -286,7 +293,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
     }
 
-    private static void AddArguments(
+    private static void AddArgumentsInReverse(
         ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>> matchesInReverse,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool useSpread)
@@ -315,7 +322,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         {
             if (matchesInReverse != null)
             {
-                AddArguments(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
+                AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
             }
 
             return true;
