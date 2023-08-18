@@ -225,7 +225,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             }
 
             // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
-            // can be iterated, we can conver this to `[.. x, .. y]`.
+            // can be iterated, we can convert this to `[.. x, .. y]`.
             if (IsIterable(current))
             {
                 matchesInReverse?.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(current), UseSpread: true));
