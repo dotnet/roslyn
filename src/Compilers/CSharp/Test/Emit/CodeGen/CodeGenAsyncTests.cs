@@ -6053,5 +6053,36 @@ public class C
             var comp = CSharpTestBase.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Repro()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                using System.Collections.Immutable;
+
+                await M(ImmutableArray.Create("a"));
+                Console.Write(1);
+
+                public partial class Program
+                {
+                    public static void M1(bool b) { }
+
+                    public static async Task M(ImmutableArray<string> a)
+                    {
+                        foreach (var i in a)
+                        {
+                            M1(i.Length is 10 or 20 or 30);
+                            await Task.Delay(1).ConfigureAwait(false);
+                        }
+                    }
+                }
+                """;
+
+            // TODO2: ImmutableArray is only available when we specify a targetFramework
+            var comp = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
     }
 }
