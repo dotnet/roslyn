@@ -1655,7 +1655,7 @@ public class UseCollectionExpressionForFluentTests
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
                 
-                ImmutableArray<int> list = ImmutableArray<int>.Empty.Add(1 +
+                List<int> list = ImmutableArray<int>.Empty.Add(1 +
                     2).Add(3 +
                     4).[|ToList|]();
                 """,
@@ -1664,7 +1664,7 @@ public class UseCollectionExpressionForFluentTests
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
                 
-                ImmutableArray<int> list =
+                List<int> list =
                 [
                     1 +
                         2,
