@@ -26,6 +26,7 @@ internal readonly struct UpdateExpressionState<
     where TStatementSyntax : SyntaxNode
 {
     private const string AddRangeName = nameof(List<int>.AddRange);
+    private const string ConcatName = nameof(Enumerable.Concat);
 
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;
@@ -123,11 +124,12 @@ internal readonly struct UpdateExpressionState<
 
     public bool TryAnalyzeInvocationForCollectionExpression(
         TExpressionSyntax invocationExpression,
+        bool allowLinq,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
         out bool useSpread)
     {
-        // Look for a call to Add or AddRange
+        // Look for a call to Add taking 1 arg
         if (this.TryAnalyzeAddInvocation(
                 invocationExpression,
                 requiredArgumentName: null,
@@ -139,14 +141,31 @@ internal readonly struct UpdateExpressionState<
             return true;
         }
 
-        if (this.TryAnalyzeAddRangeInvocation(
+        // Then a call to AddRange, taking 1-n args
+        if (this.TryAnalyzeMultiAddInvocation(
                 invocationExpression,
+                AddRangeName,
                 requiredArgumentName: null,
                 cancellationToken,
                 out instance,
                 out useSpread))
         {
             return true;
+        }
+
+        // Then a call to Concat, taking 1-n args
+        if (allowLinq)
+        {
+            if (this.TryAnalyzeMultiAddInvocation(
+                    invocationExpression,
+                    ConcatName,
+                    requiredArgumentName: null,
+                    cancellationToken,
+                    out instance,
+                    out useSpread))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -182,10 +201,14 @@ internal readonly struct UpdateExpressionState<
     }
 
     /// <summary>
-    /// Analyze an expression statement to see if it is a legal call of the form <c>val.AddRange(...)</c>.
+    /// Analyze an expression statement to see if it is a legal call similar to <c>val.AddRange(...)</c> or
+    /// <c>val.Concat(...)</c>.  This method properly handles cases where there are multiple args passed to a <c>params
+    /// T[]</c> method, or a single arg which might be passed to the same <c>params</c> method, or which may itself be
+    /// an entire collection being added.
     /// </summary>
-    public bool TryAnalyzeAddRangeInvocation(
+    private bool TryAnalyzeMultiAddInvocation(
         TExpressionSyntax invocationExpression,
+        string methodName,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
@@ -194,7 +217,7 @@ internal readonly struct UpdateExpressionState<
         useSpread = false;
         if (!TryAnalyzeInvocation(
                 invocationExpression,
-                AddRangeName,
+                methodName,
                 requiredArgumentName,
                 cancellationToken,
                 out instance,
@@ -247,7 +270,7 @@ internal readonly struct UpdateExpressionState<
 
     private bool TryAnalyzeInvocation(
         TExpressionSyntax invocationExpression,
-        string addName,
+        string methodName,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
@@ -305,7 +328,7 @@ internal readonly struct UpdateExpressionState<
         this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
         this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-        if (arity != 0 || !Equals(name, addName))
+        if (arity != 0 || !Equals(name, methodName))
             return false;
 
         instance = localInstance as TExpressionSyntax;
@@ -340,7 +363,7 @@ internal readonly struct UpdateExpressionState<
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, cancellationToken, out var instance, out var useSpread) &&
+            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
                 @this.ValuePatternMatches(instance))
             {
                 return new Match<TStatementSyntax>(expressionStatement, useSpread);

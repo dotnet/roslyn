@@ -7,14 +7,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static UseCollectionExpressionHelpers;
+using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 /// <summary>
 /// Analyzer/fixer that looks for code of the form <c>X.Empty&lt;T&gt;()</c> or <c>X&lt;T&gt;.Empty</c> and offers to
@@ -69,15 +74,18 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (memberAccess.Parent is not InvocationExpressionSyntax invocation)
             return;
 
+        var state = new FluentState(
+            semanticModel, CSharpSyntaxFacts.Instance, invocation, valuePattern: default, initializedSymbol: null);
+
         // We want to analyze and report on the highest applicable invocation in an invocation chain.
         // So bail out if our parent is a match.
         if (invocation.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax parentInvocation } parentMemberAccess &&
-            IsSyntacticMatch(parentMemberAccess, parentInvocation, allowLinq: true, matches: null))
+            IsSyntacticMatch(state, parentMemberAccess, parentInvocation, allowLinq: true, matches: null, cancellationToken))
         {
             return;
         }
 
-        var analysisResult = AnalyzeInvocation(semanticModel, invocation, addMatches: true, cancellationToken);
+        var analysisResult = AnalyzeInvocation(state, invocation, addMatches: true, cancellationToken);
         if (analysisResult.IsDefault)
             return;
 
@@ -96,23 +104,23 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// <c>.Add(...)/.AddRange(...)</c> or <c>.ToXXX()</c> calls
     /// </summary>
     public static ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> AnalyzeInvocation(
-        SemanticModel semanticModel,
+        FluentState state,
         InvocationExpressionSyntax invocation,
         bool addMatches,
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>.GetInstance(out var matches);
-        if (!AnalyzeInvocation(semanticModel, invocation, addMatches ? matches : null, cancellationToken))
+        if (!AnalyzeInvocation(state, invocation, addMatches ? matches : null, cancellationToken))
             return default;
 
-        if (!CanReplaceWithCollectionExpression(semanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, skipVerificationForReplacedNode: true, cancellationToken))
             return default;
 
         return matches.ToImmutable();
     }
 
     private static bool AnalyzeInvocation(
-        SemanticModel semanticModel,
+        FluentState state,
         InvocationExpressionSyntax invocation,
         ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
         CancellationToken cancellationToken)
@@ -123,8 +131,10 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Topmost invocation must be a syntactic match for one of our collection manipulation forms.  At the top level
         // we don't want to end with a linq method as that would be lazy, and a collection expression will eagerly
         // realize the collection.
-        if (!IsSyntacticMatch(memberAccess, invocation, allowLinq: false, matches))
+        if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matches, cancellationToken))
             return false;
+
+        var semanticModel = state.SemanticModel;
 
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
         stack.Push(memberAccess.Expression);
@@ -138,7 +148,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat` calls as
             // the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsSyntacticMatch(currentMemberAccess, currentInvocation, allowLinq: true, matches))
+                IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matches, cancellationToken))
             {
                 stack.Push(currentMemberAccess.Expression);
                 continue;
@@ -230,29 +240,30 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     }
 
     private static bool IsSyntacticMatch(
+        FluentState state,
         MemberAccessExpressionSyntax memberAccess,
         InvocationExpressionSyntax invocation,
         bool allowLinq,
-        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches)
+        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
+        CancellationToken cancellationToken)
     {
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
             return false;
 
         var name = memberAccess.Name.Identifier.ValueText;
 
-        // `.Add(x)` can be a legal component
-        if (name == nameof(ImmutableArray<int>.Add))
+        // Check for Add/AddRange/Concat
+        if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
         {
-            if (invocation.ArgumentList.Arguments.Count != 1)
-                return false;
+            Contract.ThrowIfTrue(useSpread && invocation.ArgumentList.Arguments.Count != 1);
+            if (matches != null)
+            {
+                foreach (var argument in invocation.ArgumentList.Arguments)
+                    matches.Add(new(argument.Expression, useSpread));
+            }
 
-            matches?.Add(new(invocation.ArgumentList.Arguments[0].Expression, UseSpread: false));
             return true;
         }
-
-        // `.AddRange(x, ...)` can be a legal component.
-        if (name == nameof(ImmutableArray<int>.AddRange))
-            return invocation.ArgumentList.Arguments.Count >= 1;
 
         // Now check for ToXXX/AsXXX.  All of these need no args.
         if (invocation.ArgumentList.Arguments.Count > 0)
