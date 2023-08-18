@@ -659,13 +659,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("method")) });
+                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
 
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 active,
-                new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("method")) });
+                new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
         }
 
         [Fact]
@@ -694,7 +694,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("method")) });
+                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
         }
 
         [Fact]

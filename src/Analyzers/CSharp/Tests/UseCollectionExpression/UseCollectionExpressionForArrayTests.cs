@@ -296,6 +296,72 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestWithExplicitArray_ExplicitSize()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[] i = [|[|new|] string[1]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string[] i = [""];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ExplicitSizes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[1, 1];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ExplicitSizes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[1, 1] { { "" } };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithExplicitArray_MultiDimensionalArray_ImplicitSizes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string[,] i = new string[,] { { "" } };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithIncompatibleImplicitArrays()
     {
         await new VerifyCS.Test
@@ -1845,6 +1911,732 @@ public class UseCollectionExpressionForArrayTests
                     [
                         1, 2, 3
                     ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_MultiLine1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [|[|new|] int[1]|];
+                        r[0] = 1 +
+                            2;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r =
+                        [
+                            1 +
+                                2,
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_MultiLine2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [|[|new|] int[2]|];
+                        r[0] = 1 +
+                            2;
+                        r[1] = 3 +
+                            4;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r =
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4,
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ZeroSize()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        int[] r = [|[|new|] int[0]|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        int[] r = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_NotEnoughFollowingStatements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        int[] r = new int[1];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_WrongFollowingStatement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        int[] r = new int[1];
+                        return;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_NotLocalStatementInitializer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        int[] r = Goo(new int[1]);
+                        r[0] = 1;
+                    }
+
+                    int[] Goo(int[] input) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ExpressionStatementNotAssignment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i)
+                    {
+                        int[] r = new int[1];
+                        i++;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_AssignmentNotElementAccess()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[1];
+                        i = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ElementAccessNotToIdentifier()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    static int[] array;
+
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[1];
+                        C.array[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_IdentifierNotEqualToVariableName()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    static int[] array;
+
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[1];
+                        array[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ArgumentNotConstant()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[1];
+                        r[i] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ConstantArgumentNotCorrect1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[1];
+                        r[1] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_ConstantArgumentNotCorrect2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[2];
+                        r[0] = i;
+                        r[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_OneElement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [|[|new|] int[1]|];
+                        r[0] = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [i];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_OneElement_MultipleFollowingStatements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [|[|new|] int[1]|];
+                        r[0] = i;
+                        r[0] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [i];
+                        r[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [|[|new|] int[2]|];
+                        r[0] = i;
+                        r[1] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = [i, j];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_Constant()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        const int v = 1;
+                        int[] r = [|[|new|] int[2]|];
+                        r[0] = i;
+                        r[v] = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        const int v = 1;
+                        int[] r = [i, j];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondWrongIndex()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[] r = new int[2];
+                        r[0] = i;
+                        r[0] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondNonConstant()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        var v = 1;
+                        int[] r = new int[2];
+                        r[0] = i;
+                        r[v] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement2_SecondWrongDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    static int[] array;
+
+                    void M(int i, int j)
+                    {
+                        var v = 1;
+                        int[] r = new int[2];
+                        r[0] = i;
+                        array[1] = j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+                        r[0] = null;
+                        r[1] = null;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [null, null];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+                        r[0] = [|[|new|][]|] { 1 };
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [new[] { 1 }, new int[] { 2 }];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [[1], [2]];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2_Trivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+
+                        // Leading
+                        r[0] = [|[|new|][]|] { 1 }; // Trailing
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            // Leading
+                            new[] { 1 }, // Trailing
+                            new int[] { 2 },
+                        ];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            // Leading
+                            [1], // Trailing
+                            [2],
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoInitializer_TwoElement_TwoDimensional2_Trivia2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r = [|[|new|] int[2][]|];
+
+                        r[0] = [|[|new|][]|]
+                        {
+                            // Leading
+                            1 // Trailing
+                        };
+                        r[1] = [|[|new|] int[]|] { 2 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            new[]
+                            {
+                                // Leading
+                                1 // Trailing
+                            },
+                            new int[] { 2 },
+                        ];
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        int[][] r =
+                        [
+                            [
+                                // Leading
+                                1 // Trailing
+                            ],
+                            [2],
+                        ];
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

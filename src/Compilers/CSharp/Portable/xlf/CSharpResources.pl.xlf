@@ -6683,8 +6683,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">Nie można użyć konstruktora atrybutu „{0}”, ponieważ ma parametry „in”.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">Nie można użyć konstruktora atrybutu „{0}”, ponieważ ma parametry „in”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -12679,8 +12679,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">Pierwszy parametr metody rozszerzenia „in”, „{0}”, musi być konkretnym typem wartości (nieogólnym).</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Pierwszy parametr metody rozszerzenia „in”, „{0}”, musi być konkretnym typem wartości (nieogólnym).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

@@ -247,12 +247,9 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
             // (1,16): error CS1001: Identifier expected
             // using (int, int);
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 16),
-            // (1,16): error CS1002: ; expected
+            // (1,16): error CS1003: Syntax error, ',' expected
             // using (int, int);
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 16),
-            // (1,16): error CS1022: Type or namespace definition, or end-of-file expected
-            // using (int, int);
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 16));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -292,15 +289,8 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
                                 M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
                 }
             }
             N(SyntaxKind.EndOfFileToken);

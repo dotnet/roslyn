@@ -538,7 +538,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 syntaxRefs = symbol.DeclaringSyntaxReferences
             End If
 
-            Dim syntax = selector(syntaxRefs).GetSyntax(cancellationToken)
+            Dim syntax = selector(syntaxRefs)?.GetSyntax(cancellationToken)
+            If syntax Is Nothing Then
+                Return Nothing
+            End If
+
             Dim parent = syntax.Parent
 
             Select Case syntax.Kind
@@ -1311,6 +1315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Select Case symbol.MethodKind
                 Case MethodKind.StaticConstructor
                     Return VBFeaturesResources.Shared_constructor
+                Case MethodKind.LambdaMethod
+                    Return VBFeaturesResources.Lambda
                 Case Else
                     Return MyBase.GetDisplayName(symbol)
             End Select
@@ -2091,7 +2097,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Function
 
-        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
+        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnosticContext As DiagnosticContext, oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
             If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
@@ -2101,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' If the old statement has spilled state and the new doesn't, the edit is ok. We'll just not use the spilled state.
                 If Not SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) AndAlso
                    Not HasNoSpilledState(newNode, newContainingStatementPart) Then
-                    diagnostics.Add(New RudeEditDiagnostic(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span))
+                    diagnosticContext.Report(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span)
                 End If
             End If
         End Sub

@@ -1485,8 +1485,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         () => {
                             List<int> list2 = [2];
-                        }
-
+                        },
                     ];
                 }
             }
@@ -1504,8 +1503,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         () => {
                             List<int> list2 = [2];
-                        }
-
+                        },
                     ];
                 }
             }
@@ -1539,7 +1537,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                     [
                         1, // Goo
-                        2 // Bar
+                        2, // Bar
                     ];
                 }
             }
@@ -1578,7 +1576,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         .. x,
                         // Bar
-                        .. y
+                        .. y,
                     ];
                 }
             }
@@ -1621,7 +1619,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         .. x,
                         // Baz
                         // Quux
-                        .. y
+                        .. y,
                     ];
                 }
             }
@@ -1668,7 +1666,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         b1 ? 0 : 1,
                         // Bar
-                        b2 ? 2 : 3
+                        b2 ? 2 : 3,
                     ];
                 }
             }
@@ -1719,7 +1717,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         b1 ? 0 : 1,
                         // Baz
                         // Quux
-                        b2 ? 2 : 3
+                        b2 ? 2 : 3,
                     ];
                 }
             }
@@ -1758,7 +1756,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         1,
                         // Bar
-                        2
+                        2,
                     ];
                 }
             }
@@ -3156,7 +3154,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                         1,
                         2,
-                        3
+                        3,
                     ];
                 }
             }
@@ -3332,7 +3330,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                             1,
                             2,
-                            3
+                            3,
                         ];
                 }
             }
@@ -3437,7 +3435,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         1, 2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3473,7 +3471,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         1, 2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3511,7 +3509,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3547,7 +3545,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3584,7 +3582,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3703,7 +3701,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3739,7 +3737,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3809,7 +3807,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                     [
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3847,7 +3845,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1 +
                             2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }

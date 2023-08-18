@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            // Verify that as originally serialized, the URI had a file scheme.
+            Assert.True(results.Single().Uri.OriginalString.StartsWith("file"));
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 

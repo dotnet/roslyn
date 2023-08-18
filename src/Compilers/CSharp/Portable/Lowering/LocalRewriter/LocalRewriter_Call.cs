@@ -432,6 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -448,6 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -826,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     RefKind argRefKind = argumentRefKindsOpt.RefKinds(argIndex);
                                     RefKind paramRefKind = parameters[paramIndex].RefKind;
                                     var visitedArgument = visitedArgumentsBuilder[argIndex];
-                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
                                     tempsOpt.Add(local.LocalSymbol);
                                     visitedArgumentsBuilder[argIndex] = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
                                     argumentsAssignedToTemp[argIndex] = true;
@@ -1522,7 +1524,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
             return new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 arrayEmpty,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
