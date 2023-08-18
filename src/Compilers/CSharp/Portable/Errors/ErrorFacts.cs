@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MissingTypeParamTag:
                 case ErrorCode.WRN_InvalidVersionFormat:
                     return 4;
-            case ErrorCode.WRN_UnreferencedEvent:
+                case ErrorCode.WRN_UnreferencedEvent:
                 case ErrorCode.WRN_DuplicateUsing:
                 case ErrorCode.WRN_UnreferencedVar:
                 case ErrorCode.WRN_UnreferencedField:
