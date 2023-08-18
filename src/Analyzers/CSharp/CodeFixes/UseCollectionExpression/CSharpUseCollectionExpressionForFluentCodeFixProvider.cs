@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -70,8 +69,14 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
         // Get the expressions that we're going to fill the new collection expression with.
         var arguments = await GetArgumentsAsync(document, fallbackOptions, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
 
+        var argumentListTrailingTrivia = analysisResult.ExistingInitializer is null
+            ? default
+            : analysisResult.ExistingInitializer.GetFirstToken().GetPreviousToken().TrailingTrivia;
+
         var dummyObjectAnnotation = new SyntaxAnnotation();
-        var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: analysisResult.ExistingInitializer)
+        var dummyObjectCreation = ImplicitObjectCreationExpression(
+                ArgumentList(arguments).WithTrailingTrivia(argumentListTrailingTrivia),
+                initializer: analysisResult.ExistingInitializer)
             .WithTriviaFrom(invocationExpression)
             .WithAdditionalAnnotations(dummyObjectAnnotation);
 

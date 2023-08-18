@@ -262,7 +262,8 @@ internal readonly struct UpdateExpressionState<
             if (arguments.Count != 1)
                 return false;
 
-            useSpread = true;
+            // Check for things like `Concat<T>(this IEnumerable<T> source, T value)`.  In that case, we wouldn't want to spread.
+            useSpread = method.GetOriginalUnreducedDefinition() is not IMethodSymbol { IsExtensionMethod: true, Parameters: [_, { Type: ITypeParameterSymbol }] };
         }
 
         return true;
@@ -287,6 +288,16 @@ internal readonly struct UpdateExpressionState<
             return false;
 
         if (requiredArgumentName != null && arguments.Count != 1)
+            return false;
+
+        var memberAccess = this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+        if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+            return false;
+
+        this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
+        this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
+
+        if (arity != 0 || !Equals(name, methodName))
             return false;
 
         foreach (var argument in arguments)
@@ -320,16 +331,6 @@ internal readonly struct UpdateExpressionState<
                     return false;
             }
         }
-
-        var memberAccess = this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-        if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
-            return false;
-
-        this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
-        this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
-
-        if (arity != 0 || !Equals(name, methodName))
-            return false;
 
         instance = localInstance as TExpressionSyntax;
         return instance != null;
