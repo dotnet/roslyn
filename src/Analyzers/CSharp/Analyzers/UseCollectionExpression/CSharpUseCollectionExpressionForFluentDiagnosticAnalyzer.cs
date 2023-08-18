@@ -110,7 +110,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         bool addMatches,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var matches);
         if (!AnalyzeInvocation(state, invocation, addMatches ? matches : null, out var existingInitializer, cancellationToken))
             return null;
 
@@ -123,7 +123,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     private static bool AnalyzeInvocation(
         FluentState state,
         InvocationExpressionSyntax invocation,
-        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matches,
         out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
@@ -200,7 +200,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (matches != null)
                 {
                     foreach (var argument in GetArguments(currentInvocationExpression, unwrapArgument))
-                        matches.Add(new(argument.Expression, UseSpread: false));
+                        matches.Add(new(argument, UseSpread: false));
                 }
             }
 
@@ -244,7 +244,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         MemberAccessExpressionSyntax memberAccess,
         InvocationExpressionSyntax invocation,
         bool allowLinq,
-        ArrayBuilder<CollectionExpressionMatch<ExpressionSyntax>>? matches,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matches,
         CancellationToken cancellationToken)
     {
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
@@ -259,7 +259,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (matches != null)
             {
                 foreach (var argument in invocation.ArgumentList.Arguments)
-                    matches.Add(new(argument.Expression, useSpread));
+                    matches.Add(new(argument, useSpread));
             }
 
             return true;
@@ -307,11 +307,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// help determine the best collection expression final syntax.</param>
     /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
     /// replaced with the collection expression</param>
-    /// <param name="Matches">The statements that are mutating the builder that will be converted into elements in the final
-    /// collection expression.</param>
+    /// <param name="Matches">The arguments being added to the collection that will be converted into elements in the
+    /// final collection expression.</param>
     public readonly record struct AnalysisResult(
         // Location DiagnosticLocation,
         InitializerExpressionSyntax? ExistingInitializer,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> Matches);
+        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> Matches);
 }
