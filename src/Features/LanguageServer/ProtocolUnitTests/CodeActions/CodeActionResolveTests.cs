@@ -340,7 +340,7 @@ class BCD
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
             var project = testWorkspace.CurrentSolution.Projects.Single();
-            var newDocumentUri = ProtocolConversions.GetUriFromFilePath(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
             var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
             var workspaceEdit = new WorkspaceEdit()
             {

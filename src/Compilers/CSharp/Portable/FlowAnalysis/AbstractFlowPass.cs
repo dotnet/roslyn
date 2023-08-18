@@ -3031,6 +3031,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            VisitStatements(node.Statements);
+            return null;
+        }
+
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
         {
             var savedState = this.State.Clone();

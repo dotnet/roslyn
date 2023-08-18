@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -89,7 +89,7 @@ Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(3, 5)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8861: Unexpected argument list.
                 // Base()
@@ -113,12 +113,12 @@ Base()
 ;";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -155,12 +155,12 @@ class Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -180,15 +180,15 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -216,12 +216,12 @@ class Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -241,15 +241,15 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -281,12 +281,12 @@ interface Base{}
                 // (3,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(3, 7),
-                // (4,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(4, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -312,12 +312,12 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -334,7 +334,7 @@ interface Base{}
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -351,7 +351,7 @@ interface Base{}
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -3138,7 +3138,7 @@ public class A : System.Attribute
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -3147,17 +3147,17 @@ public class A : System.Attribute
             if (declaration is "class" or "struct")
             {
                 comp.VerifyDiagnostics(
-                    // (9,5): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (9,5): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //     ();
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(9, 5)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(9, 5)
                     );
             }
             else
             {
                 comp.VerifyDiagnostics(
-                    // (7,2): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,2): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                     // [method: A]
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "method").WithArguments("primary constructors").WithLocation(7, 2)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "method").WithArguments("primary constructors", "12.0").WithLocation(7, 2)
                     );
             }
 

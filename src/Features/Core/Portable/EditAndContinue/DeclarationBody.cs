@@ -22,6 +22,32 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     public abstract OneOrMany<SyntaxNode> RootNodes { get; }
 
     /// <summary>
+    /// Returns all nodes of the body.
+    /// </summary>
+    /// <remarks>
+    /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share 
+    /// their parent nodes with other bodies (e.g. join clause expressions).
+    /// </remarks>
+    public virtual IEnumerable<SyntaxNode> GetExpressionsAndStatements()
+    {
+        foreach (var root in RootNodes)
+        {
+            yield return root;
+        }
+    }
+
+    public IEnumerable<SyntaxNode> GetDescendantNodes(Func<SyntaxNode, bool> descendIntoChildren)
+    {
+        foreach (var root in GetExpressionsAndStatements())
+        {
+            foreach (var node in root.DescendantNodesAndSelf(descendIntoChildren))
+            {
+                yield return node;
+            }
+        }
+    }
+
+    /// <summary>
     /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens"/>)
     /// and its span covers the entire <see cref="MemberBody.Envelope"/>.
     /// May include descendant nodes or tokens that do not belong to the body.

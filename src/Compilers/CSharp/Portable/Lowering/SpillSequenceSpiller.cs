@@ -451,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(call.Arguments.Length == 1);
                                 return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                                   initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                    call.Method,
                                                    ImmutableArray.Create(Spill(builder, call.Arguments[0])));
                             }
@@ -464,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(call.Arguments.Length == 2);
                             return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                call.Method,
                                                ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
                         }
@@ -713,6 +715,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region Expression Visitors
+
+#if DEBUG
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            // Ensure this node won't trigger spilling
+            var result = base.VisitLoweredIsPatternExpression(node);
+            Debug.Assert(result == node);
+            return result;
+        }
+#endif
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
@@ -1042,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = receiverBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(receiver, node.Method, arguments));
+            return UpdateExpression(builder, node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, arguments));
         }
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)

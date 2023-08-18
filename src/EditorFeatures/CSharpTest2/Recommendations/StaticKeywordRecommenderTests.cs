@@ -607,5 +607,14 @@ class C
         [Fact]
         public async Task TestInFor()
             => await VerifyKeywordAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
+
+        [Fact]
+        public async Task TestAfterUsingKeywordBeforeTopLevelStatement()
+        {
+            await VerifyKeywordAsync("""
+using $$
+var i = 1;
+""");
+        }
     }
 }
