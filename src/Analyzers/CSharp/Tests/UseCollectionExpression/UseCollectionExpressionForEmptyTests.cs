@@ -1123,4 +1123,28 @@ public class UseCollectionExpressionForEmptyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWhenChildOfInvocation()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        // Handled by the fluent chain analyzer.
+                        List<int> list = Array.Empty<int>().ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
