@@ -303,7 +303,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// </summary>
     /// <param name="DiagnosticLocation">The location to put the diagnostic to tell they user they can convert this
     /// expression.</param>
-    /// <param name="existingInitializer">Optional existing initializer (for example: <c>new[] { 1, 2, 3 }</c>). Used to
+    /// <param name="ExistingInitializer">Optional existing initializer (for example: <c>new[] { 1, 2, 3 }</c>). Used to
     /// help determine the best collection expression final syntax.</param>
     /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
     /// replaced with the collection expression</param>
@@ -311,7 +311,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// collection expression.</param>
     public readonly record struct AnalysisResult(
         // Location DiagnosticLocation,
-        InitializerExpressionSyntax? existingInitializer,
+        InitializerExpressionSyntax? ExistingInitializer,
         InvocationExpressionSyntax CreationExpression,
         ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> Matches);
 }

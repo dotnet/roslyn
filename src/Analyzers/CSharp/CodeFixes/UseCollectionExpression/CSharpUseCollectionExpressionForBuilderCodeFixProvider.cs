@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer;
-using static CSharpUseCollectionExpressionHelpers;
+using static CSharpCollectionExpressionRewriter;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForBuilder), Shared]
@@ -109,10 +109,11 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToTrack);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
             nodesToTrack.Add(analysisResult.LocalDeclarationStatement);
+            nodesToTrack.Add(analysisResult.CreationExpression);
             foreach (var (statement, _) in analysisResult.Matches)
                 nodesToTrack.Add(statement);
-            nodesToTrack.Add(analysisResult.CreationExpression);
 
             var newRoot = root.TrackNodes(nodesToTrack);
             var creationExpression = newRoot.GetCurrentNode(analysisResult.CreationExpression)!;
