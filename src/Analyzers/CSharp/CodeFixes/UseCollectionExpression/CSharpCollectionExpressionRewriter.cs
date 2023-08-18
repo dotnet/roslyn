@@ -447,11 +447,15 @@ internal static class CSharpCollectionExpressionRewriter
             // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
             // that we can accurately determine where the preferred indentation should move all of it.
 
-            var startLine = document.Text.Lines.GetLineFromPosition(expression.SpanStart);
+            // If the expression is parented by a statement, use that statement to determine the indentation point.
+            // Otherwise, default to the indentation of the line the expression is on.
+            var expressionFirstToken = expression.GetFirstToken();
+            var startLine = document.Text.AreOnSameLine(expressionFirstToken.GetPreviousToken(), expressionFirstToken) && expression.FirstAncestorOrSelf<StatementSyntax>() is { } statement
+                ? document.Text.Lines.GetLineFromPosition(statement.SpanStart)
+                : document.Text.Lines.GetLineFromPosition(expression.SpanStart);
 
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
-            var expressionFirstToken = expression.GetFirstToken();
             var updatedExpression = expression.ReplaceTokens(
                 expression.DescendantTokens(),
                 (currentToken, _) =>
