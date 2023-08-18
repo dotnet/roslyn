@@ -1026,7 +1026,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.Span<T>", "System.Collections.Generic.ICollection<T>", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.IList<T>", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.HashSet<T>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.ReadOnlySpan<object>", null)] // rule requires ref struct and non- ref struct
         [InlineData("RefStructCollection<T>", "T[]", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection })]
+        [InlineData("RefStructCollection<T>", "RefStructCollection<object>", null, new[] { example_RefStructCollection })] // rule requires ref struct and non- ref struct
         [InlineData("RefStructCollection<int>", "GenericClassCollection<object>", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_GenericClassCollection })]
         [InlineData("RefStructCollection<object>", "GenericClassCollection<int>", null, new[] { example_RefStructCollection, example_GenericClassCollection })] // cannot convert object to int
         [InlineData("RefStructCollection<int>", "NonGenericClassCollection", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_NonGenericClassCollection })]
@@ -1038,13 +1040,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.ReadOnlySpan<long>", "T[]", null)] // cannot convert long to int
         [InlineData("System.ReadOnlySpan<object>", "long[]", null)] // cannot convert object to long
         [InlineData("System.ReadOnlySpan<long>", "object[]", "System.ReadOnlySpan<System.Int64>")]
+        [InlineData("System.ReadOnlySpan<long>", "string[]", null)] // https://github.com/dotnet/roslyn/issues/69634: should use System.ReadOnlySpan<System.Int64>
         [InlineData("System.ReadOnlySpan<T>", "System.Span<T>", "System.Span<System.Int32>")] // implicit conversion from Span<T> to ReadOnlySpan<T>
         [InlineData("System.ReadOnlySpan<T>", "System.Span<int>", "System.Span<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<object>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<object>
         [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<int> and ReadOnlySpan<long>
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<object> and ReadOnlySpan<long>
+        [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>", null)] // https://github.com/dotnet/roslyn/issues/69634: should use System.ReadOnlySpan<System.Int32>
         [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
         [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
         [InlineData("int[]", "object[]", null)] // rule requires ref struct
         [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires ref struct
         public void BetterConversionFromExpression_01(string type1, string type2, string expectedType, string[] additionalSources = null)
@@ -1136,13 +1141,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Generic(new[] { string.Empty }); // Generic(T[])
-                        Identical(new[] { string.Empty }); // Identical(string[])
-                        ArrayDerived(new[] { string.Empty }); // ArrayDerived(string[])
+                        Generic(new[] { string.Empty }); // string[]
+                        Identical(new[] { string.Empty }); // string[]
+                        ArrayDerived(new[] { string.Empty }); // string[]
 
-                        Generic([string.Empty]); // Generic(Span<T>)
-                        Identical([string.Empty]); // Identical(Span<string>)
-                        SpanDerived([string.Empty]); // SpanDerived(Span<string>)
+                        Generic([string.Empty]); // Span<string>
+                        Identical([string.Empty]); // Span<string>
+                        SpanDerived([string.Empty]); // Span<string>
                     }
                 }
                 """;
@@ -1184,6 +1189,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void BetterConversionFromExpression_03()
         {
+            string sourceA = """
+                using System;
+                using static System.Console;
+
+                partial class Program
+                {
+                    static void Unrelated(Span<int> value) { WriteLine("Span<int>"); }
+                    static void Unrelated(string[] value)     { WriteLine("string[]"); }
+                }
+                """;
+
+            string sourceB1 = """
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        Unrelated(new[] { 1 }); // Span<int>
+                        Unrelated(new[] { string.Empty }); // string[]
+
+                        Unrelated([2]); // Span<string>
+                        Unrelated([string.Empty]); // string[]
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB1 },
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/69634: Should use Span<int>, string[], Span<int>, string[]
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Unrelated(Span<int>)' and 'Program.Unrelated(string[])'
+                //         Unrelated([2]); // Span<string>
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Unrelated").WithArguments("Program.Unrelated(System.Span<int>)", "Program.Unrelated(string[])").WithLocation(8, 9),
+                // 1.cs(9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Unrelated(Span<int>)' and 'Program.Unrelated(string[])'
+                //         Unrelated([string.Empty]); // string[]
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Unrelated").WithArguments("Program.Unrelated(System.Span<int>)", "Program.Unrelated(string[])").WithLocation(9, 9));
+
+            string sourceB2 = """
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        Unrelated(new[] { default }); // error
+                        Unrelated([default]); // ambiguous
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,19): error CS0826: No best type found for implicitly-typed array
+                //         Unrelated(new[] { default }); // error
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { default }").WithLocation(5, 19),
+                // 1.cs(5,19): error CS1503: Argument 1: cannot convert from '?[]' to 'System.Span<int>'
+                //         Unrelated(new[] { default }); // error
+                Diagnostic(ErrorCode.ERR_BadArgType, "new[] { default }").WithArguments("1", "?[]", "System.Span<int>").WithLocation(5, 19),
+                // 1.cs(6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Unrelated(Span<int>)' and 'Program.Unrelated(string[])'
+                //         Unrelated([default]); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Unrelated").WithArguments("Program.Unrelated(System.Span<int>)", "Program.Unrelated(string[])").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_04()
+        {
             string source = """
                 using System;
                 class Program
@@ -1207,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void BetterConversionFromExpression_04()
+        public void BetterConversionFromExpression_05()
         {
             string source = """
                 using System;
@@ -1232,6 +1302,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(string, string[])' and 'Program.F2(object, Span<string>)'
                 //         F2("3", ["4"]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(string, string[])", "Program.F2(object, System.Span<string>)").WithLocation(11, 9));
+        }
+
+        // Two ref struct collection types, with an implicit conversion from one to the other.
+        [Fact]
+        public void BetterConversionFromExpression_06()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create1))]
+                ref struct MyCollection1<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection1(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    public static implicit operator MyCollection2<T>(MyCollection1<T> c) => new(c._list);
+                }
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create2))]
+                ref struct MyCollection2<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection2(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                }
+                static class MyCollectionBuilder
+                {
+                    public static MyCollection1<T> Create1<T>(scoped ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection1<T>(new List<T>(items.ToArray()));
+                    }
+                    public static MyCollection2<T> Create2<T>(scoped ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection2<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                class Program
+                {
+                    static void F1<T>(MyCollection1<T> c) { Console.WriteLine("MyCollection1<T>"); }
+                    static void F1<T>(MyCollection2<T> c) { Console.WriteLine("MyCollection2<T>"); }
+                    static void F2(MyCollection2<object> c) { Console.WriteLine("MyCollection2<object>"); }
+                    static void F2(MyCollection1<object> c) { Console.WriteLine("MyCollection1<object>"); }
+                    static void Main()
+                    {
+                        F1([1, 2, 3]);
+                        F2([4, null]);
+                        F1((MyCollection1<object>)[6]);
+                        F1((MyCollection2<int>)[7]);
+                        F2((MyCollection2<object>)[8]);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, CollectionBuilderAttributeDefinition },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    MyCollection1<T>
+                    MyCollection1<object>
+                    MyCollection1<T>
+                    MyCollection2<T>
+                    MyCollection2<object>
+                    """));
         }
 
         [Fact]
