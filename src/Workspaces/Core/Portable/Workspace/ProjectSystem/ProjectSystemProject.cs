@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.NET.Sdk.Razor.SourceGenerators.dll";
+        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.dll";
 
         private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
         {

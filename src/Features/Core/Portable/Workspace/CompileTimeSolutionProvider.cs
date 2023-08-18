@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
-        private const string RazorSourceGeneratorAssemblyName = "Microsoft.NET.Sdk.Razor.SourceGenerators";
+        private const string RazorSourceGeneratorAssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
         private static readonly string s_razorSourceGeneratorFileNamePrefix = Path.Combine(RazorSourceGeneratorAssemblyName, RazorSourceGeneratorTypeName);
 
