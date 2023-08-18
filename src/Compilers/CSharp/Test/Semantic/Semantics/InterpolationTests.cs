@@ -6234,17 +6234,17 @@ public partial struct CustomHandler
         public void SwitchTypes_03(string expression)
         {
             // Same 02, but with a target-type. The natural type will fail to compile, so the switch will use a target type (unlike TernaryTypes_03, which fails to compile).
-            var code = @"
+            var code = $$"""
 using System;
 
-CustomHandler x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
+CustomHandler x = (bool)(object)false switch { true => default(CustomHandler), false => {{expression}} };
 Console.WriteLine(x);
 
 public partial struct CustomHandler
 {
     public static implicit operator string(CustomHandler c) => c.ToString();
 }
-";
+""";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);

@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MissingTypeParamTag:
                 case ErrorCode.WRN_InvalidVersionFormat:
                     return 4;
-                case ErrorCode.WRN_UnreferencedEvent:
+            case ErrorCode.WRN_UnreferencedEvent:
                 case ErrorCode.WRN_DuplicateUsing:
                 case ErrorCode.WRN_UnreferencedVar:
                 case ErrorCode.WRN_UnreferencedField:
@@ -551,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression:
                     return 1;
                 default:
                     return 0;
@@ -2399,6 +2400,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion12:
+                case ErrorCode.ERR_MismatchedRefEscapeInSwitchExpression:
+                case ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression:
+                case ErrorCode.ERR_RequiresRefReturningSwitchExpression:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

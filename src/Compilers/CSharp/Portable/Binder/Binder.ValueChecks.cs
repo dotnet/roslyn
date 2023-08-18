@@ -494,9 +494,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (expr.Kind == BoundKind.UnconvertedSwitchExpression && valueKind is BindValueKind.RValue or BindValueKind.Assignable)
+            if (expr.Kind == BoundKind.UnconvertedSwitchExpression &&
+                expr.Type is not null &&
+                valueKind is BindValueKind.RValue or BindValueKind.Assignable)
             {
-                expr = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)expr, expr.Type, null, diagnostics);
+                var switchExpression = (BoundUnconvertedSwitchExpression)expr;
+                if (switchExpression.IsRef)
+                {
+                    expr = ConvertSwitchExpression(switchExpression, expr.Type, null, diagnostics);
+                }
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr.Syntax, expr, valueKind, checkingReceiver: false, diagnostics: diagnostics) ||
@@ -580,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var errorSpan = node.FullSpan;
+            var errorSpan = node.Span;
 
             switch (expr.Kind)
             {
@@ -809,26 +815,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConvertedSwitchExpression:
                     var switchExpression = (BoundSwitchExpression)expr;
 
-                    Debug.Assert(switchExpression.IsRef);
-                    Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
-
-                    // defer check to the switch arms' values
-                    bool check = true;
-                    foreach (var arm in switchExpression.SwitchArms)
+                    if (switchExpression.IsRef)
                     {
-                        // Specially handle throw expressions in arms because they are not treated the same elsewhere
-                        if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
-                            continue;
+                        Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
 
-                        check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
+                        // defer check to the switch arms' values
+                        bool check = true;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            // Specially handle throw expressions in arms because they are not treated the same elsewhere
+                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
+                                continue;
+
+                            check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
+                        }
+                        if (check)
+                            return true;
+
+                        var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
+                        errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
+                        break;
                     }
-                    if (check)
-                        return true;
 
-                    var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
-                    errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
-
-                    break;
+                    return true;
 
                 default:
                     Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
