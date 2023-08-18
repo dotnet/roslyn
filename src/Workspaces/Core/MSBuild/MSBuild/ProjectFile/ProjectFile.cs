@@ -227,13 +227,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
             if (!RoslynString.IsNullOrEmpty(linkPath))
             {
-                return linkPath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
             }
             else
             {
                 var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
                 return folders;
             }
         }
