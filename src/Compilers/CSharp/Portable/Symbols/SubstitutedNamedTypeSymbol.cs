@@ -149,8 +149,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
         }
 
+        private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
+
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
+        {
+            get
+            {
+                if (_unbound)
+                {
+                    return null;
+                }
+
+                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                {
+                    var baseType = Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
+                    Interlocked.CompareExchange(ref _lazyBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
+                }
+
+                Debug.Assert(!ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType));
+                return _lazyBaseType;
+            }
+        }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
