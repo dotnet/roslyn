@@ -79,7 +79,9 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.Zip(analysisResult.Matches).SelectAsArray(static t => new CollectionExpressionMatch<ExpressionSyntax>(t.First, t.Second.UseSpread));
+        var matches = expressions
+            .Zip(analysisResult.Matches, static (expression, match) => new CollectionExpressionMatch<ExpressionSyntax>(expression, match.UseSpread))
+            .ToImmutableArray();
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
@@ -132,6 +134,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
                 }
                 else
                 {
+                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia());
                     AddOriginallyFirstArgument(argument);
                 }
             }
