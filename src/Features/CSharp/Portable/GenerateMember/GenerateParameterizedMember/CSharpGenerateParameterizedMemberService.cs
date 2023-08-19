@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     type.GetReferencedTypeParameters(result);
                 }
 
-                return result.ToImmutableArray();
+                return [.. result];
             }
 
             protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                         list.Add(typeParameter);
                     }
 
-                    return list.ToImmutable();
+                    return [.. list];
                 }
             }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     }
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
     }

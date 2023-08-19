@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 result.Add(diagnostic);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)

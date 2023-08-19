@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     _ => throw ExceptionUtilities.Unreachable(),
                 }).WhereNotNull());
 
-            return resultBuilder.ToImmutable();
+            return [.. resultBuilder];
         }
 
         public static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(

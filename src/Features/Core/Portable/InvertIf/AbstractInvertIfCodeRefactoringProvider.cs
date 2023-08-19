@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     innerStatement = (TStatementSyntax)node;
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private SyntaxNode GetRootWithInvertIfStatement(

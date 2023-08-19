@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 builder.Add(codeFixData);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)

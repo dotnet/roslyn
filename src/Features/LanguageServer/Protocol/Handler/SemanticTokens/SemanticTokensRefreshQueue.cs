@@ -196,7 +196,7 @@ internal class SemanticTokensRefreshQueue :
         ImmutableArray<CompilationAvailableEventSource> eventSources;
         lock (_gate)
         {
-            eventSources = _projectIdToEventSource.Values.ToImmutableArray();
+            eventSources = [.. _projectIdToEventSource.Values];
             _projectIdToEventSource.Clear();
 
             _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;

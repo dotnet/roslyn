@@ -1029,7 +1029,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             var completionList = await GetCompletionListAsync(markup).ConfigureAwait(false);
-            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.ItemsList.ToImmutableArray());
+            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, [.. completionList.ItemsList]);
         }
 
         [Fact]

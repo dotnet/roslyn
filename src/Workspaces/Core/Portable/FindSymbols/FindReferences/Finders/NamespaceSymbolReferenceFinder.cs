@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
             result.AddRange(documentsWithGlobalAttributes);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     symbol, state, cancellationToken).ConfigureAwait(false));
             }
 
-            return initialReferences.ToImmutable();
+            return [.. initialReferences];
         }
 
         /// <summary>

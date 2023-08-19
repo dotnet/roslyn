@@ -2899,7 +2899,7 @@ Console.WriteLine(2);
             SyntaxTree[] treeList2 = new[] { tree3, tree4 };
             var compilation2 = compilation1.AddSyntaxTrees(treeList2);
             CheckCompilationSyntaxTrees(compilation1, treeList1); //compilation1 untouched
-            CheckCompilationSyntaxTrees(compilation2, treeList1.Concat(treeList2).ToArray());
+            CheckCompilationSyntaxTrees(compilation2, [.. treeList1, .. treeList2]);
 
             SyntaxTree[] treeList3 = new[] { tree4, tree3 };
             var compilation3 = CSharpCompilation.Create("Compilation3", syntaxTrees: treeList3);
@@ -2908,7 +2908,7 @@ Console.WriteLine(2);
             SyntaxTree[] treeList4 = new[] { tree2, tree1 };
             var compilation4 = compilation3.AddSyntaxTrees(treeList4);
             CheckCompilationSyntaxTrees(compilation3, treeList3); //compilation3 untouched
-            CheckCompilationSyntaxTrees(compilation4, treeList3.Concat(treeList4).ToArray());
+            CheckCompilationSyntaxTrees(compilation4, [.. treeList3, .. treeList4]);
         }
 
         [Fact]

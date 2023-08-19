@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             if (identity.PublicKey.Length > 0)
             {
-                result.SetPublicKey(identity.PublicKey.ToArray());
+                result.SetPublicKey([.. identity.PublicKey]);
             }
 
             if (!identity.PublicKeyToken.IsDefault)
             {
-                result.SetPublicKeyToken(identity.PublicKeyToken.ToArray());
+                result.SetPublicKeyToken([.. identity.PublicKeyToken]);
             }
 
             return result;

@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     accessibility: Explicitly ? Accessibility.NotApplicable : Accessibility.Public,
                     modifiers: modifiers,
                     explicitInterfaceImplementations: explicitInterfaceImplementations,
-                    statements: statements.ToImmutable());
+                    statements: [.. statements]);
 
                 return result;
             }

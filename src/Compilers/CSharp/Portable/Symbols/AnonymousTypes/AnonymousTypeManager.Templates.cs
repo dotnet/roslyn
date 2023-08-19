@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (returnsVoid)
                     {
-                        genericFieldTypes = genericFieldTypes.Add(fields[^1].TypeWithAnnotations);
+                        genericFieldTypes = [.. genericFieldTypes, fields[^1].TypeWithAnnotations];
                     }
 
                     var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);

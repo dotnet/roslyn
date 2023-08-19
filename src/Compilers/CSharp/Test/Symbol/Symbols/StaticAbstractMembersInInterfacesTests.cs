@@ -18462,8 +18462,10 @@ interface I14 : I1
 
             if (op is "==" or "!=")
             {
-                expected = expected.Concat(
-                    new[] {
+                expected =
+                [
+                    .. expected,
+                    .. new[] {
                         // (4,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I1' must be a type parameter on 'I1' constrained to 'I1'
                         //     abstract static I1 operator ==(I1 x, int y);
                         Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I1").WithLocation(4, 33),
@@ -18486,12 +18488,15 @@ interface I14 : I1
                         //     static T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23 + checkedKeyword.Length)
                         }
-                    ).ToArray();
+,
+                ];
             }
             else
             {
-                expected = expected.Concat(
-                    new[] {
+                expected =
+                [
+                    .. expected,
+                    .. new[] {
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
@@ -18505,7 +18510,8 @@ interface I14 : I1
                         //     T operator |(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
                         }
-                    ).ToArray();
+,
+                ];
             }
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(expected);
@@ -18654,8 +18660,10 @@ interface I14 : I1
 
             if (op is "==" or "!=")
             {
-                expected = expected.Concat(
-                    new[] {
+                expected =
+                [
+                    .. expected,
+                    .. new[] {
                         // (4,33): error CS9046: One of the parameters of an equality, or inequality operator declared in interface 'I1' must be a type parameter on 'I1' constrained to 'I1'
                         //     virtual  static I1 operator ==(I1 x, int y);
                         Diagnostic(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, op).WithArguments("I1").WithLocation(4, 33),
@@ -18678,12 +18686,15 @@ interface I14 : I1
                         //     static T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23 + checkedKeyword.Length)
                         }
-                    ).ToArray();
+,
+                ];
             }
             else
             {
-                expected = expected.Concat(
-                    new[] {
+                expected =
+                [
+                    .. expected,
+                    .. new[] {
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
@@ -18697,7 +18708,8 @@ interface I14 : I1
                         //     T operator |(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
                         }
-                    ).ToArray();
+,
+                ];
             }
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(expected);

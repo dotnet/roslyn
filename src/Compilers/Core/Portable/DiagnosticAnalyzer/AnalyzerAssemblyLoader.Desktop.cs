@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         private partial bool IsMatch(AssemblyName requestedName, AssemblyName candidateName) =>
             candidateName.Name == requestedName.Name &&
             candidateName.Version >= requestedName.Version &&
-            candidateName.GetPublicKeyToken().AsSpan().SequenceEqual(requestedName.GetPublicKeyToken().AsSpan());
+            candidateName.GetPublicKeyToken().AsSpan().SequenceEqual([.. requestedName.GetPublicKeyToken()]);
 
         internal bool EnsureResolvedHooked()
         {

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             algorithmId = symDocument.GetHashAlgorithm();
-            checksum = symDocument.GetChecksum().ToImmutableArray();
+            checksum = [.. symDocument.GetChecksum()];
             return true;
         }
     }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
     }
 }

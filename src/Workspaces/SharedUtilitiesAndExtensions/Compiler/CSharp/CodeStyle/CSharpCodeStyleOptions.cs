@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_primary_constructors",
             CSharpIdeCodeStyleOptions.Default.PreferPrimaryConstructors);
 
-        internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
+        internal static readonly ImmutableArray<IOption2> AllOptions = [.. s_allOptionsBuilder];
     }
 
     internal static class CSharpCodeStyleOptionGroups

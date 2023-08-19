@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap the node in an iterator scope for debugging
             if (hoistedLocalsWithDebugScopes.Count != 0)
             {
-                translatedStatement = MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement);
+                translatedStatement = MakeStateMachineScope([.. hoistedLocalsWithDebugScopes], translatedStatement);
             }
 
             hoistedLocalsWithDebugScopes.Free();
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     translated = node.Update(newLocalsBuilder.ToImmutableAndFree(), statements);
                 }
 
-                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
+                return MakeStateMachineScope([.. hoistedLocalsWithDebugScopes], translated);
             }
             else
             {

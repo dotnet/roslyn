@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
 
             GetEffectiveIncludesCore(arrayBuilder);
 
-            return arrayBuilder.ToImmutable();
+            return [.. arrayBuilder];
         }
 
         private void GetEffectiveIncludesCore(ImmutableArray<string>.Builder arrayBuilder)

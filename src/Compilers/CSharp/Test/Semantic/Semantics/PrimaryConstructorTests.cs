@@ -12904,15 +12904,14 @@ struct S
 
             if (keyword == "struct")
             {
-                expected = expected.Concat(
-                    // (6,30): error CS9112: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
-                    //                   int* p1 = &x;
+                expected =
+                [
+                    .. expected,
                     Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(6, 30)
-                    ).Concat(
-                    // (7,30): error CS9112: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
-                    //                   int* p2 = &s.f;
+,
                     Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(7, 30)
-                    ).ToArray();
+,
+                ];
             }
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expected);
@@ -12997,15 +12996,14 @@ struct S
 
             if (keyword == "struct")
             {
-                expected = expected.Concat(
-                    // (9,23): error CS9112: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
-                    //                   _ = x + s.f;
+                expected =
+                [
+                    .. expected,
                     Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(9, 23)
-                    ).Concat(
-                    // (9,27): error CS9112: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
-                    //                   _ = x + s.f;
+,
                     Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(9, 27)
-                    ).ToArray();
+,
+                ];
             }
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expected);

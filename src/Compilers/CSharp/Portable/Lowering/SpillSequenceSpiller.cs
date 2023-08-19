@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ImmutableArray<LocalSymbol> GetLocals()
             {
-                return (_locals == null) ? ImmutableArray<LocalSymbol>.Empty : _locals.ToImmutable();
+                return (_locals == null) ? ImmutableArray<LocalSymbol>.Empty : [.. _locals];
             }
 
             public ImmutableArray<BoundStatement> GetStatements()
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableArray<BoundStatement>.Empty;
                 }
 
-                return _statements.ToImmutable();
+                return [.. _statements];
             }
 
             internal BoundSpillSequenceBuilder Update(BoundExpression value)
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (builder is { })
             {
                 Debug.Assert(builder.Value is null);
-                locals = locals.AddRange(builder.GetLocals());
+                locals = [.. locals, .. builder.GetLocals()];
                 exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
             }
 

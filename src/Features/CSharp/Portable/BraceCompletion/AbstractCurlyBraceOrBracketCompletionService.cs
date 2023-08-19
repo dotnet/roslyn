@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
                 }
 
-                return mergedChanges.ToImmutable();
+                return [.. mergedChanges];
             }
         }
 

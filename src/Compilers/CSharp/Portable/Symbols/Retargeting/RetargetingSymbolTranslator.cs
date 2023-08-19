@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if (argumentsHaveChanged)
                     {
-                        retargetedArguments = newArguments.ToImmutable();
+                        retargetedArguments = [.. newArguments];
                     }
 
                     newArguments.Free();
@@ -1297,7 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if (argumentsHaveChanged)
                     {
-                        retargetedArguments = newArguments.ToImmutable();
+                        retargetedArguments = [.. newArguments];
                     }
 
                     newArguments.Free();

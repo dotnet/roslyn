@@ -459,7 +459,7 @@ internal static class UseCollectionExpressionHelpers
             return default;
         }
 
-        return matches.ToImmutable();
+        return [.. matches];
     }
 
     public static bool IsCollectionFactoryCreate(

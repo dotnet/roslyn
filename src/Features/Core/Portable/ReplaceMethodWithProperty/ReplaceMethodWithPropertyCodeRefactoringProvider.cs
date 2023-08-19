@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static TSymbol? GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)

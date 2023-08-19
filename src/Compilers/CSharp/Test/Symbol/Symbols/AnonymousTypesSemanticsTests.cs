@@ -1511,7 +1511,7 @@ public class ClassA
             Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
 
             pos = data.Nodes[3].Span.End;
-            syms = data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x).ToArray();
+            syms = [.. data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x)];
             Assert.Equal(6, syms.Length);
 
             index = 0;

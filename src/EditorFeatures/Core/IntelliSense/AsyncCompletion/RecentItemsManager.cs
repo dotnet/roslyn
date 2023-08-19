@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     items = items.RemoveAt(0);
                 }
 
-                RecentItems = items.Add(item.FilterText);
+                RecentItems = [.. items, item.FilterText];
             }
         }
 

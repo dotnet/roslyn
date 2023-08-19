@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LanguageServer
                     }
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
     }

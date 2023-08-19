@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         enableCallerInfo: !IsEarlyAttributeBinder,
                         diagnostics,
                         attributedMember: attributedMember);
-                    boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
+                    boundConstructorArguments = [.. analyzedArguments.ConstructorArguments.Arguments];
                     attributeArgumentBinder.ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
                     if (attributeConstructor.Parameters.Any(static p => p.RefKind is RefKind.In or RefKind.RefReadOnlyParameter))

@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return graphQueries.ToImmutable();
+            return [.. graphQueries];
         }
 
         public void BeginGetGraphData(IGraphContext context)

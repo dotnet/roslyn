@@ -361,12 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (displayText.Contains("{"))
             {
-                commitRules = commitRules.Add(s_WithoutOpenBrace);
+                commitRules = [.. commitRules, s_WithoutOpenBrace];
             }
 
             if (displayText.Contains("("))
             {
-                commitRules = commitRules.Add(s_WithoutOpenParen);
+                commitRules = [.. commitRules, s_WithoutOpenParen];
             }
 
             if (commitRules.IsEmpty)

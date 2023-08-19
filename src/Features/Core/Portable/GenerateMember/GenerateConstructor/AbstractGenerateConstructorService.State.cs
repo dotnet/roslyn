@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         name: parameterName.BestNameForParameter));
                 }
 
-                _parameters = parameters.ToImmutable();
+                _parameters = [.. parameters];
                 _parameterToExistingMemberMap = parameterToExistingMemberMap.ToImmutable();
                 ParameterToNewFieldMap = parameterToNewFieldMap.ToImmutable();
                 ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();

@@ -52,10 +52,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
             var list = errorItems.Select(GetMessage).ToList();
 
-            return list
-                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x, StringComparer.Ordinal)
-                .ToImmutableArray();
+            return
+            [
+                .. list
+                                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                                .ThenBy(x => x, StringComparer.Ordinal)
+,
+            ];
         }
 
         public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new RangeVariableMap();
                 foreach (var vars in allRangeVariables.Keys)
                 {
-                    result.Add(vars, allRangeVariables[vars].ToImmutable());
+                    result.Add(vars, [.. allRangeVariables[vars]]);
                 }
                 return result;
             }

@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // does not apply (at least, not straightforwardly), because CanUnifyWith is not
             // transitive and, thus, is not an equivalence relation.
 
-            NamedTypeSymbol[] interfaces = this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.ToArray();
+            NamedTypeSymbol[] interfaces = [.. this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys];
 
             for (int i1 = 0; i1 < numInterfaces; i1++)
             {

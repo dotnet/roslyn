@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
 
             }
 
-            return CreateNamedType(typeName, isRecord, capturedTypeParameters, members.ToImmutable());
+            return CreateNamedType(typeName, isRecord, capturedTypeParameters, [.. members]);
         }
 
         private static INamedTypeSymbol CreateNamedType(

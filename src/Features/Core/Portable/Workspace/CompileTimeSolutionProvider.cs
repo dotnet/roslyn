@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Host
                         }
 
                         compileTimeSolution = compileTimeSolution
-                            .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
-                            .RemoveDocuments(documentIdsToRemove.ToImmutable());
+                            .RemoveAnalyzerConfigDocuments([.. configIdsToRemove])
+                            .RemoveDocuments([.. documentIdsToRemove]);
 
                         if (staleSolution is not null)
                         {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             compileTimeFilePathsByProject.FreeValues();
-            return result.ToImmutable();
+            return [.. result];
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 }
             }
 
-            return assemblies.ToImmutableArray();
+            return [.. assemblies];
         }
 
         private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)

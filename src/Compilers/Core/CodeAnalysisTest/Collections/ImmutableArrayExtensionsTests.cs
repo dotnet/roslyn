@@ -264,13 +264,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var empty = ImmutableArray.Create<int>();
             var a = ImmutableArray.Create<int>(0, 2, 4);
 
-            Assert.Equal(empty, empty.AddRange(empty));
-            Assert.Equal(a, a.AddRange(empty));
-            Assert.Equal(a, empty.AddRange(a));
+            Assert.Equal(empty, [.. empty, .. empty]);
+            Assert.Equal(a, [.. a, .. empty]);
+            Assert.Equal(a, [.. empty, .. a]);
             Assert.True(a.AddRange(a).SequenceEqual(ImmutableArray.Create<int>(0, 2, 4, 0, 2, 4)));
 
-            Assert.Equal(empty, empty.AddRange((IEnumerable<int>)empty));
-            Assert.Equal(a, a.AddRange((IEnumerable<int>)empty));
+            Assert.Equal(empty, [.. empty, .. (IEnumerable<int>)empty]);
+            Assert.Equal(a, [.. a, .. (IEnumerable<int>)empty]);
             Assert.True(a.SequenceEqual(empty.AddRange((IEnumerable<int>)a)));
             Assert.True(a.AddRange((IEnumerable<int>)a).SequenceEqual(ImmutableArray.Create<int>(0, 2, 4, 0, 2, 4)));
         }

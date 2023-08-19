@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
                 lock (_gate)
                 {
-                    return _definitions.ToImmutableArray();
+                    return [.. _definitions];
                 }
             }
         }

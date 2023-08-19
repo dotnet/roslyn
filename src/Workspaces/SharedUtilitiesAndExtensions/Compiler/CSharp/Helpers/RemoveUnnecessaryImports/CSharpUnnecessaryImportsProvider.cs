@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
 
             result.RemoveDuplicates();
-            return result.ToImmutableArray();
+            return [.. result];
         }
     }
 }

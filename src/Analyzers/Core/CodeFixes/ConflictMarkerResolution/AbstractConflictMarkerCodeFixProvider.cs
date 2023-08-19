@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
 #if !CODE_STYLE
             // Backdoor that allows this provider to use the high-priority bucket.
-            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+            this.CustomTags = [.. this.CustomTags, CodeAction.CanBeHighPriorityTag];
 #endif
         }
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
 #if !CODE_STYLE
                 // Backdoor that allows this provider to use the high-priority bucket.
-                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+                codeAction.CustomTags = [.. codeAction.CustomTags, CodeAction.CanBeHighPriorityTag];
 #endif
 
                 return codeAction;

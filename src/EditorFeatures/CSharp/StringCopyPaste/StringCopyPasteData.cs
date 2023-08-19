@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 }
             }
 
-            return new StringCopyPasteData(result.ToImmutable());
+            return new StringCopyPasteData([.. result]);
         }
     }
 }

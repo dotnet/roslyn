@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>

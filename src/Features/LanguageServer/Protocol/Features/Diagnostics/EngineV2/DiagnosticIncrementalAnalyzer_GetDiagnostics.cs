@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
-                => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
+                => (_lazyDataBuilder != null) ? [.. _lazyDataBuilder] : ImmutableArray<DiagnosticData>.Empty;
 
             protected abstract Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
 

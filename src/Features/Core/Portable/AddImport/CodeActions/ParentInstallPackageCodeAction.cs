@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 // And finally the action to show the package manager dialog.
                 codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, fixData.PackageName));
-                return codeActions.ToImmutable();
+                return [.. codeActions];
             }
 
             private static CodeAction CreateCodeAction(

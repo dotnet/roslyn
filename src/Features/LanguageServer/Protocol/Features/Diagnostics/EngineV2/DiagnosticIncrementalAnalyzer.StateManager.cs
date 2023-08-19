@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ImmutableArray<StateSet> GetOrUpdateStateSets(Project project)
             {
                 var projectStateSets = GetOrUpdateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
+                return [.. GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets, .. projectStateSets.StateSetMap.Values];
             }
 
             /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                return stateSets.ToImmutable();
+                return [.. stateSets];
             }
 
             public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)

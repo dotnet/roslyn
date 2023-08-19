@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
                 priorityProvider, blockForData, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
-            return list.ToImmutable();
+            return [.. list];
         }
 
         /// <summary>
@@ -284,9 +284,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // Compute diagnostics for non-cached state sets.
-                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, _range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, _range, list, _incrementalAnalysis, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync([.. syntaxAnalyzers], AnalysisKind.Syntax, _range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync([.. semanticSpanBasedAnalyzers], AnalysisKind.Semantic, _range, list, _incrementalAnalysis, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync([.. semanticDocumentBasedAnalyzers], AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
 
                     // If we are blocked for data, then we should always have full result.
                     Debug.Assert(!_blockForData || containsFullResult);
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (filteredAnalyzersWithStateBuilder.Count == 0)
                     return;
 
-                analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
+                analyzersWithState = [.. filteredAnalyzersWithStateBuilder];
 
                 var analyzers = analyzersWithState.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);

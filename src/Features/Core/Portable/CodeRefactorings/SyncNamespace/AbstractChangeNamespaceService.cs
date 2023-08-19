@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
                 solutionAfterImportsRemoved,
-                referenceDocuments.ToImmutableArray(),
+                [.. referenceDocuments],
                 ImmutableArray.Create(declaredNamespace, targetNamespace),
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 containers.Add((document.Id, container));
             }
 
-            return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
+            return spanForContainers.Count == 1 ? [.. containers] : default;
         }
 
         /// <summary>
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 return false;
             }
 
-            allDocumentIds = linkedDocumentIds.Add(document.Id);
+            allDocumentIds = [.. linkedDocumentIds, document.Id];
             return true;
         }
 
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)

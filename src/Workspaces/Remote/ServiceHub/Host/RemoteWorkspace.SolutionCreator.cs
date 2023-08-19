@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (lazyDocumentsToAdd != null)
                 {
-                    project = addDocuments(project.Solution, lazyDocumentsToAdd.ToImmutable()).GetProject(project.Id)!;
+                    project = addDocuments(project.Solution, [.. lazyDocumentsToAdd]).GetProject(project.Id)!;
                 }
 
                 // changed document
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (lazyDocumentsToRemove is not null)
                 {
-                    project = removeDocuments(project.Solution, lazyDocumentsToRemove.ToImmutable()).GetProject(project.Id)!;
+                    project = removeDocuments(project.Solution, [.. lazyDocumentsToRemove]).GetProject(project.Id)!;
                 }
 
                 return project;

@@ -560,12 +560,12 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
         {
-            get { return this.ToArray(); }
+            get { return [.. this]; }
         }
 
         private SyntaxNodeOrToken[] NodesWithSeparators
         {
-            get { return _list.ToArray(); }
+            get { return [.. _list]; }
         }
 #pragma warning restore IDE0051 // Remove unused private members
 

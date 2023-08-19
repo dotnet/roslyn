@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
-            return allActions.ToImmutable();
+            return [.. allActions];
         }
 
         private (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 result.Add(parameter);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(

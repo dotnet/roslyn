@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (builder is null)
                 throw new ArgumentNullException(nameof(builder));
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> items, IEqualityComparer<TKey>? keyComparer)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (items is ImmutableSegmentedDictionary<TKey, TValue> existingDictionary)
                 return existingDictionary.WithComparer(keyComparer);
 
-            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer).AddRange(items);
+            return [.. ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer), .. items];
         }
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
@@ -77,8 +77,12 @@ namespace Microsoft.CodeAnalysis.Collections
             if (elementSelector is null)
                 throw new ArgumentNullException(nameof(elementSelector));
 
-            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer)
-                .AddRange(source.Select(element => new KeyValuePair<TKey, TValue>(keySelector(element), elementSelector(element))));
+            return
+            [
+                .. ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer)
+,
+                .. source.Select(element => new KeyValuePair<TKey, TValue>(keySelector(element), elementSelector(element))),
+            ];
         }
 
         public static ImmutableSegmentedDictionary<TKey, TSource> ToImmutableSegmentedDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)

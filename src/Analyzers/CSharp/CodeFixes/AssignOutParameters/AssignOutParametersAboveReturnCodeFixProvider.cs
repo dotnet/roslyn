@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
             else if (parent is ArrowExpressionClauseSyntax)
             {
-                statements = statements.Add(generator.ReturnStatement(exprOrStatement));
+                statements = [.. statements, generator.ReturnStatement(exprOrStatement)];
                 editor.ReplaceNode(
                     parent.GetRequiredParent(),
                     generator.WithStatements(parent.GetRequiredParent(), statements));

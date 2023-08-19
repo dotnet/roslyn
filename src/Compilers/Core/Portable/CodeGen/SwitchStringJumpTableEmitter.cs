@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _builder.MarkLabel(hashBucketLabelsMap[kvPair.Key]);
 
                 HashBucket hashBucket = kvPair.Value;
-                this.EmitNonHashTableSwitch(hashBucket.ToArray());
+                this.EmitNonHashTableSwitch([.. hashBucket]);
             }
         }
 

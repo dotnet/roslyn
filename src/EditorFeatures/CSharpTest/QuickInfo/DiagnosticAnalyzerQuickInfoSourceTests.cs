@@ -244,7 +244,7 @@ namespace T
         protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestAsync(
 @"class C
-{" + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
+{" + code + "}", expectedDescription, [.. relatedSpans]);
 
         protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestInClassAsync(

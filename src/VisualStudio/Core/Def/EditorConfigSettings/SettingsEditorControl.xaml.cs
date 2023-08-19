@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 analyzerView
             };
 
-            _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
+            _tableControls = [.. _views.SelectAsArray(view => view.TableControl)];
 
             InitializeComponent();
         }

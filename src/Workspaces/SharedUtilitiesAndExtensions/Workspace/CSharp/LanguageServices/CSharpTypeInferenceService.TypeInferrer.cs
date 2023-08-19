@@ -758,8 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
                 var refKind = argumentOpt.GetRefKind();
-                return InferTypeInArgument(index, parameterListsWithMatchingCount.ToImmutable(), name, refKind).Concat(
-                    InferTypeInArgument(index, parameterListsWithoutMatchingCount.ToImmutable(), name, refKind));
+                return InferTypeInArgument(index, [.. parameterListsWithMatchingCount], name, refKind).Concat(
+                    InferTypeInArgument(index, [.. parameterListsWithoutMatchingCount], name, refKind));
             }
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return matchingRefParameters.Count > 0
                     ? matchingRefParameters.ToImmutable()
-                    : allParameters.ToImmutable();
+                    : [.. allParameters];
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrayCreationExpression(
@@ -2311,8 +2311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
                             Compilation.CreateTupleTypeSymbol(
-                                tupleTypes.ToImmutable(),
-                                names.ToImmutable())));
+                                [.. tupleTypes],
+                                [.. names])));
                     }
 
                     return GetTypes(declExpr.Type);
@@ -2386,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                elementTypes = elementTypesBuilder.ToImmutable();
-                elementNames = elementNamesBuilder.ToImmutable();
+                elementTypes = [.. elementTypesBuilder];
+                elementNames = [.. elementNamesBuilder];
                 return true;
             }
 

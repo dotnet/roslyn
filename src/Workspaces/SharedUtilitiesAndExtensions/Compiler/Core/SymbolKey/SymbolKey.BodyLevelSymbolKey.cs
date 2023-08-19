@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                     result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             public static void Create(ISymbol symbol, SymbolKeyWriter visitor)

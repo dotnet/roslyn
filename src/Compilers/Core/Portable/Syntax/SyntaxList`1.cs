@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis
         private TNode[] Nodes
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            get { return this.ToArray(); }
+            get { return [.. this]; }
         }
 
         /// <summary>

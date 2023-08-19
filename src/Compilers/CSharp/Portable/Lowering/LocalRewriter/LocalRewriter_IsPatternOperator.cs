@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _factory.Literal(false)));
                 resultBuilder.Add(_factory.Label(afterIsPatternExpression));
                 _localRewriter._needsSpilling = true;
-                return _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), resultBuilder.ToImmutableAndFree(), _factory.Local(resultTemp));
+                return _factory.SpillSequence([.. _tempAllocator.AllTemps(), resultTemp], resultBuilder.ToImmutableAndFree(), _factory.Local(resultTemp));
             }
         }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(test.Type.SpecialType == SpecialType.System_Boolean);
                 if (_sideEffectBuilder.Count != 0)
                 {
-                    test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);
+                    test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, [.. _sideEffectBuilder], test);
                     _sideEffectBuilder.Clear();
                 }
 

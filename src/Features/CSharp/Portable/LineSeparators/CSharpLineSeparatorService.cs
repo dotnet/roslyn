@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
                 }
             }
 
-            return spans.ToImmutable();
+            return [.. spans];
         }
 
         /// <summary>Node types that are interesting for line separation.</summary>

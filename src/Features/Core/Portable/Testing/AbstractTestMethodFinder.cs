@@ -94,7 +94,7 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
             }
         }
 
-        return testMethods.ToImmutableArray();
+        return [.. testMethods];
 
         bool ShouldDescend(SyntaxNode node)
         {

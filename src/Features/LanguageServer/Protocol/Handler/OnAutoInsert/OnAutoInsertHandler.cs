@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, options);
 
                     // Get the overall text changes between the original text and the formatted + indented text.
-                    textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
+                    textChanges = [.. indentedText.GetTextChanges(sourceText)];
                     newSourceText = indentedText;
 
                     // If tabs were inserted the desired caret column can remain beyond the line text.

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var document = scope.First();
                 if (document.Project == project)
-                    return scope.ToImmutableArray();
+                    return [.. scope];
 
                 return ImmutableArray<Document>.Empty;
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     documents.Add(document);
             }
 
-            return documents.ToImmutable();
+            return [.. documents];
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return locations.ToImmutable();
+            return [.. locations];
         }
 
         protected static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return allAliasReferences.ToImmutable();
+            return [.. allAliasReferences];
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return allAliasReferences.ToImmutable();
+            return [.. allAliasReferences];
         }
 
         protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync<T>(
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     collectMatchingReferences(node, state, locations);
                 }
 
-                return locations.ToImmutable();
+                return [.. locations];
             }
 
             return ImmutableArray<FinderLocation>.Empty;

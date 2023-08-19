@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private bool ParseIfStatementOrBlock(IOperation op, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 return op is IBlockOperation block
-                    ? ParseIfStatementSequence(block.Operations.AsSpan(), sections, out defaultBodyOpt)
+                    ? ParseIfStatementSequence([.. block.Operations], sections, out defaultBodyOpt)
                     : ParseIfStatement(op, sections, out defaultBodyOpt);
             }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return null;
                 }
 
-                return new AnalyzedSwitchSection(labels.ToImmutable(), operation.WhenTrue, operation.Syntax);
+                return new AnalyzedSwitchSection([.. labels], operation.WhenTrue, operation.Syntax);
             }
 
             // Tree to parse:
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 if (pattern is null)
                     return null;
 
-                return new AnalyzedSwitchLabel(pattern, guards.ToImmutable());
+                return new AnalyzedSwitchLabel(pattern, [.. guards]);
             }
 
             private enum ConstantResult

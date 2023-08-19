@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     result.AddRange(expressionStatements);
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             /// <summary>
@@ -482,9 +482,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 if (variablesToRemove.HasSyntaxAnnotation(designation))
                                 {
                                     var newLeadingTrivia = new SyntaxTriviaList();
-                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
-                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
-                                    newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
+                                    newLeadingTrivia = [.. newLeadingTrivia, .. declaration.Type.GetLeadingTrivia()];
+                                    newLeadingTrivia = [.. newLeadingTrivia, .. declaration.Type.GetTrailingTrivia()];
+                                    newLeadingTrivia = [.. newLeadingTrivia, .. designation.GetLeadingTrivia()];
 
                                     replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
                                         .WithLeadingTrivia(newLeadingTrivia));
@@ -533,10 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (typeSyntax.HasLeadingTrivia)
                     {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetLeadingTrivia());
+                        identifierLeadingTrivia = [.. identifierLeadingTrivia, .. typeSyntax.GetLeadingTrivia()];
                     }
 
-                    identifierLeadingTrivia = identifierLeadingTrivia.AddRange(identifier.LeadingTrivia);
+                    identifierLeadingTrivia = [.. identifierLeadingTrivia, .. identifier.LeadingTrivia];
                     identifier = identifier.WithLeadingTrivia(identifierLeadingTrivia);
                 }
 

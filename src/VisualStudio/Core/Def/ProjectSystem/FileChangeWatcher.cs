@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
         {
-            return new Context(this, watchedDirectories.ToImmutableArray());
+            return new Context(this, [.. watchedDirectories]);
         }
 
         /// <summary>

@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                return new CompositeText(segments.ToImmutable(), original.Encoding, original.ChecksumAlgorithm);
+                return new CompositeText([.. segments], original.Encoding, original.ChecksumAlgorithm);
             }
         }
 

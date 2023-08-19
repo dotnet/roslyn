@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     partials.Add(GraphNodeId.GetArray(
                         CodeGraphNodeIdName.GenericArgumentsIdentifier,
-                        genericArguments.ToArray()));
+                        [.. genericArguments]));
                 }
 
                 if (namedType.ContainingType != null)
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     partials.Add(await GetPartialForTypeAsync(namedType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken, hasGenericArguments).ConfigureAwait(false));
                 }
 
-                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
+                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
             }
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 partials.Add(await GetPartialForTypeAsync(pointerType.PointedAtType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
             }
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
         }
 
         private static async Task<GraphNodeId> GetPartialForArrayTypeAsync(IArrayTypeSymbol arrayType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.ArrayRank, arrayType.Rank.ToString()));
             partials.Add(await GetPartialForTypeAsync(arrayType.ElementType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
         }
 
         private static async Task<GraphNodeId> GetPartialForTypeParameterSymbolAsync(ITypeParameterSymbol typeParameterSymbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             nodes.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, ParamKind.Ref));
                         }
 
-                        parameterTypeIds.Add(GraphNodeId.GetNested(nodes.ToArray()));
+                        parameterTypeIds.Add(GraphNodeId.GetNested([.. nodes]));
                     }
 
                     if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
@@ -333,25 +333,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         var returnTypePartial = nodes.ToList();
                         returnTypePartial.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, Microsoft.VisualStudio.GraphModel.CodeSchema.ParamKind.Return));
 
-                        var returnCollection = GraphNodeId.GetNested(returnTypePartial.ToArray());
+                        var returnCollection = GraphNodeId.GetNested([.. returnTypePartial]);
                         parameterTypeIds.Add(returnCollection);
                     }
 
                     memberPartials.Add(GraphNodeId.GetArray(
                                        CodeGraphNodeIdName.OverloadingParameters,
-                                       parameterTypeIds.ToArray()));
+                                       [.. parameterTypeIds]));
                 }
 
                 partials.Add(GraphNodeId.GetPartial(
                             CodeGraphNodeIdName.Member,
-                            MakeCollectionIfNecessary(memberPartials.ToArray())));
+                            MakeCollectionIfNecessary([.. memberPartials])));
             }
             else
             {
                 partials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Member, member.MetadataName));
             }
 
-            return GraphNodeId.GetNested(partials.ToArray());
+            return GraphNodeId.GetNested([.. partials]);
         }
 
         private static object MakeCollectionIfNecessary(GraphNodeId[] array)

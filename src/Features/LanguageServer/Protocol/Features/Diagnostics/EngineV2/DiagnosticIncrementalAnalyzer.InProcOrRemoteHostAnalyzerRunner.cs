@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.Span,
                 documentAnalysisScope?.Kind,
                 project.Id,
-                analyzerMap.Keys.ToArray(),
+                [.. analyzerMap.Keys],
                 ideOptions,
                 isExplicit);
 

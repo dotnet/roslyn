@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
-                _lexer.Text, root, diagnostics.ToImmutable(),
+                _lexer.Text, root, [.. diagnostics],
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParseSequence(consumeCloseParen));
             }
 
-            return new RegexAlternationNode(new RegexAlternatingSequenceList(builder.ToImmutable()));
+            return new RegexAlternationNode(new RegexAlternatingSequenceList([.. builder]));
         }
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var sequence);
             MergeTextNodes(builder, sequence);
 
-            return new RegexSequenceNode(sequence.ToImmutable());
+            return new RegexSequenceNode([.. sequence]);
         }
 
         private static void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
-            var components = new RegexSequenceNode(contents.ToImmutable());
+            var components = new RegexSequenceNode([.. contents]);
             return caretToken.IsMissing
                 ? new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
                 : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);

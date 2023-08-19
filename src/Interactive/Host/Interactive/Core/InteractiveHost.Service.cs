@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    var initResult = new RemoteInitializationResult(initializationScriptPath, metadataReferencePaths.ToImmutableArray(), initialImports);
+                    var initResult = new RemoteInitializationResult(initializationScriptPath, [.. metadataReferencePaths], initialImports);
                     state = CompleteExecution(state, completionSource, success: true, initResult);
                 }
 

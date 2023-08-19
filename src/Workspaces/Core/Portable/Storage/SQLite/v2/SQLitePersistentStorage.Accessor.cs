@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 Table = table;
                 Storage = storage;
 
-                _primaryKeyColumns = primaryKeysArray.ToImmutableArray().Add((DataNameIdColumnName, SQLiteIntegerType));
-                _allColumns = _primaryKeyColumns.Add((ChecksumColumnName, SQLiteBlobType)).Add((DataColumnName, SQLiteBlobType));
+                _primaryKeyColumns = [.. primaryKeysArray, (DataNameIdColumnName, SQLiteIntegerType)];
+                _allColumns = [.. _primaryKeyColumns, (ChecksumColumnName, SQLiteBlobType), (DataColumnName, SQLiteBlobType)];
 
                 var writeCache = Database.WriteCache.GetName();
 

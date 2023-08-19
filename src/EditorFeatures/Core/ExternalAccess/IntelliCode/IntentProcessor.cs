@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 convertedResults.AddIfNotNull(convertedIntent);
             }
 
-            return convertedResults.ToImmutable();
+            return [.. convertedResults];
         }
 
         private static async Task<IntentSource?> ConvertToIntelliCodeResultAsync(

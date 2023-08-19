@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         if (TryGetAnonymousTypeKey(reader, def, builder))
                         {
                             var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
-                            var key = new AnonymousTypeKey(builder.ToImmutable());
+                            var key = new AnonymousTypeKey([.. builder]);
                             var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
                             types.Add(key, value);
                         }

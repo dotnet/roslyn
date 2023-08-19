@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XElement element, CancellationToken cancellationToken)

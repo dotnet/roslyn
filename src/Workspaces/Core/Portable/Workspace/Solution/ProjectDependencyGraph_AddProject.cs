@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!newTopologicallySortedProjects.IsDefault)
             {
-                newTopologicallySortedProjects = newTopologicallySortedProjects.Add(projectId);
+                newTopologicallySortedProjects = [.. newTopologicallySortedProjects, projectId];
             }
 
             var newDependencySets = _lazyDependencySets;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var builder = newDependencySets.ToBuilder();
                 builder.Add(ImmutableArray.Create(projectId));
-                newDependencySets = builder.ToImmutable();
+                newDependencySets = [.. builder];
             }
 
             // The rest of the references map is unchanged, since no new references are added in this call.

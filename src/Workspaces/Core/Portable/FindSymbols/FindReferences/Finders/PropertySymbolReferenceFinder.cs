@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeToAccessors(symbol, result);
             CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
-            return new(result.ToImmutable());
+            return new([.. result]);
         }
 
         private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         candidateReason)));
             }
 
-            return locations.ToImmutable();
+            return [.. locations];
         }
 
         private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(

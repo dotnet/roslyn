@@ -113,7 +113,7 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal(4, newList.Count);
             Assert.Equal("A,B,C,D", newList.ToFullString());
 
-            newList = list.AddRange(new[] { nodeD, nodeE });
+            newList = [.. list, .. new[] { nodeD, nodeE }];
             Assert.Equal(5, newList.Count);
             Assert.Equal("A,B,C,D,E", newList.ToFullString());
 
@@ -241,7 +241,7 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal(1, newList.Count);
             Assert.Equal("D", newList.ToFullString());
 
-            newList = list.AddRange(new[] { nodeD, nodeE });
+            newList = [.. list, .. new[] { nodeD, nodeE }];
             Assert.Equal(2, newList.Count);
             Assert.Equal("D,E", newList.ToFullString());
 

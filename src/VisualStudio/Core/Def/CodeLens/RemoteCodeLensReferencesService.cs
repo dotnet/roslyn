@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     after2));
             }
 
-            return list.ToImmutable();
+            return [.. list];
         }
 
         private static (string text, int start, int length) GetReferenceInfo(ExcerptResult? reference, ReferenceLocationDescriptor descriptor)

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     builder.AddIfNotNull(namedType);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

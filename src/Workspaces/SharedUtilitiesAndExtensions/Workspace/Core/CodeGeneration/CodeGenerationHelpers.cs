@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     break;
                 }
 
-                name = string.Join(".", names.ToArray());
+                name = string.Join(".", [.. names]);
             }
             else
             {

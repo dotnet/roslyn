@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
+            result = haveChanges ? this.WithTypeArguments([.. allTypeArguments]) : this;
             allTypeArguments.Free();
             return true;
         }
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
+            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments([.. allTypeArguments]) : this;
             allTypeArguments.Free();
             return result;
         }
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol result;
             if (haveChanges)
             {
-                TypeMap substitution = new TypeMap(allTypeParameters.ToImmutable(), allTypeArguments.ToImmutable());
+                TypeMap substitution = new TypeMap([.. allTypeParameters], allTypeArguments.ToImmutable());
                 result = substitution.SubstituteNamedType(this.OriginalDefinition);
             }
             else

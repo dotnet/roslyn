@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (refKind != RefKind.None)
                 {
-                    return refKinds.ToImmutable();
+                    return [.. refKinds];
                 }
             }
             return default(ImmutableArray<RefKind>);

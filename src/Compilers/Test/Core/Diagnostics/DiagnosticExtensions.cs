@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
 
             if (unmatchedActualDescription.Count > 0 || unmatchedExpected.Count > 0)
             {
-                var text = DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a));
+                var text = DiagnosticDescription.GetAssertText(expected, actual, [.. unmatchedExpected], actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a));
                 Assert.True(false, text);
             }
 
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
             var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation, cancellationToken).Result;
             var allDiagnostics = includeCompilerDiagnostics ?
-                compilerDiagnostics.AddRange(analyzerDiagnostics) :
+                [.. compilerDiagnostics, .. analyzerDiagnostics] :
                 analyzerDiagnostics;
             diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation, cancellationToken);
 

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, directiveDiagnostics).NamespaceOrTypeSymbol;
                     if (uniqueUsings.Add(imported))
                     {
-                        boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null, dependencies: directiveDiagnostics.DependenciesBag.ToImmutableArray()));
+                        boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null, dependencies: [.. directiveDiagnostics.DependenciesBag]));
                     }
 
                     diagnostics.AddRange(directiveDiagnostics.DiagnosticBag);

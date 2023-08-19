@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal Module[] GetModules()
         {
-            return _modules.ToArray();
+            return [.. _modules];
         }
 
         void IDisposable.Dispose()

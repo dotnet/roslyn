@@ -137,7 +137,7 @@ class A
                 }
             }
 
-            list.Items = builder.ToArray();
+            list.Items = [.. builder];
             _list = list;
         }
 

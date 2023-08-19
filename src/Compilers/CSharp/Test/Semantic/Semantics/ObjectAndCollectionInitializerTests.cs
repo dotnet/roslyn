@@ -3510,7 +3510,7 @@ class X : Base
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
                           "void X.Add(X x)"},
-                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
+                          [.. symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order()]);
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]

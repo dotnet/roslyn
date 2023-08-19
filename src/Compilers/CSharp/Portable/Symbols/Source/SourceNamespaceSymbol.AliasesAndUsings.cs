@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         declarationBinder.ReportDiagnosticsIfObsolete(diagnostics, importedType, usingDirective.NamespaceOrType, hasBaseReceiver: false);
 
-                                        getOrCreateUsingsBuilder(ref usings, globalUsingNamespacesOrTypes).Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective, directiveDiagnostics.DependenciesBag.ToImmutableArray()));
+                                        getOrCreateUsingsBuilder(ref usings, globalUsingNamespacesOrTypes).Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective, [.. directiveDiagnostics.DependenciesBag]));
                                     }
                                 }
                             }
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (Compilation.ReportUnusedImportsInTree(usingDirective.SyntaxTree))
                     {
-                        compilation.RecordImportDependencies(usingDirective, diagnostics.DependenciesBag.ToImmutableArray());
+                        compilation.RecordImportDependencies(usingDirective, [.. diagnostics.DependenciesBag]);
                     }
                     else
                     {

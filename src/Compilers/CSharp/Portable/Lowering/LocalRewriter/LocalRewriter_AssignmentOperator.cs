@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             where T : notnull
         {
             Debug.Assert(newElement is { });
-            return possibleNull.NullToEmpty().Add(newElement);
+            return [.. possibleNull.NullToEmpty(), newElement];
         }
     }
 }

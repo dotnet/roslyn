@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         result.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
     }

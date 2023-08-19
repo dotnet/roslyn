@@ -84,7 +84,7 @@ internal sealed class BufferedFindUsagesContext(IGlobalOptionService globalOptio
     {
         using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfTrue(IsSwapped, "Should not be called if we've switched over to the streaming presenter");
-        return _state.Definitions.ToImmutable();
+        return [.. _state.Definitions];
     }
 
     public async Task AttachToStreamingPresenterAsync(IFindUsagesContext presenterContext, CancellationToken cancellationToken)

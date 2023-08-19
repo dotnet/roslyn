@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         value, successRequirement: true, type, fields, out var _2))
                 {
                     // we're done, no more statements to check
-                    return fields.ToImmutable();
+                    return [.. fields];
                 }
                 // check for the first statement as an explicit cast to a variable declaration
                 // like: var otherC = other as C;
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 return ImmutableArray<IFieldSymbol>.Empty;
             }
 
-            return fields.ToImmutable();
+            return [.. fields];
         }
 
         /// <summary>

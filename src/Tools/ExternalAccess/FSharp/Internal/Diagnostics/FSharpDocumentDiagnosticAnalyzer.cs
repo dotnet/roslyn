@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             {
                 dummyDescriptors.Add(new DiagnosticDescriptor(String.Format("FS{0:D4}", i), String.Empty, String.Empty, String.Empty, DiagnosticSeverity.Error, true, null, null));
             }
-            return dummyDescriptors.ToImmutable();
+            return [.. dummyDescriptors];
         }
 
         public bool IsHighPriority => false;

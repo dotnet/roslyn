@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // operations are in order and user can choose least specific types(more accurate)
                 mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer<TExpressionSyntax>(semanticModel));
 
-                return mutablePotentialConversionTypes.ToImmutable();
+                return [.. mutablePotentialConversionTypes];
             }
 
             /// <summary>

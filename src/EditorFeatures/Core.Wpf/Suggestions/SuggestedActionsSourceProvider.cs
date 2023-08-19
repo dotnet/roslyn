@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             UIThreadOperationExecutor = uiThreadOperationExecutor;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
-            ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
+            ImageIdServices = [.. ExtensionOrderer.Order(imageIdServices)];
         }
 
         public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await SearchMetadataReferencesAsync().ConfigureAwait(false);
             }
 
-            return result.ToImmutable();
+            return [.. result];
 
             async Task SearchCurrentProjectAsync()
             {

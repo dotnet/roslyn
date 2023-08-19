@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IList<T> list = GenericIListFactory(count);
                 foreach (T duplicate in list.ToList()) // hard copies list to circumvent enumeration error
                     list.Add(duplicate);
-                List<T> expectedList = list.ToList();
+                List<T> expectedList = [.. list];
 
                 Assert.All(Enumerable.Range(0, count), (index =>
                     Assert.Equal(index, list.IndexOf(expectedList[index]))

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 actions.Add(result.OptionalParameterActions.Single());
             }
 
-            return actions.ToImmutable();
+            return [.. actions];
         }
 
         private static AddConstructorParameterResult CreateCodeActions(Document document, CodeGenerationContextInfo info, State state)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     useSubMenuName: useSubMenu));
             }
 
-            return new AddConstructorParameterResult(requiredParametersActions.ToImmutable(), optionalParametersActions.ToImmutable(), useSubMenu);
+            return new AddConstructorParameterResult([.. requiredParametersActions], [.. optionalParametersActions], useSubMenu);
 
             // local functions
             static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 results.Add(intent);
             }
 
-            return results.ToImmutable();
+            return [.. results];
         }
     }
 }

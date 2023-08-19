@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    _arities = arities.ToArray();
+                    _arities = [.. arities];
                     Array.Sort(_arities);
                 }
             }

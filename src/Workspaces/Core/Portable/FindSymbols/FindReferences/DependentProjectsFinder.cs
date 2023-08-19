@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // namespaces are visible in all projects.
             if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
-                return projects.ToImmutableArray();
+                return [.. projects];
 
             var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
             return dependentProjects.WhereAsArray(projects.Contains);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.AddRange(filteredProjects.Select(p => p.project));
             }
 
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         /// <summary>

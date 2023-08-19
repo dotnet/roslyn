@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
-            return classifiedSpans.ToArray();
+            return [.. classifiedSpans];
         }
 
         public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 }
             }
 
-            return updatedClassifiedSpans.ToArray();
+            return [.. updatedClassifiedSpans];
 
             static void ConvertToSingleLineSpan(
                 SourceText text,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
             }
 
-            return data.ToArray();
+            return [.. data];
         }
 
         private static int ComputeNextToken(

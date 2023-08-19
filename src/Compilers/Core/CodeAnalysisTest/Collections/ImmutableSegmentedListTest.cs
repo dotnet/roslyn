@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                         int value = random.Next();
                         Debug.WriteLine("Adding \"{0}\" to the list.", value);
                         expected.Add(value);
-                        actual = actual.Add(value);
+                        actual = [.. actual, value];
                         break;
                     case Operation.AddRange:
                         int inputLength = random.Next(100);
                         int[] values = Enumerable.Range(0, inputLength).Select(i => random.Next()).ToArray();
                         Debug.WriteLine("Adding {0} elements to the list.", inputLength);
                         expected.AddRange(values);
-                        actual = actual.AddRange(values);
+                        actual = [.. actual, .. values];
                         break;
                     case Operation.Insert:
                         int position = random.Next(expected.Count + 1);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = ImmutableSegmentedList<int>.Empty;
             for (int i = 1; i <= 10; i++)
             {
-                list = list.Add(i * 10);
+                list = [.. list, i * 10];
                 Assert.False(list.IsEmpty);
                 Assert.Equal(i, list.Count);
             }
@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void AddRangeTest()
         {
             var list = ImmutableSegmentedList<int>.Empty;
-            list = list.AddRange(new[] { 1, 2, 3 });
-            list = list.AddRange(Enumerable.Range(4, 2));
-            list = list.AddRange(ImmutableSegmentedList<int>.Empty.AddRange(new[] { 6, 7, 8 }));
-            list = list.AddRange(new int[0]);
-            list = list.AddRange(ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(9, 1000)));
+            list = [.. list, .. new[] { 1, 2, 3 }];
+            list = [.. list, .. Enumerable.Range(4, 2)];
+            list = [.. list, .. ImmutableSegmentedList<int>.Empty.AddRange(new[] { 6, 7, 8 })];
+            list = [.. list, .. new int[0]];
+            list = [.. list, .. ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(9, 1000))];
             Assert.Equal(Enumerable.Range(1, 1008), list);
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ImmutableSegmentedList<int>.Builder builder = ImmutableSegmentedList.CreateBuilder<int>();
             builder.Add(1);
 
-            list = list.AddRange(builder);
+            list = [.. list, .. builder];
             Assert.Equal(new int[] { 1 }, list);
         }
 
@@ -197,14 +197,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 int batchSize = random.Next(32);
                 Debug.WriteLine("Adding {0} elements to the list", batchSize);
-                list = list.AddRange(Enumerable.Range(expectedTotalSize + 1, batchSize));
+                list = [.. list, .. Enumerable.Range(expectedTotalSize + 1, batchSize)];
                 expectedTotalSize += batchSize;
             }
 
             // Add a single large batch to the end
             int largeBatchSize = random.Next(32768) + 32768;
             Debug.WriteLine("Adding {0} elements to the list", largeBatchSize);
-            list = list.AddRange(Enumerable.Range(expectedTotalSize + 1, largeBatchSize));
+            list = [.. list, .. Enumerable.Range(expectedTotalSize + 1, largeBatchSize)];
             expectedTotalSize += largeBatchSize;
 
             Assert.Equal(Enumerable.Range(1, expectedTotalSize), list);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(list.Contains(null));
             Assert.Equal(-1, list.IndexOf(null));
 
-            list = list.Add((GenericParameterHelper?)null);
+            list = [.. list, (GenericParameterHelper?)null];
             Assert.Equal(1, list.Count);
             Assert.Null(list[0]);
             Assert.True(list.Contains(null));
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ImmutableSegmentedList<int> list = ImmutableSegmentedList<int>.Empty;
             for (int i = 1; i <= 10; i++)
             {
-                list = list.Add(i * 10);
+                list = [.. list, i * 10];
             }
 
             list = list.Remove(30);
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             for (int i = 1; i <= 10; i++)
             {
-                list = list.Add(i * 10);
+                list = [.. list, i * 10];
             }
 
             list = list.RemoveAt(2);
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             foreach (string newElement in expectedList)
             {
                 Assert.False(list.Contains(newElement));
-                list = list.Add(newElement);
+                list = [.. list, newElement];
                 Assert.True(list.Contains(newElement));
                 Assert.Equal(expectedList.IndexOf(newElement), list.IndexOf(newElement));
                 Assert.Equal(expectedList.IndexOf(newElement), System.Collections.Immutable.ImmutableList.IndexOf(list, newElement.ToUpperInvariant(), StringComparer.OrdinalIgnoreCase));
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal<int>(new[] { 3, 5, 9 }, System.Collections.Immutable.ImmutableList.Replace((System.Collections.Immutable.IImmutableList<int>)list, 8, 9));
 
             // Verify replacement of first element when there are duplicates.
-            list = ImmutableSegmentedList<int>.Empty.Add(3).Add(3).Add(5);
+            list = [3, 3, 5];
             Assert.Equal<int>(new[] { 4, 3, 5 }, list.Replace(3, 4));
             Assert.Equal<int>(new[] { 4, 4, 5 }, list.Replace(3, 4).Replace(3, 4));
             Assert.Equal<int>(new[] { 4, 3, 5 }, System.Collections.Immutable.ImmutableList.Replace((System.Collections.Immutable.IImmutableList<int>)list, 3, 4));
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(ImmutableSegmentedList<int>.Empty.Equals(null));
             Assert.False(ImmutableSegmentedList<int>.Empty.Equals("hi"));
             Assert.True(ImmutableSegmentedList<int>.Empty.Equals(ImmutableSegmentedList<int>.Empty));
-            Assert.False(ImmutableSegmentedList<int>.Empty.Add(3).Equals(ImmutableSegmentedList<int>.Empty.Add(3)));
+            Assert.False(ImmutableSegmentedList<int>.Empty.Add(3).Equals([3]));
         }
 
         [Fact]
@@ -855,22 +855,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list)
         {
-            return list.Sort().ToList();
+            return [.. list.Sort()];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, Comparison<T> comparison)
         {
-            return list.Sort(comparison).ToList();
+            return [.. list.Sort(comparison)];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, IComparer<T>? comparer)
         {
-            return list.Sort(comparer).ToList();
+            return [.. list.Sort(comparer)];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, int index, int count, IComparer<T>? comparer)
         {
-            return list.Sort(index, count, comparer).ToList();
+            return [.. list.Sort(index, count, comparer)];
         }
 
         internal override IReadOnlyList<T> GetListQuery<T>(ImmutableSegmentedList<T> list)

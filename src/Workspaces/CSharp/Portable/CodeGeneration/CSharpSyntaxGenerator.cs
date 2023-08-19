@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
             if (isParams)
-                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                modifiers = [.. modifiers, SyntaxFactory.Token(SyntaxKind.ParamsKeyword)];
 
             return SyntaxFactory.Parameter(
                 default,
@@ -1357,10 +1357,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return declaration switch
                 {
-                    TypeDeclarationSyntax type => type.WithMembers(type.Members.AddRange(newMembers)),
-                    EnumDeclarationSyntax @enum => @enum.WithMembers(@enum.Members.AddRange(newMembers.OfType<EnumMemberDeclarationSyntax>())),
-                    BaseNamespaceDeclarationSyntax @namespace => @namespace.WithMembers(@namespace.Members.AddRange(newMembers)),
-                    CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers(compilationUnit.Members.AddRange(newMembers)),
+                    TypeDeclarationSyntax type => type.WithMembers([.. type.Members, .. newMembers]),
+                    EnumDeclarationSyntax @enum => @enum.WithMembers([.. @enum.Members, .. newMembers.OfType<EnumMemberDeclarationSyntax>()]),
+                    BaseNamespaceDeclarationSyntax @namespace => @namespace.WithMembers([.. @namespace.Members, .. newMembers]),
+                    CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers([.. compilationUnit.Members, .. newMembers]),
                     _ => declaration,
                 };
             }
@@ -1858,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if ((kinds & SpecialTypeConstraintKind.Constructor) != 0)
             {
-                constraints = constraints.Add(SyntaxFactory.ConstructorConstraint());
+                constraints = [.. constraints, SyntaxFactory.ConstructorConstraint()];
             }
 
             var isReferenceType = (kinds & SpecialTypeConstraintKind.ReferenceType) != 0;
@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 if (constraints.Count > 0)
                 {
-                    return clauses.Add(SyntaxFactory.TypeParameterConstraintClause(typeParameterName.ToIdentifierName(), constraints));
+                    return [.. clauses, SyntaxFactory.TypeParameterConstraintClause(typeParameterName.ToIdentifierName(), constraints)];
                 }
                 else
                 {
@@ -3593,7 +3593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (expressions != null)
             {
-                labels = labels.AddRange(expressions.Select(e => SyntaxFactory.CaseSwitchLabel((ExpressionSyntax)e)));
+                labels = [.. labels, .. expressions.Select(e => SyntaxFactory.CaseSwitchLabel((ExpressionSyntax)e))];
             }
 
             return labels;

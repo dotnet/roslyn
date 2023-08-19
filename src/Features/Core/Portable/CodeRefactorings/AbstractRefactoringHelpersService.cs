@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             await AddRelevantNodesAsync(document, selectionRaw, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
 
             if (allowEmptyNodes)
-                return relevantNodesBuilder.ToImmutable();
+                return [.. relevantNodesBuilder];
 
             using var _2 = ArrayBuilder<TSyntaxNode>.GetInstance(out var nonEmptyNodes);
             foreach (var node in relevantNodesBuilder)

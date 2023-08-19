@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var tasks = documents.Select(document => Task.Run(() => GetDocumentAnalysisAsync(oldSolution, document.oldDocument, document.newDocument, activeStatementSpanProvider, cancellationToken).AsTask(), cancellationToken));
                 var allResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                return allResults.ToImmutableArray();
+                return [.. allResults];
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 activeStatementSpansBuilder.Add(unmappedSpan);
             }
 
-            return activeStatementSpansBuilder.ToImmutable();
+            return [.. activeStatementSpansBuilder];
         }
 
         private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)

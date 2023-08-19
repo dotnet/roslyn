@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             public StubAnalyzerReference() : this(new StubRefactoring()) { }
 
             public StubAnalyzerReference(params CodeRefactoringProvider[] codeRefactorings)
-                => _refactorings = codeRefactorings.ToImmutableArray();
+                => _refactorings = [.. codeRefactorings];
 
             public override string Display => nameof(StubAnalyzerReference);
 

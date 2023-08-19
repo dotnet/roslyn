@@ -121,7 +121,7 @@ namespace Roslyn.Test.Utilities
             AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
-            var compiler = new CSharpCompilerImpl(args.ToArray(), buildPaths, fileSystem);
+            var compiler = new CSharpCompilerImpl([.. args], buildPaths, fileSystem);
             return new TestableCompiler(compiler, fileSystem, buildPaths);
         }
 
@@ -188,7 +188,7 @@ namespace Roslyn.Test.Utilities
             AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
-            var compiler = new BasicCompilerImpl(args.ToArray(), buildPaths, fileSystem);
+            var compiler = new BasicCompilerImpl([.. args], buildPaths, fileSystem);
             return new TestableCompiler(compiler, fileSystem, buildPaths);
         }
 

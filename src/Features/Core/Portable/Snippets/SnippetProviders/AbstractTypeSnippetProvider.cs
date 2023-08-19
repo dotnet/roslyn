@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             GetTypeDeclarationIdentifier(node, out var identifier);
             arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
 
-            return arrayBuilder.ToImmutableArray();
+            return [.. arrayBuilder];
         }
 
         private static async Task<bool> AreAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)

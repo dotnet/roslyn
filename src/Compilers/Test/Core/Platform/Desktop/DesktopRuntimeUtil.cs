@@ -80,7 +80,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             Debug.Assert(!rawAssembly.IsDefault);
 
-            byte[] bytes = rawAssembly.ToArray();
+            byte[] bytes = [.. rawAssembly];
 
             try
             {

@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     manager.Sink.AddEntries(entries);
                 }
 
-                _currentEntries = _currentEntries.AddRange(entries);
+                _currentEntries = [.. _currentEntries, .. entries];
             }
 
             public void RemoveAllTableData()

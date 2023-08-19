@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             result.RemoveDuplicates();
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private async Task ProcessOrderedProjectsAsync(

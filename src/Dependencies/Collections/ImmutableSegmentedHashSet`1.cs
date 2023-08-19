@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Reuse all pages with no changes
                 var builder = self.ToBuilder();
                 builder.Add(value);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Reuse all pages with no changes
                 var builder = self.ToBuilder();
                 builder.ExceptWith(other);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Reuse all pages with no changes
                 var builder = self.ToBuilder();
                 builder.IntersectWith(other);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Reuse all pages with no changes
                 var builder = self.ToBuilder();
                 builder.Remove(value);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Reuse all pages with no changes
                 var builder = self.ToBuilder();
                 builder.SymmetricExceptWith(other);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Reuse all pages with no changes
             var builder = self.ToBuilder();
             builder.UnionWith(other);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.ToBuilder()"/>

@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 boundReferenceDirectives = localBoundReferenceDirectives;
-                references = referencesBuilder.ToImmutable();
+                references = [.. referencesBuilder];
                 referenceDirectiveLocations = referenceDirectiveLocationsBuilder?.ToImmutableAndFree() ?? ImmutableArray<Location>.Empty;
             }
             finally

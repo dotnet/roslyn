@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var argumentList = new List<string>();
             var builder = new StringBuilder();
-            CommandLineUtilities.SplitCommandLineIntoArguments(GenerateToolArguments().AsSpan(), removeHashComments: true, builder, argumentList, out _);
-            CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands.AsSpan(), removeHashComments: true, builder, argumentList, out _);
+            CommandLineUtilities.SplitCommandLineIntoArguments([.. GenerateToolArguments()], removeHashComments: true, builder, argumentList, out _);
+            CommandLineUtilities.SplitCommandLineIntoArguments([.. responseFileCommands], removeHashComments: true, builder, argumentList, out _);
             return argumentList;
         }
 

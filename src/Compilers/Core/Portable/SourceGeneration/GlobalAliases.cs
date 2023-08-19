@@ -86,6 +86,6 @@ internal sealed class GlobalAliases : IEquatable<GlobalAliases>
         if (this.AliasAndSymbolNames == aliases.AliasAndSymbolNames)
             return true;
 
-        return this.AliasAndSymbolNames.AsSpan().SequenceEqual(aliases.AliasAndSymbolNames.AsSpan());
+        return this.AliasAndSymbolNames.AsSpan().SequenceEqual([.. aliases.AliasAndSymbolNames]);
     }
 }

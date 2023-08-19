@@ -246,7 +246,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
             if (part is SnippetFieldPart fieldPart && fieldPart.EditIndex != null)
             {
                 var fieldSpan = new TextSpan(locationInFinalSnippet, part.DefaultText.Length);
-                fieldOffsets[fieldPart] = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty).Add(fieldSpan);
+                fieldOffsets[fieldPart] = [.. fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty), fieldSpan];
             }
             else if (part is SnippetCursorPart cursorPart)
             {

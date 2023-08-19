@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor
             using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spans);
             AddSpans(underlyingItem, spans);
             spans.SortAndRemoveDuplicates(Comparer<TextSpan>.Default);
-            return spans.ToImmutable();
+            return [.. spans];
 
             static void AddSpans(RoslynNavigationBarItem underlyingItem, ArrayBuilder<TextSpan> spans)
             {

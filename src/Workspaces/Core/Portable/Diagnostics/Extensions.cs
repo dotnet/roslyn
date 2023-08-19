@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
                 await AnalyzeDocumentAsync(suppressionAnalyzer, document, documentAnalysisScope.Span, diagnosticsBuilder.Add).ConfigureAwait(false);
-                return diagnosticsBuilder.ToImmutable();
+                return [.. diagnosticsBuilder];
             }
             else
             {
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
-                    return bag.ToImmutableArray();
+                    return [.. bag];
                 }
                 else
                 {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
                     }
 
-                    return diagnosticsBuilder.ToImmutable();
+                    return [.. diagnosticsBuilder];
                 }
             }
 

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             if (!string.IsNullOrWhiteSpace(title))
             {
                 var titleComment = SyntaxFactory.Comment(string.Format(" // {0}", title)).WithAdditionalAnnotations(Formatter.Annotation);
-                triviaList = triviaList.Add(titleComment);
+                triviaList = [.. triviaList, titleComment];
             }
 
             if (needsLeadingEndOfLine)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
             if (needsTrailingEndOfLine)
             {
-                triviaList = triviaList.Add(endOfLineTrivia);
+                triviaList = [.. triviaList, endOfLineTrivia];
             }
 
             return triviaList;

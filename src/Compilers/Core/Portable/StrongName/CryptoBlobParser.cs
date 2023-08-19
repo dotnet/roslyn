@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var blobReader = new LittleEndianReader(blob.AsSpan());
+            var blobReader = new LittleEndianReader([.. blob]);
 
             // Signature algorithm ID
             var sigAlgId = blobReader.ReadUInt32();
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                var br = new LittleEndianReader(blob.AsSpan());
+                var br = new LittleEndianReader([.. blob]);
 
                 byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
                 byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (bType == PrivateKeyBlobId)
                 {
-                    privateKey = ToRSAParameters(blob.AsSpan(), true);
+                    privateKey = ToRSAParameters([.. blob], true);
                     // For snKey, rewrite some of the parameters
                     algId = AlgorithmId.RsaSign;
                     magic = RSA1;

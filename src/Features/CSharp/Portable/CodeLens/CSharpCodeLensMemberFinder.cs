@@ -33,7 +33,7 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
 
         visitor.Visit(root);
 
-        return codeLensNodes.ToImmutable();
+        return [.. codeLensNodes];
     }
 
     private sealed class CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder) : CSharpSyntaxWalker

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await AddCompilationSourceDeclarationsWithNormalQueryAsync(
                 project, query, filter, result, cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(

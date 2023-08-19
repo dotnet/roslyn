@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                 }
 
-                _comment.ParameterNames = _parameterNamesBuilder == null ? ImmutableArray<string>.Empty : _parameterNamesBuilder.ToImmutable();
-                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : _typeParameterNamesBuilder.ToImmutable();
-                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : _exceptionTypesBuilder.ToImmutable();
+                _comment.ParameterNames = _parameterNamesBuilder == null ? ImmutableArray<string>.Empty : [.. _parameterNamesBuilder];
+                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : [.. _typeParameterNamesBuilder];
+                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : [.. _exceptionTypesBuilder];
 
                 return _comment;
             }

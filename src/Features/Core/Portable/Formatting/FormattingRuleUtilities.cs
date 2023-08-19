@@ -20,9 +20,9 @@ internal static class FormattingRuleUtilities
         var rules = ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position));
         if (additionalRules != null)
         {
-            rules = rules.AddRange(additionalRules);
+            rules = [.. rules, .. additionalRules];
         }
 
-        return rules.AddRange(Formatter.GetDefaultFormattingRules(document.LanguageServices));
+        return [.. rules, .. Formatter.GetDefaultFormattingRules(document.LanguageServices)];
     }
 }

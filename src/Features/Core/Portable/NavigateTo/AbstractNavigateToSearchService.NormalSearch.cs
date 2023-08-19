@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     document.Project,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, [.. kinds], callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;

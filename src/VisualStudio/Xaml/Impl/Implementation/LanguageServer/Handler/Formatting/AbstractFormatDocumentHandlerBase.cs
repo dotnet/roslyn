@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             }
 
-            return edits.ToArray();
+            return [.. edits];
         }
     }
 }

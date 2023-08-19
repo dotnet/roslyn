@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return new TopLevelSyntaxTreeIndex(
                     checksum,
-                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
+                    new DeclarationInfo([.. declaredSymbolInfos]),
                     new ExtensionMethodInfo(
                         extensionMethodInfo.ToImmutableDictionary(
                             static kvp => kvp.Key,

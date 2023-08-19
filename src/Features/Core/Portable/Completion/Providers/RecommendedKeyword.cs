@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 textContentBuilder.AddText(toolTip);
             }
 
-            return textContentBuilder.ToImmutableArray();
+            return [.. textContentBuilder];
         }
     }
 }

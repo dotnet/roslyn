@@ -1118,7 +1118,7 @@ namespace Microsoft.Cci
         {
             ImmutableArray<byte> signatureBlob;
             GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
-            return signatureBlob.ToArray();
+            return [.. signatureBlob];
         }
 
         private BlobHandle GetMethodSignatureHandleAndBlob(IMethodReference methodReference, out ImmutableArray<byte> signatureBlob)
@@ -1885,17 +1885,20 @@ namespace Microsoft.Cci
 
         private ImmutableArray<IGenericParameter> GetSortedGenericParameters()
         {
-            return GetGenericParameters().OrderBy((x, y) =>
-            {
-                // Spec: GenericParam table is sorted by Owner and then by Number.
-                int result = CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
-                if (result != 0)
-                {
-                    return result;
-                }
+            return
+            [
+                .. GetGenericParameters().OrderBy((x, y) =>
+                            {
+                                // Spec: GenericParam table is sorted by Owner and then by Number.
+                                int result = CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - CodedIndex.TypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
+                                if (result != 0)
+                                {
+                                    return result;
+                                }
 
-                return x.Index - y.Index;
-            }).ToImmutableArray();
+                                return x.Index - y.Index;
+                            }),
+            ];
         }
 
         private void PopulateTypeSystemTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, BlobBuilder dynamicAnalysisDataOpt, out Blob mvidFixup)

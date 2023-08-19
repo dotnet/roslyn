@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
                 syntax: usingSyntax,
-                locals: node.Locals.Add(boundTemp.LocalSymbol),
+                locals: [.. node.Locals, boundTemp.LocalSymbol],
                 statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 

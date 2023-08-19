@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
             AddExpressionsAndOperators(precedence, binaryExpr, result);
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private void AddExpressionsAndOperators(

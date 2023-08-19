@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!Log.HasLoggedErrors)
             {
-                MappedSourceRoots = mappedSourceRoots.ToArray();
+                MappedSourceRoots = [.. mappedSourceRoots];
             }
 
             return !Log.HasLoggedErrors;

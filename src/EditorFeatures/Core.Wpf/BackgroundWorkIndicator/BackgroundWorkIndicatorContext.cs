@@ -249,7 +249,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             var scope = new BackgroundWorkIndicatorScope(this, description);
             lock (this.Gate)
             {
-                _scopes = _scopes.Add(scope);
+                _scopes = [.. _scopes, scope];
             }
 
             // We changed.  Enqueue work to make sure the UI reflects this.

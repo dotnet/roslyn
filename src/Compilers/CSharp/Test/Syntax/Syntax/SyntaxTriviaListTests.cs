@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(4, newList.Count);
             Assert.Equal("/*A*//*B*//*C*//*D*/", newList.ToFullString());
 
-            newList = list.AddRange(new[] { triviaD, triviaE });
+            newList = [.. list, .. new[] { triviaD, triviaE }];
             Assert.Equal(5, newList.Count);
             Assert.Equal("/*A*//*B*//*C*//*D*//*E*/", newList.ToFullString());
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, newList.Count);
             Assert.Equal("/*D*/", newList.ToFullString());
 
-            newList = list.AddRange(new[] { triviaD, triviaE });
+            newList = [.. list, .. new[] { triviaD, triviaE }];
             Assert.Equal(2, newList.Count);
             Assert.Equal("/*D*//*E*/", newList.ToFullString());
 

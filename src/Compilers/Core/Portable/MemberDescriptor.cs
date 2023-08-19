@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                     ParseMethodOrPropertySignature(signatureBuilder, stream);
                 }
 
-                builder.Add(new MemberDescriptor(flags, declaringTypeId, nameTable[i], signatureBuilder.ToImmutable(), arity));
+                builder.Add(new MemberDescriptor(flags, declaringTypeId, nameTable[i], [.. signatureBuilder], arity));
                 signatureBuilder.Clear();
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>

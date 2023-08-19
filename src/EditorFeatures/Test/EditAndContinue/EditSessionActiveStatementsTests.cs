@@ -148,29 +148,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 modules: new[] { module1, module1, module2, module2, module2 });
 
             // add an extra active statement that has no location, it should be ignored:
-            activeStatements = activeStatements.Add(
+            activeStatements =
+            [
+                .. activeStatements,
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(new ManagedMethodId(module: Guid.NewGuid(), token: 0x06000005, version: 1), ilOffset: 10),
                     documentName: null,
                     sourceSpan: default,
-                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
+            ];
 
             // add an extra active statement from project not belonging to the solution, it should be ignored:
-            activeStatements = activeStatements.Add(
+            activeStatements =
+            [
+                .. activeStatements,
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(new ManagedMethodId(module: module3, token: 0x06000005, version: 1), ilOffset: 10),
                     "NonRoslynDocument.mcpp",
                     new SourceSpan(1, 1, 1, 10),
-                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
+            ];
 
             // Add an extra active statement from language that doesn't support Roslyn EnC should be ignored:
             // See https://github.com/dotnet/roslyn/issues/24408 for test scenario.
-            activeStatements = activeStatements.Add(
+            activeStatements =
+            [
+                .. activeStatements,
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(new ManagedMethodId(module: module4, token: 0x06000005, version: 1), ilOffset: 10),
                     "a.dummy",
                     new SourceSpan(2, 1, 2, 10),
-                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
+            ];
 
             using var workspace = new TestWorkspace(composition: s_composition);
 

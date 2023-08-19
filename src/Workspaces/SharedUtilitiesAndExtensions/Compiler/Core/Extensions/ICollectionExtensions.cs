@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.Add(value);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)

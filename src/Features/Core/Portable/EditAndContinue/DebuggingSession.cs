@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var item in items)
             {
-                builder.Add(item.Key, item.ToImmutableArray());
+                builder.Add(item.Key, [.. item]);
             }
 
             return builder.ToImmutable();
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 documentIndicesByMappedPath.FreeValues();
                 activeStatementsInChangedDocuments.FreeValues();
 
-                return spans.ToImmutable();
+                return [.. spans];
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                return adjustedMappedSpans.ToImmutable();
+                return [.. adjustedMappedSpans];
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         private Assembly LoadImageAsAssembly(ImmutableArray<byte> mainImage)
         {
-            using (var assemblyStream = new MemoryStream(mainImage.ToArray()))
+            using (var assemblyStream = new MemoryStream([.. mainImage]))
             {
                 return LoadFromStream(assemblyStream);
             }

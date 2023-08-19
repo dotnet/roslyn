@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             await AddDocumentsToUpdateForProjectAsync(
                 project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 result.Add(new DocumentToUpdate(document, nodes));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
             var namedTypeSymbol = CreateNamedType(
-                semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, members.ToImmutable());
+                semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, [.. members]);
             return namedTypeSymbol;
         }
 

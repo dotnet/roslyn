@@ -112,7 +112,7 @@ namespace RunTests
                     workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
                 }
 
-                return workItems.ToImmutableArray();
+                return [.. workItems];
             }
         }
 
@@ -235,7 +235,7 @@ namespace RunTests
 
             // Add any remaining tests to the work item.
             AddCurrentWorkItem();
-            return workItems.ToImmutableArray();
+            return [.. workItems];
 
             void AddCurrentWorkItem()
             {

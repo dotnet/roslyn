@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

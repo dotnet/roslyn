@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, _cancellationToken));
                 }
 
-                return _dependents.ToImmutableArray();
+                return [.. _dependents];
             }
 
             public override void Visit(IOperation operation)

@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 return new SymbolicRenameLocations(
                     symbol, solution, options, cleanupOptions,
-                    mergedLocations.ToImmutable(),
-                    mergedImplicitLocations.ToImmutable(),
-                    mergedReferencedSymbols.ToImmutable());
+                    [.. mergedLocations],
+                    [.. mergedImplicitLocations],
+                    [.. mergedReferencedSymbols]);
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename
             foreach (var overloadedSymbol in RenameUtilities.GetOverloadedSymbols(symbol))
                 overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
 
-            return overloadsResult.ToImmutable();
+            return [.. overloadsResult];
         }
 
         private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
                 builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

@@ -777,7 +777,7 @@ class C
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
             {
-                new AnalyzerImageReference(vsixAnalyzerReferences.ToImmutableArray())
+                new AnalyzerImageReference([.. vsixAnalyzerReferences])
             })));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -795,7 +795,7 @@ class C
 
             if (nugetAnalyzerReferences.Count > 0)
             {
-                project = project.WithAnalyzerReferences(new[] { new AnalyzerImageReference(nugetAnalyzerReferences.ToImmutableArray()) });
+                project = project.WithAnalyzerReferences(new[] { new AnalyzerImageReference([.. nugetAnalyzerReferences]) });
             }
 
             var document = project.Documents.Single();

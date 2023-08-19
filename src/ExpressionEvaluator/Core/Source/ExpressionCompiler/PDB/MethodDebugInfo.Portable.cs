@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // to be part of imports groups.
                 if (isVisualBasicMethod || !importScope.Parent.IsNil)
                 {
-                    importGroupsBuilder.Add(importGroupBuilder.ToImmutable());
+                    importGroupsBuilder.Add([.. importGroupBuilder]);
                     importGroupBuilder.Clear();
                 }
                 else

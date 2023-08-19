@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 totalItems.AddRange(values.NullToEmpty());
             }
 
-            return totalItems.ToImmutableArray();
+            return [.. totalItems];
         }
 
         public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this Document document, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetNamingStylePreferencesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
+            return [.. options.CreateRules().NamingRules, .. FallbackNamingRules.Default];
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 var typeParameter = reader.GetGenericParameter(handle);
                 builder.Add(reader.GetString(typeParameter.Name));
             }
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

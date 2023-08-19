@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;

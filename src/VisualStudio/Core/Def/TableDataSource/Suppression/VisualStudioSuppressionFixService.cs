@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static string GetFixTitle(bool isAddSuppression)

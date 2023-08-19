@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     cancellationToken));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static SyntaxNode GetSetMethod(

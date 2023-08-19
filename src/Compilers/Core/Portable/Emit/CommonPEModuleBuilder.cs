@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 foreach (var entry in namespaceMembers)
                 {
-                    builder.Add(entry.Key, entry.Value.ToImmutableArray<ISymbolInternal>());
+                    builder.Add(entry.Key, [.. entry.Value]);
                 }
             }
 

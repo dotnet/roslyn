@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Parser.ParseDeclaredSymbolId(id, compilation, results);
-                return results.ToImmutableArray();
+                return [.. results];
             }
             finally
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 TryGetSymbolsForReferenceId(id, compilation, results);
-                return results.ToImmutableArray();
+                return [.. results];
             }
             finally
             {

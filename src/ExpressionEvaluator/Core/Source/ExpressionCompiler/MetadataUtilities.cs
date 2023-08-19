@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         refs = ImmutableArray<(AssemblyIdentity, MetadataReference)>.Empty;
                     }
 
-                    refsBySimpleName[identity.Name] = refs.Add((identity, reference));
+                    refsBySimpleName[identity.Name] = [.. refs, (identity, reference)];
 
                     if (targetReference == null &&
                         reader.GetModuleVersionIdOrThrow() == moduleVersionId)

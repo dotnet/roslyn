@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl));
             }
 
-            return sourceDocuments.ToImmutable();
+            return [.. sourceDocuments];
         }
 
         private string? TryGetSourceLinkUrl(DocumentHandle handle)

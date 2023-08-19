@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 }
             }
 
-            SendInputs(inputs.ToArray());
+            SendInputs([.. inputs]);
         }
 
         private static void AddInputs(List<NativeMethods.INPUT> inputs, char ch)

@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         public bool Initialize(string taskName, IDictionary<string, TaskPropertyInfo> parameterGroup, string taskBody, IBuildEngine taskFactoryLoggingHost)
         {
-            _props = parameterGroup.Values.ToArray();
+            _props = [.. parameterGroup.Values];
             return true;
         }
 

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                     namespaceSymbol = namespaceSymbol.ContainingNamespace;
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             protected sealed override SymbolKeyResolution Resolve(

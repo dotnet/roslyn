@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     i += ConvertTextAtIndexToRune(tokenSourceText, i, result, token.SpanStart);
             }
 
-            return VirtualCharSequence.Create(result.ToImmutable());
+            return VirtualCharSequence.Create([.. result]);
         }
 
         private static VirtualCharSequence TryConvertStringToVirtualChars(

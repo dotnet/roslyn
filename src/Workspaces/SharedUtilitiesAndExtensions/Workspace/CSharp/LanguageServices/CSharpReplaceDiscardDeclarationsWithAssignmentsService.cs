@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                     if (!IsDiscardDeclaration(variable))
                     {
                         // Add to the list of currently encountered non-discard variables
-                        _currentNonDiscardVariables = _currentNonDiscardVariables.Add(variable);
+                        _currentNonDiscardVariables = [.. _currentNonDiscardVariables, variable];
                     }
                     else
                     {

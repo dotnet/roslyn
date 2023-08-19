@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 NameGenerator.EnsureUniquenessInPlace(names, isFixed);
-                return names.ToImmutable();
+                return [.. names];
             }
 
             private static IMethodSymbol CreateMethodSymbolWithReturnType(

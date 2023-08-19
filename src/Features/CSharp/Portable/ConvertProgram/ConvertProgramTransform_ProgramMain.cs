@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 // Old class declaration is below top-level statements and is probably separated from them with a blank line (or several ones).
                 // So we want to remove all leading line to make class declaration begin from the first line of the file after applying refactoring
                 var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
-                return oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
+                return oldClassDeclaration.WithMembers([.. oldClassDeclaration.Members, method])
                                           .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
             }
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 }
             }
 
-            return statements.ToImmutable();
+            return [.. statements];
         }
 
         private static TSyntaxNode FixupComments<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode

@@ -7119,8 +7119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (includedConversion)
                 {
-                    arguments = argumentsBuilder.ToImmutable();
-                    conversions = conversionsBuilder.ToImmutable();
+                    arguments = [.. argumentsBuilder];
+                    conversions = [.. conversionsBuilder];
                 }
                 argumentsBuilder.Free();
                 conversionsBuilder.Free();

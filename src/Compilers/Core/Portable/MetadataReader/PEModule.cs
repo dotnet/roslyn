@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis
                     builder.Add(moduleName);
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
             finally
             {
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>

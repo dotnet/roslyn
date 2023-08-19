@@ -4650,7 +4650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedObjectCreationExpression(
                 node,
-                arguments.Arguments.ToImmutable(),
+                [.. arguments.Arguments],
                 arguments.Names.ToImmutableOrNull(),
                 arguments.RefKinds.ToImmutableOrNull(),
                 node.Initializer,
@@ -6319,7 +6319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (boundInitializerOpt is not null)
                 {
-                    children = children.Add(boundInitializerOpt);
+                    children = [.. children, boundInitializerOpt];
                 }
 
                 return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, interfaceType);
@@ -7045,7 +7045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
-                return BindMemberAccessBadResult(node, rightName, boundLeft, lookupResult.Error, lookupResult.Symbols.ToImmutable(), lookupResult.Kind);
+                return BindMemberAccessBadResult(node, rightName, boundLeft, lookupResult.Error, [.. lookupResult.Symbols], lookupResult.Kind);
             }
             finally
             {
@@ -7110,7 +7110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, lookupResult.Error, right);
 
                     return new BoundTypeExpression(node, null,
-                                new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
+                                new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), [.. symbols], lookupResult.Kind, lookupResult.Error, rightArity));
                 }
                 else if (lookupResult.Kind == LookupResultKind.Empty)
                 {
@@ -7298,7 +7298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
-                return BindMemberAccessBadResult(node, rightName, boundLeft, lookupResult.Error, lookupResult.Symbols.ToImmutable(), lookupResult.Kind);
+                return BindMemberAccessBadResult(node, rightName, boundLeft, lookupResult.Error, [.. lookupResult.Symbols], lookupResult.Kind);
             }
             finally
             {
@@ -9051,7 +9051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the arguments had an error reported about them then suppress further error
                 // reporting for overload resolution. 
 
-                ImmutableArray<PropertySymbol> candidates = propertyGroup.ToImmutable();
+                ImmutableArray<PropertySymbol> candidates = [.. propertyGroup];
 
                 if (TryBindIndexOrRangeImplicitIndexer(
                         syntax,
@@ -9839,7 +9839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!hasParamsArray || parameterTypes.Length != 0);
 
             bool returnsVoid = returnType.Type.IsVoidType();
-            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnType);
+            var typeArguments = returnsVoid ? parameterTypes : [.. parameterTypes, returnType];
 
             if (returnsVoid && returnRefKind != RefKind.None)
             {

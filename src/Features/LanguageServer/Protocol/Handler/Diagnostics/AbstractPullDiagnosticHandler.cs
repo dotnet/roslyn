@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
             }
 
-            removedDocuments = removedDocumentsBuilder.ToImmutable();
+            removedDocuments = [.. removedDocumentsBuilder];
             return result;
 
             static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
+            var report = CreateReport(documentIdentifier, [.. result], resultId);
             progress.Report(report);
         }
 
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     diagnosticsBuilder.Add(additionalDiagnostic);
                 }
 
-                return diagnosticsBuilder.ToImmutableArray();
+                return [.. diagnosticsBuilder];
             }
             else
             {
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
                 result.Add(VSDiagnosticTags.EditAndContinueError);
 
-            return result.ToArray();
+            return [.. result];
         }
 
         private bool SupportsFadingOption(DiagnosticData diagnosticData)

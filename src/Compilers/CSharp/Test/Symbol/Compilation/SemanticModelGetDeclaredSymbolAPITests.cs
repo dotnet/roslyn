@@ -2178,7 +2178,7 @@ class Bar { }
                     ((CSharp.Symbols.PublicModel.NamespaceOrTypeSymbol)qualifierOpt)?.UnderlyingNamespaceOrTypeSymbol,
                     plainName: name, arity: 0, basesBeingResolved: null, options: options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
                 Assert.Null(useSiteDiagnostics);
-                var result = lookupResult.IsMultiViable ? lookupResult.Symbols.ToImmutable() : ImmutableArray.Create<Symbol>();
+                var result = lookupResult.IsMultiViable ? [.. lookupResult.Symbols] : ImmutableArray.Create<Symbol>();
                 lookupResult.Free();
                 return result.SelectAsArray(s => s.GetPublicSymbol());
             };

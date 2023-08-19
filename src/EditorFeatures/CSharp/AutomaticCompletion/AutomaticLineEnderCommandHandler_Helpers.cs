@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                           oldNode: embeddedStatementOwner,
                           newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, formattingOptions),
                           anchorNode: embeddedStatementOwner,
-                          nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
+                          nodesToInsert: [statement],
                           formattingOptions,
                           cancellationToken),
                 DoStatementSyntax doStatementNode => AddBraceToDoStatement(services, root, doStatementNode, formattingOptions, statement, cancellationToken),
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     oldNode: doStatementNode,
                     newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, formattingOptions),
                     anchorNode: doStatementNode,
-                    nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    nodesToInsert: [innerStatement],
                     formattingOptions,
                     cancellationToken);
             }
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     ifStatementNode,
                     AddBlockToEmbeddedStatementOwner(ifStatementNode, formattingOptions),
                     ifStatementNode,
-                    ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    [innerStatement],
                     formattingOptions,
                     cancellationToken);
             }
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     elseClauseNode,
                     WithBraces(elseClauseNode, formattingOptions),
                     elseClauseNode.Parent!,
-                    ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    [innerStatement],
                     formattingOptions,
                     cancellationToken);
             }

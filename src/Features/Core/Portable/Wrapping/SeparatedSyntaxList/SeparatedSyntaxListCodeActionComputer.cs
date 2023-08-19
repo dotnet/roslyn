@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
                 await AddWrappingGroupsAsync(result).ConfigureAwait(false);
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
+                return new WrappingGroup(isInlinable: true, [.. unwrapActions]);
             }
 
             private async Task<WrapItemsAction?> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 if (last.IsNode)
                     result.Add(Edit.DeleteBetween(last, _listSyntax.GetLastToken()));
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             #endregion
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // We can't in-line these nested actions because the parent title is necessary to
                 // determine which situation each child action applies to.
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
+                return new WrappingGroup(isInlinable: false, [.. codeActions]);
             }
 
             private async Task<WrapItemsAction?> GetWrapLongLineCodeActionAsync(
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             #endregion
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
+                return new WrappingGroup(isInlinable: false, [.. codeActions]);
             }
 
             private async Task<WrapItemsAction?> GetWrapEveryNestedCodeActionAsync(
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             #endregion

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             }
 
             builder.AddRange(EncapsulateAllFields(document, fields, fallbackOptions));
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions)

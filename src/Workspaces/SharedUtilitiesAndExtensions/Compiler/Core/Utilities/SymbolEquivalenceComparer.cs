@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-            _equivalenceVisitors = equivalenceVisitorsBuilder.ToImmutable();
+            _equivalenceVisitors = [.. equivalenceVisitorsBuilder];
 
             var getHashCodeVisitorsBuilder = ImmutableArray.CreateBuilder<GetHashCodeVisitor>();
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-            _getHashCodeVisitors = getHashCodeVisitorsBuilder.ToImmutable();
+            _getHashCodeVisitors = [.. getHashCodeVisitorsBuilder];
         }
 
         // Very subtle logic here.  When checking if two parameters are the same, we can end up with

@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     result.Add((property, declaration));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task<SyntaxNode?> GetPropertyDeclarationAsync(

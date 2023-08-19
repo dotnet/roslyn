@@ -10612,7 +10612,7 @@ public unsafe class C
                     );
             }
 
-            comp.VerifyDiagnostics(diagnostics.ToArray());
+            comp.VerifyDiagnostics([.. diagnostics]);
         }
 
         [Fact]

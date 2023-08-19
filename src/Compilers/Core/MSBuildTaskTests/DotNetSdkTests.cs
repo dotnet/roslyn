@@ -590,7 +590,7 @@ some_prop = some_val");
 
             foundConfigs.Reverse();
             foundConfigs.AddRange(expected);
-            return foundConfigs.ToArray();
+            return [.. foundConfigs];
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable))]

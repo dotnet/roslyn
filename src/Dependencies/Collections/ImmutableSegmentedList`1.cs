@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Only resize the last page the minimum amount necessary
                 var builder = self.ToValueBuilder();
                 builder.Add(value);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 if (items is ImmutableSegmentedList<T> immutableList)
                     return immutableList;
                 else if (items is ImmutableSegmentedList<T>.Builder builder)
-                    return builder.ToImmutable();
+                    return [.. builder];
 
                 var list = new SegmentedList<T>(items);
                 return new ImmutableSegmentedList<T>(list);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // TODO: Optimize this to share all segments except for the last one
                 var builder = self.ToValueBuilder();
                 builder.AddRange(items);
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -310,13 +310,13 @@ namespace Microsoft.CodeAnalysis.Collections
             var self = this;
 
             if (index == self.Count)
-                return self.Add(item);
+                return [.. self, item];
 
             // TODO: Optimize this to share all segments prior to index
             // TODO: Only resize the last page the minimum amount necessary
             var builder = self.ToValueBuilder();
             builder.Insert(index, item);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.InsertRange(int, IEnumerable{T})"/>
@@ -325,13 +325,13 @@ namespace Microsoft.CodeAnalysis.Collections
             var self = this;
 
             if (index == self.Count)
-                return self.AddRange(items);
+                return [.. self, .. items];
 
             // TODO: Optimize this to share all segments prior to index
             // TODO: Only resize the last page the minimum amount necessary
             var builder = self.ToValueBuilder();
             builder.InsertRange(index, items);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to share pages prior to the first removed item
             var builder = ToValueBuilder();
             builder.RemoveAll(match);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.RemoveAt(int)"/>
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to share pages prior to the removed item
             var builder = ToValueBuilder();
             builder.RemoveAt(index);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.RemoveRange(IEnumerable{T})"/>
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 builder.RemoveAt(index);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.RemoveRange(IEnumerable{T}, IEqualityComparer{T}?)"/>
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 builder.RemoveAt(index);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.RemoveRange(int, int)"/>
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to share pages prior to the first removed item
             var builder = self.ToValueBuilder();
             builder.RemoveRange(index, count);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Replace(T, T)"/>
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             var builder = self.ToValueBuilder();
             builder.Reverse();
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Reverse(int, int)"/>
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var builder = ToValueBuilder();
             builder.Reverse(index, count);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.SetItem(int, T)"/>
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to share all pages except the one with 'index'
             var builder = ToValueBuilder();
             builder[index] = value;
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Sort()"/>
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to avoid allocations if the list is already sorted
             var builder = self.ToValueBuilder();
             builder.Sort();
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Sort(IComparer{T}?)"/>
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to avoid allocations if the list is already sorted
             var builder = self.ToValueBuilder();
             builder.Sort(comparer);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Sort(Comparison{T})"/>
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to avoid allocations if the list is already sorted
             var builder = self.ToValueBuilder();
             builder.Sort(comparison);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.Sort(int, int, IComparer{T}?)"/>
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // TODO: Optimize this to avoid allocations if the list is already sorted
             var builder = ToValueBuilder();
             builder.Sort(index, count, comparer);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <inheritdoc cref="ImmutableList{T}.ToBuilder()"/>

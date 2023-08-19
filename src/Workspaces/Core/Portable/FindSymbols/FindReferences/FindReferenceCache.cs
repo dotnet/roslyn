@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
                 Recurse(root);
-                return result.ToImmutable();
+                return [.. result];
 
                 void Recurse(SyntaxNode node)
                 {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     index = nextIndex;
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return initializers.ToImmutable();
+            return [.. initializers];
         }
     }
 }

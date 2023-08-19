@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 _tableManager,
                 autoSubscribe: true,
                 BuildColumnStates(),
-                UnusedReferencesColumnDefinitions.ColumnNames.ToArray());
+                [.. UnusedReferencesColumnDefinitions.ColumnNames]);
             tableControl.ShowGroupingLine = true;
             tableControl.DoColumnsAutoAdjust = true;
             tableControl.DoSortingAndGroupingWhileUnstable = true;

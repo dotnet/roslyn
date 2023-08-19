@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
                     else
                     {
-                        return arrayBuilder.ToImmutable();
+                        return [.. arrayBuilder];
                     }
                 }
             }

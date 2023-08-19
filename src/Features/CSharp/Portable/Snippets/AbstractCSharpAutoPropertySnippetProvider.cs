@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
             arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
-            return arrayBuilder.ToImmutableArray();
+            return [.. arrayBuilder];
         }
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)

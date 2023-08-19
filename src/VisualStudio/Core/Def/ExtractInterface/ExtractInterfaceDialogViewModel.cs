@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 languageName,
                 defaultNamespace,
                 generatedNameTypeParameterSuffix,
-                conflictingTypeNames.ToImmutableArray(),
+                [.. conflictingTypeNames],
                 syntaxFactsService);
         }
 

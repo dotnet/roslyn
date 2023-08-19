@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
             if (analyzerDiagnostics.Count > 0)
             {
-                AddBulkConfigurationCodeFixes(analyzerDiagnostics.ToImmutable(), category: null);
+                AddBulkConfigurationCodeFixes([.. analyzerDiagnostics], category: null);
             }
 
             return result.ToImmutableAndFree();

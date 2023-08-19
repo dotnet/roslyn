@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     map[symbolAndProjectId] = symbol;
                 }
 
-                var symbolGroup = new SymbolGroup(map.Values.ToImmutableArray());
+                var symbolGroup = new SymbolGroup([.. map.Values]);
                 lock (_gate)
                 {
                     _groupMap[dehydrated] = symbolGroup;

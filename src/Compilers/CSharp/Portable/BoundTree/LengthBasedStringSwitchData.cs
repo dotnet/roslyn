@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // no need to follow with a string check.
                 LabelSymbol label = (stringLength == 1)
                     ? group.Single().label
-                    : CreateAndRegisterStringJumpTable(group.ToImmutableArray(), stringJumpTables);
+                    : CreateAndRegisterStringJumpTable([.. group], stringJumpTables);
                 char character = group.Key;
                 charCaseLabels.Add((character, label));
             }

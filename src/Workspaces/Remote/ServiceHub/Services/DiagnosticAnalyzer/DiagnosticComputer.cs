@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         analyzerResults.Others)));
             }
 
-            return diagnostics.ToImmutable();
+            return [.. diagnostics];
         }
 
         private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return telemetryBuilder.ToImmutable();
+            return [.. telemetryBuilder];
         }
 
         private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             var compilationWithAnalyzers = analyzerBuilder.Count > 0
-                ? await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false)
+                ? await CreateCompilationWithAnalyzerAsync([.. analyzerBuilder], cancellationToken).ConfigureAwait(false)
                 : null;
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 

@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             lock (_gate)
             {
                 snapshot = _subscriptions;
-                factories = _map.Values.ToList();
+                factories = [.. _map.Values];
             }
 
             // let table manager know that we want to refresh factories.

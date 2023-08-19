@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteString(options.CryptoKeyContainer);
             writer.WriteString(options.CryptoKeyFile);
 
-            writer.WriteValue(options.CryptoPublicKey.AsSpan());
+            writer.WriteValue([.. options.CryptoPublicKey]);
             writer.WriteBoolean(options.DelaySign.HasValue);
             if (options.DelaySign.HasValue)
             {

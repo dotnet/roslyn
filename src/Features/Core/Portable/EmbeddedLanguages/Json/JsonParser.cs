@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             while (ShouldConsumeSequenceElement())
                 result.Add(ParseValue());
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private JsonSeparatedList ParseCommaSeparatedSequence()
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                     result.Add(ConsumeToken(JsonKind.CommaToken, allProperties ? s_commaExpected : null));
             }
 
-            return new JsonSeparatedList(result.ToImmutable());
+            return new JsonSeparatedList([.. result]);
         }
 
         private readonly bool ShouldConsumeSequenceElement()

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 }
             }
 
-            return potentialMatches.ToImmutableArray();
+            return [.. potentialMatches];
         }
     }
 }

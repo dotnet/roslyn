@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             await foreach (var value in values.WithCancellation(cancellationToken).ConfigureAwait(false))
                 result.Add(value);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         /// <summary>

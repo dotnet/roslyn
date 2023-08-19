@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                     }
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
     }

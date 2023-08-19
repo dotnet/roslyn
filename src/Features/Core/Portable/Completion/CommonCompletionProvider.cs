@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     if (parts.Any())
                     {
-                        parts = parts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine));
+                        parts = [.. parts, new TaggedText(TextTags.LineBreak, Environment.NewLine)];
                     }
 
-                    parts = parts.Add(new TaggedText(TextTags.Text, note));
+                    parts = [.. parts, new TaggedText(TextTags.Text, note)];
                 }
             }
 

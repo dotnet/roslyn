@@ -250,7 +250,7 @@ namespace AnalyzerRunner
                 profileRoot: profileRoot,
                 usePersistentStorage: usePersistentStorage,
                 fullSolutionAnalysis: fullSolutionAnalysis,
-                incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
+                incrementalAnalyzerNames: [.. incrementalAnalyzerNames]);
         }
     }
 }

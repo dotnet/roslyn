@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     resultBuilder.AddRange(memberDiagnostics);
                 }
 
-                updatedDiagnostics = resultBuilder.ToImmutableArray();
+                updatedDiagnostics = [.. resultBuilder];
                 return true;
 
                 static DiagnosticData UpdateLocations(DiagnosticData diagnostic, SyntaxTree tree, SourceText text, int delta)

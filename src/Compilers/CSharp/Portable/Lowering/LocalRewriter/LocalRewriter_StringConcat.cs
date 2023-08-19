@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    result = RewriteStringConcatenationManyExprs(syntax, leftFlattened.ToImmutable());
+                    result = RewriteStringConcatenationManyExprs(syntax, [.. leftFlattened]);
                     break;
             }
 

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
 
                 var typeArgumentsArray = typeArguments.Count == 0
                     ? Array.Empty<ITypeSymbol>()
-                    : typeArguments.Builder.ToArray();
+                    : [.. typeArguments.Builder];
 
                 var normalResolution = ResolveNormalNamedType(
                     containingSymbolResolution, containingSymbolFailureReason,

@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return interfaceMembers.ToImmutable();
+            return [.. interfaceMembers];
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)

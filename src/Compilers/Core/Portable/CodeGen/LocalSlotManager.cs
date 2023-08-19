@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                return _lazyAllLocals.ToImmutable();
+                return [.. _lazyAllLocals];
             }
         }
     }

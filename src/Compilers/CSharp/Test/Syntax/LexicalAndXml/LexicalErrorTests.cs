@@ -537,7 +537,7 @@ class A
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
             });
 
-            ParsingTests.ParseAndValidate(test, descriptions.ToArray());
+            ParsingTests.ParseAndValidate(test, [.. descriptions]);
         }
 
         [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.ResultsBuilder.ToImmutable();
+                return [.. this.ResultsBuilder];
             }
         }
 

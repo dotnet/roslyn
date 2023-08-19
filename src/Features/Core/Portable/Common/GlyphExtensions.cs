@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)

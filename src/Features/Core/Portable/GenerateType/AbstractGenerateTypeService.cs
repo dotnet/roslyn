@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             if (generateNewTypeInDialog)
                 result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state, fallbackOptions));
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(names[i]);
             }
 
-            return typeParameters.ToImmutable();
+            return [.. typeParameters];
         }
 
         protected static Accessibility DetermineDefaultAccessibility(

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentException(WorkspaceMSBuildResources.Project_already_added);
             }
 
-            projectInfos = projectInfos.Add(projectInfo);
+            projectInfos = [.. projectInfos, projectInfo];
 
             _projectPathToProjectInfosMap[projectFilePath] = projectInfos;
         }

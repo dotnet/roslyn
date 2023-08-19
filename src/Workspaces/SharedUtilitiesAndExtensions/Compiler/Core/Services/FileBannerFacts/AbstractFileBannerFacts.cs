@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index));
 
-            strippedTrivia = leadingTriviaToStrip.ToImmutableArray();
+            strippedTrivia = [.. leadingTriviaToStrip];
             return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
         }
 

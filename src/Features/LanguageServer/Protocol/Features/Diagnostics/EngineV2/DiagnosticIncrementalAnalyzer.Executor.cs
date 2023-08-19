@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return false;
             }
 
-            analyzers = builder.ToImmutable();
+            analyzers = [.. builder];
             return true;
         }
 

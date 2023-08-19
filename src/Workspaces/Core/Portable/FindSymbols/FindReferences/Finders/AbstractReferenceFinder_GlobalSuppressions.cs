@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return locations.ToImmutable();
+            return [.. locations];
 
             // Local functions
             static bool IsCandidate(

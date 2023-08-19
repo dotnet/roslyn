@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
             writeToolsVersions();
 
-            WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
+            WriteByteArrayValue(writer, "publicKey", [.. publicKey]);
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             writer.WriteObjectStart();
-            WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum().AsSpan());
+            WriteByteArrayValue(writer, "checksum", [.. sourceText.GetChecksum()]);
             writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
             writer.Write("encodingName", sourceText.Encoding?.EncodingName);
             writer.WriteObjectEnd();
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis
                     var assemblyDef = peReader.GetAssemblyDefinition();
                     writer.Write("name", peReader.GetString(assemblyDef.Name));
                     WriteVersion(writer, "version", assemblyDef.Version);
-                    WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
+                    WriteByteArrayValue(writer, "publicKey", [.. peReader.GetBlobBytes(assemblyDef.PublicKey)]);
                 }
                 else
                 {
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("moduleName", options.ModuleName);
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
-            WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
+            WriteByteArrayValue(writer, "cryptoPublicKey", [.. options.CryptoPublicKey]);
             writer.Write("cryptoKeyFile", options.CryptoKeyFile);
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);

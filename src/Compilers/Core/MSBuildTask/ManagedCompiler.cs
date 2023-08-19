@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     var analyzerResponse = (AnalyzerInconsistencyBuildResponse)response;
-                    var combinedMessage = string.Join(", ", analyzerResponse.ErrorMessages.ToArray());
+                    var combinedMessage = string.Join(", ", [.. analyzerResponse.ErrorMessages]);
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 

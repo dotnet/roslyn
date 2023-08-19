@@ -136,8 +136,8 @@ namespace Microsoft.Cci
                         methodToken,
                         MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
                         asyncMoveNextInfo.CatchHandlerOffset,
-                        asyncMoveNextInfo.YieldOffsets.AsSpan(),
-                        asyncMoveNextInfo.ResumeOffsets.AsSpan());
+                        [.. asyncMoveNextInfo.YieldOffsets],
+                        [.. asyncMoveNextInfo.ResumeOffsets]);
                 }
 
                 if (emitExternNamespaces)
@@ -594,7 +594,7 @@ namespace Microsoft.Cci
             if (!info.Checksum.IsDefault)
             {
                 algorithmId = info.ChecksumAlgorithmId;
-                checksum = info.Checksum.AsSpan();
+                checksum = [.. info.Checksum];
             }
             else
             {
@@ -604,7 +604,7 @@ namespace Microsoft.Cci
 
             if (!info.EmbeddedTextBlob.IsDefault)
             {
-                embeddedSource = info.EmbeddedTextBlob.AsSpan();
+                embeddedSource = [.. info.EmbeddedTextBlob];
             }
             else
             {

@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.ToArray();
+                return [.. this];
             }
         }
 

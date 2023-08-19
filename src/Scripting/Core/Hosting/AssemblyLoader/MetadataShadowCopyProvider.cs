@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     moduleBuilder.Add(CreateModuleMetadata(moduleCopyStream));
                 }
 
-                var modules = (moduleBuilder != null) ? moduleBuilder.ToImmutable() : ImmutableArray.Create(manifestModule);
+                var modules = (moduleBuilder != null) ? [.. moduleBuilder] : ImmutableArray.Create(manifestModule);
 
                 fault = false;
                 return AssemblyMetadata.Create(modules);

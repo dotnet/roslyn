@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 var worker = new Worker(this, syntaxFacts, classifier, virtualCharService, spans);
                 worker.Recurse(root, cancellationToken);
 
-                return spans.ToImmutable();
+                return [.. spans];
             }
         }
 

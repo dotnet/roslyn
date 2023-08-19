@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 triviaList.Add(lastWhitespace);
             }
 
-            return triviaList.ToImmutable();
+            return [.. triviaList];
         }
 
         private static bool ShouldPlaceParametersOnNewLine(

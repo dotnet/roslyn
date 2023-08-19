@@ -68,7 +68,7 @@ namespace Roslyn.Test.Utilities.Desktop
         public static string[] PeVerify(ImmutableArray<byte> peImage)
         {
             // fileName must be null, otherwise AssemblyResolve events won't fire
-            return PeVerify(peImage.ToArray(), AppDomain.CurrentDomain.Id, assemblyPath: null);
+            return PeVerify([.. peImage], AppDomain.CurrentDomain.Id, assemblyPath: null);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             public string[] GetOutput()
             {
-                return _output.ToArray();
+                return [.. _output];
             }
 
             private static readonly string s_resourceFilePath = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "mscorrc.dll");

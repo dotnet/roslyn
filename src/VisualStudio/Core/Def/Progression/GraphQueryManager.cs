@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     lock (_gate)
                     {
-                        _trackedQueries = _trackedQueries.Add((new WeakReference<IGraphContext>(context), graphQueries));
+                        _trackedQueries = [.. _trackedQueries, (new WeakReference<IGraphContext>(context), graphQueries)];
                     }
                 }
             }

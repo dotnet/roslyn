@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
+            return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), [.. includes]);
         }
 #nullable disable
 

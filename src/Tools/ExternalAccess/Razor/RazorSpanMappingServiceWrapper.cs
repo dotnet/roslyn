@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
             }
 
-            return roslynSpans.ToImmutableArray();
+            return [.. roslynSpans];
         }
     }
 }

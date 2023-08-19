@@ -170,7 +170,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 }
             }
 
-            return concreteTypes.ToImmutable();
+            return [.. concreteTypes];
         }
 
         /// <summary>
@@ -422,7 +422,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 result.Add(member);
             }
 
-            return result.ToImmutable();
+            return [.. result];
 
             static bool MatchesConstraints(ITypeSymbol originalContainerType, ImmutableArray<ITypeSymbol> constraintTypes)
             {

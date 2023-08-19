@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     }
                 }
 
-                return adjustedClassifiedSpans.ToImmutableArray();
+                return [.. adjustedClassifiedSpans];
             }
             else
             {

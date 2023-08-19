@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 int seed = 840;
                 ICollection<T> collection = GenericICollectionFactory(count);
-                List<T> items = collection.ToList();
+                List<T> items = [.. collection];
                 T toAdd = CreateT(seed++);
                 while (collection.Contains(toAdd))
                     toAdd = CreateT(seed++);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (!IsReadOnly && !AddRemoveClear_ThrowsNotSupported)
             {
                 ICollection<T> collection = GenericICollectionFactory(count);
-                List<T> itemsToRemove = collection.ToList();
+                List<T> itemsToRemove = [.. collection];
                 for (int i = 0; i < count; i++)
                     collection.Remove(collection.ElementAt(0));
                 collection.Add(CreateT(254));

@@ -1061,7 +1061,7 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    _contents ??= _map.ToArray();
+                    _contents ??= [.. _map];
 
                     return _contents;
                 }

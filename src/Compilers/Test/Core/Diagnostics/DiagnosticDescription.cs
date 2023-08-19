@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        _arguments = d.Arguments.ToArray();
+                        _arguments = [.. d.Arguments];
                     }
                 }
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     builder.Add(
                             $@"{{{posSpecifier}{fmtSpecifier}}}");
                 }
-                specifiers = builder.ToImmutableArray();
+                specifiers = [.. builder];
             }
 
             return specifiers;

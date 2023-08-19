@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             await GroupFixesAsync(workspace, originalSolution, fixCollections, map, order, cancellationToken).ConfigureAwait(false);
 
             // Then prioritize between the groups.
-            var prioritizedFixes = PrioritizeFixGroups(originalSolution, text, map.ToImmutable(), order.ToImmutable(), workspace);
+            var prioritizedFixes = PrioritizeFixGroups(originalSolution, text, map.ToImmutable(), [.. order], workspace);
             return prioritizedFixes;
         }
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return new UnifiedSuggestedActionSet(
                 originalSolution,
                 categoryName: null,
-                actions: fixAllSuggestedActions.ToImmutable(),
+                actions: [.. fixAllSuggestedActions],
                 title: CodeFixesResources.Fix_all_occurrences_in,
                 priority: CodeActionPriority.Lowest,
                 applicableToSpan: null);
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var bulkConfigurationSet = new UnifiedSuggestedActionSet(
                     originalSolution,
                     UnifiedPredefinedSuggestedActionCategoryNames.CodeFix,
-                    bulkConfigurationActions.ToImmutable(),
+                    [.. bulkConfigurationActions],
                     title: null,
                     priority: CodeActionPriority.Lowest,
                     applicableToSpan: null);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
-                    nestedActionSets: suppressionSets.ToImmutable());
+                    nestedActionSets: [.. suppressionSets]);
 
                 // Combine the spans and the category of each of the nested suggested actions
                 // to get the span and category for the new top level suggested action.
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     title: CodeFixesResources.Suppress_or_configure_issues,
                     priority: CodeActionPriority.Lowest,
                     applicableToSpan: span);
-                sets = sets.Add(wrappingSet);
+                sets = [.. sets, wrappingSet];
             }
 
             return sets;
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 sets.Add(new UnifiedSuggestedActionSet(
                     originalSolution,
                     category,
-                    group.ToImmutableArray(),
+                    [.. group],
                     title: null,
                     priority,
                     applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return new UnifiedSuggestedActionSet(
                 originalSolution,
                 categoryName: null,
-                actions: fixAllSuggestedActions.ToImmutable(),
+                actions: [.. fixAllSuggestedActions],
                 title: CodeFixesResources.Fix_all_occurrences_in,
                 priority: CodeActionPriority.Lowest,
                 applicableToSpan: null);
@@ -711,9 +711,12 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static ImmutableArray<UnifiedSuggestedActionSet> OrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> actionSets, TextSpan? selectionOpt)
         {
-            return actionSets.OrderByDescending(s => s.Priority)
-                             .ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))
-                             .ToImmutableArray();
+            return
+            [
+                .. actionSets.OrderByDescending(s => s.Priority)
+                                             .ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))
+,
+            ];
         }
 
         private static UnifiedSuggestedActionSet WithPriority(
@@ -753,7 +756,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return new UnifiedSuggestedActionSet(
                 actionSet.OriginalSolution,
                 actionSet.CategoryName,
-                newActions.ToImmutable(),
+                [.. newActions],
                 actionSet.Title,
                 actionSet.Priority,
                 actionSet.ApplicableToSpan);
@@ -774,7 +777,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static UnifiedSuggestedActionSet? FilterActionSetByTitle(UnifiedSuggestedActionSet set, HashSet<string> seenTitles)
@@ -791,7 +794,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             return actions.Count == 0
                 ? null
-                : new UnifiedSuggestedActionSet(set.OriginalSolution, set.CategoryName, actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
+                : new UnifiedSuggestedActionSet(set.OriginalSolution, set.CategoryName, [.. actions], set.Title, set.Priority, set.ApplicableToSpan);
         }
     }
 }

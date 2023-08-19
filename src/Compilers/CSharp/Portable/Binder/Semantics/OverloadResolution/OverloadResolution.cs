@@ -3327,7 +3327,7 @@ outerDefault:
                 }
             }
 
-            var refKinds = anyRef ? refs.ToImmutable() : default(ImmutableArray<RefKind>);
+            var refKinds = anyRef ? [.. refs] : default(ImmutableArray<RefKind>);
             refs.Free();
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
@@ -3524,7 +3524,7 @@ outerDefault:
                     if (typeArgumentsBuilder.Count > 0)
                     {
                         // generic type arguments explicitly specified at call-site:
-                        typeArguments = typeArgumentsBuilder.ToImmutable();
+                        typeArguments = [.. typeArgumentsBuilder];
                     }
                     else
                     {

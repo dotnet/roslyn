@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal static class Composition
     {
         public static readonly ImmutableArray<Assembly> MefCompositionAssemblies =
-            MSBuildMefHostServices.DefaultAssemblies.Add(typeof(RoslynLanguageServer).Assembly);
+            [.. MSBuildMefHostServices.DefaultAssemblies, typeof(RoslynLanguageServer).Assembly];
 
         public static async Task<HostServices> CreateHostServicesAsync()
         {

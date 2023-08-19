@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                referenceDirectiveResolver = new ExistingReferencesResolver(commandLineReferenceResolver, resolved.ToImmutableArray());
+                referenceDirectiveResolver = new ExistingReferencesResolver(commandLineReferenceResolver, [.. resolved]);
             }
 
             return resolved;
@@ -1141,13 +1141,13 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
+                        embeddedTexts = [.. embeddedTexts, .. embeddedTextBuilder];
                         if (analyzerOptionsBuilder is object)
                         {
                             analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
                                analyzerConfigProvider,
                                generatedSyntaxTrees,
-                               analyzerOptionsBuilder.ToImmutable());
+                               [.. analyzerOptionsBuilder]);
                         }
                     }
                     finally

@@ -2374,7 +2374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         0 => True.Instance,
                         1 => remainingTests[0],
-                        _ => new AndSequence(remainingTests.ToImmutable()),
+                        _ => new AndSequence([.. remainingTests]),
                     };
                     remainingTests.Free();
                     return result;
@@ -2454,7 +2454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         0 => False.Instance,
                         1 => remainingTests[0],
-                        _ => new OrSequence(remainingTests.ToImmutable()),
+                        _ => new OrSequence([.. remainingTests]),
                     };
                     remainingTests.Free();
                     return result;

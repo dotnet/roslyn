@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.AddRange(items.Select(d => CreateLiveDiagnostic(descriptor, d)));
             }
 
-            return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
+            return builder == null ? ImmutableArray<DiagnosticData>.Empty : [.. builder];
         }
 
         private static DiagnosticData CreateLiveDiagnostic(DiagnosticDescriptor descriptor, DiagnosticData diagnostic)

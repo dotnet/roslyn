@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
 
-                return applicableConstructors.ToImmutable();
+                return [.. applicableConstructors];
             }
 
             private static async Task<bool> IsApplicableConstructorAsync(IMethodSymbol constructor, Document document, ImmutableArray<string> parameterNamesForSelectedMembers, CancellationToken cancellationToken)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 }
 
                 return new ConstructorCandidate(
-                    constructor, missingMembersBuilder.ToImmutable(), missingParametersBuilder.ToImmutable());
+                    constructor, [.. missingMembersBuilder], [.. missingParametersBuilder]);
             }
         }
     }

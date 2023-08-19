@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
             lock (_gate)
             {
-                _analyzerLoadErrors = _analyzerLoadErrors.Add(data);
+                _analyzerLoadErrors = [.. _analyzerLoadErrors, data];
                 projectSystemDiagnosticSource.UpdateDiagnosticsForProject(projectId, this, _analyzerLoadErrors);
             }
         }

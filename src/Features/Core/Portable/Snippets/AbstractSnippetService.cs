@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 arrayBuilder.AddIfNotNull(snippetData);
             }
 
-            return arrayBuilder.ToImmutable();
+            return [.. arrayBuilder];
         }
 
         private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                         arrayBuilder.Add(providerData);
                     }
 
-                    _snippetProviders = arrayBuilder.ToImmutable();
+                    _snippetProviders = [.. arrayBuilder];
                 }
             }
 

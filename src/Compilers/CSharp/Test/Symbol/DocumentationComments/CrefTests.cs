@@ -1386,7 +1386,7 @@ class B
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M()").WithArguments("M()", "B.M()", "B.M(__arglist)"));
 
             Assert.Equal(expectedWinner, actualWinner);
-            AssertEx.SetEqual(expectedCandidates, actualCandidates.ToArray());
+            AssertEx.SetEqual(expectedCandidates, [.. actualCandidates]);
         }
 
         [Fact]

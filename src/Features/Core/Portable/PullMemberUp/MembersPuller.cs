@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             {
                 var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
+                symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, [.. allSyntaxes]);
             }
 
             return symbolToDeclarationsBuilder.ToImmutableDictionary();

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                     }
 
-                    return builder.ToImmutable();
+                    return [.. builder];
                 }
 
                 private ImmutableArray<MetadataReference> GetMetadataReferences()
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                     }
 
-                    return builder.ToImmutable();
+                    return [.. builder];
                 }
 
                 private ImmutableHashSet<ProjectReference> GetProjectReferences()

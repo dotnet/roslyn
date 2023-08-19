@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             return _capacity == other._capacity
                 // and have the same set of bits set
                 && _bits0 == other._bits0
-                && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
+                && _bits.AsSpan().SequenceEqual([.. other._bits]);
         }
 
         public override bool Equals(object? obj)

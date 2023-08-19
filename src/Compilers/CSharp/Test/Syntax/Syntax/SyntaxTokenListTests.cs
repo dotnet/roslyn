@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Equal(4, newList.Count);
             Assert.Equal("A B C D ", newList.ToFullString());
 
-            newList = list.AddRange(new[] { tokenD, tokenE });
+            newList = [.. list, .. new[] { tokenD, tokenE }];
             Assert.Equal(5, newList.Count);
             Assert.Equal("A B C D E ", newList.ToFullString());
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Equal(1, newList.Count);
             Assert.Equal("D ", newList.ToFullString());
 
-            newList = list.AddRange(new[] { tokenD, tokenE });
+            newList = [.. list, .. new[] { tokenD, tokenE }];
             Assert.Equal(2, newList.Count);
             Assert.Equal("D E ", newList.ToFullString());
 

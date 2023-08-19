@@ -193,7 +193,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             }
 
             // Looks good.  We can convert this.
-            return new(memberAccessExpression.Name.Identifier.GetLocation(), localDeclarationStatement, creationExpression, matches.ToImmutable());
+            return new(memberAccessExpression.Name.Identifier.GetLocation(), localDeclarationStatement, creationExpression, [.. matches]);
         }
 
         return null;

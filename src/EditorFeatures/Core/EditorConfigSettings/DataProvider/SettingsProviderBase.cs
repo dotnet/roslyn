@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         {
             lock (s_gate)
             {
-                return _snapshot.ToImmutableArray();
+                return [.. _snapshot];
             }
         }
 

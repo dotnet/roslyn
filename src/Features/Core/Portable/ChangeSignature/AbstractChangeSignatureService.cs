@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var engine = new FindReferencesSearchEngine(
                     solution,
                     documents: null,
-                    ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                    [.. ReferenceFinders.DefaultReferenceFinders, DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod],
                     streamingProgress,
                     FindReferencesSearchOptions.Default);
 
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     : CommaTokenWithElasticSpace());
             }
 
-            return separators.ToImmutable();
+            return [.. separators];
         }
 
         protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             extraNodeList.Free();
 
-            return updatedLeadingTrivia.ToImmutable();
+            return [.. updatedLeadingTrivia];
         }
 
         protected static bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)

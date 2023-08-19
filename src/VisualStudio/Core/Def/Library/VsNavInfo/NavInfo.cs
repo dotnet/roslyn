@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             builder.Add(_className, _LIB_LISTTYPE.LLT_CLASSES, expandDottedNames);
             builder.Add(_memberName, _LIB_LISTTYPE.LLT_MEMBERS);
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static NavInfoNodeEnum CreateEnum(ref ImmutableArray<NavInfoNode> nodes, ImmutableArray<NavInfoNode> baseNodes, bool isCanonical, bool isObjectBrowser)
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                     builder.Add(baseNodes[i]);
                 }
 
-                nodes = builder.ToImmutable();
+                nodes = [.. builder];
             }
 
             return new NavInfoNodeEnum(nodes);

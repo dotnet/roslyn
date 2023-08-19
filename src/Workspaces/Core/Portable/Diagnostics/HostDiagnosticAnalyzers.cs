@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // if there are duplicates, merge descriptors
                 if (builder.TryGetValue(displayName, out var existing))
                 {
-                    builder[displayName] = existing.AddRange(descriptors);
+                    builder[displayName] = [.. existing, .. descriptors];
                     continue;
                 }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // there can't be duplication since _hostAnalyzerReferenceMap is already de-duplicated.
-                builder.Add(referenceId, descriptors.ToImmutable());
+                builder.Add(referenceId, [.. descriptors]);
             }
 
             return builder.ToImmutable();

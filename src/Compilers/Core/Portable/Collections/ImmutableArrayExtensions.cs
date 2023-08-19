@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var result = (builder.Count == array.Length) ? array : builder.ToImmutable();
+            var result = (builder.Count == array.Length) ? array : [.. builder];
             builder.Free();
             return result;
         }
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             if (!array.IsDefault && array.Length >= 2)
             {
-                T[] copy = array.ToArray();
+                T[] copy = [.. array];
                 int last = copy.Length - 1;
                 var temp = copy[0];
                 copy[0] = copy[last];
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
         {
-            return first.AddRange(second);
+            return [.. first, .. second];
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
         {
-            return first.Add(second);
+            return [.. first, second];
         }
 
         internal static ImmutableArray<T> AddRange<T>(this ImmutableArray<T> self, in TemporaryArray<T> items)
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis
 
             if (items.Count == 1)
             {
-                return self.Add(items[0]);
+                return [.. self, items[0]];
             }
 
             var builder = ArrayBuilder<T>.GetInstance(self.Length + items.Count);

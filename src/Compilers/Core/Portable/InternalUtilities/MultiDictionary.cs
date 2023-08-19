@@ -248,7 +248,7 @@ namespace Roslyn.Utilities
 
             if (_dictionary.TryGetValue(k, out ValueSet set))
             {
-                updated = set.Add(v);
+                updated = [.. set, v];
                 if (updated.Equals(set))
                 {
                     return false;

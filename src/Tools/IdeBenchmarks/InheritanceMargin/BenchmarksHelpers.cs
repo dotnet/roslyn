@@ -32,7 +32,7 @@ namespace IdeBenchmarks.InheritanceMargin
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

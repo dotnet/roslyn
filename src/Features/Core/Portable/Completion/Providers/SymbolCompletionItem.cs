@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                return symbols.ToImmutable();
+                return [.. symbols];
             }
 
             return ImmutableArray<ISymbol>.Empty;

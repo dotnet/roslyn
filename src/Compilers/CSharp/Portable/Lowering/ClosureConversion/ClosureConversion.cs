@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenExceptionSource = new BoundSequence(
                         rewrittenExceptionSource.Syntax,
                         ImmutableArray.Create<LocalSymbol>(),
-                        prologue.ToImmutable(),
+                        [.. prologue],
                         rewrittenExceptionSource,
                         rewrittenExceptionSource.Type);
                 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static AssemblySymbol[] GetSymbolsForReferences(MetadataReference[] mrefs, Compilation[] compilations)
         {
             return GetSymbolsForReferences(
-                mrefs: mrefs.Concat(compilations.Select(c => c.ToMetadataReference())).ToArray());
+                mrefs: [.. mrefs, .. compilations.Select(c => c.ToMetadataReference())]);
         }
 
         internal static AssemblySymbol[] GetSymbolsForReferences(

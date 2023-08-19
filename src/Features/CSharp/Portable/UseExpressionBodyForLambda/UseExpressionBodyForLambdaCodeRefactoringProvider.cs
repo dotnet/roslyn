@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 // as a refactoring if possible.
                 var whenPossibleRefactorings = await ComputeRefactoringsAsync(
                     document, span, ExpressionBodyPreference.WhenPossible, cancellationToken).ConfigureAwait(false);
-                return useBlockRefactorings.AddRange(whenPossibleRefactorings);
+                return [.. useBlockRefactorings, .. whenPossibleRefactorings];
             }
             else
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var toBlockBodyRefactorings = await ComputeRefactoringsAsync(
                 document, span, ExpressionBodyPreference.Never, cancellationToken).ConfigureAwait(false);
 
-            return toExpressionBodyRefactorings.AddRange(toBlockBodyRefactorings);
+            return [.. toExpressionBodyRefactorings, .. toBlockBodyRefactorings];
         }
 
         private static async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                     title));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task<Document> UpdateDocumentAsync(

@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         enableCallerInfo: true,
                         diagnostics);
 
-                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), argsToParams, defaultArguments, expanded);
+                    info = new MethodArgumentInfo(result, [.. analyzedArguments.Arguments], argsToParams, defaultArguments, expanded);
                 }
             }
             else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)

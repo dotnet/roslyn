@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // Always add a name even in cases of 3rd party fixers/refactorings that do not export
             // name metadata.
             var tag = providerMetadata?.Name ?? provider.GetTypeDisplayName();
-            CustomTags = CustomTags.Add(tag);
+            CustomTags = [.. CustomTags, tag];
 
             // Set the provider type to use for logging telemetry.
             _providerTypeForTelemetry = provider.GetType();

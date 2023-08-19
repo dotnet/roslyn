@@ -754,8 +754,8 @@ class C
 
             // NamespaceNames and TypeNames do not match SyntaxTrees order.
             // This is expected.
-            Assert.Equal(new[] { "", "N3", "N0", "N", "", "N4", "N" }, comp2.Declarations.NamespaceNames.ToArray());
-            Assert.Equal(new[] { "C3", "C0", "S", "C", "C4", "C" }, comp2.Declarations.TypeNames.ToArray());
+            Assert.Equal(new[] { "", "N3", "N0", "N", "", "N4", "N" }, [.. comp2.Declarations.NamespaceNames]);
+            Assert.Equal(new[] { "C3", "C0", "S", "C", "C4", "C" }, [.. comp2.Declarations.TypeNames]);
 
             // RemoveSyntaxTrees should preserve order of remaining trees.
             var comp3 = comp2.RemoveSyntaxTrees(source0);

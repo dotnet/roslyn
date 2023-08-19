@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         {
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             // Use public property to hook property change events up
-            Members = members.OrderBy(s => s.SymbolName).ToImmutableArray();
+            Members = [.. members.OrderBy(s => s.SymbolName)];
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 

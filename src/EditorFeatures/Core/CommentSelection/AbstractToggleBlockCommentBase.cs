@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                     }
                 }
 
-                return uncommentedSpans.ToImmutableArray();
+                return [.. uncommentedSpans];
             }
         }
     }

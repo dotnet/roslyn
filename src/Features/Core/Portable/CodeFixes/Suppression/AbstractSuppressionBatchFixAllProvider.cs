@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
-            return fixesBag.ToImmutableArray();
+            return [.. fixesBag];
         }
 
         private async Task AddDocumentFixesAsync(

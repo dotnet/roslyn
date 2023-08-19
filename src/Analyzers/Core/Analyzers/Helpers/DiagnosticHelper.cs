@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         argumentsBuilder.Add(reader.ReadString());
                     }
 
-                    _formatArguments = argumentsBuilder.ToArray();
+                    _formatArguments = [.. argumentsBuilder];
                 }
             }
 

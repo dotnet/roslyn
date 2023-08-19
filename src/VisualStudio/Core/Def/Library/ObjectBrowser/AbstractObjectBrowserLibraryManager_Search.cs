@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             CollectNamespaceListItems(assemblySymbol, projectId, builder, searchText);
                         }
 
-                        return new ObjectList(ObjectListKind.Namespaces, flags, this, builder.ToImmutable());
+                        return new ObjectList(ObjectListKind.Namespaces, flags, this, [.. builder]);
                     }
 
                 case ObjectListKind.Types:
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             CollectTypeListItems(assemblySymbol, compilation, projectId, builder, searchText);
                         }
 
-                        return new ObjectList(ObjectListKind.Types, flags, this, builder.ToImmutable());
+                        return new ObjectList(ObjectListKind.Types, flags, this, [.. builder]);
                     }
 
                 case ObjectListKind.Members:
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             CollectMemberListItems(assemblySymbol, compilation, projectId, builder, searchText);
                         }
 
-                        return new ObjectList(ObjectListKind.Types, flags, this, builder.ToImmutable());
+                        return new ObjectList(ObjectListKind.Types, flags, this, [.. builder]);
                     }
 
                 default:

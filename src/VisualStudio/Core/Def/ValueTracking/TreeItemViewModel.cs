@@ -115,25 +115,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
             var highlightSpan = new TextSpan(spanStartPosition, TextSpan.Length);
 
-            return classifiedTexts.ToInlines(
-                TreeViewModel.ClassificationFormatMap,
-                TreeViewModel.ClassificationTypeMap,
-                (run, classifiedText, position) =>
-                {
-                    if (TreeViewModel.HighlightBrush is not null)
-                    {
-                        // Check the span start first because we always want to highlight a run that 
-                        // is at the start, even if the TextSpan length is 0. If it's not the start,
-                        // highlighting should still happen if the run position is contained within
-                        // the span.
-                        if (position == highlightSpan.Start || highlightSpan.Contains(position))
-                        {
-                            run.SetValue(
-                                TextElement.BackgroundProperty,
-                                TreeViewModel.HighlightBrush);
-                        }
-                    }
-                }).ToImmutableArray();
+            return
+            [
+                .. classifiedTexts.ToInlines(
+                                TreeViewModel.ClassificationFormatMap,
+                                TreeViewModel.ClassificationTypeMap,
+                                (run, classifiedText, position) =>
+                                {
+                                    if (TreeViewModel.HighlightBrush is not null)
+                                    {
+                                        // Check the span start first because we always want to highlight a run that 
+                                        // is at the start, even if the TextSpan length is 0. If it's not the start,
+                                        // highlighting should still happen if the run position is contained within
+                                        // the span.
+                                        if (position == highlightSpan.Start || highlightSpan.Contains(position))
+                                        {
+                                            run.SetValue(
+                                                TextElement.BackgroundProperty,
+                                                TreeViewModel.HighlightBrush);
+                                        }
+                                    }
+                                }),
+            ];
         }
     }
 }

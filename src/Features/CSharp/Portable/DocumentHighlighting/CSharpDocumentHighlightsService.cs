@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
                 }
             }
 
-            return results.ToImmutable();
+            return [.. results];
         }
     }
 }

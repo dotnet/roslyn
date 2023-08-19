@@ -89,7 +89,7 @@ namespace Roslyn.Test.Utilities
                 return new TestableFileStream(this);
             }
 
-            return new TestableFileStream(this, Contents.ToArray(), writable);
+            return new TestableFileStream(this, [.. Contents], writable);
         }
     }
 }

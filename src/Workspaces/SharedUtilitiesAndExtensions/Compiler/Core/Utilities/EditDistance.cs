@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
         }
 
         public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
-            => GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
+            => GetEditDistance(source.AsSpan(), [.. target], threshold);
 
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {

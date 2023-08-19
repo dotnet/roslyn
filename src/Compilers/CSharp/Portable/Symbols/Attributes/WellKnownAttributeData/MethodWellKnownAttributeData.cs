@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void AddNotNullMember(string memberName)
         {
             VerifySealed(expected: false);
-            _memberNotNullAttributeData = _memberNotNullAttributeData.Add(memberName);
+            _memberNotNullAttributeData = [.. _memberNotNullAttributeData, memberName];
             SetDataStored();
         }
 
         public void AddNotNullMember(ArrayBuilder<string> memberNames)
         {
             VerifySealed(expected: false);
-            _memberNotNullAttributeData = _memberNotNullAttributeData.AddRange(memberNames);
+            _memberNotNullAttributeData = [.. _memberNotNullAttributeData, .. memberNames];
             SetDataStored();
         }
 
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VerifySealed(expected: false);
             if (sense)
             {
-                _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.Add(memberName);
+                _memberNotNullWhenTrueAttributeData = [.. _memberNotNullWhenTrueAttributeData, memberName];
             }
             else
             {
-                _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.Add(memberName);
+                _memberNotNullWhenFalseAttributeData = [.. _memberNotNullWhenFalseAttributeData, memberName];
             }
             SetDataStored();
         }
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VerifySealed(expected: false);
             if (sense)
             {
-                _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.AddRange(memberNames);
+                _memberNotNullWhenTrueAttributeData = [.. _memberNotNullWhenTrueAttributeData, .. memberNames];
             }
             else
             {
-                _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.AddRange(memberNames);
+                _memberNotNullWhenFalseAttributeData = [.. _memberNotNullWhenFalseAttributeData, .. memberNames];
             }
             SetDataStored();
         }

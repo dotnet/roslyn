@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
             }
 
-            return typeParameters.ToImmutable();
+            return [.. typeParameters];
         }
 
         private static ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            return directlyReferencedTypeParameters.ToImmutable();
+            return [.. directlyReferencedTypeParameters];
         }
 
         private static bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)

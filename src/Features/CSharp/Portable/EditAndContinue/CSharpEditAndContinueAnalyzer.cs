@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             RoslynDebug.Assert(oldTokens != null);
             RoslynDebug.Assert(newTokens != null);
 
-            return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
+            return DeclareSameIdentifiers(oldTokens.ToArray(), [.. newTokens]);
         }
 
         protected override bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken)

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
             // Add a blank line and any remaining preserved trivia after the header.
-            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
+            newHeaderTrivia = [.. newHeaderTrivia, newLineTrivia, newLineTrivia, .. triviaList];
 
             // Insert header at top of the file.
             return root.WithLeadingTrivia(newHeaderTrivia);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 }
             }
 
-            newTrivia = newTrivia.AddRange(leadingTrivia.Skip(skipCount));
+            newTrivia = [.. newTrivia, .. leadingTrivia.Skip(skipCount)];
 
             return root.WithLeadingTrivia(newTrivia);
         }

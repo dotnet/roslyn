@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 results.Add((responseChecksum, result));
             }
 
-            return results.ToImmutable();
+            return [.. results];
         }
     }
 }

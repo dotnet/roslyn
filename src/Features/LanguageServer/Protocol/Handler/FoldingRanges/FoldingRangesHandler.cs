@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 });
             }
 
-            return foldingRanges.ToArray();
+            return [.. foldingRanges];
         }
     }
 }

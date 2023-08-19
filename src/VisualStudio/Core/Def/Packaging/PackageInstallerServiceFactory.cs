@@ -669,7 +669,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public bool CanShowManagePackagesDialog()

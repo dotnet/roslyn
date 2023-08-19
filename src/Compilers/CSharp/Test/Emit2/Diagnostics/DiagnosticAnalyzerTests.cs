@@ -3510,7 +3510,7 @@ internal class A
             var model = compilation.GetSemanticModel(tree);
             var compWithAnalyzers = new CompilationWithAnalyzers(
                 compilation,
-                analyzers.ToImmutableArray(),
+                [.. analyzers],
                 new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));

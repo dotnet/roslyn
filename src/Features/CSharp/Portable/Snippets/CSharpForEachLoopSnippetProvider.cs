@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             if (!ConstructedFromInlineExpression)
                 arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
 
-            return arrayBuilder.ToImmutableArray();
+            return [.. arrayBuilder];
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

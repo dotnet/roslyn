@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private void AddAnalyzersToWorkspace(TestWorkspace workspace)
         {
-            var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
+            var analyzerReference = new AnalyzerImageReference([.. OtherAnalyzers, SuppressionAnalyzer]);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         }
 

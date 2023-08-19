@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 foreach (var item in items)
                     list.AddIfNotNull(GetDocumentSymbol(item, text, cancellationToken));
 
-                return list.ToArray();
+                return [.. list];
             }
         }
 

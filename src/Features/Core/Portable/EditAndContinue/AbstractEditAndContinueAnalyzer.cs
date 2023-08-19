@@ -616,11 +616,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newDocument.Id,
                     filePath,
                     newActiveStatements.MoveToImmutable(),
-                    diagnostics.ToImmutable(),
+                    [.. diagnostics],
                     syntaxError: null,
                     hasRudeEdits ? default : semanticEdits,
                     hasRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
-                    hasRudeEdits ? default : lineEdits.ToImmutable(),
+                    hasRudeEdits ? default : [.. lineEdits],
                     hasRudeEdits ? default : capabilities.GrantedCapabilities,
                     hasChanges: true,
                     hasSyntaxErrors: false);
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return new ActiveStatementExceptionRegions(result.ToImmutable(), isCovered);
+            return new ActiveStatementExceptionRegions([.. result], isCovered);
         }
 
         private TextSpan GetDeletedNodeDiagnosticSpan(
@@ -2166,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (currentDocumentPath != null && documentLineEdits.Count > 0)
             {
-                lineEdits.Add(new SequencePointUpdates(currentDocumentPath, documentLineEdits.ToImmutable()));
+                lineEdits.Add(new SequencePointUpdates(currentDocumentPath, [.. documentLineEdits]));
             }
         }
 
@@ -3795,7 +3795,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var (_, indices) in deletedTypes)
                 indices.Free();
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static bool IsReloadable(INamedTypeSymbol type)

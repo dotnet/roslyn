@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CascadeBetweenPrimaryConstructorParameterAndProperties(parameter, symbols, cancellationToken);
             CascadeBetweenAnonymousDelegateParameters(parameter, symbols);
 
-            return symbols.ToImmutable();
+            return [.. symbols];
         }
 
         private static void CascadeBetweenAnonymousDelegateParameters(IParameterSymbol parameter, ArrayBuilder<ISymbol> symbols)

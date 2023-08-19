@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                         diagnostics.AddRange(projectDiagnostics);
                     }
 
-                    return diagnostics.ToImmutable();
+                    return [.. diagnostics];
                 }
             }
 

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
                 builder.Add(ifStatement.Else);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public SyntaxNode WithCondition(SyntaxNode ifOrElseIf, SyntaxNode condition)

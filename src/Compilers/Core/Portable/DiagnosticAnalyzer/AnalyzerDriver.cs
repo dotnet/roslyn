@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                         }
 
-                        Task.WaitAll(tasks.ToArray(), cancellationToken);
+                        Task.WaitAll([.. tasks], cancellationToken);
                     }
                     finally
                     {
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(diagnostic);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         internal ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsAndFilterDiagnostics(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
@@ -1797,7 +1797,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!success)
                 {
                     Debug.Assert(completedAnalyzers.Count < analysisScope.Analyzers.Length);
-                    subsetProcessedAnalyzers = completedAnalyzers.ToImmutable();
+                    subsetProcessedAnalyzers = [.. completedAnalyzers];
                     return false;
                 }
                 else
@@ -2174,7 +2174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>> CreateGeneratedCodeAnalysisFlagsMapAsync(
@@ -2194,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(analyzer, generatedCodeAnalysisFlags);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         [PerformanceSensitive(

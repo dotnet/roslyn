@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 result.Add(updated);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

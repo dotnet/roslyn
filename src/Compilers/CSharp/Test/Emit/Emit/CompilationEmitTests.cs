@@ -615,10 +615,13 @@ public class C
 
             protected override ImmutableArray<Section> CreateSections()
             {
-                return base.CreateSections().Add(
-                     new Section(".mvid", SectionCharacteristics.MemRead |
-                        SectionCharacteristics.ContainsInitializedData |
-                        SectionCharacteristics.MemDiscardable));
+                return
+                [
+                    .. base.CreateSections(),
+                    new Section(".mvid", SectionCharacteristics.MemRead |
+                       SectionCharacteristics.ContainsInitializedData |
+                       SectionCharacteristics.MemDiscardable),
+                ];
             }
 
             protected override BlobBuilder SerializeSection(string name, SectionLocation location)

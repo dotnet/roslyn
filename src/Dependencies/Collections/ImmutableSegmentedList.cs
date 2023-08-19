@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (source is ImmutableSegmentedList<T> existingList)
                 return existingList;
 
-            return ImmutableSegmentedList<T>.Empty.AddRange(source);
+            return [.. source];
         }
 
         /// <inheritdoc cref="ImmutableList.ToImmutableList{TSource}(ImmutableList{TSource}.Builder)"/>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (builder is null)
                 throw new ArgumentNullException(nameof(builder));
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

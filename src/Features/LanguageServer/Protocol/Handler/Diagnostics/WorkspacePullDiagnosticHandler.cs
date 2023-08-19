@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
                 await AddDocumentsAndProject(project, cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutable();
+            return [.. result];
 
             async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (enableDiagnosticsInSourceGeneratedFiles)
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                    documents = documents.AddRange(sourceGeneratedDocuments);
+                    documents = [.. documents, .. sourceGeneratedDocuments];
                 }
 
                 Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled

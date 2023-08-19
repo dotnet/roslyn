@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return items.ToImmutable();
+            return [.. items];
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
@@ -325,12 +325,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (displayText.Contains("\""))
             {
-                commitRules = commitRules.Add(WithoutQuoteRule);
+                commitRules = [.. commitRules, WithoutQuoteRule];
             }
 
             if (displayText.Contains(" "))
             {
-                commitRules = commitRules.Add(WithoutSpaceRule);
+                commitRules = [.. commitRules, WithoutSpaceRule];
             }
 
             return defaultRules.WithCommitCharacterRules(commitRules);

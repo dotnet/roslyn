@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Generate_comparison_operators,
-                nestedActions.ToImmutable(),
+                [.. nestedActions],
                 isInlinable: false));
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 }
             }
 
-            return operators.ToImmutable();
+            return [.. operators];
         }
 
         private static SyntaxNode GenerateStatement(

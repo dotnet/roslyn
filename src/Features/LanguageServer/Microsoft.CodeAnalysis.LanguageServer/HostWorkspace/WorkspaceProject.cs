@@ -69,7 +69,7 @@ internal class WorkspaceProject : IWorkspaceProject
         await using var batchScope = _project.CreateBatchScope();
 
         foreach (var sourceFile in sourceFiles)
-            _project.AddSourceFile(sourceFile.FilePath, folders: sourceFile.FolderNames.ToImmutableArray());
+            _project.AddSourceFile(sourceFile.FilePath, folders: [.. sourceFile.FolderNames]);
     }
 
     public void Dispose()

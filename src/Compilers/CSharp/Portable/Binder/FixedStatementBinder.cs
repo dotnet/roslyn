@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
-                return locals.ToImmutable();
+                return [.. locals];
             }
 
             return ImmutableArray<LocalSymbol>.Empty;

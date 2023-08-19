@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
                     var references = explicitReferences.AddRange(implicitlyResolvedReferences);
-                    referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap);
+                    referenceMap = [.. referenceMap, .. implicitlyResolvedReferenceMap];
 
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
                     ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (linkedReferencedAssembliesBuilder.Count > 0)
                     {
                         linkedReferencedAssembliesBuilder.RemoveDuplicates();
-                        currentBindingResult.AssemblySymbol.SetLinkedReferencedAssemblies(linkedReferencedAssembliesBuilder.ToImmutable());
+                        currentBindingResult.AssemblySymbol.SetLinkedReferencedAssemblies([.. linkedReferencedAssembliesBuilder]);
                     }
 
                     currentBindingResult.AssemblySymbol.SetCorLibrary(corLibrary);

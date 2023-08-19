@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (baseType.TypeKind == TypeKind.Error && (object)partBase != null)
                     {
                         // if the old base was an error symbol, copy it to the interfaces list so it doesn't get lost
-                        partInterfaces = partInterfaces.Add(baseType);
+                        partInterfaces = [.. partInterfaces, baseType];
                         baseType = partBase;
                         baseTypeLocation = decl.NameLocation;
                     }

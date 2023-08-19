@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Range, operation.Kind);
 
-            IOperation[] children = operation.ChildOperations.ToArray();
+            IOperation[] children = [.. operation.ChildOperations];
 
             int index = 0;
 

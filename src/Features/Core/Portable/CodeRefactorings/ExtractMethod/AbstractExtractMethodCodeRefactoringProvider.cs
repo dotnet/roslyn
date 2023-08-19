@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, extractOptions, cleanupOptions, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(localFunctionAction);
 
-            return actions.ToImmutable();
+            return [.. actions];
         }
 
         private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)

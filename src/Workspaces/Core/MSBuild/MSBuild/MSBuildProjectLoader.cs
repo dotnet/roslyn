@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _pathResolver,
                 _projectFileLoaderRegistry,
                 buildManager,
-                projectPaths.ToImmutable(),
+                [.. projectPaths],
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
                 Properties,

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: parameterName));
             }
 
-            return parameters.ToImmutable();
+            return [.. parameters];
         }
 
         protected static readonly SymbolDisplayFormat SimpleFormat =

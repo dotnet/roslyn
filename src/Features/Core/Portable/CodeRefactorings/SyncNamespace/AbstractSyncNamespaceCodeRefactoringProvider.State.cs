@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 if (projectRoot is null)
                     return false;
 
-                var folderPath = Path.Combine(document.Folders.ToArray());
+                var folderPath = Path.Combine([.. document.Folders]);
                 var logicalDirectoryPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectRoot, folderPath);
                 if (logicalDirectoryPath is null)
                     return false;

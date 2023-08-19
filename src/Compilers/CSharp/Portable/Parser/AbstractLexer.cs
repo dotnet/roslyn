@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    return _errors.ToArray();
+                    return [.. _errors];
                 }
             }
             else

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     return await base.TryGetMergedFixAsync(
-                        newBatchOfFixes.ToImmutableArray(), fixAllState, cancellationToken).ConfigureAwait(false);
+                        [.. newBatchOfFixes], fixAllState, cancellationToken).ConfigureAwait(false);
                 }
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)

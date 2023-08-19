@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     }
 
                     var root = await ValueTrackedTreeItemViewModel.CreateAsync(
-                        solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                        solution, parent, [.. childItems], toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
                     rootItems.Add(root);
                 }
             }

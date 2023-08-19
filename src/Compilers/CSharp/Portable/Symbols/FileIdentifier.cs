@@ -28,7 +28,7 @@ internal readonly struct FileIdentifier
         {
             var encodedFilePath = s_encoding.GetBytes(filePath);
             using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
-            hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
+            hash = [.. hashAlgorithm.ComputeHash(encodedFilePath)];
         }
         catch (EncoderFallbackException ex)
         {

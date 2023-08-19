@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static ImmutableArray<AnalyzerDependencyConflict> FindConflictingAnalyzers(List<AnalyzerInfo> analyzerInfos, CancellationToken cancellationToken)
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static AnalyzerInfo TryReadAnalyzerInfo(string filePath)
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 builder.Add(new AssemblyIdentity(refname, refversion, refcultureName, refpublicKeyOrToken, hasPublicKey: refhasPublicKey));
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static AssemblyIdentity ReadAssemblyIdentity(SystemMetadataReader metadataReader)

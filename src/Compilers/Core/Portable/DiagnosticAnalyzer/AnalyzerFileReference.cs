@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (includeDuplicates)
                 {
-                    return builder.ToImmutable();
+                    return [.. builder];
                 }
                 else
                 {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Get all analyzers in the assembly for the given language.
                 var builder = ImmutableArray.CreateBuilder<TExtension>();
                 extensions.AddExtensions(builder, language);
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             internal ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetExtensionTypeNameMap()
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                return analyzers.ToImmutable();
+                return [.. analyzers];
             }
         }
 

@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return linkedSymbols.ToImmutableArray();
+            return [.. linkedSymbols];
         }
     }
 }

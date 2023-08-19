@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             AppendTextFromNode(state, summaryElement, state.SemanticModel.Compilation);
 
-            return state.Builder.ToImmutable();
+            return [.. state.Builder];
         }
 
         private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)

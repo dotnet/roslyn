@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (_state.IsException)
                     AddExceptionConstructors(members);
 
-                return members.ToImmutable();
+                return [.. members];
             }
 
             private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
-                        DetermineName(), null, parameters.ToImmutable(), Accessibility.Public,
+                        DetermineName(), null, [.. parameters], Accessibility.Public,
                         parameterToExistingFieldMap.ToImmutable(),
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,

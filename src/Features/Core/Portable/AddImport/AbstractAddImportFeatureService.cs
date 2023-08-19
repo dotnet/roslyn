@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return allReferences.ToImmutableArray();
+            return [.. allReferences];
         }
 
         private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return fixes.ToImmutable();
+            return [.. fixes];
         }
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     break;
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)

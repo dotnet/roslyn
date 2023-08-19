@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 unusedReferencesBuilder.AddRange(unusedReferences);
             }
 
-            return unusedReferencesBuilder.ToImmutable();
+            return [.. unusedReferencesBuilder];
         }
 
         private static ImmutableArray<ReferenceInfo> RemoveDirectlyUsedReferences(
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 RemoveAllCompilationAssemblies(reference, usedAssemblyFilePaths);
             }
 
-            return unusedReferencesBuilder.ToImmutable();
+            return [.. unusedReferencesBuilder];
         }
 
         private static ImmutableArray<ReferenceInfo> RemoveTransitivelyUsedReferences(
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 RemoveAllCompilationAssemblies(reference, usedAssemblyFilePaths);
             }
 
-            return unusedReferencesBuilder.ToImmutable();
+            return [.. unusedReferencesBuilder];
         }
 
         internal static bool HasAnyCompilationAssembly(ReferenceInfo reference)
@@ -259,9 +259,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
             var transitiveCompilationAssemblies = reference.Dependencies
                 .SelectMany(dependency => GetAllCompilationAssemblies(dependency));
-            return reference.CompilationAssemblies
-                .Concat(transitiveCompilationAssemblies)
-                .ToImmutableArray();
+            return [.. reference.CompilationAssemblies
+, .. transitiveCompilationAssemblies];
         }
 
         public static async Task UpdateReferencesAsync(

@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             using var process = new Process(
                 new Module(compilation.EmitToArray()),
                 new Module(metadata: default), // emulates failure of the debugger to retrieve metadata
-                new Module(metadata: TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs.ToImmutableArray()));
+                new Module(metadata: [.. TestResources.MetadataTests.Invalid.IncorrectCustomAssemblyTableSize_TooManyMethodSpecs]));
 
             var resolver = Resolver.CSharpResolver;
             Resolve(process, resolver, "F", "A.F()");

@@ -3650,7 +3650,7 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                baseExpected.Concat(extra).ToArray());
+                [.. baseExpected, .. extra]);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(baseExpected);

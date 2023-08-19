@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     closeAfterAction: true));
             }
 
-            ShowGlobalErrorInfo(message, featureName, exception, infoBarUIs.ToArray());
+            ShowGlobalErrorInfo(message, featureName, exception, [.. infoBarUIs]);
         }
 
         private void LogGlobalErrorToActivityLog(string message, string? detailedError)

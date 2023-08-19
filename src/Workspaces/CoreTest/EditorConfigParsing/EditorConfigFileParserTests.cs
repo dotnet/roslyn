@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 list.Add(parseResult);
             }
 
-            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, list.ToImmutableArray());
+            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, [.. list]);
         }
 
         [Fact]

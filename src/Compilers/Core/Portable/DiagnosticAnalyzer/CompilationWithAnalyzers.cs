@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken cancellationToken = default)
         {
             var diagnostics = await getAllDiagnosticsWithoutStateTrackingAsync(Analyzers, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return diagnostics.AddRange(_exceptionDiagnostics);
+            return [.. diagnostics, .. _exceptionDiagnostics];
 
             // NOTE: We have a specialized implementation for computing diagnostics in this method
             //       as we need to compute and return both compiler and analyzer diagnostics.
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Always provide all the diagnostic suppressors to the driver.
                 // We also need to ensure we are not passing any duplicate suppressor instances.
                 var suppressorsInAnalysisScope = analysisScope.Analyzers.OfType<DiagnosticSuppressor>().ToImmutableHashSet();
-                analyzers = analyzers.AddRange(suppressors.Where(suppressor => !suppressorsInAnalysisScope.Contains(suppressor)));
+                analyzers = [.. analyzers, .. suppressors.Where(suppressor => !suppressorsInAnalysisScope.Contains(suppressor))];
             }
 
             var driver = compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Include the already generated compilations events for the primary tree.
                     if (partialTree == tree)
                     {
-                        compilationEvents = compilationEventsForTree.AddRange(compilationEvents);
+                        compilationEvents = [.. compilationEventsForTree, .. compilationEvents];
 
                         // Filter out synthesized compilation unit completed event that was generated for span analysis
                         // as we are now doing full tree analysis, GetCompilationEventsForSingleFileAnalysis call above should

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
                     }
 
-                    return list.ToImmutable();
+                    return [.. list];
                 }
 
                 protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)

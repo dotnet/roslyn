@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     list.Add(declaration);
                 }
 
-                return list.ToImmutable();
+                return [.. list];
             }
 
             protected ImmutableArray<TStatement> AppendReturnStatementIfNeeded(ImmutableArray<TStatement> statements)

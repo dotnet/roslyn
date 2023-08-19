@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                     nameBuilder.Append(ch);
                 }
 
-                builder.Add(new DynamicLocalInfo(flagsBuilder.ToImmutable(), slotId, nameBuilder.ToString()));
+                builder.Add(new DynamicLocalInfo([.. flagsBuilder], slotId, nameBuilder.ToString()));
 
                 flagsBuilder.Clear();
                 nameBuilder.Clear();
@@ -441,7 +441,7 @@ RETRY:
                     groupBuilder.Add(importString);
                 }
 
-                resultBuilder.Add(groupBuilder.ToImmutable());
+                resultBuilder.Add([.. groupBuilder]);
                 groupBuilder.Clear();
             }
 

@@ -133,17 +133,20 @@ namespace Microsoft.CodeAnalysis.AddImport
                     allReferences.AddRange(taskResult);
                 }
 
-                return DeDupeAndSortReferences(allReferences.ToImmutable());
+                return DeDupeAndSortReferences([.. allReferences]);
             }
 
             private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
             {
-                return allReferences
-                    .Distinct()
-                    .Where(NotNull)
-                    .Where(NotGlobalNamespace)
-                    .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
-                    .ToImmutableArray();
+                return
+                [
+                    .. allReferences
+                                        .Distinct()
+                                        .Where(NotNull)
+                                        .Where(NotGlobalNamespace)
+                                        .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
+,
+                ];
             }
 
             private static void CalculateContext(
@@ -191,8 +194,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     var attributeSymbols = await searchScope.FindDeclarationsAsync(
                         name + AttributeSuffix, nameNode, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
 
-                    symbols = symbols.AddRange(
-                        attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
+                    symbols = [.. symbols, .. attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false)))];
                 }
 
                 var typeSymbols = OfType<ITypeSymbol>(symbols);
@@ -602,7 +604,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         references.Add(scope.CreateReference(mappedResult));
                 }
 
-                return references.ToImmutable();
+                return [.. references];
             }
 
             private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol

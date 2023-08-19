@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _globalOptions = globalOptions;
 
                 // Backdoor that allows this provider to use the high-priority bucket.
-                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+                this.CustomTags = [.. this.CustomTags, CodeAction.CanBeHighPriorityTag];
             }
 
             public override string Title => _title;

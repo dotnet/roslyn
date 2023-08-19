@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static bool IsOptionName(string optionName, ReadOnlySpan<char> value)
         {
-            Debug.Assert(isAllAscii(optionName.AsSpan()));
+            Debug.Assert(isAllAscii([.. optionName]));
             if (isAllAscii(value))
             {
                 if (optionName.Length != value.Length)
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis
                             if (lineBufferLength >= lineBuffer.Length)
                             {
                                 var temp = new char[lineBuffer.Length * 2];
-                                lineBuffer.CopyTo(temp.AsSpan());
+                                lineBuffer.CopyTo([.. temp]);
                                 lineBuffer = temp;
                             }
 
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis
             if (IsScriptCommandLineParser)
             {
                 ReadOnlyMemory<char> extension = PathUtilities.GetExtension(resolvedPath.AsMemory());
-                isScriptFile = !extension.Span.Equals(RegularFileExtension.AsSpan(), StringComparison.OrdinalIgnoreCase);
+                isScriptFile = !extension.Span.Equals([.. RegularFileExtension], StringComparison.OrdinalIgnoreCase);
             }
             else
             {

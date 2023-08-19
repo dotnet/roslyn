@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private readonly bool IsStringAtPosition(string val)

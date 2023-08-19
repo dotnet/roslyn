@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
                 }
 
-                return references.ToImmutable();
+                return [.. references];
             }
             finally
             {

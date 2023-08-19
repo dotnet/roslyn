@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
                 }
             }
 
-            return warningMessagesBuilder.ToImmutableArray();
+            return [.. warningMessagesBuilder];
         }
     }
 }

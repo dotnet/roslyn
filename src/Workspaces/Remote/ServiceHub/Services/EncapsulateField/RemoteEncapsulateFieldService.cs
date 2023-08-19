@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
                 var newSolution = await service.EncapsulateFieldsAsync(
-                    document, fields.ToImmutable(), fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
+                    document, [.. fields], fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
 
                 return await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, newSolution, cancellationToken).ConfigureAwait(false);

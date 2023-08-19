@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_Constructor_HashSet_SparselyFilled(int count)
         {
             SegmentedHashSet<T> source = (SegmentedHashSet<T>)CreateEnumerable(EnumerableType.SegmentedHashSet, null, count, 0, 0);
-            List<T> sourceElements = source.ToList();
+            List<T> sourceElements = [.. source];
             foreach (int i in NonSquares(count))
                 source.Remove(sourceElements[i]);// Unevenly spaced survivors increases chance of catching any spacing-related bugs.
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_TrimExcess_Repeatedly(int setLength)
         {
             SegmentedHashSet<T> set = (SegmentedHashSet<T>)GenericISetFactory(setLength);
-            List<T> expected = set.ToList();
+            List<T> expected = [.. set];
             set.TrimExcess();
             set.TrimExcess();
             set.TrimExcess();
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (setLength > 0)
             {
                 SegmentedHashSet<T> set = (SegmentedHashSet<T>)GenericISetFactory(setLength);
-                List<T> expected = set.ToList();
+                List<T> expected = [.. set];
                 T elementToRemove = set.ElementAt(0);
 
                 set.TrimExcess();

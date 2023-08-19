@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return symbols.ToImmutable();
+            return [.. symbols];
         }
 
         private static bool IsTopLevelSymbol(ISymbol symbol)

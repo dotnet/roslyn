@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             private ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromSameCompilation(
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
                 AddNamesForTypeWorker(receiverTypeSymbol, allTypeNamesBuilder);
-                return allTypeNamesBuilder.ToImmutableArray();
+                return [.. allTypeNamesBuilder];
 
                 static void AddNamesForTypeWorker(ITypeSymbol receiverTypeSymbol, PooledHashSet<string> builder)
                 {

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public ImmutableArray<T> ToImmutable()
         {
-            return _builder.ToImmutable();
+            return [.. _builder];
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public T[] ToArray()
         {
-            return _builder.ToArray();
+            return [.. _builder];
         }
 
         public void CopyTo(T[] array, int start)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 return default;
             }
 
-            return this.ToImmutable();
+            return [.. this];
         }
 
         /// <summary>

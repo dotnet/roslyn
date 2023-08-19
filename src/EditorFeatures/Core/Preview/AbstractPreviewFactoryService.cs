@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 oldBuffer.CurrentSnapshot,
                 "...",
                 description,
-                originalSpans.ToArray());
+                [.. originalSpans]);
 
             var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 newBuffer.CurrentSnapshot,
                 "...",
                 description,
-                changedSpans.ToArray());
+                [.. changedSpans]);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);

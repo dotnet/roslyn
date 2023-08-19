@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName));
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

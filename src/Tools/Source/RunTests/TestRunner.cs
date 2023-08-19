@@ -379,7 +379,7 @@ namespace RunTests
                 processResults.AddRange(c.ProcessResults);
             }
 
-            return new RunAllResult((failures == 0), completed.ToImmutableArray(), processResults.ToImmutable());
+            return new RunAllResult((failures == 0), [.. completed], [.. processResults]);
         }
 
         private void Print(List<TestResult> testResults)

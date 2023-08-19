@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (!TryAddMatches(matches, cancellationToken))
                 return default;
 
-            return matches.ToImmutable();
+            return [.. matches];
         }
 
         protected static UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(

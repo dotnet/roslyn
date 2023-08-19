@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             {
                 // Otherwise, it's a large stream.  Just take the hit of allocating.
                 var bytes = new byte[length];
-                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes.AsSpan(), offset: 0));
+                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, [.. bytes], offset: 0));
                 return new MemoryStream(bytes);
             }
         }

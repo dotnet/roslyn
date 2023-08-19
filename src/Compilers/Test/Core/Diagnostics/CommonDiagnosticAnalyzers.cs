@@ -1186,7 +1186,10 @@ namespace Microsoft.CodeAnalysis
             public ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> GetControlFlowGraphs()
             {
                 Assert.True(_verifyGetControlFlowGraph);
-                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraphAndSymbol => flowGraphAndSymbol.Graph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
+                return
+                [
+                    .. _controlFlowGraphMapOpt.Values.OrderBy(flowGraphAndSymbol => flowGraphAndSymbol.Graph.OriginalOperation.Syntax.SpanStart),
+                ];
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
@@ -2125,7 +2128,7 @@ namespace Microsoft.CodeAnalysis
                     builder.Add(descriptor);
                 }
 
-                SupportedSuppressions = builder.ToImmutable();
+                SupportedSuppressions = [.. builder];
             }
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; }

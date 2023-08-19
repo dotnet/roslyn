@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 Contract.ThrowIfFalse(offset == length);
-                return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
+                return new ObjectReaderTextReader([.. builder], chunkSize, length);
             }
 
             private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)

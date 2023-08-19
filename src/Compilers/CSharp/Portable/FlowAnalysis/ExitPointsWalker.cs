@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
-            return _branchesOutOf.ToImmutable();
+            return [.. _branchesOutOf];
         }
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)

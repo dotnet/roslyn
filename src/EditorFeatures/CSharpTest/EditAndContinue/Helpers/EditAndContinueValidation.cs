@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             VerifyLineEdits(
                 editScript,
-                new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, lineEdits.ToImmutableArray()) },
+                new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, [.. lineEdits]) },
                 semanticEdits,
                 diagnostics,
                 capabilities);

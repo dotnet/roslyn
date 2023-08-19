@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal ImmutableArray<PendingBranch> ToImmutable()
             {
                 return _labeledBranches is null ?
-                    _unlabeledBranches.ToImmutable() :
+                    [.. _unlabeledBranches] :
                     ImmutableArray.CreateRange(AsEnumerable());
             }
 

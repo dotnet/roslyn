@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Note that the static constructor executes after all the static field initializers for the options have executed,
             // and each field initializer adds the created option to the following builders.
 
-            AllOptions = s_allOptionsBuilder.ToImmutable();
+            AllOptions = [.. s_allOptionsBuilder];
         }
     }
 

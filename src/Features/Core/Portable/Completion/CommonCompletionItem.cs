@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Completion
             if (glyph != null)
             {
                 // put glyph tags first
-                tags = GlyphTags.GetTags(glyph.Value).AddRange(tags);
+                tags = [.. GlyphTags.GetTags(glyph.Value), .. tags];
             }
 
             if (showsWarningIcon)
             {
-                tags = tags.Add(WellKnownTags.Warning);
+                tags = [.. tags, WellKnownTags.Warning];
             }
 
             properties ??= ImmutableDictionary<string, string>.Empty;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 builder.Add(new TaggedText(parts[i], parts[i + 1]));
             }
 
-            return CompletionDescription.Create(builder.ToImmutable());
+            return CompletionDescription.Create([.. builder]);
         }
     }
 }

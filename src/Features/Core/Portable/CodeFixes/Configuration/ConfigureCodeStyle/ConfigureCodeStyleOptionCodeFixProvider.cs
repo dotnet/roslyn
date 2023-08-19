@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 {
                     // Wrap actions by another level if the diagnostic ID has multiple associated code style options to reduce clutter.
                     var resultCodeAction = nestedActions.Count > 1
-                        ? new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable())
+                        ? new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, [.. nestedActions])
                         : nestedActions.Single();
 
                     result.Add(new CodeFix(project, resultCodeAction, diagnostic));
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     // In that case, we will already have a containing top level action for the diagnostic.
                     // Otherwise, use the diagnostic information in the title.
                     return hasMultipleOptions
-                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, nestedActions.ToImmutable())
-                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable());
+                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, [.. nestedActions])
+                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, [.. nestedActions]);
                 }
 
                 return null;

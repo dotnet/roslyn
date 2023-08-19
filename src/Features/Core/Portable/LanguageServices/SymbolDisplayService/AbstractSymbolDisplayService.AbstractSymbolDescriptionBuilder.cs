@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                         builder.AddRange(parts);
                         builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                        _documentationMap.Add(group, builder.ToImmutable());
+                        _documentationMap.Add(group, [.. builder]);
                     }
                 }
             }
@@ -433,9 +433,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     if (group == SymbolDescriptionGroups.MainDescription)
                     {
                         // Mark the main description as a code block.
-                        taggedText = taggedText
-                            .Insert(0, new TaggedText(TextTags.CodeBlockStart, string.Empty))
-                            .Add(new TaggedText(TextTags.CodeBlockEnd, string.Empty));
+                        taggedText =
+                        [
+                            .. taggedText
+                                                        .Insert(0, new TaggedText(TextTags.CodeBlockStart, string.Empty))
+,
+                            new TaggedText(TextTags.CodeBlockEnd, string.Empty),
+                        ];
                     }
 
                     result[group] = taggedText;
@@ -569,7 +573,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts.ToImmutable();
+                        return [.. parts];
                     }
                 }
 
@@ -601,7 +605,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts.ToImmutable();
+                        return [.. parts];
                     }
                 }
 

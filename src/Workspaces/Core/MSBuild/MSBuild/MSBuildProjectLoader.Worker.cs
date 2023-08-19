@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                     }
 
-                    return results.ToImmutable();
+                    return [.. results];
                 }
                 finally
                 {
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _projectMap.AddProjectInfo(projectInfo);
                 }
 
-                results = builder.ToImmutable();
+                results = [.. builder];
 
                 _pathToDiscoveredProjectInfosMap.Add(projectPath, results);
 
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(documentInfo);
                 }
 
-                return results.ToImmutable();
+                return [.. results];
             }
 
             private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };

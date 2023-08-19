@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             foreach (var (key, value) in placeholderBuilder)
             {
-                arrayBuilder.Add(new(key, value.ToImmutableArray()));
+                arrayBuilder.Add(new(key, [.. value]));
             }
 
-            return arrayBuilder.ToImmutableArray();
+            return [.. arrayBuilder];
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

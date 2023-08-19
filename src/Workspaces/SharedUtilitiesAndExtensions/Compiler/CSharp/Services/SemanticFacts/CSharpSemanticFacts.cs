@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken)

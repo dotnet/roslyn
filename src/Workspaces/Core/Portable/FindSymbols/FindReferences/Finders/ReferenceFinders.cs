@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 PropertyAccessor,
                 RangeVariable,
                 TypeParameter);
-            DefaultReferenceFinders = DefaultRenameReferenceFinders.Add(ConstructorInitializer);
+            DefaultReferenceFinders = [.. DefaultRenameReferenceFinders, ConstructorInitializer];
         }
     }
 }

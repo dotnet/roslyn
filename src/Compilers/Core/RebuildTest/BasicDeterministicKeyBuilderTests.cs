@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var compiler = new MockVisualBasicCompiler(
                 baseDirectory: workingDirectory,
-                args.ToArray());
+                [.. args]);
             compiler.FileSystem = TestableFileSystem.CreateForFiles((filePath, new TestableFile("hello")));
             AssertSyntaxTreePathMap(@"
 [
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.True(string.IsNullOrEmpty(output));
             Assert.Equal(0, result);
 
-            var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var json = Encoding.UTF8.GetString([.. keyFile.Contents]);
             var expected = @$"
 {{
   ""compilation"": {{

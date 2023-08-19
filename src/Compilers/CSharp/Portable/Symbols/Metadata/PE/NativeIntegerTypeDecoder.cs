@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            NamedTypeSymbol result = haveChanges ? type.WithTypeArguments(allTypeArguments.ToImmutable()) : type;
+            NamedTypeSymbol result = haveChanges ? type.WithTypeArguments([.. allTypeArguments]) : type;
             allTypeArguments.Free();
             return result;
         }

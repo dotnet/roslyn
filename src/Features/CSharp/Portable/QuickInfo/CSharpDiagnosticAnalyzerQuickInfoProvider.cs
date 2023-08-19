@@ -156,16 +156,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var idTag = !string.IsNullOrWhiteSpace(descriptor.HelpLinkUri)
                 ? new TaggedText(TextTags.Text, descriptor.Id, TaggedTextStyle.None, descriptor.HelpLinkUri, descriptor.HelpLinkUri)
                 : new TaggedText(TextTags.Text, descriptor.Id);
-            return QuickInfoItem.Create(location, sections: new[]
-                {
-                    QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
-                    {
+            return QuickInfoItem.Create(location, sections:
+                [
+                    QuickInfoSection.Create(QuickInfoSectionKinds.Description,
+                    [
                         idTag,
                         new TaggedText(TextTags.Punctuation, ":"),
                         new TaggedText(TextTags.Space, " "),
                         new TaggedText(TextTags.Text, description)
-                    }.ToImmutableArray())
-                }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());
+                    ])
+                ], relatedSpans: [.. relatedSpans]);
         }
     }
 }

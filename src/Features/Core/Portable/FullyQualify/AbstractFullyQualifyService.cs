@@ -106,7 +106,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             if (fixes.Count == 0)
                 return null;
 
-            return new FullyQualifyFixData(name, fixes.ToImmutable());
+            return new FullyQualifyFixData(name, [.. fixes]);
         }
 
         async Task<ImmutableArray<ISymbol>> FindAsync(string name, bool ignoreCase, SymbolFilter filter)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             => GetAddSuccessorsFunction(successors, i => i);
 
         private static TopologicalSortAddSuccessors<T> GetAddSuccessorsFunction<T>(T[][] successors, Func<T, int> toInt)
-            => (ref TemporaryArray<T> builder, T value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
+            => (ref TemporaryArray<T> builder, T value) => builder.AddRange([.. successors[toInt(value)]]);
 
         [Fact]
         public void Test01()
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // test with actual random graphs, but with graphs based on pseudo-random sequences using
             // random seeds hardcoded into the tests. That way we are testing on the same graphs each
             // time.
-            successors[possibleSort[0]] = successors[possibleSort[0]].Concat(new int[] { possibleSort[numberOfNodes - 1] }).ToArray();
+            successors[possibleSort[0]] = [.. successors[possibleSort[0]], .. new int[] { possibleSort[numberOfNodes - 1] }];
 
             wasAcyclic = TopologicalSort.TryIterativeSort(Enumerable.Range(0, numberOfNodes).ToArray(), succF, out sorted);
             Assert.False(wasAcyclic);

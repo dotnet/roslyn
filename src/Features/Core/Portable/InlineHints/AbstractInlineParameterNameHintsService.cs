@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
 
             void AddHintsIfAppropriate(SyntaxNode node)
             {

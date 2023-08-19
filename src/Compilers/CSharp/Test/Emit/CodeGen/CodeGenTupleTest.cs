@@ -11062,7 +11062,7 @@ class C
                 "System.ITupleInternal.GetHashCode",
                 "System.ITupleInternal.Size",
                 "System.ITupleInternal.ToStringEnd",
-                "ToString" }, m1Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n).ToArray());
+                "ToString" }, [.. m1Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n)]);
 
             AssertTestDisplayString(m2Tuple.GetMembers(),
                 "System.Int32 (System.Int32 a2, System.Int32 b2).Item1",
@@ -11103,7 +11103,7 @@ class C
                 "System.ITupleInternal.Size",
                 "System.ITupleInternal.ToStringEnd",
                 "ToString" },
-                 m2Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n).ToArray());
+                 [.. m2Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n)]);
 
             AssertTestDisplayString(m6Tuple.GetMembers(),
                 "System.Int32 (System.Int32 item1, System.Int32 item2).Item1",
@@ -11144,7 +11144,7 @@ class C
                 "System.ITupleInternal.Size",
                 "System.ITupleInternal.ToStringEnd",
                 "ToString" },
-                m6Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n).ToArray());
+                [.. m6Tuple.TupleData.UnderlyingDefinitionToMemberMap.Values.Select(s => s.Name).OrderBy(n => n)]);
 
             Assert.Equal("(System.Int32, System.Int32)", m1Tuple.ToTestDisplayString());
             Assert.Equal("ValueTuple", m1Tuple.Name);

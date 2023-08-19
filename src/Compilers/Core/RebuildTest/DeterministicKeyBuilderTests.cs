@@ -226,13 +226,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         protected static JArray GetAnalyzerValues(Compilation compilation, params DiagnosticAnalyzer[] analyzers)
         {
-            var property = GetJsonProperty(compilation.GetDeterministicKey(analyzers: analyzers.ToImmutableArray()), "analyzers");
+            var property = GetJsonProperty(compilation.GetDeterministicKey(analyzers: [.. analyzers]), "analyzers");
             return (JArray)property.Value;
         }
 
         protected static JArray GetGeneratorValues(Compilation compilation, params ISourceGenerator[] generators)
         {
-            var property = GetJsonProperty(compilation.GetDeterministicKey(generators: generators.ToImmutableArray()), "generators");
+            var property = GetJsonProperty(compilation.GetDeterministicKey(generators: [.. generators]), "generators");
             return (JArray)property.Value;
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var checksum = text.GetChecksum();
             var builder = PooledStringBuilder.GetInstance();
-            DeterministicKeyBuilder.EncodeByteArrayValue(checksum.AsSpan(), builder);
+            DeterministicKeyBuilder.EncodeByteArrayValue([.. checksum], builder);
             return builder.ToStringAndFree();
         }
 

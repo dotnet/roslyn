@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
                     }
 
-                    return builder.ToImmutable();
+                    return [.. builder];
                 }
                 finally
                 {
@@ -401,10 +401,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
-                return (from option in options
-                        where option.DefaultValue is ICodeStyleOption
-                        orderby option.Definition.ConfigName
-                        select option).ToImmutableArray();
+                return
+                [
+                    .. (from option in options
+                                            where option.DefaultValue is ICodeStyleOption
+                                            orderby option.Definition.ConfigName
+                                            select option),
+                ];
             }
 
             return ImmutableArray<IOption2>.Empty;

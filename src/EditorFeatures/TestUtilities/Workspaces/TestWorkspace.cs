@@ -464,12 +464,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
                     var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                    mappedSpans[string.Empty] = mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
+                    mappedSpans[string.Empty] = [.. mappedSpans[string.Empty], mappedSpan.ToTextSpan()];
                 }
 
                 // Order unnamed spans as they would be ordered by the normal span finding 
                 // algorithm in MarkupTestFile
-                mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
+                mappedSpans[string.Empty] = [.. mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start)];
 
                 foreach (var (key, spans) in document.AnnotatedSpans)
                 {
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         }
 
                         // but if they do, it must be only 1
-                        mappedSpans[key] = mappedSpans[key].Add(mappedSpan.Value.ToTextSpan());
+                        mappedSpans[key] = [.. mappedSpans[key], mappedSpan.Value.ToTextSpan()];
                     }
                 }
             }

@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var info = new AddedOrChangedMethodInfo(
                 body.MethodId,
-                encInfos.ToImmutable(),
+                [.. encInfos],
                 body.LambdaDebugInfo,
                 body.ClosureDebugInfo,
                 body.StateMachineTypeName,

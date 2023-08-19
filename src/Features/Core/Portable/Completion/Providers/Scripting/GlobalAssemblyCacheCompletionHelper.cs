@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)

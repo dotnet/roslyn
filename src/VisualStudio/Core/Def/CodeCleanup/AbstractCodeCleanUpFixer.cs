@@ -354,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 enabledDiagnostics = new EnabledDiagnosticOptions(
                     isFormatDocumentEnabled,
                     isApplyThirdPartyFixersEnabled,
-                    enabledDiagnosticSets.ToImmutableArray(),
+                    [.. enabledDiagnosticSets],
                     new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
             }
 

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             var preprocessorSymbols = define == null
                 ? ImmutableArray<string>.Empty
-                : define.Split(',').ToImmutableArray();
+                : [.. define.Split(',')];
 
             var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(langVersion)
                 .WithPreprocessorSymbols(preprocessorSymbols);

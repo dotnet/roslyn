@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             lock (_guard)
             {
-                s_telemetrySessions = s_telemetrySessions.Add(session);
+                s_telemetrySessions = [.. s_telemetrySessions, session];
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             lock (_guard)
             {
-                s_loggers = s_loggers.Add(logger);
+                s_loggers = [.. s_loggers, logger];
             }
         }
 

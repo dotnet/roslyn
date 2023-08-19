@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var builder = ImmutableArray.CreateBuilder<string>();
             GetAllGenericTypeParameters(typeName, builder);
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private void GetAllGenericTypeParameters(Name typeName, ImmutableArray<string>.Builder builder)

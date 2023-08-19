@@ -480,7 +480,7 @@ ExitDecodeTypeName:
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
             int suffixStartsAt;
-            return InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt);
+            return InferTypeArityFromMetadataName([.. emittedTypeName], out suffixStartsAt);
         }
 
         private static short InferTypeArityFromMetadataName(ReadOnlySpan<char> emittedTypeName, out int suffixStartsAt)
@@ -571,7 +571,7 @@ ExitDecodeTypeName:
             Debug.Assert(arity > 0);
 
             int suffixStartsAt;
-            if (arity == InferTypeArityFromMetadataName(emittedTypeName.AsSpan(), out suffixStartsAt))
+            if (arity == InferTypeArityFromMetadataName([.. emittedTypeName], out suffixStartsAt))
             {
                 Debug.Assert(suffixStartsAt > 0 && suffixStartsAt < emittedTypeName.Length - 1);
                 return emittedTypeName[..suffixStartsAt];
@@ -617,7 +617,7 @@ ExitDecodeTypeName:
 
             if (dots == 0)
             {
-                return nameMemory.Span.SequenceEqual(SystemString.AsSpan()) ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
+                return nameMemory.Span.SequenceEqual([.. SystemString]) ? splitSystemString : ImmutableArray.Create(convert(nameMemory));
             }
 
             var result = ArrayBuilder<T>.GetInstance(dots + 1);
@@ -628,7 +628,7 @@ ExitDecodeTypeName:
                 if (nameSpan[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && nameSpan.StartsWith(SystemString.AsSpan(), StringComparison.Ordinal))
+                    if (len == 6 && start == 0 && nameSpan.StartsWith([.. SystemString], StringComparison.Ordinal))
                     {
                         result.Add(convert(SystemString.AsMemory()));
                     }

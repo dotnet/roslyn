@@ -37,7 +37,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
 
         lock (_gate)
         {
-            _registrations = _registrations.Add(workspace);
+            _registrations = [.. _registrations, workspace];
         }
 
         // Forward workspace change events for all registered LSP workspaces.

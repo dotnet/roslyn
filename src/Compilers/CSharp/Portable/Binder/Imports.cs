@@ -203,7 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var replacedExternAliases = PooledHashSet<string>.GetInstance();
             replacedExternAliases.AddAll(externs2.Select(e => e.Alias.Name));
-            return externs1.WhereAsArray((e, replacedExternAliases) => !replacedExternAliases.Contains(e.Alias.Name), replacedExternAliases).AddRange(externs2);
+            return
+            [
+                .. externs1.WhereAsArray((e, replacedExternAliases) => !replacedExternAliases.Contains(e.Alias.Name), replacedExternAliases),
+                .. externs2,
+            ];
         }
 
         private class UsingTargetComparer : IEqualityComparer<NamespaceOrTypeAndUsingDirective>

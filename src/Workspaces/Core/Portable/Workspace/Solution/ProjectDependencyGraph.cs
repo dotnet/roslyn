@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis
                 using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
                 using var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject();
                 this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
-                _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
+                _lazyTopologicallySortedProjects = [.. resultList.Object];
             }
         }
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
                 using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
                 using var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject();
                 this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
-                _lazyDependencySets = results.Object.ToImmutableArray();
+                _lazyDependencySets = [.. results.Object];
             }
 
             return _lazyDependencySets;

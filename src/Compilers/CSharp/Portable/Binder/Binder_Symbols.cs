@@ -2299,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
                     // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
                     // be of different kinds.
-                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
+                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), [.. symbols], result.Kind, result.Error, arity);
                 }
                 else
                 {

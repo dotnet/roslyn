@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return InstanceConstructors.AddRange(StaticConstructors);
+                return [.. InstanceConstructors, .. StaticConstructors];
             }
         }
     }

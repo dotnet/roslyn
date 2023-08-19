@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         {
             lock (_guard)
             {
-                return _loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
+                return [.. _loadContextByDirectory.Values.OrderBy(v => v.Directory)];
             }
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             List<DirectoryLoadContext> contexts;
             lock (_guard)
             {
-                contexts = _loadContextByDirectory.Values.ToList();
+                contexts = [.. _loadContextByDirectory.Values];
                 _loadContextByDirectory.Clear();
             }
 

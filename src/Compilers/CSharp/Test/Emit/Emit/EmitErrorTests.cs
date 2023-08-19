@@ -242,11 +242,15 @@ public class B
                 var result = compilation2.Emit(executableStream);
                 Assert.False(result.Success);
 
-                result.Diagnostics.Verify(expectedDiagnostics.Concat(new[]
-                {
-                    // error CS7038: Failed to emit module 'Test': Unable to determine specific cause of the failure.
-                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName, "Unable to determine specific cause of the failure.")
-                }).ToArray());
+                result.Diagnostics.Verify(
+                [
+                    .. expectedDiagnostics,
+                    .. new[]
+                    {
+                        // error CS7038: Failed to emit module 'Test': Unable to determine specific cause of the failure.
+                        Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName, "Unable to determine specific cause of the failure.")
+                    },
+                ]);
             }
 
             using (var executableStream = new MemoryStream())

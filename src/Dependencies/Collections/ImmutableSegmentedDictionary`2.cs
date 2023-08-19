@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             var result = ToBuilder();
             result.RemoveRange(keys);
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> SetItem(TKey key, TValue value)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 result[item.Key] = item.Value;
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public bool TryGetKey(TKey equalKey, out TKey actualKey)
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (pairs is ImmutableSegmentedDictionary<TKey, TValue>.Builder builder)
             {
-                other = builder.ToImmutable();
+                other = [.. builder];
                 return true;
             }
 

@@ -2028,7 +2028,7 @@ class C { }
                 });
 
             // edit the additional texts, and verify that the step output is considered "unchanged" and that the value is the same as the previous value.
-            driver = driver.RemoveAdditionalTexts(texts.ToImmutableArray());
+            driver = driver.RemoveAdditionalTexts([.. texts]);
             driver = driver.RunGenerators(compilation);
             runResult = driver.GetRunResult().Results[0];
 

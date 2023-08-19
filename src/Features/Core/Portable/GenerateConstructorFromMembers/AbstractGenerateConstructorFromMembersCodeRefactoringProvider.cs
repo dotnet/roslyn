@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 results.AddIfNotNull(intentResult);
             }
 
-            return results.ToImmutable();
+            return [.. results];
 
             static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(Document priorDocument, CodeAction codeAction, CancellationToken cancellationToken)
             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             return (new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, desiredAccessibility, viableMembers,
-                    pickMemberOptions.ToImmutable(), fallbackOptions), typeDeclaration.Span);
+                    [.. pickMemberOptions], fallbackOptions), typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             if (state.DelegatedConstructor != null)
                 result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)

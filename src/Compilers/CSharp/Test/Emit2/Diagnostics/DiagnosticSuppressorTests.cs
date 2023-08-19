@@ -622,7 +622,7 @@ class C { }";
 
             // Now, verify single file analyzer diagnostics with multiple calls using subset of analyzers.
             var options = new CompilationWithAnalyzersOptions(AnalyzerOptions.Empty, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: true);
-            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzersAndSuppressors.ToImmutableArray(), options);
+            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, [.. analyzersAndSuppressors], options);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var analyzers = withSuppressor ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, suppressor) : ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);

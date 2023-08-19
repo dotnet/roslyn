@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Order of elements in fileIndices should be deterministic because these
                     // elements were added based on order of spans in dynamicAnalysisSpans above.
                     fileIndexOrIndicesArgument = methodBodyFactory.Array(
-                        methodBodyFactory.SpecialType(SpecialType.System_Int32), fileIndices.ToImmutable());
+                        methodBodyFactory.SpecialType(SpecialType.System_Int32), [.. fileIndices]);
                 }
 
                 fileIndices.Free();

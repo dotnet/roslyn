@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>

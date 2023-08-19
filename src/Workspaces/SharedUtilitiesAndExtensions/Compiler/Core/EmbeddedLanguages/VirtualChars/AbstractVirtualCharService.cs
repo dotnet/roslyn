@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return VirtualCharSequence.Create(result.ToImmutable());
+            return VirtualCharSequence.Create([.. result]);
         }
     }
 }

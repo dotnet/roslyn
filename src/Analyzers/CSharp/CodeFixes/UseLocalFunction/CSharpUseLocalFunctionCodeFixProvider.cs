@@ -212,12 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var modifiers = new SyntaxTokenList();
             if (makeStatic)
             {
-                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                modifiers = [.. modifiers, SyntaxFactory.Token(SyntaxKind.StaticKeyword)];
             }
 
             if (anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
             {
-                modifiers = modifiers.Add(anonymousFunction.AsyncKeyword);
+                modifiers = [.. modifiers, anonymousFunction.AsyncKeyword];
             }
 
             var returnType = delegateMethod.GenerateReturnTypeSyntax();

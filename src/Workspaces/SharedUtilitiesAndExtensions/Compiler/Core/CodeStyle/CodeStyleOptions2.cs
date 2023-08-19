@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_allow_statement_immediately_after_block_experimental",
             IdeCodeStyleOptions.CommonDefaults.AllowStatementImmediatelyAfterBlock);
 
-        internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
+        internal static readonly ImmutableArray<IOption2> AllOptions = [.. s_allOptionsBuilder];
     }
 
     internal static class CodeStyleOptionGroups

@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
             await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             using var _ = Classifier.GetPooledList(out var results);
             service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
-            return results.ToImmutableArray();
+            return [.. results];
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 where !classificationsSpans.Contains(t.TextSpan)
                 select t);
 
-            return allClassifications.ToImmutableArray();
+            return [.. allClassifications];
         }
     }
 }

@@ -651,9 +651,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return new ProjectChanges(
                     mergedEdits,
-                    allLineEdits.ToImmutable(),
+                    [.. allLineEdits],
                     addedSymbols,
-                    activeStatementsInChangedDocuments.ToImmutable(),
+                    [.. activeStatementsInChangedDocuments],
                     requiredCapabilities);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // no partial type merging needed:
             if (edits.Count == mergedEditsBuilder.Count)
             {
-                mergedEdits = mergedEditsBuilder.ToImmutable();
+                mergedEdits = [.. mergedEditsBuilder];
                 addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
                 return;
             }
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            mergedEdits = mergedEditsBuilder.ToImmutable();
+            mergedEdits = [.. mergedEditsBuilder];
             addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
@@ -1099,14 +1099,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var update = isBlocked
-                    ? SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors)
+                    ? SolutionUpdate.Blocked([.. diagnostics], [.. documentsWithRudeEdits], syntaxError, hasEmitErrors)
                     : new SolutionUpdate(
                         new ModuleUpdates(
                             (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
-                            deltas.ToImmutable()),
-                        nonRemappableRegions.ToImmutable(),
-                        newProjectBaselines.ToImmutable(),
-                        diagnostics.ToImmutable(),
+                            [.. deltas]),
+                        [.. nonRemappableRegions],
+                        [.. newProjectBaselines],
+                        [.. diagnostics],
                         documentsWithRudeEdits.ToImmutable(),
                         syntaxError);
 

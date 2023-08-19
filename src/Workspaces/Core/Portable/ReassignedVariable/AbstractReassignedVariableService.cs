@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 }
 
                 result.RemoveDuplicates();
-                return result.ToImmutable();
+                return [.. result];
             }
 
             SemanticModel GetSemanticModel(SyntaxTree syntaxTree)

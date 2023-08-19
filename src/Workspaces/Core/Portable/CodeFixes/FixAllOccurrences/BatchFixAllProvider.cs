@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var task in tasks)
                 result.AddRange(await task.ConfigureAwait(false));
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         /// <summary>

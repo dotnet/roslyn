@@ -307,13 +307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             Directory.CreateDirectory(outputDirectory);
 
-            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".dll" + extSuffix), baseline.EmittedAssemblyData.ToArray());
-            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".pdb" + extSuffix), baseline.EmittedAssemblyPdb.ToArray());
+            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".dll" + extSuffix), [.. baseline.EmittedAssemblyData]);
+            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".pdb" + extSuffix), [.. baseline.EmittedAssemblyPdb]);
 
             for (int i = 0; i < diffs.Length; i++)
             {
-                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.metadata{extSuffix}"), diffs[i].MetadataDelta.ToArray());
-                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.pdb{extSuffix}"), diffs[i].PdbDelta.ToArray());
+                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.metadata{extSuffix}"), [.. diffs[i].MetadataDelta]);
+                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.pdb{extSuffix}"), [.. diffs[i].PdbDelta]);
             }
         }
     }

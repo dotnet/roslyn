@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers.ToImmutable();
+                return [.. implementedMembers];
             }
 
             private bool IsReservedName(string name)

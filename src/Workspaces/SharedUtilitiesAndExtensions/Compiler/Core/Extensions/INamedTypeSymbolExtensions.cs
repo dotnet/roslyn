@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             cancellationToken.ThrowIfCancellationRequested();
             interfacesToImplement.RemoveRange(alreadyImplementedInterfaces);
-            return interfacesToImplement.ToImmutableArray();
+            return [.. interfacesToImplement];
         }
 
         private static ImmutableArray<ISymbol> GetUnimplementedMembers(
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return result.Keys.OrderBy(s => result[s]).ToImmutableArray();
+            return [.. result.Keys.OrderBy(s => result[s])];
         }
 
         private static void AddOverridableMembers(

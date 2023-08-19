@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                 AppendTaskListItems(descriptors, syntaxDoc, trivia, items);
             }
 
-            return items.ToImmutable();
+            return [.. items];
         }
 
         private bool ContainsComments(SyntaxTrivia trivia)

@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 else
                 {
                     var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
+                    textChanges = [.. newText.GetTextChanges(oldText)];
                 }
 
                 // Map all the text changes' spans for this document.
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            return referenceKinds.ToArray();
+            return [.. referenceKinds];
         }
 
         public static string ProjectIdToProjectContextId(ProjectId id)

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
+            return new AnalyzerConfig(globalSection!, [.. namedSectionBuilder], pathToFile);
 
             void addNewSection()
             {

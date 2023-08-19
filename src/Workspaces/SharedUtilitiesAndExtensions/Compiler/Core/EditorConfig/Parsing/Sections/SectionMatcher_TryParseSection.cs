@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 
             sb.Append('$');
             var pattern = sb.ToString();
-            matcher = new SectionMatcher(new Regex(pattern), headerText, numberRangePairs.ToImmutableArray());
+            matcher = new SectionMatcher(new Regex(pattern), headerText, [.. numberRangePairs]);
             return true;
         }
 

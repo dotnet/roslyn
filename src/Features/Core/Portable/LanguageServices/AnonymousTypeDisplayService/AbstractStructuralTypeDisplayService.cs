@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             parts.AddRange(MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
                 semanticModel, position, s_delegateDisplay)));
 
-            return parts.ToImmutable();
+            return [.. parts];
         }
 
         private static ImmutableArray<SymbolDisplayPart> MassageDelegateParts(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     result.Add(part);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
@@ -151,35 +151,41 @@ namespace Microsoft.CodeAnalysis.LanguageService
         {
             if (symbol is IMethodSymbol method)
             {
-                return structuralTypes.OrderBy(
-                    (n1, n2) =>
-                    {
-                        var index1 = method.TypeArguments.IndexOf(n1);
-                        var index2 = method.TypeArguments.IndexOf(n2);
-                        index1 = index1 < 0 ? int.MaxValue : index1;
-                        index2 = index2 < 0 ? int.MaxValue : index2;
+                return
+                [
+                    .. structuralTypes.OrderBy(
+                                        (n1, n2) =>
+                                        {
+                                            var index1 = method.TypeArguments.IndexOf(n1);
+                                            var index2 = method.TypeArguments.IndexOf(n2);
+                                            index1 = index1 < 0 ? int.MaxValue : index1;
+                                            index2 = index2 < 0 ? int.MaxValue : index2;
 
-                        return index1 - index2;
-                    }).ToImmutableArray();
+                                            return index1 - index2;
+                                        }),
+                ];
             }
             else if (symbol is IPropertySymbol property)
             {
-                return structuralTypes.OrderBy(
-                    (n1, n2) =>
-                    {
-                        if (n1.Equals(property.ContainingType) && !n2.Equals(property.ContainingType))
-                        {
-                            return -1;
-                        }
-                        else if (!n1.Equals(property.ContainingType) && n2.Equals(property.ContainingType))
-                        {
-                            return 1;
-                        }
-                        else
-                        {
-                            return 0;
-                        }
-                    }).ToImmutableArray();
+                return
+                [
+                    .. structuralTypes.OrderBy(
+                                        (n1, n2) =>
+                                        {
+                                            if (n1.Equals(property.ContainingType) && !n2.Equals(property.ContainingType))
+                                            {
+                                                return -1;
+                                            }
+                                            else if (!n1.Equals(property.ContainingType) && n2.Equals(property.ContainingType))
+                                            {
+                                                return 1;
+                                            }
+                                            else
+                                            {
+                                                return 0;
+                                            }
+                                        }),
+                ];
             }
 
             return structuralTypes;
@@ -208,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 result.Add(namedType);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)

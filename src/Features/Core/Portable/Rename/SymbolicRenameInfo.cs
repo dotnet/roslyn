@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Rename
             var triggerText = sourceText.ToString(triggerToken.Span);
 
             return new SymbolicRenameInfo(
-                document, triggerToken, triggerText, symbol, forceRenameOverloads, documentSpans.ToImmutable());
+                document, triggerToken, triggerText, symbol, forceRenameOverloads, [.. documentSpans]);
         }
     }
 }

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Rename
             if (document.Services.GetService<ISpanMappingService>() != null)
             {
                 // Don't advertise that we can file rename generated documents that map to a different file.
-                return new RenameDocumentActionSet(ImmutableArray<RenameDocumentAction>.Empty, document.Id, document.Name, document.Folders.ToImmutableArray(), options);
+                return new RenameDocumentActionSet(ImmutableArray<RenameDocumentAction>.Empty, document.Id, document.Name, [.. document.Folders], options);
             }
 
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
@@ -140,10 +140,10 @@ namespace Microsoft.CodeAnalysis.Rename
             newDocumentFolders ??= document.Folders;
 
             return new RenameDocumentActionSet(
-                actions.ToImmutable(),
+                [.. actions],
                 document.Id,
                 newDocumentName,
-                newDocumentFolders.ToImmutableArray(),
+                [.. newDocumentFolders],
                 options);
         }
 

@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // actually determine if there are any viable refactorings here.
                 var refactorings = await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt,
-                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
+                    [.. listOfPotentiallyValidParametersNodes], selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(refactorings, context.Span);
             }
 

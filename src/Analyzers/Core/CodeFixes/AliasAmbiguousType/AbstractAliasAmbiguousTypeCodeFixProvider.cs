@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
             context.RegisterCodeFix(
                 CodeAction.Create(
                     string.Format(CodeFixesResources.Alias_ambiguous_type_0, diagnosticNode.ToString()),
-                    actions.ToImmutable(),
+                    [.. actions],
                     isInlinable: true),
                 context.Diagnostics.First());
         }

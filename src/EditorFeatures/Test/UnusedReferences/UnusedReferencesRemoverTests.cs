@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         }
 
         private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, string[] usedProjectAssemblyNames, params ReferenceInfo[] references)
-            => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), references.ToImmutableArray());
+            => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), [.. references]);
 
         private static async Task<ImmutableArray<ReferenceUpdate>> ApplyReferenceUpdatesAsync(params ReferenceUpdate[] referenceUpdates)
         {
@@ -171,10 +171,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             await UnusedReferencesRemover.ApplyReferenceUpdatesAsync(
                 referenceCleanupService,
                 string.Empty,
-                referenceUpdates.ToImmutableArray(),
+                [.. referenceUpdates],
                 CancellationToken.None).ConfigureAwait(false);
 
-            return referenceCleanupService.AppliedUpdates.ToImmutableArray();
+            return [.. referenceCleanupService.AppliedUpdates];
         }
 
         private static ReferenceInfo ProjectReference(string assemblyPath, params ReferenceInfo[] dependencies)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
                 itemSpecification: Path.GetFileName(assemblyPath),
                 treatAsUsed,
                 compilationAssemblies: ImmutableArray.Create(assemblyPath),
-                dependencies.ToImmutableArray());
+                [.. dependencies]);
 
         private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies)
             => PackageReference(assemblyPath, treatAsUsed: false, dependencies);
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
                 itemSpecification: Path.GetFileName(assemblyPath),
                 treatAsUsed,
                 compilationAssemblies: ImmutableArray.Create(assemblyPath),
-                dependencies.ToImmutableArray());
+                [.. dependencies]);
 
         private static ReferenceInfo AssemblyReference(string assemblyPath)
             => AssemblyReference(assemblyPath, treatAsUsed: false);

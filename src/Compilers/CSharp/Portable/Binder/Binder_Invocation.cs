@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     msgId.Localize(),
                     MessageID.IDS_SK_METHOD.Localize());
 
-                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver), wasCompilerGenerated: true);
+                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), [.. args, receiver], wasCompilerGenerated: true);
             }
 
             boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();
+            ImmutableArray<BoundExpression> arguments = [.. analyzedArguments.Arguments];
             ImmutableArray<RefKind> refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             return new BoundArgListOperator(node, arguments, refKinds, null, hasErrors);
         }
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
                     resultKind = resolution.MethodGroup.ResultKind;
-                    typeArguments = resolution.MethodGroup.TypeArguments.ToImmutable();
+                    typeArguments = [.. resolution.MethodGroup.TypeArguments];
                 }
                 else
                 {
@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
+                    GetOriginalMethods(result), methodGroup.ResultKind, [.. methodGroup.TypeArguments], analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
             }
 
             // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 

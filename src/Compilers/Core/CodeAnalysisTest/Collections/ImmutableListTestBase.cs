@@ -401,8 +401,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var scenarios = new[] {
                 ImmutableSegmentedList<int>.Empty,
-                ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(1, 50)),
-                ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(1, 50).Reverse()),
+                [.. Enumerable.Range(1, 50)],
+                [.. Enumerable.Range(1, 50).Reverse()],
             };
 
             foreach (var scenario in scenarios)
@@ -412,19 +412,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 var actual = this.SortTestHelper(scenario);
                 Assert.Equal<int>(expected, actual);
 
-                expected = scenario.ToList();
+                expected = [.. scenario];
                 Comparison<int> comparison = (x, y) => x > y ? 1 : (x < y ? -1 : 0);
                 expected.Sort(comparison);
                 actual = this.SortTestHelper(scenario, comparison);
                 Assert.Equal<int>(expected, actual);
 
-                expected = scenario.ToList();
+                expected = [.. scenario];
                 IComparer<int>? comparer = null;
                 expected.Sort(comparer);
                 actual = this.SortTestHelper(scenario, comparer);
                 Assert.Equal<int>(expected, actual);
 
-                expected = scenario.ToList();
+                expected = [.. scenario];
                 comparer = Comparer<int>.Create(comparison);
                 expected.Sort(comparer);
                 actual = this.SortTestHelper(scenario, comparer);
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 {
                     for (int j = 0; j < scenario.Count - i; j++)
                     {
-                        expected = scenario.ToList();
+                        expected = [.. scenario];
                         comparer = null;
                         expected.Sort(i, j, comparer);
                         actual = this.SortTestHelper(scenario, i, j, comparer);

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 isFirstParam = false;
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
                 methodSymbol.IsExtensionMethod)
             {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+                list = [.. list, SyntaxFactory.Token(SyntaxKind.ThisKeyword)];
             }
 
             if (parameter.IsParams)
             {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                list = [.. list, SyntaxFactory.Token(SyntaxKind.ParamsKeyword)];
             }
 
             return list;

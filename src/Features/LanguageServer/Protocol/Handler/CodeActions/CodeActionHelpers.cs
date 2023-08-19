@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return codeActions.ToArray();
+            return [.. codeActions];
         }
 
         private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 });
             }
 
-            return builder.ToArray();
+            return [.. builder];
         }
 
         private static VSInternalCodeAction GenerateVSCodeAction(
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     }
                 }
 
-                return nestedActions.ToArray();
+                return [.. nestedActions];
             }
         }
 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     }
                 }
 
-                return diagnosticsBuilder.ToArray();
+                return [.. diagnosticsBuilder];
             }
 
             return null;
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return codeActions.ToImmutable();
+            return [.. codeActions];
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
 
             return CodeAction.Create(
-                codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
+                codeAction.Title, [.. nestedActions], codeAction.IsInlinable, codeAction.Priority);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(

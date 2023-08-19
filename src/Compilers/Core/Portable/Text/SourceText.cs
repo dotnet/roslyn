@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var newText = CompositeText.ToSourceText(segments, this, adjustSegments: true);
                 if (newText != this)
                 {
-                    return new ChangedText(this, newText, changeRanges.ToImmutable());
+                    return new ChangedText(this, newText, [.. changeRanges]);
                 }
                 else
                 {

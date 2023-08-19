@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
-            return edits.ToImmutable();
+            return [.. edits];
         }
 
         private void UpdateExistingInterpolationBraces(

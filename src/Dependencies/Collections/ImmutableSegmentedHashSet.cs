@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (builder is null)
                 throw new ArgumentNullException(nameof(builder));
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

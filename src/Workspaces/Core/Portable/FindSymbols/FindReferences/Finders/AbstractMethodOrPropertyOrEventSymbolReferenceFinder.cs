@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (!semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
                     result.AddIfNotNull(property.GetMethod);
 
-                return result.ToImmutable();
+                return [.. result];
             }
             else
             {

@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 SegmentedList<T> list = new SegmentedList<T>(items);
 
-                T[] arr = list.ToArray();
+                T[] arr = [.. list];
 
                 for (int i = 0; i < items.Length; i++)
                 {
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void EnsureNotUnderlyingToArray(T[] items, T item)
             {
                 SegmentedList<T> list = new SegmentedList<T>(items);
-                T[] arr = list.ToArray();
+                T[] arr = [.. list];
                 list[0] = item;
                 if (((object?)arr[0]) == null)
                     Assert.NotNull(list[0]); //"Should NOT be null"

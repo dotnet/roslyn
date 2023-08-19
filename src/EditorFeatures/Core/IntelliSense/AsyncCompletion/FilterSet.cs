@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             TargetTypedFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Target_type_matches, 'j', WellKnownTags.TargetTypeMatch);
 
             s_filterMap = mapBuilder.ToImmutable();
-            s_filters = arrayBuilder.ToImmutable();
+            s_filters = [.. arrayBuilder];
 
             s_expanderMask = BitVector32.CreateMask(previousMask);
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
 
             void AddFilterState(ImmutableArray<CompletionFilterWithState> filterStates)
             {

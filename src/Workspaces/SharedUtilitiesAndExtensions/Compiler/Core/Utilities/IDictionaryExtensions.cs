@@ -113,7 +113,7 @@ namespace Roslyn.Utilities
                 existingArray = ImmutableArray<TValue>.Empty;
             }
 
-            dictionary[key] = existingArray.Add(value);
+            dictionary[key] = [.. existingArray, value];
         }
 
         public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
@@ -125,7 +125,7 @@ namespace Roslyn.Utilities
                 existingArray = ImmutableArray<TValue>.Empty;
             }
 
-            dictionary[key] = existingArray.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : existingArray.Add(value);
+            dictionary[key] = existingArray.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : [.. existingArray, value];
         }
 
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)

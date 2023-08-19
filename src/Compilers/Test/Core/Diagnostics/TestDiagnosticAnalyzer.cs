@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected static readonly ImmutableArray<TLanguageKindEnum> AllSyntaxKinds = GetAllEnumValues<TLanguageKindEnum>();
 
-        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
+        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames =
+        [
+            "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "Initialize", "SupportedDiagnostics"
+        ];
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
 #pragma warning disable RS1029 // Do not use reserved diagnostic IDs.

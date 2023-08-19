@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                         glyph: type.GetGlyph(),
                         isObsolete: type.IsObsolete(),
                         spans.Value,
-                        childItems: memberItems.ToImmutable()));
+                        childItems: [.. memberItems]));
                 }
 
                 items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-                return items.ToImmutable();
+                return [.. items];
             }
         }
 

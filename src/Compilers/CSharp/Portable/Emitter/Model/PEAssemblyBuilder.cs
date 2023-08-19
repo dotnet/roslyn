@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
 
                         // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                        if (ImmutableInterlocked.InterlockedInitialize(ref lazyFiles, builder.ToImmutable()) && lazyFiles.Length > 0)
+                        if (ImmutableInterlocked.InterlockedInitialize(ref lazyFiles, [.. builder]) && lazyFiles.Length > 0)
                         {
                             if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.HashAlgorithm))
                             {

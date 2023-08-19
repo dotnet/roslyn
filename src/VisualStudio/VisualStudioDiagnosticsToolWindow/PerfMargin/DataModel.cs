@@ -43,7 +43,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 builder.SetItem(value, new ActivityLevel(name, parent, createChildList: false));
             }
 
-            _activities = builder.ToImmutable();
+            _activities = [.. builder];
             root.SortChildren();
             RootNode = root;
         }

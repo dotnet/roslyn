@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                                 moduleBuilder.Add(_moduleFactoryOpt(moduleName));
                             }
 
-                            modules = moduleBuilder.ToImmutable();
+                            modules = [.. moduleBuilder];
                         }
                     }
 

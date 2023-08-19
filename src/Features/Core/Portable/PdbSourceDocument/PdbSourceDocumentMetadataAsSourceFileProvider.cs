@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace);
             }
 
-            return documents.ToImmutable();
+            return [.. documents];
         }
 
         private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, [.. node.Locals, .. additionalLocals], node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         /// <summary>

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     result.Add(new SymbolAndSelectionInfo(symbol, preselect));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
 

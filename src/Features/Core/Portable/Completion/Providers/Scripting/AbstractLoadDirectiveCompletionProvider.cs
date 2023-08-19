@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add('\\');
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)

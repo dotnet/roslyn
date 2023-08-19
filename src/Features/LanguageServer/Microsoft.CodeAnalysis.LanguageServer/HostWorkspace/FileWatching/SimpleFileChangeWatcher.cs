@@ -19,7 +19,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
 {
     public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
     {
-        return new FileChangeContext(watchedDirectories.ToImmutableArray());
+        return new FileChangeContext([.. watchedDirectories]);
     }
 
     private class FileChangeContext : IFileChangeContext
@@ -63,8 +63,8 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                 }
             }
 
-            _watchedDirectories = watchedDirectoriesBuilder.ToImmutable();
-            _directoryFileSystemWatchers = watcherBuilder.ToImmutable();
+            _watchedDirectories = [.. watchedDirectoriesBuilder];
+            _directoryFileSystemWatchers = [.. watcherBuilder];
         }
 
         public event EventHandler<string>? FileChanged;

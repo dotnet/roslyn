@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c),
                         nameof(FeaturesResources.Generate_constructor_in_0) + "_" + state.TypeToGenerateIn.Name));
 
-                    return result.ToImmutable();
+                    return [.. result];
                 }
             }
 

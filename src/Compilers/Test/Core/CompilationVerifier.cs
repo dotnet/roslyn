@@ -610,8 +610,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var actualPdbXml = PdbToXmlConverter.ToXml(
-                    pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
-                    peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
+                    pdbStream: new MemoryStream([.. EmittedAssemblyPdb]),
+                    peStream: new MemoryStream([.. EmittedAssemblyData]),
                     options: PdbToXmlOptions.ResolveTokens |
                              PdbToXmlOptions.ThrowOnError |
                              PdbToXmlOptions.ExcludeCustomDebugInformation |

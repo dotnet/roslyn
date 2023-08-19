@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(item);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
 
             static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
             {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     _assemblySymbolKey,
                     _checksum,
                     _language,
-                    _itemsBuilder.ToImmutable(),
+                    [.. _itemsBuilder],
                     _publicItemCount,
                     _hasEnumBaseTypes);
             }

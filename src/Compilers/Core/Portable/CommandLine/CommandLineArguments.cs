@@ -555,8 +555,8 @@ namespace Microsoft.CodeAnalysis
             resolvedReferencesList.Free();
             resolvedReferencesSet.Free();
 
-            generators = generatorBuilder.ToImmutable();
-            analyzers = analyzerBuilder.ToImmutable();
+            generators = [.. generatorBuilder];
+            analyzers = [.. analyzerBuilder];
 
             // If we are skipping analyzers, ensure that we only add suppressors.
             bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;

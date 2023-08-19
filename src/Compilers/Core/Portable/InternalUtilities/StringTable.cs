@@ -748,6 +748,6 @@ foundIdx:
         }
 
         internal static bool TextEquals(string array, ReadOnlySpan<char> text)
-            => text.Equals(array.AsSpan(), StringComparison.Ordinal);
+            => text.Equals([.. array], StringComparison.Ordinal);
     }
 }

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             Recurse(compilationUnit.Members);
 
-            return result.ToImmutable();
+            return [.. result];
 
             void Recurse(SyntaxList<MemberDeclarationSyntax> members)
             {

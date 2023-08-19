@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     : SourceHashAlgorithm.None;
 
                 var hash = PdbReader.GetBlobBytes(document.Hash);
-                var sourceTextInfo = new SourceTextInfo(name, hashAlgorithm, hash.ToImmutableArray(), encoding);
+                var sourceTextInfo = new SourceTextInfo(name, hashAlgorithm, [.. hash], encoding);
                 yield return (documentHandle, sourceTextInfo);
             }
         }
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     builder.Add(metadataReference);
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 }
             }
 
-            return options.ToImmutableArray();
+            return [.. options];
         }
     }
 }

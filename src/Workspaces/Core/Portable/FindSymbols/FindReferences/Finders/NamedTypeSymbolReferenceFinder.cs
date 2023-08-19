@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // cascade to destructor
             Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return new(result.ToImmutable());
+            return new([.. result]);
         }
 
         private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
                 project, documents, cancellationToken).ConfigureAwait(false));
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 namedType, state, cancellationToken).ConfigureAwait(false));
 
-            return initialReferences.ToImmutable();
+            return [.. initialReferences];
         }
 
         internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(

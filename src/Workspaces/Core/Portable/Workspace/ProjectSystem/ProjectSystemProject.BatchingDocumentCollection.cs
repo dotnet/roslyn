@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             {
                 // Document adding...
                 solutionChanges.UpdateSolutionForDocumentAction(
-                    newSolution: addDocuments(solutionChanges.Solution, _documentsAddedInBatch.ToImmutable()),
+                    newSolution: addDocuments(solutionChanges.Solution, [.. _documentsAddedInBatch]),
                     changeKind: addDocumentChangeKind,
                     documentIds: _documentsAddedInBatch.Select(d => d.Id));
 
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 ClearAndZeroCapacity(_documentsAddedInBatch);
 
                 // Document removing...
-                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, _documentsRemovedInBatch.ToImmutableArray()),
+                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, [.. _documentsRemovedInBatch]),
                     removeDocumentChangeKind,
                     _documentsRemovedInBatch);
 

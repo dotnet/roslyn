@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     result.AddRange(symbols);
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
 

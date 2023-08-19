@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            additionalLocations = additionalLocations.AddRange(referenceLocations);
+            additionalLocations = [.. additionalLocations, .. referenceLocations];
 
             if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {

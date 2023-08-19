@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 break;
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public RegexTrivia? ScanComment(RegexOptions options)

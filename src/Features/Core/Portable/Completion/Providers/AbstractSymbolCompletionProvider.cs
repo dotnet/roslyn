@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 itemListBuilder.Add(item);
             }
 
-            return itemListBuilder.ToImmutable();
+            return [.. itemListBuilder];
         }
 
         protected static bool TryFindFirstSymbolMatchesTargetTypes(
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
             return CreateItems(
-                completionContext, symbolToContextMap.Keys.ToImmutableArray(), symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
+                completionContext, [.. symbolToContextMap.Keys], symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
         }
 
         protected virtual bool IsExclusive()
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
             }
 
-            return perContextSymbols.ToImmutable();
+            return [.. perContextSymbols];
         }
 
         /// <summary>

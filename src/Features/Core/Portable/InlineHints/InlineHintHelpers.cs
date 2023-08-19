@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     }
                 }
 
-                return parts.ToImmutableArray();
+                return [.. parts];
             }
 
             return default;

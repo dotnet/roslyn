@@ -461,12 +461,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RegisterCodeBlockEndAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
         {
-            _codeBlockEndActions = _codeBlockEndActions.Add(new CodeBlockAnalyzerAction(action, analyzer));
+            _codeBlockEndActions = [.. _codeBlockEndActions, new CodeBlockAnalyzerAction(action, analyzer)];
         }
 
         public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
-            _syntaxNodeActions = _syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer));
+            _syntaxNodeActions = [.. _syntaxNodeActions, new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer)];
         }
     }
 
@@ -485,12 +485,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
         {
-            _operationBlockEndActions = _operationBlockEndActions.Add(new OperationBlockAnalyzerAction(action, analyzer));
+            _operationBlockEndActions = [.. _operationBlockEndActions, new OperationBlockAnalyzerAction(action, analyzer)];
         }
 
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            _operationActions = _operationActions.Add(new OperationAnalyzerAction(action, operationKinds, analyzer));
+            _operationActions = [.. _operationActions, new OperationAnalyzerAction(action, operationKinds, analyzer)];
         }
     }
 
@@ -874,103 +874,103 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void AddCompilationStartAction(CompilationStartAnalyzerAction action)
         {
-            _compilationStartActions = _compilationStartActions.Add(action);
+            _compilationStartActions = [.. _compilationStartActions, action];
             IsEmpty = false;
         }
 
         internal void AddCompilationEndAction(CompilationAnalyzerAction action)
         {
-            _compilationEndActions = _compilationEndActions.Add(action);
+            _compilationEndActions = [.. _compilationEndActions, action];
             IsEmpty = false;
         }
 
         internal void AddCompilationAction(CompilationAnalyzerAction action)
         {
-            _compilationActions = _compilationActions.Add(action);
+            _compilationActions = [.. _compilationActions, action];
             IsEmpty = false;
         }
 
         internal void AddSyntaxTreeAction(SyntaxTreeAnalyzerAction action)
         {
-            _syntaxTreeActions = _syntaxTreeActions.Add(action);
+            _syntaxTreeActions = [.. _syntaxTreeActions, action];
             IsEmpty = false;
         }
 
         internal void AddAdditionalFileAction(AdditionalFileAnalyzerAction action)
         {
-            _additionalFileActions = _additionalFileActions.Add(action);
+            _additionalFileActions = [.. _additionalFileActions, action];
             IsEmpty = false;
         }
 
         internal void AddSemanticModelAction(SemanticModelAnalyzerAction action)
         {
-            _semanticModelActions = _semanticModelActions.Add(action);
+            _semanticModelActions = [.. _semanticModelActions, action];
             IsEmpty = false;
         }
 
         internal void AddSymbolAction(SymbolAnalyzerAction action)
         {
-            _symbolActions = _symbolActions.Add(action);
+            _symbolActions = [.. _symbolActions, action];
             IsEmpty = false;
         }
 
         internal void AddSymbolStartAction(SymbolStartAnalyzerAction action)
         {
-            _symbolStartActions = _symbolStartActions.Add(action);
+            _symbolStartActions = [.. _symbolStartActions, action];
             IsEmpty = false;
         }
 
         internal void AddSymbolEndAction(SymbolEndAnalyzerAction action)
         {
-            _symbolEndActions = _symbolEndActions.Add(action);
+            _symbolEndActions = [.. _symbolEndActions, action];
             IsEmpty = false;
         }
 
         internal void AddCodeBlockStartAction<TLanguageKindEnum>(CodeBlockStartAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
         {
-            _codeBlockStartActions = _codeBlockStartActions.Add(action);
+            _codeBlockStartActions = [.. _codeBlockStartActions, action];
             IsEmpty = false;
         }
 
         internal void AddCodeBlockEndAction(CodeBlockAnalyzerAction action)
         {
-            _codeBlockEndActions = _codeBlockEndActions.Add(action);
+            _codeBlockEndActions = [.. _codeBlockEndActions, action];
             IsEmpty = false;
         }
 
         internal void AddCodeBlockAction(CodeBlockAnalyzerAction action)
         {
-            _codeBlockActions = _codeBlockActions.Add(action);
+            _codeBlockActions = [.. _codeBlockActions, action];
             IsEmpty = false;
         }
 
         internal void AddSyntaxNodeAction<TLanguageKindEnum>(SyntaxNodeAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
         {
-            _syntaxNodeActions = _syntaxNodeActions.Add(action);
+            _syntaxNodeActions = [.. _syntaxNodeActions, action];
             IsEmpty = false;
         }
 
         internal void AddOperationBlockStartAction(OperationBlockStartAnalyzerAction action)
         {
-            _operationBlockStartActions = _operationBlockStartActions.Add(action);
+            _operationBlockStartActions = [.. _operationBlockStartActions, action];
             IsEmpty = false;
         }
 
         internal void AddOperationBlockAction(OperationBlockAnalyzerAction action)
         {
-            _operationBlockActions = _operationBlockActions.Add(action);
+            _operationBlockActions = [.. _operationBlockActions, action];
             IsEmpty = false;
         }
 
         internal void AddOperationBlockEndAction(OperationBlockAnalyzerAction action)
         {
-            _operationBlockEndActions = _operationBlockEndActions.Add(action);
+            _operationBlockEndActions = [.. _operationBlockEndActions, action];
             IsEmpty = false;
         }
 
         internal void AddOperationAction(OperationAnalyzerAction action)
         {
-            _operationActions = _operationActions.Add(action);
+            _operationActions = [.. _operationActions, action];
             IsEmpty = false;
         }
 
@@ -991,23 +991,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
-            actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
-            actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
-            actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
-            actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
-            actions._additionalFileActions = _additionalFileActions.AddRange(otherActions._additionalFileActions);
-            actions._semanticModelActions = _semanticModelActions.AddRange(otherActions._semanticModelActions);
-            actions._symbolActions = _symbolActions.AddRange(otherActions._symbolActions);
-            actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions;
-            actions._symbolEndActions = appendSymbolStartAndSymbolEndActions ? _symbolEndActions.AddRange(otherActions._symbolEndActions) : _symbolEndActions;
-            actions._codeBlockStartActions = _codeBlockStartActions.AddRange(otherActions._codeBlockStartActions);
-            actions._codeBlockEndActions = _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions);
-            actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
-            actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
-            actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
-            actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
-            actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
-            actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
+            actions._compilationStartActions = [.. _compilationStartActions, .. otherActions._compilationStartActions];
+            actions._compilationEndActions = [.. _compilationEndActions, .. otherActions._compilationEndActions];
+            actions._compilationActions = [.. _compilationActions, .. otherActions._compilationActions];
+            actions._syntaxTreeActions = [.. _syntaxTreeActions, .. otherActions._syntaxTreeActions];
+            actions._additionalFileActions = [.. _additionalFileActions, .. otherActions._additionalFileActions];
+            actions._semanticModelActions = [.. _semanticModelActions, .. otherActions._semanticModelActions];
+            actions._symbolActions = [.. _symbolActions, .. otherActions._symbolActions];
+            actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? [.. _symbolStartActions, .. otherActions._symbolStartActions] : _symbolStartActions;
+            actions._symbolEndActions = appendSymbolStartAndSymbolEndActions ? [.. _symbolEndActions, .. otherActions._symbolEndActions] : _symbolEndActions;
+            actions._codeBlockStartActions = [.. _codeBlockStartActions, .. otherActions._codeBlockStartActions];
+            actions._codeBlockEndActions = [.. _codeBlockEndActions, .. otherActions._codeBlockEndActions];
+            actions._codeBlockActions = [.. _codeBlockActions, .. otherActions._codeBlockActions];
+            actions._syntaxNodeActions = [.. _syntaxNodeActions, .. otherActions._syntaxNodeActions];
+            actions._operationActions = [.. _operationActions, .. otherActions._operationActions];
+            actions._operationBlockStartActions = [.. _operationBlockStartActions, .. otherActions._operationBlockStartActions];
+            actions._operationBlockEndActions = [.. _operationBlockEndActions, .. otherActions._operationBlockEndActions];
+            actions._operationBlockActions = [.. _operationBlockActions, .. otherActions._operationBlockActions];
             actions.IsEmpty = IsEmpty && otherActions.IsEmpty;
 
             return actions;

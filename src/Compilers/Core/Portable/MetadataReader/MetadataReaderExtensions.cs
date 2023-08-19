@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                         isReference: true));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
             finally
             {

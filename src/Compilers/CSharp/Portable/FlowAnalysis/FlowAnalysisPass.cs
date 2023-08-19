@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
-            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Instrumentation, body.Statements.Add(ret));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Instrumentation, [.. body.Statements, ret]);
         }
 
         private static bool Analyze(

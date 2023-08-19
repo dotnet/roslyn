@@ -132,10 +132,10 @@ namespace IdeBenchmarks.InheritanceMargin
             using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMarginTag>.GetInstance(out var builder);
             foreach (var grouping in items.GroupBy(i => i.LineNumber))
             {
-                builder.Add(new InheritanceMarginTag(grouping.Key, grouping.ToImmutableArray()));
+                builder.Add(new InheritanceMarginTag(grouping.Key, [.. grouping]));
             }
 
-            _tags = builder.ToImmutableArray();
+            _tags = [.. builder];
             var exportProvider = workspace.ExportProvider;
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             _streamingFindUsagesPresenter = exportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();

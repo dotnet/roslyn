@@ -841,7 +841,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait(cancellationToken))
             {
-                return _createdNodes.ToImmutableArray();
+                return [.. _createdNodes];
             }
         }
     }

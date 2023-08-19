@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return new CodeGenerationConstructedNamedTypeSymbol(
-                ConstructedFrom, typeArguments.ToImmutableArray(), this.TypeMembers);
+                ConstructedFrom, [.. typeArguments], this.TypeMembers);
         }
 
         public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)

@@ -299,8 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             //  it may fail to resolve.
 
             return root.Update(
-                root.Externs.AddRange(namespaceDecl.Externs),
-                root.Usings.AddRange(namespaceDecl.Usings),
+                [.. root.Externs, .. namespaceDecl.Externs],
+                [.. root.Usings, .. namespaceDecl.Usings],
                 root.AttributeLists,
                 root.Members.ReplaceRange(namespaceDecl, members),
                 eofToken);

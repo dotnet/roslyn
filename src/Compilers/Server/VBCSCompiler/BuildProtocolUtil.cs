@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            return commandLineArguments.ToArray();
+            return [.. commandLineArguments];
         }
     }
 }

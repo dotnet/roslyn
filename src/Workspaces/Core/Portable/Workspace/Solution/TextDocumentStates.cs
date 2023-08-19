@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(selector(state));
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(selector(state, arg));
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public async ValueTask<ImmutableArray<TValue>> SelectAsArrayAsync<TValue, TArg>(Func<TState, TArg, CancellationToken, ValueTask<TValue>> selector, TArg arg, CancellationToken cancellationToken)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(await selector(state, arg, cancellationToken).ConfigureAwait(true));
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-            => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+            => new CodeGenerationConstructedMethodSymbol(this, [.. typeArguments]);
 
         public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
             => new CodeGenerationConstructedMethodSymbol(this, typeArguments);

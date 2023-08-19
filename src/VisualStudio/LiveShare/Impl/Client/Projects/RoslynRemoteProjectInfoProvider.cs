@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 projectInfos.Add(projectInfo);
             }
 
-            return projectInfos.ToImmutableArray();
+            return [.. projectInfos];
         }
 
         private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, SolutionServices services)

@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                @params = builder.ToImmutable();
+                @params = [.. builder];
             }
             else
             {
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]));
                     }
 
-                    return ownedParams.ToImmutable();
+                    return [.. ownedParams];
                 }
             }
             catch (BadImageFormatException)

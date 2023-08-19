@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 }
             }
 
-            return builder.ToImmutableArray();
+            return [.. builder];
 
             static bool AddedAllLocations(ISymbol implementation, HashSet<(string filePath, TextSpan span)> seenLocations)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 }
             }
 
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     implementationsAndOverrides.Add(symbol);
                 }
 
-                return implementationsAndOverrides.ToImmutableArray();
+                return [.. implementationsAndOverrides];
             }
             else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
             {

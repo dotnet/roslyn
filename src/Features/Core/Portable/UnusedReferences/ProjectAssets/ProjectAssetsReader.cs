@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 .WhereNotNull()
                 .ToImmutableArray();
 
-            var reference = new ReferenceInfo(referenceType, itemSpecification, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
+            var reference = new ReferenceInfo(referenceType, itemSpecification, treatAsUsed, [.. compilationAssemblies], dependencies);
 
             builtReferences.Add(reference.ItemSpecification, reference);
 

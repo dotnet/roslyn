@@ -373,7 +373,7 @@ End Namespace
                 }
             }
 
-            public string[] SnippetExpectations { get { return _snippetExpectations.ToArray(); } }
+            public string[] SnippetExpectations { get { return [.. _snippetExpectations]; } }
 
             /// <summary>
             /// Records the expectation that the following span will be covered and resembles the provided snippet.

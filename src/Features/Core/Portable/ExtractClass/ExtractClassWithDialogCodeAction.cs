@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // If we didn't find all of the symbols then something went really wrong
             Contract.ThrowIfFalse(remainingResults.Count == 0);
 
-            var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());
+            var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, [.. pullMembersBuilder]);
             var updatedOriginalDocument = solution.GetRequiredDocument(_document.Id);
 
             return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);

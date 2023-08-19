@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
                 codeViewEntry.Guid,
                 (uint)codeViewEntry.Age,
                 timeStamp,
-                checksums.ToImmutable(),
+                [.. checksums],
                 dllPath,
                 codeViewEntry.Path);
 

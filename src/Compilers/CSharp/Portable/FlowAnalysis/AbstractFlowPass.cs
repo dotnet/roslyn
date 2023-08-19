@@ -2625,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (firstPartIsConditional)
             {
-                parts = node.Parts.AsSpan();
+                parts = [.. node.Parts];
             }
             else
             {

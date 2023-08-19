@@ -78,7 +78,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             AddTestCodeLens(codeLenses, members, document, text, request.TextDocument);
         }
 
-        return codeLenses.ToArray();
+        return [.. codeLenses];
     }
 
     private static async Task AddReferencesCodeLensAsync(

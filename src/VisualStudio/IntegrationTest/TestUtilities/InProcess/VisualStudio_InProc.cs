@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 finally { }
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         public void ActivateMainWindow()

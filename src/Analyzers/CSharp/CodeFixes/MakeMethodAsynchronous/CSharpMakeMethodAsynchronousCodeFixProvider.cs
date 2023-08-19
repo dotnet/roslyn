@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
         {
             if (modifiers.Any())
-                return modifiers.Add(s_asyncToken);
+                return [.. modifiers, s_asyncToken];
 
             // Move the leading trivia from the return type to the new modifiers list.
             var result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));

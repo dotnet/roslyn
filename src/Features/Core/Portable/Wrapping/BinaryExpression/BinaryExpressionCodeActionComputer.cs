@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                     }
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private ImmutableArray<Edit> GetUnwrapEdits()
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                         NoTrivia, _exprsAndOperators[i + 1]));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
     }

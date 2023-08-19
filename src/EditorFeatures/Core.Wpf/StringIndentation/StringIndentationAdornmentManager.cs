@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 builder.Add(mapped.Value);
             }
 
-            result = builder.ToImmutable();
+            result = [.. builder];
             return true;
         }
 

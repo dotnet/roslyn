@@ -94,7 +94,7 @@ class Program
                 results,
                 CancellationToken.None);
 
-            return results.ToImmutableArray();
+            return [.. results];
         }
     }
 }

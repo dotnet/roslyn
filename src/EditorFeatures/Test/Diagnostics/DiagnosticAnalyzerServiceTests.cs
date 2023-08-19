@@ -638,7 +638,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             if (testMultiple)
             {
                 analyzer = new AdditionalFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002");
-                analyzers = analyzers.Add(analyzer);
+                analyzers = [.. analyzers, analyzer];
             }
 
             var analyzerReference = new AnalyzerImageReference(analyzers);
@@ -747,7 +747,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 analyzers.Add(new DiagnosticSuppressorForId(NamedTypeAnalyzer.DiagnosticId));
             }
 
-            var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
+            var analyzerReference = new AnalyzerImageReference([.. analyzers]);
 
             using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
 

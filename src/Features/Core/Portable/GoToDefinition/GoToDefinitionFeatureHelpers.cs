@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             }
 
             definitions.Add(definitionItem);
-            return definitions.ToImmutable();
+            return [.. definitions];
         }
     }
 }

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 AddSelectedMemberDeclarations(member, membersToKeep);
             }
 
-            return selectedMembers.ToImmutable();
+            return [.. selectedMembers];
 
             void AddAllMembers(TMemberDeclarationSyntax member)
             {

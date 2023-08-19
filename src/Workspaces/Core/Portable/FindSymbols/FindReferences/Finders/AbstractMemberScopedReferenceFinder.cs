@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return FindReferencesInTokensAsync(symbol, state, tokens.ToImmutable(), cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, [.. tokens], cancellationToken);
         }
     }
 }

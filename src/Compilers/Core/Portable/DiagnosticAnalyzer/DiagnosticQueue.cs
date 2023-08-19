@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         builder.Add(d);
                     }
 
-                    return builder.ToImmutable();
+                    return [.. builder];
                 }
 
                 return ImmutableArray<Diagnostic>.Empty;

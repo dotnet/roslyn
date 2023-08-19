@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis
 
                 var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
 
-                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, [.. documentIdsInProject], removedDocumentStatesForProject);
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,

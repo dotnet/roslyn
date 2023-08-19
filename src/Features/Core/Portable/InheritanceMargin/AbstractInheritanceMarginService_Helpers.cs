@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken).ConfigureAwait(false));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     items.Add(new InheritanceMarginItem(
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
-                        Glyph.Namespace, targetItems.ToImmutable()));
+                        Glyph.Namespace, [.. targetItems]));
                 }
                 else
                 {
@@ -259,11 +259,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, [.. targetItems]));
                 }
             }
 
-            return items.ToImmutable();
+            return [.. items];
         }
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
                 }
 
-                return builder.ToImmutableArray();
+                return [.. builder];
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     builder.AddRange(await SymbolFinder.FindOverridesArrayAsync(implementationSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
                 }
 
-                return builder.ToImmutableArray();
+                return [.. builder];
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     builder.Add(overriddenMember.OriginalDefinition);
                 }
 
-                return builder.ToImmutableArray();
+                return [.. builder];
             }
         }
 
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

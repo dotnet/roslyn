@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (diagnostic.CustomTags?.Contains(WellKnownDiagnosticTags.Unnecessary) == true)
                 result.Add(DiagnosticTag.Unnecessary);
 
-            return result.ToArray();
+            return [.. result];
         }
     }
 }

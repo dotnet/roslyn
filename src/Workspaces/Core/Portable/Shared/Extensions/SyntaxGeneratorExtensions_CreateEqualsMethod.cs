@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (containingType.IsRefLikeType)
             {
                 statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
-                return statements.ToImmutable();
+                return [.. statements];
             }
 
             // Come up with a good name for the local variable we're going to compare against.
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            return statements.ToImmutable();
+            return [.. statements];
         }
 
         private static void AddMemberChecks(

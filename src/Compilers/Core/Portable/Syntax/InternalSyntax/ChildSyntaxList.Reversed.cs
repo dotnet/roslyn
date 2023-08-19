@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                         result.Add(n);
                     }
 
-                    return result.ToArray();
+                    return [.. result];
                 }
             }
 

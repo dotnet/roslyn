@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 index++;
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(

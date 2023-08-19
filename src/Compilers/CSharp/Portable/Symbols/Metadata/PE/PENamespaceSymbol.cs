@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (lazyTypes.TryGetValue(name, out t))
                 {
                     // TODO - Eliminate the copy by storing all members and type members instead of non-type and type members?
-                    return StaticCast<Symbol>.From(t).Add(ns);
+                    return [.. StaticCast<Symbol>.From(t), ns];
                 }
                 else
                 {

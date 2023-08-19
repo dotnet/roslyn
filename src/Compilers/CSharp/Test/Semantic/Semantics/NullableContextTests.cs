@@ -2234,21 +2234,25 @@ string";
 
         private static string[] GetNullableDataKeysAsStrings(object compilationData, bool requiredAnalysis = false)
         {
-            return ((NullableWalker.NullableAnalysisData)compilationData).Data.
-                Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
-                Select(pair => GetNullableDataKeyAsString(pair.Key)).
-                OrderBy(key => key).
-                ToArray();
+            return
+            [
+                .. ((NullableWalker.NullableAnalysisData)compilationData).Data.
+                                Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
+                                Select(pair => GetNullableDataKeyAsString(pair.Key)).
+                                OrderBy(key => key),
+            ];
         }
 
         private static string[] GetIsNullableEnabledMethods(object compilationData, Func<object, string> toString = null)
         {
             toString ??= GetNullableDataKeyAsString;
-            return ((NullableWalker.NullableAnalysisData)compilationData).Data.
-                Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableAnalysisEnabled()).
-                Select(pair => toString(pair.Key)).
-                OrderBy(key => key).
-                ToArray();
+            return
+            [
+                .. ((NullableWalker.NullableAnalysisData)compilationData).Data.
+                                Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableAnalysisEnabled()).
+                                Select(pair => toString(pair.Key)).
+                                OrderBy(key => key),
+            ];
         }
 
         private static string GetNullableDataKeyAsString(object key) =>

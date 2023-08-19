@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (currentNode == targetNode)
                 {
-                    return handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause);
+                    return handler([.. pathBuilder], currentRequiresFalseWhenClause);
                 }
 
                 pathBuilder.Push(currentNode);

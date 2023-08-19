@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>

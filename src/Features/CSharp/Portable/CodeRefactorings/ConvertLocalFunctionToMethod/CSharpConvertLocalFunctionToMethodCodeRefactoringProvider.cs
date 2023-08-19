@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 refKind: declaredSymbol.RefKind,
                 explicitInterfaceImplementations: default,
                 name: methodName,
-                typeParameters: typeParameters.ToImmutableArray(),
-                parameters: parameters.AddRange(capturesAsParameters));
+                typeParameters: [.. typeParameters],
+                parameters: [.. parameters, .. capturesAsParameters]);
 
             var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);

@@ -364,13 +364,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     foreach (var projectGroup in group.GroupBy(g => g.ProjectId))
                     {
                         Contract.ThrowIfNull(projectGroup.Key);
-                        ReportBuildErrors(projectGroup.Key, solution, projectGroup.ToImmutableArray());
+                        ReportBuildErrors(projectGroup.Key, solution, [.. projectGroup]);
                     }
 
                     continue;
                 }
 
-                ReportBuildErrors(group.Key, solution, group.ToImmutableArray());
+                ReportBuildErrors(group.Key, solution, [.. group]);
             }
 
             // Report pending live errors
@@ -770,7 +770,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     }
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             public void AddErrors(DocumentId key, HashSet<DiagnosticData> diagnostics)

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTagsBuilder.Add(WellKnownDiagnosticTags.Unnecessary);
             }
 
-            return customTagsBuilder.ToArray();
+            return [.. customTagsBuilder];
         }
     }
 }

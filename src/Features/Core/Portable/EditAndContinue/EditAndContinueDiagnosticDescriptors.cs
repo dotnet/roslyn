@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb), DiagnosticSeverity.Warning);
             AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
 
-            s_descriptors = builder.ToImmutable();
+            s_descriptors = [.. builder];
         }
 
         internal static ImmutableArray<DiagnosticDescriptor> GetDescriptors()

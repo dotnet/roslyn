@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             while (currentStart < allSymbols.Length)
                 finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
 
-            return finalResult.ToImmutable();
+            return [.. finalResult];
 
             // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
             // (descendants) appropriately nested into the parent.
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     (Glyph)currentParent.Glyph,
                     GetSymbolRangeSpan(currentParent.Range),
                     GetSymbolRangeSpan(currentParent.SelectionRange),
-                    currentSymbolChildren.ToImmutable());
+                    [.. currentSymbolChildren]);
             }
 
             // Returns whether the child symbol is in range of the parent symbol.
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
             }
 
-            return filteredDocumentSymbols.ToImmutable();
+            return [.. filteredDocumentSymbols];
 
             // Returns true if the name of one of the tree nodes results in a pattern match.
             static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)

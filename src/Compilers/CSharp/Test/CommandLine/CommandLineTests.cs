@@ -6934,7 +6934,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
             file2.WriteAllText(source2);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(null, dir.Path, commandLineArguments.Concat(new[] { inputName1, inputName2 }).ToArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, [.. commandLineArguments, .. new[] { inputName1, inputName2 }]);
             int exitCode = csc.Run(outWriter);
             if (exitCode != 0)
             {
@@ -7054,7 +7054,7 @@ public class C
             file.WriteAllText(source);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(null, dir.Path, commandLineArguments.Concat(new[] { fileName }).ToArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, [.. commandLineArguments, .. new[] { fileName }]);
             int exitCode = csc.Run(outWriter);
 
             return exitCode;
@@ -8749,8 +8749,8 @@ Microsoft (R) Visual C# Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map:
-            Assert.Equal(mvid, ReadMvid(new MemoryStream(imageDll.GetContent().ToArray())));
-            Assert.Equal(mvid, ReadMvid(new MemoryStream(imagePdb.GetContent().ToArray())));
+            Assert.Equal(mvid, ReadMvid(new MemoryStream([.. imageDll.GetContent()])));
+            Assert.Equal(mvid, ReadMvid(new MemoryStream([.. imagePdb.GetContent()])));
 
             // reading original content directly from the streams:
             fsDll.Position = 0;
@@ -9356,7 +9356,7 @@ public class C { }
             var csc = CreateCSharpCompiler(
                 responseFile: null,
                 srcDirectory,
-                args.ToArray());
+                [.. args]);
 
             csc.ResolveAnalyzersFromArguments(
                 skipAnalyzers: false,
@@ -9891,7 +9891,7 @@ public class Program
             (int, string) compileAndRun(string featureOpt)
             {
                 var args = new[] { "/target:library", "/preferreduilang:en", "/langversion:8", "/nullable+", filePath };
-                if (featureOpt != null) args = args.Concat(featureOpt).ToArray();
+                if (featureOpt != null) args = [.. args, featureOpt];
                 var compiler = CreateCSharpCompiler(null, WorkingDirectory, args);
                 var outWriter = new StringWriter(CultureInfo.InvariantCulture);
                 int exitCode = compiler.Run(outWriter);
@@ -9933,7 +9933,7 @@ public class Program
             string[] compileAndRun(string featureOpt)
             {
                 var args = new[] { "/target:library", "/preferreduilang:en", "/nologo", filePath };
-                if (featureOpt != null) args = args.Concat(featureOpt).ToArray();
+                if (featureOpt != null) args = [.. args, featureOpt];
                 var compiler = CreateCSharpCompiler(null, WorkingDirectory, args);
                 var outWriter = new StringWriter(CultureInfo.InvariantCulture);
                 int exitCode = compiler.Run(outWriter);
@@ -12033,7 +12033,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     minCodeAnalysisRef,
                     minSystemCollectionsImmutableRef
                 };
-            references = references.Concat(NetStandard13.All).ToArray();
+            references = [.. references, .. NetStandard13.All];
 
             var analyzerImage = CSharpCompilation.Create(
                 analyzerAssemblyName,
@@ -12952,7 +12952,7 @@ class C
 [*.cs]
 dotnet_diagnostic.cs0169.severity = error");
 
-                additionalArgs = additionalArgs.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray();
+                additionalArgs = [.. additionalArgs, "/analyzerconfig:" + analyzerConfig.Path];
             }
 
             var expectedErrorCount = analyzerConfigSetToError ? 1 : 0;
@@ -13002,7 +13002,7 @@ class C
 </RuleSet>
 ";
                 var rulesetFile = CreateRuleSetFile(source);
-                additionalArgs = additionalArgs.Append("/ruleset:" + rulesetFile.Path).ToArray();
+                additionalArgs = [.. additionalArgs, "/ruleset:" + rulesetFile.Path];
             }
 
             var expectedErrorCount = rulesetSetToError ? 1 : 0;
@@ -13276,12 +13276,12 @@ generated_code = auto");
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
 
-                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
+                additionalFlags = [.. additionalFlags, $"/analyzerconfig:{analyzerConfig.Path}"];
             }
 
             if (warnAsErrorMinus)
             {
-                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray();
+                additionalFlags = [.. additionalFlags, $"/warnaserror-:{diagnosticId}"];
             }
 
             int expectedWarningCount = 0, expectedErrorCount = 0;
@@ -13637,7 +13637,7 @@ public class TestGenerator : ISourceGenerator
             var gen2 = createGenerator("2.0.0.0");
 
             var generatedDir = dir.CreateDirectory("generated");
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/analyzer:" + gen1, "/analyzer:" + gen2 }.ToArray());
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/analyzer:" + gen1, "/analyzer:" + gen2]);
 
             // This is wrong! Both generators are writing the same file out, over the top of each other
             // See https://github.com/dotnet/roslyn/issues/47990
@@ -14295,8 +14295,8 @@ dotnet_diagnostic.CS0164.severity = warning;
                                 expectedWarningCount: expectedWarnings,
                                 includeCurrentAssemblyAsAnalyzerReference: false,
                                 analyzers: null,
-                                additionalFlags: configs.SelectAsArray(c => "/analyzerconfig:" + c.Path)
-                                                         .Add("/noWarn:" + noWarn).ToArray());
+                                additionalFlags: [.. configs.SelectAsArray(c => "/analyzerconfig:" + c.Path)
+, "/noWarn:" + noWarn]);
         }
 
         [Fact]
@@ -14340,7 +14340,7 @@ label1:;
 is_global = true
 dotnet_diagnostic.CS0164.severity = warning;
 ");
-                additionalFlags = additionalFlags.Append("/analyzerconfig:" + globalConfig.Path).ToArray();
+                additionalFlags = [.. additionalFlags, "/analyzerconfig:" + globalConfig.Path];
             }
             else
             {
@@ -14352,7 +14352,7 @@ dotnet_diagnostic.CS0164.severity = warning;
 </RuleSet>
 ";
                 _ = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
-                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray();
+                additionalFlags = [.. additionalFlags, "/ruleset:Rules.ruleset"];
             }
 
             VerifyOutput(dir, src, additionalFlags: additionalFlags, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -14498,7 +14498,7 @@ class C
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
 
-                additionalArgs = additionalArgs.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray();
+                additionalArgs = [.. additionalArgs, "/analyzerconfig:" + analyzerConfig.Path];
             }
 
             if (!string.IsNullOrEmpty(additionalArg))

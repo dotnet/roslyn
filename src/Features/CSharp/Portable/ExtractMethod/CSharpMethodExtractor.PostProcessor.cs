@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (map.Count > 0)
                     result.AddRange(GetMergedDeclarationStatements(map));
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private void AppendDeclarationStatementToMap(
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         SyntaxFactory.SingletonSeparatedList(variable))));
                 result.AddRange(statements.Skip(2));
 
-                return result.ToImmutable();
+                return [.. result];
             }
         }
     }

@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _name = originalTypeName;
                 _lazyUncommonProperties = new UncommonProperties()
                 {
-                    lazyFilePathChecksum = ordinal.ToImmutableArray(),
+                    lazyFilePathChecksum = [.. ordinal],
                     lazyDisplayFileName = displayFileName
                 };
             }

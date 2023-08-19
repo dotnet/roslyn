@@ -196,7 +196,7 @@ class C : IB, IC
             {
                 Assert.NotNull(setter);
                 Assert.True(setter.ReturnsVoid);
-                CheckParameters(setter.Parameters, expectedParameterTypes.Concat(new[] { expectedType }).ToArray());
+                CheckParameters(setter.Parameters, [.. expectedParameterTypes, .. new[] { expectedType }]);
             }
             else
             {

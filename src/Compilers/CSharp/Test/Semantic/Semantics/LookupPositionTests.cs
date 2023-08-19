@@ -1209,33 +1209,37 @@ public abstract `class C`<T`> : NS.I
                 "System.String System.Object.ToString()",
                 "System.Type System.Object.GetType()"};
 
-            string[] delegate_d1_members = new string[]{
+            string[] delegate_d1_members = [
                 "System.IAsyncResult C<T>.D1.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D1.EndInvoke(System.IAsyncResult result)",
-                "void C<T>.D1.Invoke()"
-            }.Concat(s_commonDelegateTypeMembers).ToArray();
+                "void C<T>.D1.Invoke()",
+                .. s_commonDelegateTypeMembers,
+            ];
 
-            string[] delegate_d2_members = new string[]{
+            string[] delegate_d2_members = [
                 "System.IAsyncResult C<T>.D2.BeginInvoke(System.Int32 t, System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D2.EndInvoke(System.IAsyncResult result)",
-                "void C<T>.D2.Invoke(System.Int32 t)"
-            }.Concat(s_commonDelegateTypeMembers).ToArray();
+                "void C<T>.D2.Invoke(System.Int32 t)",
+                .. s_commonDelegateTypeMembers,
+            ];
 
-            string[] delegate_d3_members = new string[]{
+            string[] delegate_d3_members = [
                 "System.IAsyncResult C<T>.D3<U>.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D3<U>.EndInvoke(System.IAsyncResult result)",
-                "void C<T>.D3<U>.Invoke()"
-            }.Concat(s_commonDelegateTypeMembers).ToArray();
+                "void C<T>.D3<U>.Invoke()",
+                .. s_commonDelegateTypeMembers,
+            ];
 
-            string[] delegate_d4_members = new string[]{
+            string[] delegate_d4_members = [
                 "System.IAsyncResult C<T>.D4<V>.BeginInvoke(V t, System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D4<V>.EndInvoke(System.IAsyncResult result)",
-                "void C<T>.D4<V>.Invoke(V t)"
-            }.Concat(s_commonDelegateTypeMembers).ToArray();
+                "void C<T>.D4<V>.Invoke(V t)",
+                .. s_commonDelegateTypeMembers,
+            ];
 
-            string[] enum_e_members = new string[]{
-                "C<T>.E.A"
-            }.Concat(s_commonEnumTypeMembers).ToArray();
+            string[] enum_e_members = [
+                "C<T>.E.A", .. s_commonEnumTypeMembers
+            ];
 
             var expectedNames = MakeExpectedSymbols(
                 Add( //Global
@@ -3163,7 +3167,7 @@ record C(int X)
             return stack =>
             {
                 string[] prev = stack.Peek();
-                string[] curr = prev.Concat(added).ToArray();
+                string[] curr = [.. prev, .. added];
                 Array.Sort(curr);
                 stack.Push(curr);
             };

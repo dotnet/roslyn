@@ -154,10 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 namespacesToImportBuilder.Add(defaultNamespace);
             }
 
-            references = referencesBuilder.ToImmutableArray();
-            referenceSearchPaths = referenceSearchPathsBuilder.ToImmutableArray();
-            sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
-            projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
+            references = [.. referencesBuilder];
+            referenceSearchPaths = [.. referenceSearchPathsBuilder];
+            sourceSearchPaths = [.. sourceSearchPathsBuilder];
+            projectNamespaces = [.. namespacesToImportBuilder];
 
             platform = (projectOpt != null) ? GetInteractiveHostPlatform(targetFrameworkMoniker, projectOpt.CompilationOptions.Platform) : null;
         }

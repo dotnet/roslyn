@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Documents.Add(submission.Documents.Single());
             }
 
-            var solution = new TestHostSolution(projectNameToTestHostProject.Values.ToArray());
+            var solution = new TestHostSolution([.. projectNameToTestHostProject.Values]);
             AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.References.ToList();
+                references = [.. NetCoreApp.References];
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netstandard20).HasValue &&
                 ((bool?)netstandard20).Value)
             {
-                references = TargetFrameworkUtil.NetStandard20References.ToList();
+                references = [.. TargetFrameworkUtil.NetStandard20References];
             }
 
             var net6 = element.Attribute(CommonReferencesNet6Name);
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net6).HasValue &&
                 ((bool?)net6).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net60)];
             }
 
             var net7 = element.Attribute(CommonReferencesNet7Name);
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net7).HasValue &&
                 ((bool?)net7).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net70)];
             }
 
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);

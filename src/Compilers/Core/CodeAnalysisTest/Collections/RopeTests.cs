@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         };
         private static readonly Rope[] shortRopes = shortStrings.Select(s => Rope.ForString(s)).ToArray();
 
-        private static readonly Rope[] someRopes = shortRopes.Concat(longRopes).ToArray();
-        private static readonly string[] someStrings = shortStrings.Concat(longStrings).ToArray();
+        private static readonly Rope[] someRopes = [.. shortRopes, .. longRopes];
+        private static readonly string[] someStrings = [.. shortStrings, .. longStrings];
 
         [Fact]
         public void Empty()

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return usingsBuilder.ToImmutable();
+            return [.. usingsBuilder];
         }
 
         public override async Task<CompletionChange> GetChangeAsync(

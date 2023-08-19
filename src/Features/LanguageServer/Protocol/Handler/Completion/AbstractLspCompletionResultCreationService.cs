@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var completionList = new LSP.VSInternalCompletionList
             {
                 // public LSP
-                Items = lspCompletionItems.ToArray(),
+                Items = [.. lspCompletionItems],
                 IsIncomplete = isIncomplete,
                 ItemDefaults = new LSP.CompletionListItemDefaults
                 {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 });
             }
 
-            return builder.ToArray();
+            return [.. builder];
         }
 
         public static async Task<(LSP.TextEdit edit, bool isSnippetString, int? newPosition)> GenerateComplexTextEditAsync(

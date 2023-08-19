@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 visitor.WriteBoolean(isError);
-                visitor.WriteStringArray(friendlyNames.ToImmutable());
-                visitor.WriteLocationArray(locations.ToImmutable());
+                visitor.WriteStringArray([.. friendlyNames]);
+                visitor.WriteLocationArray([.. locations]);
 
                 if (isError)
                 {

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 foreach (var item in split)
                     SplitRawLineIntoFormattedLines(item, lines);
 
-                return lines.ToImmutable();
+                return [.. lines];
             }
 
             private static void SplitRawLineIntoFormattedLines(

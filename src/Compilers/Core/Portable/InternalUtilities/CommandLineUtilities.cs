@@ -54,7 +54,7 @@ namespace Roslyn.Utilities
         public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
             var list = new List<string>();
-            SplitCommandLineIntoArguments(commandLine.AsSpan(), removeHashComments, new StringBuilder(), list, out illegalChar);
+            SplitCommandLineIntoArguments([.. commandLine], removeHashComments, new StringBuilder(), list, out illegalChar);
             return list;
         }
 

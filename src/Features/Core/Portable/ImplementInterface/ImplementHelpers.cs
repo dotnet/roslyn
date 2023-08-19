@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             bool IsAssignedToFieldOrProperty(ImmutableArray<IFieldSymbol> fields, ImmutableArray<IPropertySymbol> properties, IParameterSymbol parameter)

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 result.AddIfNotNull(thirdParty);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static async Task FindSymbolReferencesAsync(

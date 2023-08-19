@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
                     builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
                 }
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 

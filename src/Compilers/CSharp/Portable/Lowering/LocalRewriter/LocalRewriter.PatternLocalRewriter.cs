@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public ImmutableArray<LocalSymbol> AllTemps()
                 {
-                    return _temps.ToImmutableArray();
+                    return [.. _temps];
                 }
             }
 

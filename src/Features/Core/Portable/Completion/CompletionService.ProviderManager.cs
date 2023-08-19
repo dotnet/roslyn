@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     providers.AddRange(_service.GetBuiltInProviders());
 #pragma warning restore 0618
 
-                    return providers.ToImmutable();
+                    return [.. providers];
                 }
             }
 

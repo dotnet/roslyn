@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 inlayHints.Add(inlayHint);
             }
 
-            return inlayHints.ToArray();
+            return [.. inlayHints];
         }
 
         /// <summary>

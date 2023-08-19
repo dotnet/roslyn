@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             result.RemoveDuplicates();
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)

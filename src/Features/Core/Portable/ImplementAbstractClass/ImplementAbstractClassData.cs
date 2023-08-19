@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)

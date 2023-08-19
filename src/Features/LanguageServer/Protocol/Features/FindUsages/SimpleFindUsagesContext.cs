@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             lock (_gate)
             {
-                return _definitionItems.ToImmutable();
+                return [.. _definitionItems];
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             lock (_gate)
             {
-                return _referenceItems.ToImmutable();
+                return [.. _referenceItems];
             }
         }
 

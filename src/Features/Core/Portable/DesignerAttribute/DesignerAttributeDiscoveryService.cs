@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     results.Add((data, projectVersion));
             }
 
-            return results.ToImmutable();
+            return [.. results];
 
             async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(
                 Project project, DocumentId documentId, string filePath, bool hasDesignerCategoryType)

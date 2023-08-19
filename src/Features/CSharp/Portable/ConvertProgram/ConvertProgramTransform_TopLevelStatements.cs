@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             foreach (var statement in statements)
                 globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
 
-            return globalStatements.ToImmutable();
+            return [.. globalStatements];
         }
 
         private static VariableDeclarationSyntax ConvertDeclaration(

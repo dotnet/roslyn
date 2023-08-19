@@ -3831,31 +3831,34 @@ public class Derived : Base2<string>
             {
                 if (!withCovariantCapableRuntime)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base1<string>.M(ref string, out string)'
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
                 else if (!withCovariantReturnFeatureEnabled)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                    // (15,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                    //     public override string M(ref string x, out string y) { y = null; return null; }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
-                        ).ToArray();
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
+,
+                    ];
                     anyErrors = true;
                 }
             }
             bool warned = false;
             if (overriddenRuntimeSignatureAmbiguity && !withCovariantCapableRuntime && !useCovariantReturns)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (4,27): warning CS1957: Member 'Derived.M(ref string, out string)' overrides 'Base1<string>.M(ref string, out string)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                    //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base1<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(4, 27)
-                    ).ToArray();
+,
+                ];
                 warned = true;
             }
 
@@ -3954,31 +3957,34 @@ public class Derived : Base2<string>
             {
                 if (!withCovariantCapableRuntime)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base1<string>.M(ref string, out string)'
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
                 else if (!withCovariantReturnFeatureEnabled)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (15,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
             }
             bool warned = false;
             if (overriddenRuntimeSignatureAmbiguity && !withCovariantCapableRuntime && !useCovariantReturns)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (5,27): warning CS1957: Member 'Derived.M(ref string, out string)' overrides 'Base1<string>.M(ref string, out string)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                    //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base1<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(5, 27)
-                    ).ToArray();
+,
+                ];
                 warned = true;
             }
 
@@ -4074,31 +4080,34 @@ public class Derived : Base<string>
             {
                 if (!withCovariantCapableRuntime)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base<string>.M(ref string, out string)'
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
                 else if (!withCovariantReturnFeatureEnabled)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
             }
             bool warned = false;
             if (!withCovariantCapableRuntime && !useCovariantReturns)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (4,27): warning CS1957: Member 'Derived.M(ref string, out string)' overrides 'Base<string>.M(ref string, out string)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                    //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(4, 27)
-                    ).ToArray();
+,
+                ];
                 warned = true;
             }
 
@@ -4189,31 +4198,34 @@ public class Derived : Base<string>
             {
                 if (!withCovariantCapableRuntime)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base<string>.M(ref string, out string)'
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
                 else if (!withCovariantReturnFeatureEnabled)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
-                        ).ToArray();
+,
+                    ];
                     anyErrors = true;
                 }
             }
             bool warned = false;
             if (!withCovariantCapableRuntime && !useCovariantReturns)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (5,27): warning CS1957: Member 'Derived.M(ref string, out string)' overrides 'Base<string>.M(ref string, out string)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                    //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(5, 27)
-                    ).ToArray();
+,
+                ];
                 warned = true;
             }
 
@@ -4308,20 +4320,22 @@ public class Derived : Base2<string>
             bool anyErrors = false;
             if (!withCovariantCapableRuntime)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (4,28): error CS8778: 'Derived.M(out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base2<string>.M(out string)'
-                    //     public override string M(out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(out string)", "Base2<string>.M(out string)", "object")
-                    ).ToArray();
+,
+                ];
                 anyErrors = true;
             }
             else if (!withCovariantReturnFeatureEnabled)
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (14,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                    //     public override string M(out string y) { y = null; return null; }
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
-                    ).ToArray();
+,
+                ];
                 anyErrors = true;
             }
 
@@ -4417,11 +4431,12 @@ public class Derived : Base<object>
                 {
                     if (overrideProperty)
                     {
-                        expectedDiagnostics = expectedDiagnostics.Append(
-                            // (4,28): error CS8779: 'Derived.Prop': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base<object>.Prop'
-                            //     public override string Prop => null;
+                        expectedDiagnostics =
+                        [
+                            .. expectedDiagnostics,
                             Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "Prop").WithArguments("Derived.Prop", "Base<object>.Prop", "object")
-                            ).ToArray();
+,
+                        ];
                     }
                     else
                     {
@@ -4432,11 +4447,12 @@ public class Derived : Base<object>
                 {
                     if (overrideProperty)
                     {
-                        expectedDiagnostics = expectedDiagnostics.Append(
-                            // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
-                            //     public override string Prop => null;
+                        expectedDiagnostics =
+                        [
+                            .. expectedDiagnostics,
                             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Prop").WithArguments("covariant returns", "9.0")
-                            ).ToArray();
+,
+                        ];
                     }
                     else
                     {
@@ -4451,20 +4467,22 @@ public class Derived : Base<object>
                 if (!useCovariantReturns ||
                     useCovariantReturns && withCovariantReturnFeatureEnabled && withCovariantCapableRuntime)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,36): error CS0462: The inherited members 'Base<Pbject>.Prop.get' and 'Base<Pbject>.get_Prop()' have the same signature in type 'Derived', so they cannot be overridden
-                        //     public override object Prop => null;
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.ERR_AmbigOverride, "null").WithArguments("Base<Pbject>.Prop.get", "Base<Pbject>.get_Prop()", "Derived")
-                        ).ToArray();
+,
+                    ];
                 }
             }
             else
             {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (4,28): error CS0462: The inherited members 'Base<Pbject>.get_Prop()' and 'Base<Pbject>.Prop.get' have the same signature in type 'Derived', so they cannot be overridden
-                    //     public override object get_Prop() => null;
+                expectedDiagnostics =
+                [
+                    .. expectedDiagnostics,
                     Diagnostic(ErrorCode.ERR_AmbigOverride, "get_Prop").WithArguments("Base<Pbject>.get_Prop()", "Base<Pbject>.Prop.get", "Derived")
-                    ).ToArray();
+,
+                ];
             }
 
             bool deservesAmbiguousOverrideWarning = !withCovariantCapableRuntime && !useCovariantReturns;
@@ -4473,19 +4491,21 @@ public class Derived : Base<object>
             {
                 if (overrideProperty)
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                    // (6,35): warning CS1957: Member 'Derived.Prop.get' overrides 'Base<object>.Prop.get'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                    //     public virtual Pbject Prop => default(Pbject);
-                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "default(Pbject)").WithArguments("Base<object>.Prop.get", "Derived.Prop.get")
-                        ).ToArray();
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
+                        Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "default(Pbject)").WithArguments("Base<object>.Prop.get", "Derived.Prop.get")
+,
+                    ];
                 }
                 else
                 {
-                    expectedDiagnostics = expectedDiagnostics.Append(
-                        // (5,27): warning CS1957: Member 'Derived.get_Prop()' overrides 'Base<object>.get_Prop()'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                        //     public virtual object get_Prop() => default(object);
+                    expectedDiagnostics =
+                    [
+                        .. expectedDiagnostics,
                         Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "get_Prop").WithArguments("Base<object>.get_Prop()", "Derived.get_Prop()")
-                        ).ToArray();
+,
+                    ];
                 }
             }
 

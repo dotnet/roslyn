@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             AddListItemsFromSymbols(symbols, compilation, projectId, listItemCreator, builder);
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static void AddListItemsFromSymbols<TSymbol>(
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private ImmutableArray<ObjectListItem> GetMemberListItems(
@@ -310,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 AddListItemsFromSymbols(inheritedMembers, compilation, projectId, CreateInheritedMemberListItem, builder);
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static ImmutableArray<ISymbol> GetMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return symbolBuilder.ToImmutable();
+            return [.. symbolBuilder];
         }
 
         private static ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
@@ -370,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return symbolBuilder.ToImmutable();
+            return [.. symbolBuilder];
         }
 
         private static void AddOverriddenMembers(INamedTypeSymbol namedTypeSymbol, ref HashSet<ISymbol> overriddenMembers)
@@ -454,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             CollectNamespaceListItems(assemblySymbol, parentListItem.ProjectId, builder, searchString: null);
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private class AssemblySymbolComparer : IEqualityComparer<Tuple<ProjectId, IAssemblySymbol>>
@@ -565,7 +565,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
@@ -639,7 +639,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             projectListItemBuilder.AddRange(referenceListItemBuilder);
 
-            return projectListItemBuilder.ToImmutable();
+            return [.. projectListItemBuilder];
         }
 
         public ImmutableArray<ObjectListItem> GetReferenceListItems(ObjectListItem parentListItem, Compilation compilation)
@@ -690,7 +690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private ImmutableArray<ObjectListItem> GetTypeListItems(
@@ -721,7 +721,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return finalBuilder.ToImmutable();
+            return [.. finalBuilder];
         }
 
         public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation)

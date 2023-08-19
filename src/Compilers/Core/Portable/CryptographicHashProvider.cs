@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             var algorithmName = GetAlgorithmName(hashAlgorithm);
             using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
-                incrementalHash.AppendData(bytes.ToArray());
+                incrementalHash.AppendData([.. bytes]);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return CreateSymbolTreeInfo(
                     checksum,
-                    unsortedBuilderNodes.ToImmutable(),
+                    [.. unsortedBuilderNodes],
                     inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
                     receiverTypeNameToExtensionMethodMap: null);
             }

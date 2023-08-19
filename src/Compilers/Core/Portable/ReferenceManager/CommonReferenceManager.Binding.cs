@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
                 // Rebind assembly references that were initially missing. All bindings established above
                 // are against explicitly specified references.
 
-                allAssemblies = explicitAssemblies.AddRange(implicitAssemblies);
+                allAssemblies = [.. explicitAssemblies, .. implicitAssemblies];
 
                 for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
                 {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis
 
                 UpdateBindingsOfAssemblyBeingBuilt(referenceBindings, explicitAssemblyCount, implicitAssemblies);
 
-                metadataReferences = metadataReferencesBuilder.ToImmutable();
+                metadataReferences = [.. metadataReferencesBuilder];
                 resolvedReferences = ToResolvedAssemblyReferences(metadataReferences, lazyAliasMap, explicitAssemblyCount);
             }
             finally

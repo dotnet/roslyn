@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 if (left is null || right is null)
                     return left ?? right;
-                return left.WithSubpatterns(left.Subpatterns.AddRange(right.Subpatterns));
+                return left.WithSubpatterns([.. left.Subpatterns, .. right.Subpatterns]);
             }
         }
 

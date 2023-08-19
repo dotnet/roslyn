@@ -126,7 +126,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         /// <summary>

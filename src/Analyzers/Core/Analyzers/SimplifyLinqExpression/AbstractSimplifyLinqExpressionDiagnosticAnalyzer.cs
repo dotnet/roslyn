@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     }
                 }
 
-                linqMethods = linqMethodSymbolsBuilder.ToImmutable();
+                linqMethods = [.. linqMethodSymbolsBuilder];
                 return linqMethods.Any();
             }
         }

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     _tableBuilder[key] = _tableBuilder[key].AsCached();
                 }
 
-                return new StateTableStore(_tableBuilder.ToImmutable());
+                return new StateTableStore([.. _tableBuilder]);
             }
         }
     }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 foreach (var location in locations.Value)
                     result.AddIfNotNull(await location.TryRehydrateAsync(project.Solution, cancellationToken).ConfigureAwait(false));
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             return await GetSourceLocationsInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             await foreach (var item in GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false))
                 result.Add(item);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(

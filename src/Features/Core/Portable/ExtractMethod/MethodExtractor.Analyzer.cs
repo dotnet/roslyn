@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 list.AddRange(variableInfo);
 
                 VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
-                return list.ToImmutable();
+                return [.. list];
             }
 
             /// <param name="bestEffort">When false, variables whose data flow is not understood

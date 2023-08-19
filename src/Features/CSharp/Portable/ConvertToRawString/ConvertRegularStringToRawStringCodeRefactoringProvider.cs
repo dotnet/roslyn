@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
                 var leadingTrivia = token.LeadingTrivia;
                 if (addIndentationToStart)
-                    leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
+                    leadingTrivia = [.. leadingTrivia, SyntaxFactory.Whitespace(indentation)];
 
                 return SyntaxFactory.Token(
                     leadingTrivia,
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
                 result.RemoveAt(result.Count - 1);
 
-            return VirtualCharSequence.Create(result.ToImmutable());
+            return VirtualCharSequence.Create([.. result]);
         }
 
         private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)

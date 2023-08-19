@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         private SyntaxNodeOrToken[] Nodes
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            get { return this.ToArray(); }
+            get { return [.. this]; }
         }
 
         /// <summary>

@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope.Analyzers, builder);
             }
 
-            return builder.ToImmutableArray();
+            return [.. builder];
         }
 
         private static void AddAllLocalDiagnostics_NoLock<TKey>(

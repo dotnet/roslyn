@@ -55,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             var document = context.Document;
             if (document == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
 
             var xamlGoToDefinitionService = document.Project.Services.GetService<IXamlGoToDefinitionService>();
             if (xamlGoToDefinitionService == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return locations.ToArray();
+            return [.. locations];
         }
 
         private async Task<LSP.Location[]> GetLocationsAsync(XamlDefinition definition, RequestContext context, CancellationToken cancellationToken)
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 throw new InvalidOperationException($"Unexpected {nameof(XamlDefinition)} Type");
             }
 
-            return locations.ToArray();
+            return [.. locations];
         }
 
         private static async Task<LSP.Location?> GetSourceDefinitionLocationAsync(XamlSourceDefinition sourceDefinition, RequestContext context, CancellationToken cancellationToken)
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 }
             }
 
-            return locations.ToArray();
+            return [.. locations];
         }
     }
 }

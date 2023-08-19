@@ -4701,7 +4701,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             M2 3.3
             M2 3.3
             """);
-        verifier.VerifyDiagnostics(fromMetadata ? warnings2 : warnings1.Concat(warnings2).ToArray());
+        verifier.VerifyDiagnostics(fromMetadata ? warnings2 : [.. warnings1, .. warnings2]);
         verifier.VerifyIL("D.M3", """
             {
               // Code size       20 (0x14)

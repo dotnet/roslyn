@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenAssignment :
                 new BoundSequence(
                     node.Syntax,
-                    temps.ToImmutable(),
-                    stores.ToImmutable(),
+                    [.. temps],
+                    [.. stores],
                     rewrittenAssignment,
                     rewrittenAssignment.Type);
 

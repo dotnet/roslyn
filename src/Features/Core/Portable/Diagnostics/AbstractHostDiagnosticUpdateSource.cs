@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project? project)
         {
             return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
+                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: [.. items]);
         }
 
         private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)

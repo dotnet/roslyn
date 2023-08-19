@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     builder.Add(parameters[i]);
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
         }
 
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => new(OpenBracketToken.With(leadingTrivia: leadingTrivia.ToImmutableArray()), CloseBracketToken.With(trailingTrivia: trailingTrivia.ToImmutableArray()), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
 
         public static StackFrameArrayRankSpecifier ArrayRankSpecifier(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameToken[] commaTokens)
-            => new(openToken, closeToken, commaTokens.ToImmutableArray());
+            => new(openToken, closeToken, [.. commaTokens]);
 
         public static StackFrameArrayTypeNode ArrayType(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
-            => new(identifier, arrayTokens.ToImmutableArray());
+            => new(identifier, [.. arrayTokens]);
 
         public static StackFrameGenericNameNode GenericType(string identifierName, int arity)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), GraveAccentToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 builder.Add(typeArgument);
             }
 
-            var typeArgumentsList = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode>(builder.ToImmutable());
+            var typeArgumentsList = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode>([.. builder]);
 
             return new(openToken, typeArgumentsList, closeToken);
         }

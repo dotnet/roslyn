@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         name: names[i].BestNameForParameter));
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private Accessibility DetermineAccessibility(bool isAbstract)

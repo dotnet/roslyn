@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                Task.WaitAny(all.ToArray(), cancellationToken);
+                Task.WaitAny([.. all], cancellationToken);
             }
             catch (OperationCanceledException)
             {

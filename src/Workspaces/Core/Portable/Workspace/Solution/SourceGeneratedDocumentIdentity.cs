@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
             // is it must be collision resistant, and provide enough bits to fill a GUID.
             using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
-            var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
+            var hash = crytpoAlgorithm.ComputeHash([.. hashInput]);
             Array.Resize(ref hash, 16);
             var guid = new Guid(hash);
 

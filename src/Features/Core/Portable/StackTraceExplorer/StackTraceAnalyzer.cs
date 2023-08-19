@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         private static IEnumerable<VirtualCharSequence> SplitLines(VirtualCharSequence callstack)

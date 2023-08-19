@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         paramsTransformed |= paramTransformed;
                     }
 
-                    transformedParameters = paramsTransformed ? paramsBuilder.ToImmutable() : sig.ParameterTypesWithAnnotations;
+                    transformedParameters = paramsTransformed ? [.. paramsBuilder] : sig.ParameterTypesWithAnnotations;
                     madeChanges |= paramsTransformed;
                 }
                 finally

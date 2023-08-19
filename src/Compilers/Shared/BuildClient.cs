@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // It's okay, and expected, for the server compilation to fail.  In that case just fall 
             // back to normal compilation. 
-            var exitCode = RunLocalCompilation(parsedArgs.ToArray(), buildPaths, textWriter);
+            var exitCode = RunLocalCompilation([.. parsedArgs], buildPaths, textWriter);
             return new RunCompilationResult(exitCode);
         }
 

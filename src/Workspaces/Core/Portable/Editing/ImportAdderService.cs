@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value, options);
 
             // Now remove any imports we think can cause conflicts in that container.
-            var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), importContainer, model, cancellationToken);
+            var safeImportsToAdd = GetSafeToAddImports([.. importToSyntax.Keys], importContainer, model, cancellationToken);
 
             var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
             if (importsToAdd.Length == 0)

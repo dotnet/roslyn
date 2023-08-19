@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(lookupSymbols.All(sym => sym.Kind == lookupSymbols[0].Kind));
 
             // We can sort later when we disambiguate.
-            ImmutableArray<Symbol> result = lookupSymbols.ToImmutable();
+            ImmutableArray<Symbol> result = [.. lookupSymbols];
 
             lookupResult.Free();
 

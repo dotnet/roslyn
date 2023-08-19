@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
 
             // At this point all the nodes should have been output, otherwise there was a cycle
             bool hadCycle = predecessorCounts.Count != resultBuilder.Count;
-            result = hadCycle ? ImmutableArray<TNode>.Empty : resultBuilder.ToImmutable();
+            result = hadCycle ? ImmutableArray<TNode>.Empty : [.. resultBuilder];
 
             predecessorCounts.Free();
             ready.Free();

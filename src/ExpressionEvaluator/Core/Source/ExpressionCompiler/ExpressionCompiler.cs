@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var newReferences = DkmUtilities.GetMetadataBlocks(getMetaDataBytesPtrFunction, missingAssemblyIdentities);
             if (newReferences.Length > 0)
             {
-                references = references.AddRange(newReferences);
+                references = [.. references, .. newReferences];
                 return true;
             }
 

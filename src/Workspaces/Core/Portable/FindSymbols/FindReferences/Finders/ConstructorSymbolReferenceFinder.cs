@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             result.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 methodSymbol, state, cancellationToken).ConfigureAwait(false));
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         /// <summary>

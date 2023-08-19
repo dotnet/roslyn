@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // so as to not clutter the list.
                     return ImmutableArray.Create(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutable(),
+                        [.. actions],
                         isInlinable: true));
                 }
 
-                return actions.ToImmutable();
+                return [.. actions];
             }
         }
 

@@ -275,7 +275,7 @@ internal partial class XmlSnippetParser
 
             Contract.ThrowIfFalse(snippetParts.Any());
 
-            return new ParsedXmlSnippet(snippetParts.ToImmutable());
+            return new ParsedXmlSnippet([.. snippetParts]);
         }
 
         private ExpansionField? FindField(string fieldName)

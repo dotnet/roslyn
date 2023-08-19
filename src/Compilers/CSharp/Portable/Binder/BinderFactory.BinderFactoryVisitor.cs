@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)property.SetMethod != null)
                     {
                         Debug.Assert(property.SetMethod.ParameterCount > 0);
-                        parameters = parameters.Add(property.SetMethod.Parameters.Last());
+                        parameters = [.. parameters, property.SetMethod.Parameters.Last()];
                     }
 
                     if (parameters.Any())

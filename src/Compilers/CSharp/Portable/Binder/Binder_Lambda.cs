@@ -206,27 +206,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hasExplicitlyTypedParameterList)
                 {
-                    types = typesBuilder.ToImmutable();
+                    types = [.. typesBuilder];
                 }
 
                 if (refKindsBuilder.Any(r => r != RefKind.None))
                 {
-                    refKinds = refKindsBuilder.ToImmutable();
+                    refKinds = [.. refKindsBuilder];
                 }
 
                 if (scopesBuilder.Any(s => s != ScopedKind.None))
                 {
-                    scopes = scopesBuilder.ToImmutable();
+                    scopes = [.. scopesBuilder];
                 }
 
                 if (attributesBuilder.Any(a => a.Count > 0))
                 {
-                    parameterAttributes = attributesBuilder.ToImmutable();
+                    parameterAttributes = [.. attributesBuilder];
                 }
 
                 if (defaultValueBuilder.Any(v => v != null))
                 {
-                    defaultValues = defaultValueBuilder.ToImmutable();
+                    defaultValues = [.. defaultValueBuilder];
                 }
 
                 typesBuilder.Free();
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasSignature)
             {
-                names = namesBuilder.ToImmutable();
+                names = [.. namesBuilder];
             }
 
             namesBuilder.Free();

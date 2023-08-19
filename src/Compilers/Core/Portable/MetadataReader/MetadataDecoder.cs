@@ -893,7 +893,7 @@ tryAgain:
                     locals[i] = locals[i].WithSignature(signature);
                 }
 
-                return locals.ToImmutable();
+                return [.. locals];
             }
             finally
             {

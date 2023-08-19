@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // order statesets
                     // order will be in this order
                     // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
-                    OrderedStateSets = StateSetMap.Values.OrderBy(PriorityComparison).ToImmutableArray();
+                    OrderedStateSets = [.. StateSetMap.Values.OrderBy(PriorityComparison)];
                 }
 
                 public HostAnalyzerStateSets WithExcludedAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)

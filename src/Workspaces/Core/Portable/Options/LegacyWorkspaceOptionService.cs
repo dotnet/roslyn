@@ -107,9 +107,13 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
             ref _registeredWorkspaces,
             static (workspaces, workspace) =>
             {
-                return workspaces
-                    .RemoveAll(static weakWorkspace => !weakWorkspace.TryGetTarget(out _))
-                    .Add(new WeakReference<Workspace>(workspace));
+                return
+                [
+                    .. workspaces
+                                        .RemoveAll(static weakWorkspace => !weakWorkspace.TryGetTarget(out _))
+,
+                    new WeakReference<Workspace>(workspace),
+                ];
             },
             workspace);
     }

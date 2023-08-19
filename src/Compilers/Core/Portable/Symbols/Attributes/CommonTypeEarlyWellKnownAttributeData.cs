@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         public void AddConditionalSymbol(string name)
         {
             VerifySealed(expected: false);
-            _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
+            _lazyConditionalSymbols = [.. _lazyConditionalSymbols, name];
             SetDataStored();
         }
 

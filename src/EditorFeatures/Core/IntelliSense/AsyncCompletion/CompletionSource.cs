@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return hashSet.ToImmutableArray();
+            return [.. hashSet];
         }
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(

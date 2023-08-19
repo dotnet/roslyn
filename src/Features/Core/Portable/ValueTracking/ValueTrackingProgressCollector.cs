@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         {
             lock (_lock)
             {
-                return _items.ToImmutableArray();
+                return [.. _items];
             }
         }
 

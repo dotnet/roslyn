@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 Marshal.FreeCoTaskMem(pSnippetInfo[0]);
             }
 
-            return snippetListBuilder.ToImmutable();
+            return [.. snippetListBuilder];
         }
 
         protected static IImmutableSet<string> GetShortcutsHashFromSnippets(ImmutableArray<SnippetInfo> updatedSnippets)

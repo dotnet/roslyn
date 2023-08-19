@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
 
             Recurse(text, root, textSpan, result, cancellationToken);
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static void Recurse(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
                 }
             }
 
-            result.Add(new StringIndentationRegion(indentSpan, builder.ToImmutable()));
+            result.Add(new StringIndentationRegion(indentSpan, [.. builder]));
         }
 
         private static bool IsInHole(InterpolatedStringExpressionSyntax interpolatedString, TextSpan sourceSpan)

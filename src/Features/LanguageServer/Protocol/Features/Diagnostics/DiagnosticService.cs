@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private void AppendMatchingData(

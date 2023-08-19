@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = Path.Combine(CreateSessionDirectory(sessionId, directory), fileName);
-                    File.WriteAllBytes(path, bytes.ToArray());
+                    File.WriteAllBytes(path, [.. bytes]);
                 }
                 catch (Exception e)
                 {

@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             // References (metadata/project/analyzer)
             ReferenceChange.AppendReferenceChanges(projectChanges, this, builder);
 
-            _topLevelChange.Children = builder.Count == 0 ? ChangeList.Empty : new ChangeList(builder.ToArray());
+            _topLevelChange.Children = builder.Count == 0 ? ChangeList.Empty : new ChangeList([.. builder]);
             ppIUnknownPreviewChangesList = _topLevelChange.Children.Changes.Length == 0 ? new ChangeList(new[] { new NoChange(this) }) : new ChangeList(new[] { _topLevelChange });
 
             if (_topLevelChange.Children.Changes.Length == 0)

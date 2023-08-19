@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // The stack was processed in the reverse order, but the extra statements should be provided in the direct order.
                 statements.Reverse();
                 statements.Add(statement.WithAdditionalAnnotations(Simplifier.Annotation));
-                return statements.ToArray();
+                return [.. statements];
             }
 
             private bool TryProcessQueryBody(QueryBodySyntax queryBody, QueryExpressionProcessingInfo queryExpressionProcessingInfo)

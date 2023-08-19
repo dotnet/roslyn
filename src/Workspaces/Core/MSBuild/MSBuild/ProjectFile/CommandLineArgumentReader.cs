@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected ImmutableArray<string> Read()
         {
             ReadCore();
-            return _builder.ToImmutable();
+            return [.. _builder];
         }
     }
 }

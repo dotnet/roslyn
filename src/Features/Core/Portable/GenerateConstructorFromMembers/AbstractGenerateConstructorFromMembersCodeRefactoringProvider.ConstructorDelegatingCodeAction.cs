@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     ? syntaxTree.GetLocation(_state.TextSpan)
                     : null;
 
-                var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
+                var statements = nullCheckStatements.ToImmutable().Concat([.. assignStatements]);
                 var result = await codeGenerationService.AddMethodAsync(
                     new CodeGenerationSolutionContext(
                         _document.Project.Solution,

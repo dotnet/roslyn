@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                         return ImmutableArray<DiagnosticAsyncToken>.Empty;
                     }
 
-                    return _diagnosticTokenList.ToImmutableArray();
+                    return [.. _diagnosticTokenList];
                 }
             }
         }

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             tasks.Add(Task.Run(async () => await AddDocumentDiagnosticsAsync(diagnostics, projectToFix).ConfigureAwait(false), cancellationToken));
 
                         await Task.WhenAll(tasks).ConfigureAwait(false);
-                        allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
+                        allDiagnostics = [.. allDiagnostics, .. diagnostics.SelectMany(i => i.Value)];
                     }
 
                     break;

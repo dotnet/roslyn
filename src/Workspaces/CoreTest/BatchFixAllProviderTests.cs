@@ -107,7 +107,7 @@ class TestClass {{
 
                     if (_nested)
                     {
-                        fixes = new List<CodeAction> { CodeAction.Create("Container", fixes.ToImmutableArray(), isInlinable: false) };
+                        fixes = new List<CodeAction> { CodeAction.Create("Container", [.. fixes], isInlinable: false) };
                     }
 
                     foreach (var fix in fixes)

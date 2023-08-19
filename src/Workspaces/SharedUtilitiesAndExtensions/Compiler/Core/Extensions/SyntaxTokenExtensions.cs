@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<SyntaxTrivia> trivia)
         {
             var list = new SyntaxTriviaList();
-            list = list.AddRange(trivia);
+            list = [.. list, .. trivia];
 
             return token.WithPrependedLeadingTrivia(list);
         }

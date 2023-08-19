@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     ? folders
                     : _state.SimpleName != _state.NameOrMemberAccessExpression
                         ? containers.ToList()
-                        : _semanticDocument.Document.Folders.ToList();
+                        : [.. _semanticDocument.Document.Folders];
 
                 if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
                 {
@@ -526,8 +526,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // Populate the ContainerList
                         AddFoldersToNamespaceContainers(containerList, folders);
 
-                        containers = containerList.ToArray();
-                        includeUsingsOrImports = string.Join(".", containerList.ToArray());
+                        containers = [.. containerList];
+                        includeUsingsOrImports = string.Join(".", [.. containerList]);
                     }
 
                     // Case 4 : If the type is generated into the same VB project or
@@ -540,8 +540,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         // Populate the ContainerList
                         AddFoldersToNamespaceContainers(containerList, folders);
-                        containers = containerList.ToArray();
-                        includeUsingsOrImports = string.Join(".", containerList.ToArray());
+                        containers = [.. containerList];
+                        includeUsingsOrImports = string.Join(".", [.. containerList]);
                         if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                         {
                             includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)

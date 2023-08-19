@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
             _tempDirectory = Temp.CreateDirectory();
-            _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
+            _existingServerList = [.. Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler"))];
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 

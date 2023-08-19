@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            namedAttributeArguments = builder.ToImmutable();
+            namedAttributeArguments = [.. builder];
             return namedAttributeArguments.Length > 0;
         }
 

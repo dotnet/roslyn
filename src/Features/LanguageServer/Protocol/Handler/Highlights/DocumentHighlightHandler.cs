@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var keywordHighlights = await GetKeywordHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
             if (keywordHighlights.Any())
             {
-                return keywordHighlights.ToArray();
+                return [.. keywordHighlights];
             }
 
             // Not a keyword, check if it is a reference that needs highlighting.
             var referenceHighlights = await GetReferenceHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
             if (referenceHighlights.Any())
             {
-                return referenceHighlights.ToArray();
+                return [.. referenceHighlights];
             }
 
             // No keyword or references to highlight at this location.

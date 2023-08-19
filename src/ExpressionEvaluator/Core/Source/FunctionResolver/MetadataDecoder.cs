@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 builder.Add(DecodeParameter(ref signatureReader));
             }
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         // cf. MetadataDecoder<>.DecodeParameterOrThrow.
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var typeArg = DecodeModifiersAndType(ref signatureReader);
                 builder.Add(typeArg);
             }
-            return builder.ToImmutable();
+            return [.. builder];
         }
 
         // cf. MetadataDecoder<>.GetSymbolForTypeHandleOrThrow.

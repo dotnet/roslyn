@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 diagnostics.AddRange(projectEmitDiagnostics);
             }
 
-            return diagnostics.ToImmutable();
+            return [.. diagnostics];
         }
 
         internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetHotReloadDiagnosticsAsync(
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return builder.ToImmutable();
+            return [.. builder];
         }
     }
 }

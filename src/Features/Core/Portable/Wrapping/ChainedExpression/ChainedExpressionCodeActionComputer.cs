@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
 
-                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutable()));
+                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, [.. actions]));
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     position += NormalizedWidth(chunk);
                 }
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
                 DeleteAllSpacesInChunk(result, flattened);
 
-                return result.ToImmutable();
+                return [.. result];
             }
 
             private static void DeleteAllSpacesInChunk(

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static void AddParts(

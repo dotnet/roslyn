@@ -519,28 +519,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var builder = list.ToBuilder();
             builder.Sort();
-            return builder.ToImmutable().ToList();
+            return [.. builder];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, Comparison<T> comparison)
         {
             var builder = list.ToBuilder();
             builder.Sort(comparison);
-            return builder.ToImmutable().ToList();
+            return [.. builder];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, IComparer<T>? comparer)
         {
             var builder = list.ToBuilder();
             builder.Sort(comparer);
-            return builder.ToImmutable().ToList();
+            return [.. builder];
         }
 
         private protected override List<T> SortTestHelper<T>(ImmutableSegmentedList<T> list, int index, int count, IComparer<T>? comparer)
         {
             var builder = list.ToBuilder();
             builder.Sort(index, count, comparer);
-            return builder.ToImmutable().ToList();
+            return [.. builder];
         }
     }
 }

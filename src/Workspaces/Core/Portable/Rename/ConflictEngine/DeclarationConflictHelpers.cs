@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // the spec.
                 if (trimOptionalParameters && parameter.IsOptional)
                 {
-                    resultBuilder.Add(signatureBuilder.ToImmutable());
+                    resultBuilder.Add([.. signatureBuilder]);
                 }
 
                 signatureBuilder.Add(parameter.Type);

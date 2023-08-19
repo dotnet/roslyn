@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     result.Add(document);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

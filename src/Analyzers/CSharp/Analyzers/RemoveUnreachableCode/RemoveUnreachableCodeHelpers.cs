@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                             builder.Add(currentGlobalStatement.Statement);
                         }
 
-                        siblingStatements = builder.ToImmutable();
+                        siblingStatements = [.. builder];
                     }
 
                     break;

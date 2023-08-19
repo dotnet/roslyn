@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
             {
-                return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+                return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements([.. StatementGenerator.GenerateStatements(statements)]));
             }
             else if (destinationMember is CompilationUnitSyntax compilationUnit && info.Context.BestLocation is null)
             {
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // statement container. If the global statement is not already a block, create a block which can hold
                 // both the original statement and any new statements we are adding to it.
                 var block = statement as BlockSyntax ?? SyntaxFactory.Block(statement);
-                return Cast<TDeclarationNode>(block.AddStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+                return Cast<TDeclarationNode>(block.AddStatements([.. StatementGenerator.GenerateStatements(statements)]));
             }
             else
             {
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var finalMember = baseMethodDeclaration
                 .WithExpressionBody(null)
                 .WithSemicolonToken(default)
-                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+                .WithBody(body.WithStatements([.. body.Statements, .. StatementGenerator.GenerateStatements(statements)]));
 
             return Cast<TDeclarationNode>(finalMember);
         }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var finalMember = localFunctionStatement
                 .WithExpressionBody(null)
                 .WithSemicolonToken(default)
-                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+                .WithBody(body.WithStatements([.. body.Statements, .. StatementGenerator.GenerateStatements(statements)]));
 
             return Cast<TDeclarationNode>(finalMember);
         }
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var finalMember = anonymousFunctionSyntax
                 .WithExpressionBody(null)
-                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+                .WithBody(body.WithStatements([.. body.Statements, .. StatementGenerator.GenerateStatements(statements)]));
 
             return Cast<TDeclarationNode>(finalMember);
         }

@@ -217,13 +217,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
             }
 
-            projectItems = documents.Select(d =>
-                new NavigationBarProjectItem(
-                    d.Project.Name,
-                    d.Project.GetGlyph(),
-                    workspace: d.Project.Solution.Workspace,
-                    documentId: d.Id,
-                    language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToImmutableArray();
+            projectItems =
+            [
+                .. documents.Select(d =>
+                                new NavigationBarProjectItem(
+                                    d.Project.Name,
+                                    d.Project.GetGlyph(),
+                                    workspace: d.Project.Solution.Workspace,
+                                    documentId: d.Id,
+                                    language: d.Project.Language)).OrderBy(projectItem => projectItem.Text),
+            ];
 
             var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             selectedProjectItem = document != null

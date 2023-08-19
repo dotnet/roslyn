@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 loweredBody,
                                 ImmutableArray<LambdaDebugInfo>.Empty,
                                 ImmutableArray<ClosureDebugInfo>.Empty,
-                                stateMachineStateDebugInfoBuilder.ToImmutable(),
+                                [.. stateMachineStateDebugInfoBuilder],
                                 stateMachine,
                                 variableSlotAllocatorOpt,
                                 diagnosticsThisMethod,
@@ -1344,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    boundStatements = boundStatements.Add(processedInitializers.LoweredInitializers);
+                                    boundStatements = [.. boundStatements, processedInitializers.LoweredInitializers];
                                 }
                             }
 
@@ -1370,9 +1370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 methodSymbol,
                                 methodOrdinal,
                                 boundBody,
-                                lambdaDebugInfoBuilder.ToImmutable(),
-                                closureDebugInfoBuilder.ToImmutable(),
-                                stateMachineStateDebugInfoBuilder.ToImmutable(),
+                                [.. lambdaDebugInfoBuilder],
+                                [.. closureDebugInfoBuilder],
+                                [.. stateMachineStateDebugInfoBuilder],
                                 stateMachineTypeOpt,
                                 lazyVariableSlotAllocator,
                                 diagsForCurrentMethod,

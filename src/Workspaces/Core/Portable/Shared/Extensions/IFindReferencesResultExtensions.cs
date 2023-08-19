@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 result.Add(reference);
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
     }
 }

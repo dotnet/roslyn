@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
-            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
+            var result = actions.Count > 0 ? new CodeRefactoring(provider, [.. actions], FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
             actions.Free();
             return result;
         }

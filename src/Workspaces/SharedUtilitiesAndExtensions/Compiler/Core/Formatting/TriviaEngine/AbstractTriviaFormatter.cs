@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (Succeeded())
             {
-                return changes.ToImmutable();
+                return [.. changes];
             }
 
             return ImmutableArray<TextChange>.Empty;

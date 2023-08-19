@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 }
             }
 
-            return operations.ToImmutable();
+            return [.. operations];
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)

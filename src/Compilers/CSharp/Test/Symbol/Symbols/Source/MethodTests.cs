@@ -652,9 +652,12 @@ namespace N1.N2  {
             mems = type2.GetMembers();
 
             Assert.Equal(8, mems.Length);
-            sorted = (from m in mems
-                      orderby m.Name
-                      select m).ToArray();
+            sorted =
+            [
+                .. (from m in mems
+                                      orderby m.Name
+                                      select m),
+            ];
 
             var mm = sorted[2] as FieldSymbol;
             Assert.Equal("M1", mm.Name);
@@ -844,9 +847,12 @@ namespace N1.N2  {
             Assert.Equal("Abc", type2.Name);
             mems = type2.GetMembers();
             Assert.Equal(8, mems.Length);
-            sorted = (from m in mems
-                      orderby m.Name
-                      select m).ToArray();
+            sorted =
+            [
+                .. (from m in mems
+                                      orderby m.Name
+                                      select m),
+            ];
 
             var mm = sorted[2] as FieldSymbol;
             Assert.Equal("M1", mm.Name);
@@ -1210,9 +1216,12 @@ namespace NS
 
             mems = type2.GetMembers();
             // Assert.Equal(3, mems.Count());
-            sorted = (from m in mems
-                      orderby m.Name
-                      select m).ToArray();
+            sorted =
+            [
+                .. (from m in mems
+                                      orderby m.Name
+                                      select m),
+            ];
 
             m0 = sorted[0] as MethodSymbol;
             Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);

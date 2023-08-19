@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.AddRange(Space());
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
 
-            return members.ToImmutable();
+            return [.. members];
         }
     }
 }

@@ -61,7 +61,7 @@ namespace System.Diagnostics.CodeAnalysis
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
             {
-                new AnalyzerImageReference(analyzers.ToImmutableArray())
+                new AnalyzerImageReference([.. analyzers])
             }).WithProjectMetadataReferences(
                 workspace.Projects.Single().Id,
                 workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
                     }
                 }
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             // We didn't have regular source references, but possibly:

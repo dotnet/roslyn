@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 token = scanner.CurrentToken;
                 builder.Add(token);
             } while (token.Kind != TokenKind.End);
-            var parser = new MemberSignatureParser(builder.ToImmutable());
+            var parser = new MemberSignatureParser([.. builder]);
             try
             {
                 return parser.Parse();
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 {
                     case TokenKind.CloseParen:
                         EatToken();
-                        return builder.ToImmutable();
+                        return [.. builder];
                     case TokenKind.Comma:
                         EatToken();
                         break;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 {
                     case TokenKind.CloseParen:
                         EatToken();
-                        return builder.ToImmutable();
+                        return [.. builder];
                     case TokenKind.Comma:
                         EatToken();
                         break;
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 {
                     case TokenKind.CloseParen:
                         EatToken();
-                        return builder.ToImmutable();
+                        return [.. builder];
                     case TokenKind.Comma:
                         EatToken();
                         break;

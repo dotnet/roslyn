@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
     }
 }

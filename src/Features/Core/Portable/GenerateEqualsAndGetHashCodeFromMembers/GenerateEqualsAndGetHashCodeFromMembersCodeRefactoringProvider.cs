@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             var codeActions = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return codeActions.ToImmutableArray();
+            return [.. codeActions];
 
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), fallbackOptions, globalOptions, generateEquals, generateGetHashCode);
+                this, document, typeDeclaration, containingType, members, [.. pickMembersOptions], fallbackOptions, globalOptions, generateEquals, generateGetHashCode);
         }
 
         private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(

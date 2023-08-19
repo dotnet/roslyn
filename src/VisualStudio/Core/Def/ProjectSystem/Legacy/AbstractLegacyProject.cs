@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (!string.IsNullOrEmpty(linkMetadata))
             {
                 var linkFolderPath = Path.GetDirectoryName(linkMetadata);
-                folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+                folders = [.. linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries)];
             }
             else if (!string.IsNullOrEmpty(ProjectSystemProject.FilePath))
             {
@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
             {
                 ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-                folderNames = newFolderNames.ToImmutableArray();
+                folderNames = [.. newFolderNames];
                 _folderNameMap.Add(folderItemID, folderNames);
             }
             else
@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
                 if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
                 {
-                    folderNames = newFolderNames.ToImmutableArray();
+                    folderNames = [.. newFolderNames];
                     _folderNameMap[folderItemID] = folderNames;
                 }
             }

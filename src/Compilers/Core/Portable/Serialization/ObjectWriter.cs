@@ -315,7 +315,7 @@ namespace Roslyn.Utilities
             for (int offset = 0; offset < length; offset += buffer.Length)
             {
                 var segmentLength = Math.Min(buffer.Length, length - offset);
-                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                span.Slice(offset, segmentLength).CopyTo([.. buffer]);
                 _writer.Write(buffer, 0, segmentLength);
             }
 #endif

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return result.ToImmutable();
+            return [.. result];
         }
 
         private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return changes;
             }
 
-            return FormatToken(document, indentationOptions, token, formattingRules, cancellationToken).ToImmutableArray();
+            return [.. FormatToken(document, indentationOptions, token, formattingRules, cancellationToken)];
         }
 
         private static bool OnlySmartIndentCloseBrace(in AutoFormattingOptions options)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)document.Root, document.Text);
 
             var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
-            return changes.ToImmutableArray();
+            return [.. changes];
         }
 
         private static IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             rules.AddRange(service.GetDefaultFormattingRules());
 
             var result = service.GetFormattingResult(document.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), options, rules, cancellationToken);
-            return result.GetTextChanges(cancellationToken).ToImmutableArray();
+            return [.. result.GetTextChanges(cancellationToken)];
         }
 
         internal sealed class PasteFormattingRule : AbstractFormattingRule

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
                      project,
                      (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
-                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
+                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
                          targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                      cancellationToken).ConfigureAwait(false);
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 itemsBuilder.Add(item);
             }
 
-            return itemsBuilder.ToImmutable();
+            return [.. itemsBuilder];
         }
 
         private static bool ShouldIncludeInTargetTypedCompletion(

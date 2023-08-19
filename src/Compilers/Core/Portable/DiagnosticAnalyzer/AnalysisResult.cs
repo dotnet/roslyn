@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AddLocalDiagnostics(AdditionalFileDiagnostics, excludedAnalyzers, builder);
                 AddNonLocalDiagnostics(CompilationDiagnostics, excludedAnalyzers, builder);
 
-                return builder.ToImmutable();
+                return [.. builder];
             }
 
             return ImmutableArray<Diagnostic>.Empty;

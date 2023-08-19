@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return symbols.ToImmutable();
+            return [.. symbols];
         }
     }
 }

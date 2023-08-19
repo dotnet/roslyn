@@ -342,7 +342,7 @@ namespace Roslyn.Test.Utilities.Desktop
             Debug.Assert(assembly != null);
             Debug.Assert(!rawModule.IsDefault);
 
-            return assembly.LoadModule(args.Name, rawModule.ToArray());
+            return assembly.LoadModule(args.Name, [.. rawModule]);
         }
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, List<RuntimeModuleDataId> searchModules)
@@ -458,7 +458,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out var dumpDir);
                 throw new RuntimePeVerifyException(errors.ToString(), dumpDir);
             }
-            return allOutput.ToArray();
+            return [.. allOutput];
         }
     }
 }
