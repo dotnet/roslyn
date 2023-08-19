@@ -3212,7 +3212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRvalue(operand);
+                Visit(operand);
             }
         }
 
