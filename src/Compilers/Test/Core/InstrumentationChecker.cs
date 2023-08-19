@@ -354,7 +354,7 @@ End Namespace
                 {
                     return null;
                 }
-                return lines[span.StartLine].Substring(span.StartColumn).TrimEnd(new[] { '\r', '\n', ' ' });
+                return lines[span.StartLine].Substring(span.StartColumn).TrimEnd(['\r', '\n', ' ']);
             }, sourceLines);
         }
 

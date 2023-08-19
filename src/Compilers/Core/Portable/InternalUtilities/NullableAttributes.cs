@@ -97,7 +97,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <param name="member">
         /// The field or property member that is promised to be not-null.
         /// </param>
-        public MemberNotNullAttribute(string member) => Members = new[] { member };
+        public MemberNotNullAttribute(string member) => Members = [member];
 
         /// <summary>Initializes the attribute with the list of field and property members.</summary>
         /// <param name="members">
@@ -123,7 +123,7 @@ namespace System.Diagnostics.CodeAnalysis
         public MemberNotNullWhenAttribute(bool returnValue, string member)
         {
             ReturnValue = returnValue;
-            Members = new[] { member };
+            Members = [member];
         }
 
         /// <summary>Initializes the attribute with the specified return value condition and list of field and property members.</summary>

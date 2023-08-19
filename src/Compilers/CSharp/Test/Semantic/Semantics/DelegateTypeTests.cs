@@ -711,12 +711,12 @@ class Program
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
                 {
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    return new[]
-                        {
+                    return
+                        [
                             // (6,29): error CS8917: The delegate type could not be inferred.
                             //         System.Delegate d = F;
                             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
-                        };
+                        ];
                 });
         }
 
@@ -757,12 +757,12 @@ $@"class Program
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
                 {
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    return new[]
-                        {
+                    return
+                        [
                             // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
                             //         object o = (System.Delegate)F;
                             Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20)
-                        };
+                        ];
                 });
         }
 
@@ -1168,14 +1168,14 @@ internal object? F() => throw null!;
                 if (expectedDiagnostics is null && expectedType is null)
                 {
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    expectedDiagnostics = new[]
-                    {
+                    expectedDiagnostics =
+                    [
                         // (5,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
-                    };
+                    ];
                 }
-                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType };
+                return [methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType];
             }
         }
 
@@ -1236,40 +1236,37 @@ partial class B : A
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>",
-                new[]
-                {
+                [
                     // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
                     //         System.Delegate d = this.F<object>;
                     Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
-                }); // different type parameter constraints
+                ]); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>",
-                new[]
-                {
+                [
                     // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
                     //         System.Delegate d = this.F<object>;
                     Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
-                }); // different type parameter constraints
+                ]); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>",
-                new[]
-                {
+                [
                     // (5,34): error CS0123: No overload for 'F' matches delegate 'Action'
                     //         System.Delegate d = this.F<int>;
                     Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "F<int>").WithArguments("F", "System.Action").WithLocation(5, 34)
-                 }); // different type parameter constraints
+                 ]); // different type parameter constraints
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
             {
                 if (expectedDiagnostics is null && expectedType is null)
                 {
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    expectedDiagnostics = new[]
-                    {
+                    expectedDiagnostics =
+                    [
                         // (5,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
-                    };
+                    ];
                 }
-                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType };
+                return [methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType];
             }
         }
 
@@ -1341,26 +1338,25 @@ static class B
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>",
-                new[]
-                {
+                [
                     // (6,34): error CS0123: No overload for 'F' matches delegate 'Action'
                     //         System.Delegate d = this.F<int>;
                     Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "F<int>").WithArguments("F", "System.Action").WithLocation(6, 34)
-                 }); // different type parameter constraints
+                 ]); // different type parameter constraints
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
             {
                 if (expectedDiagnostics is null && expectedType is null)
                 {
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    expectedDiagnostics = new[]
-                    {
+                    expectedDiagnostics =
+                    [
                         // (6,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
-                    };
+                    ];
                 }
-                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType };
+                return [methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType];
             }
         }
 
@@ -9306,7 +9302,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "D", "Program", };
+                string[] expectedTypes = ["<Module>", "D", "Program",];
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -9351,7 +9347,7 @@ D4");
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000011}`2", "D2", "D4", "Program", "<>c", };
+                string[] expectedTypes = ["<Module>", "<>A{00000001}`2", "<>A{00000011}`2", "D2", "D4", "Program", "<>c",];
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -9400,7 +9396,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
+                string[] expectedTypes = ["<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c",];
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }

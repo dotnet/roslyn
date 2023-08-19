@@ -295,40 +295,40 @@ namespace Microsoft.CodeAnalysis
         {
             if (exponent <= 0xFF)
             {
-                return new[] { (byte)exponent };
+                return [(byte)exponent];
             }
             else if (exponent <= 0xFFFF)
             {
                 unchecked
                 {
-                    return new[]
-                    {
+                    return
+                    [
                         (byte)(exponent >> 8),
                         (byte)(exponent)
-                    };
+                    ];
                 }
             }
             else if (exponent <= 0xFFFFFF)
             {
                 unchecked
                 {
-                    return new[]
-                    {
+                    return
+                    [
                         (byte)(exponent >> 16),
                         (byte)(exponent >> 8),
                         (byte)(exponent)
-                    };
+                    ];
                 }
             }
             else
             {
-                return new[]
-                {
+                return
+                [
                     (byte)(exponent >> 24),
                     (byte)(exponent >> 16),
                     (byte)(exponent >> 8),
                     (byte)(exponent)
-                };
+                ];
             }
         }
 

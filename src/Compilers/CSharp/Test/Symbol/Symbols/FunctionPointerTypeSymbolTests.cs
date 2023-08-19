@@ -1836,7 +1836,7 @@ class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Int32, System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "System.String C.M1(System.Int32 i)" });
+                expectedSymbolCandidates: ["System.String C.M1(System.Int32 i)"]);
 
             var invocations = m2DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             Assert.Equal(2, invocations.Length);
@@ -1855,7 +1855,7 @@ class C
                 expectedSyntax: "ptr()",
                 expectedType: "System.String",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "delegate*<System.Int32, System.String>" });
+                expectedSymbolCandidates: ["delegate*<System.Int32, System.String>"]);
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1].Expression,
                 expectedSyntax: "ptr",

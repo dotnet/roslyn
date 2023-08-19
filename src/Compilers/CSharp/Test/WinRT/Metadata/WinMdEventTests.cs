@@ -312,8 +312,8 @@ class C
                 },
                 options: TestOptions.DebugModule.WithAllowUnsafe(true));
 
-            var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
-            {
+            var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings:
+            [
                 // (6,31): warning CS0067: The event 'A.d1' is never used
                 //     public event voidDelegate d1;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d1").WithArguments("A.d1"),
@@ -323,7 +323,7 @@ class C
                 // (7,42): warning CS0067: The event 'A.d2' is never used
                 //     public event genericDelegate<object> d2;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
-            });
+            ]);
 
             var verifier = this.CompileAndVerify(
                 src,

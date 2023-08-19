@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             array = new int[3];
             CopyToImpl(list, 1, array, 2, 1);
-            Assert.Equal(new[] { 0, 0, 2 }, array);
+            Assert.Equal([0, 0, 2], array);
 
             array = new int[2];
             ((ICollection)GetListQuery(list)).CopyTo(array, 0);

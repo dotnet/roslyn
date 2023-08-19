@@ -49,12 +49,11 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { edits },
-                new[]
-                {
+                [
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)"))])
+                ]);
         }
 
         [Fact]
@@ -83,12 +82,11 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { edits },
-                new[]
-                {
+                [
                     DocumentResults(
                         active,
-                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method)])
+                ]);
         }
 
         [Fact]
@@ -281,7 +279,10 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method")) },
+                diagnostics:
+                [
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method"))
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
@@ -821,7 +822,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -925,7 +926,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -1027,7 +1028,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -1127,7 +1128,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,

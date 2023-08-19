@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<Compilation> referencedCompilations = null,
             Encoding encoding = null,
             string sourceFileName = null)
-            => CreateVisualBasicCompilation(assemblyName, new[] { code }, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, new[] { sourceFileName });
+            => CreateVisualBasicCompilation(assemblyName, [code], parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, [sourceFileName]);
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             string assemblyName,

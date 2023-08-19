@@ -1012,7 +1012,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             if (sources == null || !sources.Any())
             {
-                return new SyntaxTree[] { };
+                return [];
             }
 
             return Parse(options, sources.ToArray());
@@ -1022,7 +1022,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             if (sources == null || (sources.Length == 1 && null == sources[0]))
             {
-                return new SyntaxTree[] { };
+                return [];
             }
 
             return sources.Select((src, index) => Parse(src, filename: $"{index}.cs", options: options)).ToArray();
@@ -2175,7 +2175,7 @@ namespace System.Diagnostics.CodeAnalysis
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, targetFramework);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, [ilReference], additionalOperationTreeVerifier, targetFramework);
             return ilReference;
         }
 

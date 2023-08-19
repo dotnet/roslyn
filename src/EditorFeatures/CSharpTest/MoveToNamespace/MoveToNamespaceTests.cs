@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         public static IEnumerable<object[]> SupportedKeywords => new[]
         {
-            new[] { "class" },
-            new[] { "enum" },
-            new[] { "interface"}
+            ["class"],
+            ["enum"],
+            ["interface"]
         };
 
         [Fact]

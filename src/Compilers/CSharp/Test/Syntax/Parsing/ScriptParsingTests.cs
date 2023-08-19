@@ -75,9 +75,9 @@ int a
 Console.Goo
 ";
             ParseAndValidate(test, TestOptions.Script,
-                new ErrorDescription[] {
+                [
                     new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 6 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 12 }});
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 12 }]);
         }
 
         [Fact]
@@ -2591,7 +2591,7 @@ fixed int x[10];
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Regular9, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular9, [new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 }]); // expected ';'
 
             // multiplication
             test = @"a.b * c;";

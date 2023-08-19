@@ -6341,7 +6341,7 @@ class C8
 
             if (!isVirtual)
             {
-                expected = new[] {
+                expected = [
                     // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C1<I2> x)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(4, 22),
@@ -6372,7 +6372,7 @@ class C8
                     // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I1>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("I1", "I1.M01()").WithLocation(67, 11)
-                };
+                ];
             }
             else
             {
@@ -18781,7 +18781,7 @@ typeKeyword + @"
 
             if (isChecked)
             {
-                expected2 = new[] {
+                expected2 = [
                     // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static I1 I1.operator checked ++(I1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
@@ -18794,18 +18794,18 @@ typeKeyword + @"
                     // (9,42): error CS8706: 'Test2.operator checked ++(Test2)' cannot implement interface member 'I2<Test2>.operator checked ++(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     //     public static Test2 operator checked ++(Test2 x) => default;
                     Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2)", "I2<Test2>.operator checked " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 42)
-                    };
+                    ];
             }
             else
             {
-                expected2 = new[] {
+                expected2 = [
                     // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static I1 I1.operator true(I1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
                     // (9,34): error CS8706: 'Test2.operator true(Test2)' cannot implement interface member 'I2<Test2>.operator true(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     //     public static Test2 operator true(Test2 x) => default;
                     Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2)", "I2<Test2>.operator " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 34)
-                    };
+                    ];
             }
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected2);
@@ -18818,7 +18818,7 @@ typeKeyword + @"
 
             if (isChecked)
             {
-                expected3 = new[] {
+                expected3 = [
                     // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static I1 I1.operator checked ++(I1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
@@ -18840,11 +18840,11 @@ typeKeyword + @"
                     // (19,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                     //     virtual  static T operator checked ++(T x) => throw null;
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 40)
-                    };
+                    ];
             }
             else
             {
-                expected3 = new[] {
+                expected3 = [
                     // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static I1 I1.operator true(I1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
@@ -18854,7 +18854,7 @@ typeKeyword + @"
                     // (19,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                     //     virtual  static T operator true(T x) => throw null;
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 32)
-                    };
+                    ];
             }
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected3);

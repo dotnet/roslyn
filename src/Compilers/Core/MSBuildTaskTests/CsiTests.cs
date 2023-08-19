@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csi = new Csi();
             csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-            csi.ScriptArguments = new[] { "-Arg1", "-Arg2" };
+            csi.ScriptArguments = ["-Arg1", "-Arg2"];
             Assert.Equal("/i- test.csx -Arg1 -Arg2", csi.GenerateResponseFileContents());
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csi = new Csi();
             csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-            csi.ScriptArguments = new[] { @"C:\Some Path\Some File.ini", @"C:\Some Path\Some Other File.bak" };
+            csi.ScriptArguments = [@"C:\Some Path\Some File.ini", @"C:\Some Path\Some Other File.bak"];
             Assert.Equal(@"/i- test.csx ""C:\Some Path\Some File.ini"" ""C:\Some Path\Some Other File.bak""", csi.GenerateResponseFileContents());
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csi = new Csi();
             csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-            csi.ScriptArguments = new[] { @"""C:\Some Path\Some File.ini""", @"""C:\Some Path\Some Other File.bak""" };
+            csi.ScriptArguments = [@"""C:\Some Path\Some File.ini""", @"""C:\Some Path\Some Other File.bak"""];
             Assert.Equal(@"/i- test.csx ""\""C:\Some Path\Some File.ini\"""" ""\""C:\Some Path\Some Other File.bak\""""", csi.GenerateResponseFileContents());
         }
 

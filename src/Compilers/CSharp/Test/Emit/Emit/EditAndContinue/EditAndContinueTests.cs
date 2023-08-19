@@ -572,7 +572,7 @@ class Bad : Bad
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
@@ -1051,7 +1051,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1179,7 +1179,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
@@ -1211,7 +1211,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md3 = diff3.GetMetadata();
             var reader3 = md3.Reader;
-            readers = new[] { reader0, reader1, reader2, reader3 };
+            readers = [reader0, reader1, reader2, reader3];
 
             CheckNames(readers, reader3.GetTypeDefNames());
             CheckNames(readers, reader3.GetMethodDefNames(), "F");
@@ -1396,7 +1396,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1493,7 +1493,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1729,7 +1729,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -2199,7 +2199,7 @@ partial class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -4895,7 +4895,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames(), "C");
 
@@ -5062,7 +5062,7 @@ class C
                     Assert.Equal(attributeCtorDefHandle, ctorHandle);
 
                     // The attribute value encodes serialized type name. It should be the base name "C", not "C#1".
-                    CheckBlobValue(readers, attribute.Value, new byte[] { 0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00 });
+                    CheckBlobValue(readers, attribute.Value, [0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00]);
                 }
             }
 
@@ -5073,7 +5073,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
 
             using var md1 = diff1.GetMetadata();
-            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
+            ValidateReplacedType(diff1, [reader0, md1.Reader]);
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -5081,7 +5081,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
 
             using var md2 = diff2.GetMetadata();
-            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
+            ValidateReplacedType(diff2, [reader0, md1.Reader, md2.Reader]);
 
             // This update is an EnC update - even reloadable types are updated in-place
             var diff3 = compilation3.EmitDifference(
@@ -5114,7 +5114,7 @@ class C
                 Handle(hasAttribute ? 9 : 8, TableIndex.CustomAttribute));
 
             // Obsolete attribute:
-            CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, new byte[] { 0x01, 0x00, 0x00, 0x00 });
+            CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, [0x01, 0x00, 0x00, 0x00]);
         }
 
         [Fact]
@@ -5346,7 +5346,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             // A new nested type <>c is generated in C#2
             CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "<>c", "<<F>b__0#2_0#2>d");
@@ -5431,7 +5431,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             // A new nested type <>c is generated in C#2
             CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "D", "<>c", "<<F>b__0#2_0#2>d");
@@ -6119,7 +6119,7 @@ interface I
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, diff1.EmitResult.ChangedTypes, "I", "J");
 
@@ -8891,7 +8891,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md1 = diff1.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000002] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader }));
+            AssertEx.Equal(new[] { "[0x23000002] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader]));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -8914,7 +8914,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader, md2.Reader }));
+            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader, md2.Reader]));
         }
 
         [Fact]
@@ -9001,7 +9001,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader, md2.Reader }));
+            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader, md2.Reader]));
         }
 
         /// <summary>
@@ -13658,7 +13658,7 @@ public class C : Base
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, diff2.EmitResult.ChangedTypes, "C", "<>c__DisplayClass0_0");
 
@@ -16531,7 +16531,7 @@ file class C
 }", "file2.cs");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(new[] { source1.Tree, source2.Tree });
+            var compilation1 = compilation0.WithSource([source1.Tree, source2.Tree]);
 
             var cm1_gen0 = compilation0.GetMember<MethodSymbol>("C.M");
             var cm1_gen1 = ((NamedTypeSymbol)compilation1.GetMembers("C")[0]).GetMember("M");
@@ -16625,7 +16625,7 @@ file class C
             // we should handle this as a modification of an existing type rather than deletion and insertion of distinct types.
             // most likely, we either need to identify file types based on something stable like the SyntaxTree.FilePath, or store a mapping of the ordinals from one generation to the next.
             // although "real-world" compilations disallow duplicated file paths, duplicated or empty file paths are very common via direct use of the APIs, so there's not necessarily a single slam-dunk answer here.
-            var compilation1 = compilation0.WithSource(new[] { source1_gen1.Tree, source0_gen1.Tree });
+            var compilation1 = compilation0.WithSource([source1_gen1.Tree, source0_gen1.Tree]);
 
             var c1_gen0 = compilation0.GetMember("C");
             var c1_gen1 = ((NamedTypeSymbol)compilation1.GetMembers("C")[0]);
@@ -16715,7 +16715,7 @@ file class C
 
             var compilation0 = CreateCompilation(new[] { source1_gen0.Tree, source2_gen0.Tree }, options: ComSafeDebugDll);
 
-            var compilation1 = compilation0.WithSource(new[] { source2_gen1.Tree });
+            var compilation1 = compilation0.WithSource([source2_gen1.Tree]);
 
             var c1_gen0 = ((NamedTypeSymbol)compilation0.GetMembers("C")[0]);
             var c2_gen0 = ((NamedTypeSymbol)compilation0.GetMembers("C")[1]);

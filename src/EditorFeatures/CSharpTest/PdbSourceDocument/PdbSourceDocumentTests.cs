@@ -37,7 +37,7 @@ public class C
     }
 #endif
 }";
-            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: new[] { "SOME_DEFINED_CONSTANT" });
+            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: ["SOME_DEFINED_CONSTANT"]);
         }
 
         [Theory]
@@ -925,7 +925,7 @@ public partial class C
                 var dllFilePath = GetDllPath(path);
                 var sourceCodePath = GetSourceFilePath(path);
                 var pdbFilePath = GetPdbPath(path);
-                CompileTestSource(dllFilePath, new[] { Path.Combine(path, "source1.cs"), Path.Combine(path, "source2.cs") }, pdbFilePath, "reference", new[] { sourceText1, sourceText2 }, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+                CompileTestSource(dllFilePath, [Path.Combine(path, "source1.cs"), Path.Combine(path, "source2.cs")], pdbFilePath, "reference", [sourceText1, sourceText2], project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(GetDllPath(path)));
 

@@ -107,15 +107,15 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
 
         return new VSInternalInlineCompletionList
         {
-            Items = new VSInternalInlineCompletionItem[]
-            {
+            Items =
+            [
                 new VSInternalInlineCompletionItem
                 {
                     Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
                     Text = formattedLspSnippet,
                     TextFormat = InsertTextFormat.Snippet,
                 }
-            }
+            ]
         };
     }
 

@@ -1443,22 +1443,22 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c.Goo<sh
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(15,19): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
                 //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/; // Doesn't constraints of generic overloads.
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(15, 19)
-            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            ], parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Children(3):
       IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(15,21): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
                 //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/; // Doesn't constraints of generic overloads.
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Goo<short>").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(15, 21)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

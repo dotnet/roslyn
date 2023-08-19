@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static readonly UTF8Encoding UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         private static readonly KeyValuePair<string, string>[] s_helloWorldSrcCs =
-        {
+        [
             new KeyValuePair<string, string>("hello.cs",
 @"using System;
 using System.Diagnostics;
@@ -46,10 +46,10 @@ class Hello
         Console.WriteLine(""Hello, world.""); 
     }
 }")
-        };
+        ];
 
         private static readonly KeyValuePair<string, string>[] s_helloWorldSrcVb =
-        {
+        [
             new KeyValuePair<string, string>("hello.vb",
 @"Imports System
 Imports System.Diagnostics
@@ -60,7 +60,7 @@ Module Module1
         Console.WriteLine(""Hello from VB"")
     End Sub
 End Module")
-        };
+        ];
 
         private readonly TempDirectory _tempDirectory;
         private readonly ICompilerServerLogger _logger;

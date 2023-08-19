@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 item.Command = new Command()
                 {
                     CommandIdentifier = StringConstants.CreateEventHandlerCommand,
-                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Arguments = [textDocument, xamlCompletion.EventDescription],
                     Title = CreateEventHandlerCommandTitle
                 };
             }

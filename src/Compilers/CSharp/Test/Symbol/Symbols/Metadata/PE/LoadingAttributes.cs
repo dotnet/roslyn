@@ -533,8 +533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             });
 
             var assemblyArgs = new AttributeArgs[] {
-                new AttributeArgs(new string[]{ "8"} , null),
-                new AttributeArgs(null, new KeyValuePair<string, string>[]{  new KeyValuePair<string, string>("WrapNonExceptionThrows", "True")} )
+                new AttributeArgs(["8"] , null),
+                new AttributeArgs(null, [new KeyValuePair<string, string>("WrapNonExceptionThrows", "True")] )
             };
 
             CheckAttributes(assemblies[0], assemblyArgs);

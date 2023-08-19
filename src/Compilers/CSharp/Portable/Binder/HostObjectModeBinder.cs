@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The name '{0}' does not exist in the current context (are you missing a reference to assembly '{1}'?)
                 result.SetFrom(new CSDiagnosticInfo(
                     ErrorCode.ERR_NameNotInContextPossibleMissingReference,
-                    new object[] { name, ((MissingMetadataTypeSymbol)hostObjectType).ContainingAssembly.Identity },
+                    [name, ((MissingMetadataTypeSymbol)hostObjectType).ContainingAssembly.Identity],
                     ImmutableArray<Symbol>.Empty,
                     ImmutableArray<Location>.Empty
                 ));

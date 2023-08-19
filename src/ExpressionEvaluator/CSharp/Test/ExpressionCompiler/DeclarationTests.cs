@@ -616,7 +616,7 @@ class C
                 // Expression with format specifiers but without ';' as statement.
                 result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
                 Assert.Null(error);
-                AssertEx.SetEqual(result.FormatSpecifiers, new[] { "nq" });
+                AssertEx.SetEqual(result.FormatSpecifiers, ["nq"]);
 
                 // Expression with format specifiers with ';' as statement.
                 result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);

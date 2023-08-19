@@ -149,7 +149,7 @@ public struct StructWithValue
                 testSource,
                 compilationOptions,
                 emitOptions,
-                new[] { referenceOne, referenceTwo });
+                [referenceOne, referenceTwo]);
         }
 
         [Theory]
@@ -212,7 +212,7 @@ public struct StructWithValue
                 testSource,
                 compilationOptions,
                 emitOptions,
-                new[] { referenceOne, referenceTwo },
+                [referenceOne, referenceTwo],
                 debugDocumentsCount: 2);
         }
 
@@ -273,7 +273,7 @@ public struct StructWithValue
                 testSource,
                 compilationOptions,
                 emitOptions,
-                new[] { referenceOne, referenceTwo });
+                [referenceOne, referenceTwo]);
         }
 
         public IEnumerator<object[]> GetEnumerator() => GetTestParameters().GetEnumerator();

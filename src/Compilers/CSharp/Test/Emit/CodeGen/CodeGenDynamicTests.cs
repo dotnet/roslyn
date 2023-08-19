@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             CSharpParseOptions parseOptions = null,
             Verification verify = default)
         {
-            references = references ?? new[] { SystemCoreRef, CSharpRef };
+            references = references ?? [SystemCoreRef, CSharpRef];
 
             // verify that we emit correct optimized and unoptimized IL:
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
@@ -111,8 +111,8 @@ public sealed class CSharpArgumentInfo
     public static CSharpArgumentInfo Create(CSharpArgumentInfoFlags flags, string name) { return null; }
 }
 ";
-        private readonly string[] _binderFactoriesSource = new[]
-        {
+        private readonly string[] _binderFactoriesSource =
+        [
             "CallSiteBinder BinaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
             "CallSiteBinder Convert(CSharpBinderFlags flags, Type type, Type context)",
             "CallSiteBinder GetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
@@ -124,7 +124,7 @@ public sealed class CSharpArgumentInfo
             "CallSiteBinder SetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
             "CallSiteBinder SetMember(CSharpBinderFlags flags, string name, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
             "CallSiteBinder UnaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        };
+        ];
 
         private MetadataReference MakeCSharpRuntime(string excludeBinder = null, bool excludeBinderFlags = false, bool excludeArgumentInfoFlags = false, MetadataReference systemCore = null)
         {
@@ -11209,7 +11209,7 @@ class C
             // Roslyn: Use strongly typed receiver.
             // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: [SystemCoreRef, CSharpRef, vbRef], expectedOptimizedIL: @"
 {
   // Code size      167 (0xa7)
   .maxstack  10
@@ -11304,7 +11304,7 @@ class C
             // Roslyn: Use strongly typed receiver.
             // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: [SystemCoreRef, CSharpRef, vbRef], expectedOptimizedIL: @"
 {
   // Code size      179 (0xb3)
   .maxstack  10
@@ -11406,7 +11406,7 @@ class C
             // Roslyn: Use strongly typed receiver.
             // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: [SystemCoreRef, CSharpRef, vbRef], expectedOptimizedIL: @"
 {
   // Code size      424 (0x1a8)
   .maxstack  16
@@ -11572,7 +11572,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, ilRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: [SystemCoreRef, CSharpRef, ilRef], expectedOptimizedIL: @"
 {
   // Code size       92 (0x5c)
   .maxstack  7
@@ -15421,7 +15421,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib45(
-                new[] { DynamicAttributeSource, source },
+                [DynamicAttributeSource, source],
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
@@ -15443,7 +15443,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib45(
-                new[] { DynamicAttributeSource, source },
+                [DynamicAttributeSource, source],
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'

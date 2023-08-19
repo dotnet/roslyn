@@ -31,7 +31,7 @@ class M
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -49,7 +49,7 @@ class C
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ class C
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -96,7 +96,7 @@ partial class C
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("C", "2.cs"));
         }
 
@@ -108,7 +108,7 @@ class O
 {
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("O", "1.cs"));
         }
 
@@ -123,7 +123,7 @@ class O
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("O", "1.cs"));
         }
 
@@ -141,7 +141,7 @@ class O
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("O", "1.cs"));
         }
 
@@ -176,7 +176,7 @@ class D
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("N", "1.cs"),
                 ("O", "1.cs"),
                 ("C", "2.cs"),
@@ -196,7 +196,7 @@ partial class C
 {
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("C", "1.cs, 2.cs"));
         }
 
@@ -215,7 +215,7 @@ partial class C
     void M() { }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("C", "1.cs"));
         }
 
@@ -234,7 +234,7 @@ partial class C
     void M() { }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("C", "1.cs"));
         }
 
@@ -248,7 +248,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -263,7 +263,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("C", "1.cs"));
         }
 
@@ -279,7 +279,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -292,7 +292,7 @@ abstract class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("C", "1.cs"));
         }
 
@@ -306,7 +306,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("C", "1.cs"));
         }
 
@@ -328,7 +328,7 @@ partial interface I2
 {
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source1, source2 },
+            TestTypeDefinitionDocuments([source1, source2],
                 ("I1", "1.cs"),
                 ("I2", "1.cs, 2.cs"));
         }
@@ -341,7 +341,7 @@ record R(int X);
 ";
 
             // The compiler synthesized methods have document info so we don't expect a type document
-            TestTypeDefinitionDocuments(new[] { source, IsExternalInitTypeDefinition },
+            TestTypeDefinitionDocuments([source, IsExternalInitTypeDefinition],
                 ("IsExternalInit", "2.cs"));
         }
 
@@ -358,7 +358,7 @@ record R(int X)
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source, IsExternalInitTypeDefinition },
+            TestTypeDefinitionDocuments([source, IsExternalInitTypeDefinition],
                 ("IsExternalInit", "2.cs"));
         }
 
@@ -377,7 +377,7 @@ enum E2
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("E", "1.cs"),
                 ("E2", "1.cs"));
         }
@@ -397,7 +397,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("D", "1.cs"));
         }
 
@@ -414,7 +414,7 @@ class C
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source });
+            TestTypeDefinitionDocuments([source]);
         }
 
         [Fact]
@@ -451,7 +451,7 @@ class F
 }
 ";
 
-            TestTypeDefinitionDocuments(new[] { source },
+            TestTypeDefinitionDocuments([source],
                 ("C", "1.cs"),
                 ("D", "1.cs"),
                 ("E", "1.cs"),

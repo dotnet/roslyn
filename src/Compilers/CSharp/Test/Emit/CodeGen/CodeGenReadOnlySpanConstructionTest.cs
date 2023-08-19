@@ -2660,8 +2660,8 @@ class Test
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", il =>
             {
-                string[] expected = new[]
-                {
+                string[] expected =
+                [
                     "__StaticArrayInitTypeSize=8_Align=2",
                     "__StaticArrayInitTypeSize=8_Align=4",
                     "__StaticArrayInitTypeSize=8_Align=8",
@@ -2677,7 +2677,7 @@ class Test
                     "__StaticArrayInitTypeSize=32_Align=2",
                     "__StaticArrayInitTypeSize=32_Align=4",
                     "__StaticArrayInitTypeSize=32_Align=8",
-                };
+                ];
 
                 // .class nested private explicit ansi sealed 'TYPENAME'
                 string[] actual = Regex.Matches(il, @"\.class nested private explicit ansi sealed '([^']*?)'").Cast<Match>().Select(m => m.Groups[1].Value).ToArray();

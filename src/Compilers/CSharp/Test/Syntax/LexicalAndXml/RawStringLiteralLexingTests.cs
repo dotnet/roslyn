@@ -270,19 +270,19 @@ System.Console.WriteLine(
         public static IEnumerable<object[]> EscapeSequences => new[]
         {
             new object[] { "\\'" },
-            new object[] { "\\\"" },
-            new object[] { "\\\\" },
-            new object[] { "\\0" },
-            new object[] { "\\a" },
-            new object[] { "\\b" },
-            new object[] { "\\f" },
-            new object[] { "\\n" },
-            new object[] { "\\r" },
-            new object[] { "\\t" },
-            new object[] { "\\v" },
-            new object[] { "\\u1234" },
-            new object[] { "\\U12345678" },
-            new object[] { "\\x1234" },
+            ["\\\""],
+            ["\\\\"],
+            ["\\0"],
+            ["\\a"],
+            ["\\b"],
+            ["\\f"],
+            ["\\n"],
+            ["\\r"],
+            ["\\t"],
+            ["\\v"],
+            ["\\u1234"],
+            ["\\U12345678"],
+            ["\\x1234"],
         };
 
         [Theory, MemberData(nameof(EscapeSequences))]

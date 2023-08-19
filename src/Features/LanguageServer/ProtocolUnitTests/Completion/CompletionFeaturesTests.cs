@@ -147,7 +147,7 @@ class A
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
 
         var expectedAdditionalEdit = new TextEdit() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit], resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
         Assert.Null(resolvedItem.FilterText);
@@ -553,7 +553,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
         var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit1 }, resolvedItem1.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit1], resolvedItem1.AdditionalTextEdits);
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
@@ -561,7 +561,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit2], resolvedItem2.AdditionalTextEdits);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5732")]

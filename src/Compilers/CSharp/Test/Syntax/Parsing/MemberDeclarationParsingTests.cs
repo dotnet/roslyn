@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.Regular11;
-        public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { new[] { TestOptions.Regular10 }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
-        public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
+        public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { [TestOptions.Regular10], [RequiredMembersOptions], [TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10)] };
+        public static readonly IEnumerable<object[]> Regular10AndScript = new[] { [TestOptions.Regular10], [TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10)] };
 
         [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]

@@ -3763,11 +3763,11 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        string[] source = new[] {
+        string[] source = [
                 code,
                 GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false),
                 GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: true, useBoolReturns: false)
-            };
+            ];
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net50);
 
@@ -6405,15 +6405,15 @@ public partial struct CustomHandler
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("3", "int", "string").WithLocation(1, 5)
             }
-            : new DiagnosticDescription[]
-            {
+            :
+            [
                     // (1,5): error CS1503: Argument 3: cannot convert from 'int' to 'string'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("3", "int", "string").WithLocation(1, 5),
                     // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, string, out bool)").WithLocation(1, 8)
-            };
+            ];
 
         var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(expectedDiagnostics);
@@ -6748,12 +6748,12 @@ o in M
 ");
 
         verifier.VerifyDiagnostics(modifier == "ref readonly"
-            ? new[]
-            {
+            ?
+            [
                 // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
                 // C.M(i, ref s, out o, $"""literal""");
                 Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
-            }
+            ]
             : DiagnosticDescription.None);
 
         verifier.VerifyIL("<top-level-statements-entry-point>", (extraConstructorArg == "")
@@ -7356,24 +7356,24 @@ public struct CustomHandler
 
         CreateCompilation(@"C.M(1, """", " + expression + @");", new[] { comp.EmitToImageReference() }).VerifyDiagnostics(
             (extraConstructorArg == "")
-            ? new[]
-            {
+            ?
+            [
                     // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int)").WithLocation(1, 12),
                     // (1,12): error CS1615: Argument 3 may not be passed with the 'out' keyword
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_BadArgExtraRef, expression).WithArguments("3", "out").WithLocation(1, 12)
-            }
-            : new[]
-            {
+            ]
+            :
+            [
                     // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12),
                     // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12)
-            }
+            ]
         );
 
         static void validate(ModuleSymbol module)
@@ -7861,19 +7861,19 @@ public partial struct CustomHandler
 
         comp.VerifyDiagnostics(
             extraConstructorArg != "" ?
-            new[] {
+            [
                 // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
                 // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
-            }
-            : new[] {
+            ]
+            : [
                 // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1)
-            });
+            ]);
     }
 
     [Theory]

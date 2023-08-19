@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [StructLayout(LayoutKind.Auto)]
         private struct TargetSymbolResolver
         {
-            private static readonly char[] s_nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
+            private static readonly char[] s_nameDelimiters = [':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`'];
             private static readonly string[] s_callingConventionStrings =
-            {
+            [
                 "[vararg]",
                 "[cdecl]",
                 "[fastcall]",
                 "[stdcall]",
                 "[thiscall]"
-            };
+            ];
 
             private static readonly ParameterInfo[] s_noParameters = Array.Empty<ParameterInfo>();
 

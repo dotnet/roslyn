@@ -146,7 +146,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false)],
                     Title = FeaturesResources.Run_Test
                 }
             };
@@ -157,7 +157,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true)],
                     Title = FeaturesResources.Debug_Test
                 }
             };
@@ -176,7 +176,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false)],
                     Title = FeaturesResources.Run_All_Tests
                 }
             };
@@ -187,7 +187,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true)],
                     Title = FeaturesResources.Debug_All_Tests
                 }
             };

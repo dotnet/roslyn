@@ -750,7 +750,7 @@ class C
 }");
             var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
+            var compilation1 = compilation0.WithSource([source1.Tree, asyncStreamsTree]);
 
             var v0 = CompileAndVerify(compilation0);
             var symReader = v0.CreateSymReader();
@@ -843,7 +843,7 @@ class C
 }");
             var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
+            var compilation1 = compilation0.WithSource([source1.Tree, asyncStreamsTree]);
 
             var v0 = CompileAndVerify(compilation0);
             var symReader = v0.CreateSymReader();

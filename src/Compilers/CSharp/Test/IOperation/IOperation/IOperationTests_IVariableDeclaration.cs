@@ -1237,7 +1237,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 38)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>([syntaxTree], expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2342,7 +2342,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>([syntaxTree], expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2406,7 +2406,7 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(7, 81)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>([syntaxTree], expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2868,7 +2868,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>([syntaxTree], expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion

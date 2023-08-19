@@ -3473,8 +3473,8 @@ namespace NS
             IndentStyle indentStyle)
         {
             var optionsSet = options != null
-                    ? new[] { options }
-                    : new[] { Options.Regular, Options.Script };
+                    ? [options]
+                    : [Options.Regular, Options.Script];
 
             foreach (var option in optionsSet)
             {
@@ -3529,8 +3529,8 @@ namespace NS
             IndentStyle indentStyle)
         {
             var optionsSet = options != null
-                ? new[] { options }
-                : new[] { Options.Regular, Options.Script };
+                ? [options]
+                : [Options.Regular, Options.Script];
 
             foreach (var option in optionsSet)
             {
@@ -3558,8 +3558,8 @@ namespace NS
             IndentStyle indentStyle)
         {
             var optionsSet = options != null
-                ? new[] { options }
-                : new[] { Options.Regular, Options.Script };
+                ? [options]
+                : [Options.Regular, Options.Script];
 
             foreach (var option in optionsSet)
             {

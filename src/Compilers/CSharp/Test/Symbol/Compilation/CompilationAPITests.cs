@@ -1883,7 +1883,7 @@ class B
         public void CanReadAndWriteDefaultWin32Res()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var mft = new MemoryStream(new byte[] { 0, 1, 2, 3, });
+            var mft = new MemoryStream([0, 1, 2, 3,]);
             var res = comp.CreateDefaultWin32Resources(true, false, mft, null);
             var list = comp.MakeWin32ResourceList(res, new DiagnosticBag());
             Assert.Equal(2, list.Count);

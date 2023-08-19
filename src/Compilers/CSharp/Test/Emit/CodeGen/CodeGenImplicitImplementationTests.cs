@@ -778,12 +778,12 @@ class C1 : IBase1, IBase2
                 Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
-            {
+            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures:
+            [
                 Signature("C1", "IBase1.PBase1", ".method private hidebysig newslot virtual final instance System.Void IBase1.PBase1() cil managed"),
                 Signature("C1", "IBase.PBase", ".method private hidebysig newslot virtual final instance System.Void IBase.PBase() cil managed"),
                 Signature("C1", "PBase2", ".method public hidebysig newslot virtual final instance System.Void PBase2() cil managed")
-            });
+            ]);
         }
 
         [Fact]
@@ -962,13 +962,13 @@ Base.Method(1, 2, b)
 Class.Method(2, 3, c)
 Class2.Method(1, 2, b)
 Class2.Method<U>(0, a)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
                     Signature("Class", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, System.Int64 b, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
                     Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method([opt] System.Int32 a = 4, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [opt] System.Collections.Generic.List`1[System.String][] d) cil managed"),
                     Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<U>([out] System.Int32& a, U[]& b, [System.ParamArrayAttribute()] System.Collections.Generic.List`1[U][] c) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -1434,14 +1434,14 @@ Derived1.set_Property
 Derived1.Method
 Derived2.set_Property
 Derived2.Method",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Outer`1+Inner`1+Base`2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(X value) cil managed"),
                     Signature("Outer`1+Inner`1+Base`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(X A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,V] d) cil managed"),
                     Signature("Derived1`2+Derived2", "get_Property", ".method public hidebysig specialname instance System.String get_Property() cil managed"),
                     Signature("Derived1`2+Derived2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(System.String value) cil managed"),
                     Signature("Derived1`2+Derived2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<Z>(System.String A, System.Int32[] B, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[System.String,Z] D) cil managed"),
-                });
+                ]);
 
             comp.VerifyDiagnostics();
         }
@@ -1492,11 +1492,11 @@ class Test
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(
                 // (11,25): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
@@ -1856,11 +1856,11 @@ class Test
             // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
             var comp = CompileAndVerify(text,
                 expectedOutput: "23123",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C2", "get_Bar", ".method public hidebysig specialname virtual final instance System.Int32 get_Bar() cil managed"),
                     Signature("C2", "set_Bar", ".method public hidebysig specialname virtual final instance System.Void set_Bar(System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]

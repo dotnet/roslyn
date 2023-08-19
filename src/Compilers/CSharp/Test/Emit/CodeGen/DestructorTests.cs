@@ -52,10 +52,10 @@ public class Program
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyIL("Base.Finalize", @"
 {
@@ -106,10 +106,10 @@ public class Program
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyIL("Base.Finalize", @"
 {
@@ -166,11 +166,11 @@ public class Program
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
 ~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyIL("Base.Finalize", @"
 {
@@ -252,11 +252,11 @@ public class Program
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
 ~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyIL("Base.Finalize", @"
 {
@@ -352,11 +352,11 @@ public class Program
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: expectedOutput,
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                 Signature("Base", "Finalize", ".method family hidebysig newslot virtual instance System.Void Finalize() cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyDiagnostics(
                 // (6,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -408,11 +408,11 @@ public class Program
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
 ~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                 Signature("Base", "Finalize", ".method family hidebysig instance System.Void Finalize() cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyDiagnostics(
                 // (6,20): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -465,11 +465,11 @@ public class Program
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
 ~Base",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                 Signature("Base`1", "Finalize", ".method family hidebysig instance System.Void Finalize() cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             compVerifier.VerifyDiagnostics(
                 // (6,20): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?

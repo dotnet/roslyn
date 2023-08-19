@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class NamedTypeTests : CSharpTestBase
     {
         public static readonly object[][] TestData =
-        {
+        [
             new [] { "struct C { }" },
             new [] { "enum C { }" },
             new [] { "interface C { }" },
             new [] { "delegate void C();" },
-        };
+        ];
 
         [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]

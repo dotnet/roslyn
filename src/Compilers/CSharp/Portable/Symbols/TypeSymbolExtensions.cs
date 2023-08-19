@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsErrorType() || type.IsRefLikeType;
         }
 
-        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
+        private static readonly string[] s_expressionsNamespaceName = ["Expressions", "Linq", MetadataHelpers.SystemString, ""];
 
         private static bool IsNamespaceName(Symbol symbol, string[] names)
         {

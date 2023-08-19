@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (visType != null)
                 {
                     var method = visType.GetTypeInfo().GetDeclaredMethod("BasicBlockToString");
-                    return (string)method.Invoke(null, new object[] { this });
+                    return (string)method.Invoke(null, [this]);
                 }
 #endif
 

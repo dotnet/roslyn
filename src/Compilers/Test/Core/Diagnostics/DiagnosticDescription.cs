@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class DiagnosticDescription
     {
-        public static readonly DiagnosticDescription[] None = { };
+        public static readonly DiagnosticDescription[] None = [];
         public static readonly DiagnosticDescription[] Any = null;
 
         // common fields for all DiagnosticDescriptions

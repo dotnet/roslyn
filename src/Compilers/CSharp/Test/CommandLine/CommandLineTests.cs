@@ -689,10 +689,10 @@ class C
         [Fact, WorkItem(546023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546023")]
         public void Win32ResourceArguments()
         {
-            string[] args = new string[]
-            {
+            string[] args =
+            [
                 @"/win32manifest:..\here\there\everywhere\nonexistent"
-            };
+            ];
 
             var parsedArgs = DefaultParse(args, WorkingDirectory);
             var compilation = CreateCompilation(new SyntaxTree[0]);
@@ -702,10 +702,10 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Manifest, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
 
-            args = new string[]
-            {
+            args =
+            [
                 @"/Win32icon:\bogus"
-            };
+            ];
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
 
@@ -714,10 +714,10 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantOpenIcon, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
 
-            args = new string[]
-            {
+            args =
+            [
                 @"/Win32Res:\bogus"
-            };
+            ];
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
             CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -725,10 +725,10 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Res, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
 
-            args = new string[]
-            {
+            args =
+            [
                 @"/Win32Res:goo.win32data:bar.win32data2"
-            };
+            ];
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
             CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -736,10 +736,10 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Res, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
 
-            args = new string[]
-            {
+            args =
+            [
                 @"/Win32icon:goo.win32data:bar.win32data2"
-            };
+            ];
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
             CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -747,10 +747,10 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantOpenIcon, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
 
-            args = new string[]
-            {
+            args =
+            [
                 @"/Win32manifest:goo.win32data:bar.win32data2"
-            };
+            ];
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
             CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -833,23 +833,23 @@ class C
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Win32ResQuotes()
         {
-            string[] responseFile = new string[] {
+            string[] responseFile = [
                 @" /win32res:d:\\""abc def""\a""b c""d\a.res",
-            };
+            ];
 
             CSharpCommandLineArguments args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.res", args.Win32ResourceFile);
 
-            responseFile = new string[] {
+            responseFile = [
                 @" /win32icon:d:\\""abc def""\a""b c""d\a.ico",
-            };
+            ];
 
             args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.ico", args.Win32Icon);
 
-            responseFile = new string[] {
+            responseFile = [
                 @" /win32manifest:d:\\""abc def""\a""b c""d\a.manifest",
-            };
+            ];
 
             args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
@@ -3562,7 +3562,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 expectedWarningCount: 2,
                 expectedErrorCount: 2,
-                additionalFlags: new[] { "/t:exe" });
+                additionalFlags: ["/t:exe"]);
 
             AssertEx.Equal("""
                 a.cs(5,14): warning CS0618: 'C1' is obsolete: 'Do not use C1' (https://example.org/CS0618)
@@ -4150,7 +4150,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Invalid SARIF version.
-            string[] invalidSarifVersions = new string[] { @"C:\MyFolder\MyBinary.xml,version=1.0.0", @"C:\MyFolder\MyBinary.xml,version=2.1.0", @"C:\MyFolder\MyBinary.xml,version=42" };
+            string[] invalidSarifVersions = [@"C:\MyFolder\MyBinary.xml,version=1.0.0", @"C:\MyFolder\MyBinary.xml,version=2.1.0", @"C:\MyFolder\MyBinary.xml,version=42"];
 
             foreach (string invalidSarifVersion in invalidSarifVersions)
             {
@@ -5325,13 +5325,13 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror:+1062,+1066,+1734", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror+", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5343,7 +5343,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror-", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5355,15 +5355,15 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Default, ReportDiagnostic.Default, ReportDiagnostic.Default }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Default, ReportDiagnostic.Default, ReportDiagnostic.Default], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror+:1062,1066,1734", "/warnaserror-:1762,1974", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
             AssertSpecificDiagnostics(
-                new[] { 1062, 1066, 1734, 1762, 1974 },
-                new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Default, ReportDiagnostic.Default },
+                [1062, 1066, 1734, 1762, 1974],
+                [ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Default, ReportDiagnostic.Default],
                 parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror+:1062,1066,1734", "/warnaserror-:1062,1974", "a.cs" }, WorkingDirectory);
@@ -5371,13 +5371,13 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
             Assert.Equal(4, parsedArgs.CompilationOptions.SpecificDiagnosticOptions.Count);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734, 1974 }, new[] { ReportDiagnostic.Default, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Default }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734, 1974], [ReportDiagnostic.Default, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Default], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror-:1062,1066,1734", "/warnaserror+:1062,1974", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734, 1974 }, new[] { ReportDiagnostic.Error, ReportDiagnostic.Default, ReportDiagnostic.Default, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734, 1974], [ReportDiagnostic.Error, ReportDiagnostic.Default, ReportDiagnostic.Default, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/w:1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5395,31 +5395,31 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(1, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1974 }, new[] { ReportDiagnostic.Error, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1974], [ReportDiagnostic.Error, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/nowarn:1062,1066,1734", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { @"/nowarn:""1062 1066 1734""", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734 }, new[] { ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734], [ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/nowarn:1062,1066,1734", "/warnaserror:1066,1762", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734, 1762 }, new[] { ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734, 1762], [ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Error], parsedArgs);
 
             parsedArgs = DefaultParse(new string[] { "/warnaserror:1066,1762", "/nowarn:1062,1066,1734", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
-            AssertSpecificDiagnostics(new[] { 1062, 1066, 1734, 1762 }, new[] { ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Error }, parsedArgs);
+            AssertSpecificDiagnostics([1062, 1066, 1734, 1762], [ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Suppress, ReportDiagnostic.Error], parsedArgs);
         }
 
         [Fact]
@@ -6308,8 +6308,8 @@ class myClass
 ").Path;
 
             assertOrder(
-                new[] { "/a", "/b", "/c", "/d" },
-                new[] { "/a", @$"@""{rspFilePath1}""", "/d" });
+                ["/a", "/b", "/c", "/d"],
+                ["/a", @$"@""{rspFilePath1}""", "/d"]);
 
             var rspFilePath2 = Temp.CreateFile().WriteAllText(@"
 /c
@@ -6322,8 +6322,8 @@ class myClass
 ").Path;
 
             assertOrder(
-                new[] { "/a", "/b", "/c", "/d", "/e" },
-                new[] { "/a", @$"@""{rspFilePath1}""", "/e" });
+                ["/a", "/b", "/c", "/d", "/e"],
+                ["/a", @$"@""{rspFilePath1}""", "/e"]);
 
             rspFilePath1 = Temp.CreateFile().WriteAllText(@$"
 /b
@@ -6336,8 +6336,8 @@ class myClass
 ").Path;
 
             assertOrder(
-                new[] { "/a", "/b", "/c", "/d", "/e" },
-                new[] { "/a", @$"@""{rspFilePath1}""", $@"@""{rspFilePath2}""", "/e" });
+                ["/a", "/b", "/c", "/d", "/e"],
+                ["/a", @$"@""{rspFilePath1}""", $@"@""{rspFilePath2}""", "/e"]);
 
             void assertOrder(string[] expected, string[] args)
             {
@@ -6485,45 +6485,45 @@ class myClass
         {
             string[] responseFile;
 
-            responseFile = new string[] {
+            responseFile = [
                 @"a.cs b.cs ""c.cs e.cs""",
                 @"hello world # this is a comment"
-            };
+            ];
 
             IEnumerable<string> args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { "a.cs", "b.cs", @"c.cs e.cs", "hello", "world" }, args);
 
             // Check comment handling; comment character only counts at beginning of argument
-            responseFile = new string[] {
+            responseFile = [
                 @"   # ignore this",
                 @"   # ignore that ""hello""",
                 @"  a.cs #3.cs",
                 @"  b#.cs c#d.cs #e.cs",
                 @"  ""#f.cs""",
                 @"  ""#g.cs #h.cs"""
-            };
+            ];
 
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { "a.cs", "b#.cs", "c#d.cs", "#f.cs", "#g.cs #h.cs" }, args);
 
             // Check backslash escaping
-            responseFile = new string[] {
+            responseFile = [
                 @"a\b\c d\\e\\f\\ \\\g\\\h\\\i \\\\ \\\\\k\\\\\",
-            };
+            ];
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"a\b\c", @"d\\e\\f\\", @"\\\g\\\h\\\i", @"\\\\", @"\\\\\k\\\\\" }, args);
 
             // More backslash escaping and quoting
-            responseFile = new string[] {
+            responseFile = [
                 @"a\""a b\\""b c\\\""c d\\\\""d e\\\\\""e f"" g""",
-            };
+            ];
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"a\""a", @"b\\""b c\\\""c d\\\\""d", @"e\\\\\""e", @"f"" g""" }, args);
 
             // Quoting inside argument is valid.
-            responseFile = new string[] {
+            responseFile = [
                 @"  /o:""goo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
-            };
+            ];
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"/o:""goo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
         }
@@ -6531,9 +6531,9 @@ class myClass
         [ConditionalFact(typeof(WindowsOnly))]
         private void SourceFileQuoting()
         {
-            string[] responseFile = new string[] {
+            string[] responseFile = [
                 @"d:\\""abc def""\baz.cs ab""c d""e.cs",
-            };
+            ];
 
             CSharpCommandLineArguments args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             AssertEx.Equal(new[] { @"d:\abc def\baz.cs", @"c:\abc de.cs" }, args.SourceFiles.Select(file => file.Path));
@@ -6558,7 +6558,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:library" },
+                commandLineArguments: ["/target:library"],
                 expectedOutputName: "p.dll");
         }
 
@@ -6581,7 +6581,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:library", "/out:r.dll" },
+                commandLineArguments: ["/target:library", "/out:r.dll"],
                 expectedOutputName: "r.dll");
         }
 
@@ -6604,7 +6604,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe" },
+                commandLineArguments: ["/target:exe"],
                 expectedOutputName: "q.exe");
         }
 
@@ -6627,7 +6627,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe", "/out:r.exe" },
+                commandLineArguments: ["/target:exe", "/out:r.exe"],
                 expectedOutputName: "r.exe");
         }
 
@@ -6651,7 +6651,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe", "/main:A" },
+                commandLineArguments: ["/target:exe", "/main:A"],
                 expectedOutputName: "p.exe");
         }
 
@@ -6675,7 +6675,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe", "/main:B" },
+                commandLineArguments: ["/target:exe", "/main:B"],
                 expectedOutputName: "q.exe");
         }
 
@@ -6699,7 +6699,7 @@ partial class A
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe" },
+                commandLineArguments: ["/target:exe"],
                 expectedOutputName: "p.exe");
         }
 
@@ -6723,7 +6723,7 @@ partial class A
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe" },
+                commandLineArguments: ["/target:exe"],
                 expectedOutputName: "q.exe");
         }
 
@@ -6745,7 +6745,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:winmdobj" },
+                commandLineArguments: ["/target:winmdobj"],
                 expectedOutputName: "p.winmdobj");
         }
 
@@ -6767,7 +6767,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:appcontainerexe" },
+                commandLineArguments: ["/target:appcontainerexe"],
                 expectedOutputName: "q.exe");
         }
 
@@ -6789,7 +6789,7 @@ class B
             CheckOutputFileName(
                 source1, source2,
                 inputName1: "p.cs", inputName2: "q.cs",
-                commandLineArguments: new[] { "/target:exe", "/out:r.exe" },
+                commandLineArguments: ["/target:exe", "/out:r.exe"],
                 expectedOutputName: "r.exe");
         }
 
@@ -6999,17 +6999,17 @@ public class C
 }";
 
             // Baseline without warning options (expect success)
-            int exitCode = GetExitCode(source, "a.cs", new String[] { });
+            int exitCode = GetExitCode(source, "a.cs", []);
             Assert.Equal(0, exitCode);
 
             // The case with /warnaserror (expect to be success, since there will be no warning)
-            exitCode = GetExitCode(source, "b.cs", new[] { "/warnaserror" });
+            exitCode = GetExitCode(source, "b.cs", ["/warnaserror"]);
             Assert.Equal(0, exitCode);
 
             // The case with /warnaserror and /nowarn:1 (expect success)
             // Note that even though the command line option has a warning, it is not going to become an error
             // in order to avoid the halt of compilation.
-            exitCode = GetExitCode(source, "c.cs", new[] { "/warnaserror", "/nowarn:1" });
+            exitCode = GetExitCode(source, "c.cs", ["/warnaserror", "/nowarn:1"]);
             Assert.Equal(0, exitCode);
         }
 
@@ -7027,23 +7027,23 @@ public class C
 }";
 
             // Baseline without warning options (expect success)
-            int exitCode = GetExitCode(source, "a.cs", new String[] { });
+            int exitCode = GetExitCode(source, "a.cs", []);
             Assert.Equal(0, exitCode);
 
             // The case with /warnaserror (expect failure)
-            exitCode = GetExitCode(source, "b.cs", new[] { "/warnaserror" });
+            exitCode = GetExitCode(source, "b.cs", ["/warnaserror"]);
             Assert.NotEqual(0, exitCode);
 
             // The case with /warnaserror:168 (expect failure)
-            exitCode = GetExitCode(source, "c.cs", new[] { "/warnaserror:168" });
+            exitCode = GetExitCode(source, "c.cs", ["/warnaserror:168"]);
             Assert.NotEqual(0, exitCode);
 
             // The case with /warnaserror:219 (expect success)
-            exitCode = GetExitCode(source, "c.cs", new[] { "/warnaserror:219" });
+            exitCode = GetExitCode(source, "c.cs", ["/warnaserror:219"]);
             Assert.Equal(0, exitCode);
 
             // The case with /warnaserror and /nowarn:168 (expect success)
-            exitCode = GetExitCode(source, "d.cs", new[] { "/warnaserror", "/nowarn:168" });
+            exitCode = GetExitCode(source, "d.cs", ["/warnaserror", "/nowarn:168"]);
             Assert.Equal(0, exitCode);
         }
 
@@ -7361,7 +7361,7 @@ public class C
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
         public void SpecifyProperCodePage()
         {
-            byte[] source = {
+            byte[] source = [
                                 0x63, // c
                                 0x6c, // l
                                 0x61, // a
@@ -7371,7 +7371,7 @@ public class C
                                 0xd0, 0x96, // Utf-8 Cyrillic character
                                 0x7b, // {
                                 0x7d, // }
-                            };
+                            ];
 
             var fileName = "a.cs";
             var dir = Temp.CreateDirectory();
@@ -9151,56 +9151,56 @@ public class C { }
             TestCS2002(commandLineArgs, tempDir.Path, 0, aWrnString);
 
             // Multiple duplicates
-            commandLineArgs = new[] { "a.cs", "a.cs", "a.cs" };
+            commandLineArgs = ["a.cs", "a.cs", "a.cs"];
             // warning CS2002: Source file 'a.cs' specified multiple times
             var warnings = new[] { aWrnString };
             TestCS2002(commandLineArgs, tempDir.Path, 0, warnings);
 
             // Case-insensitive
-            commandLineArgs = new[] { "a.cs", "A.cs" };
+            commandLineArgs = ["a.cs", "A.cs"];
             // warning CS2002: Source file 'A.cs' specified multiple times
             string AWrnString = String.Format(cs2002, "A.cs");
             TestCS2002(commandLineArgs, tempDir.Path, 0, AWrnString);
 
             // Different extensions
             tempDir.CreateFile("a.csx");
-            commandLineArgs = new[] { "a.cs", "a.csx" };
+            commandLineArgs = ["a.cs", "a.csx"];
             // No errors or warnings
             TestCS2002(commandLineArgs, tempDir.Path, 0, String.Empty);
 
             // Absolute vs Relative
-            commandLineArgs = new[] { @"tmpDir\a.cs", tempFile.Path };
+            commandLineArgs = [@"tmpDir\a.cs", tempFile.Path];
             // warning CS2002: Source file 'tmpDir\a.cs' specified multiple times
             string tmpDiraString = String.Format(cs2002, @"tmpDir\a.cs");
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // Both relative
-            commandLineArgs = new[] { @"tmpDir\..\tmpDir\a.cs", @"tmpDir\a.cs" };
+            commandLineArgs = [@"tmpDir\..\tmpDir\a.cs", @"tmpDir\a.cs"];
             // warning CS2002: Source file 'tmpDir\a.cs' specified multiple times
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // With wild cards
-            commandLineArgs = new[] { tempFile.Path, @"tmpDir\*.cs" };
+            commandLineArgs = [tempFile.Path, @"tmpDir\*.cs"];
             // warning CS2002: Source file 'tmpDir\a.cs' specified multiple times
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // "/recurse" scenarios
-            commandLineArgs = new[] { @"/recurse:a.cs", @"tmpDir\a.cs" };
+            commandLineArgs = [@"/recurse:a.cs", @"tmpDir\a.cs"];
             // warning CS2002: Source file 'tmpDir\a.cs' specified multiple times
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
-            commandLineArgs = new[] { @"/recurse:a.cs", @"/recurse:tmpDir\..\tmpDir\*.cs" };
+            commandLineArgs = [@"/recurse:a.cs", @"/recurse:tmpDir\..\tmpDir\*.cs"];
             // warning CS2002: Source file 'tmpDir\a.cs' specified multiple times
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // Invalid file/path characters
             const string cs1504 = @"error CS1504: Source file '{0}' could not be opened -- {1}";
-            commandLineArgs = new[] { "/preferreduilang:en", tempFile.Path, "tmpDir\a.cs" };
+            commandLineArgs = ["/preferreduilang:en", tempFile.Path, "tmpDir\a.cs"];
             // error CS1504: Source file '{0}' could not be opened: Illegal characters in path.
             var formattedcs1504Str = String.Format(cs1504, PathUtilities.CombineAbsoluteAndRelativePaths(tempParentDir.Path, "tmpDir\a.cs"), "Illegal characters in path.");
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, formattedcs1504Str);
 
-            commandLineArgs = new[] { tempFile.Path, @"tmpDi\r*a?.cs" };
+            commandLineArgs = [tempFile.Path, @"tmpDi\r*a?.cs"];
             var parseDiags = new[] {
                 // error CS2021: File name 'tmpDi\r*a?.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"tmpDi\r*a?.cs"),
@@ -9209,13 +9209,13 @@ public class C { }
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
 
             char currentDrive = Directory.GetCurrentDirectory()[0];
-            commandLineArgs = new[] { tempFile.Path, currentDrive + @":a.cs" };
-            parseDiags = new[] {
+            commandLineArgs = [tempFile.Path, currentDrive + @":a.cs"];
+            parseDiags = [
                 // error CS2021: File name 'e:a.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + @":a.cs")};
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + @":a.cs")];
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
 
-            commandLineArgs = new[] { "/preferreduilang:en", tempFile.Path, @":a.cs" };
+            commandLineArgs = ["/preferreduilang:en", tempFile.Path, @":a.cs"];
             // error CS1504: Source file '{0}' could not be opened: {1}
             var formattedcs1504 = String.Format(cs1504, PathUtilities.CombineAbsoluteAndRelativePaths(tempParentDir.Path, @":a.cs"), @"The given path's format is not supported.");
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, formattedcs1504);
@@ -9388,7 +9388,7 @@ public class C { }
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var analyzers = skipAnalyzers
                 ? Array.Empty<DiagnosticAnalyzer>()
-                : new DiagnosticAnalyzer[] { new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer() };
+                : [new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer()];
             var csc = CreateCSharpCompiler(
                 responseFile: null,
                 srcDirectory,
@@ -9915,7 +9915,7 @@ public class Program
             string filePath = Temp.CreateFile().WriteAllText(source).Path;
             string fileName = Path.GetFileName(filePath);
 
-            string[] expectedWarningsAll = new[] { fileName + "(4,27): warning CS8603: Possible null reference return." };
+            string[] expectedWarningsAll = [fileName + "(4,27): warning CS8603: Possible null reference return."];
             string[] expectedWarningsNone = Array.Empty<string>();
 
             AssertEx.Equal(expectedWarningsAll, compileAndRun(featureOpt: null));
@@ -9985,9 +9985,9 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+            void RunWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview"], generators: [generator.AsSourceGenerator()], analyzers: null);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10043,7 +10043,7 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10108,9 +10108,9 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
 
-            void RunWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10165,9 +10165,9 @@ class C
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            void RunWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
 
-            void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator(), generator2.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact(Skip = "Additional file comparison is disabled due to https://github.com/dotnet/roslyn/issues/59209")]
@@ -10213,7 +10213,7 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10309,7 +10309,10 @@ a = diffGlobalA
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags:
+            [
+                "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path
+            ], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10345,7 +10348,7 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/features:enable-generator-cache"], generators: [generator.AsSourceGenerator()], driverCache: cache, analyzers: null);
         }
 
         private static int OccurrenceCount(string source, string word)
@@ -10457,19 +10460,19 @@ class C
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS8032 can be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS8032 can be individually suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:CS8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:CS8032"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS8032 can be promoted to an error via /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS8032 can be individually promoted to an error via /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:8032" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:8032"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);
@@ -10494,94 +10497,94 @@ class C
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /nowarn: has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warnaserror+ has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/nowarn:8032"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /warnaserror- has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warnaserror: promotes custom hidden diagnostic Hidden01 to an error.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Hidden01"], expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warnaserror-: has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn: overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01", "/nowarn:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Hidden01", "/nowarn:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn: overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Hidden01", "/warnaserror:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Hidden01", "/warnaserror:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn: overrides /warnaserror-:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01", "/nowarn:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Hidden01", "/nowarn:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn: overrides /warnaserror-:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Hidden01", "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Hidden01", "/warnaserror-:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Hidden01" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0", "/warnaserror:Hidden01"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01", "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Hidden01", "/warn:0"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:Hidden01", "/warnaserror-:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01", "/warnaserror+:Hidden01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Hidden01", "/warnaserror+:Hidden01"], expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Hidden01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warnaserror+:Hidden01"], expectedWarningCount: 1, expectedErrorCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01", "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Hidden01", "/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Hidden01", "/nowarn:8032" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/warnaserror+:Hidden01", "/nowarn:8032"], expectedErrorCount: 1);
             Assert.Contains("a.cs(2,1): error Hidden01: Throwing a diagnostic for #region", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror+", "/nowarn:8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:Hidden01", "/warnaserror+", "/nowarn:8032"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror-" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:Hidden01", "/warnaserror-"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Hidden01", "/nowarn:8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/warnaserror-:Hidden01", "/nowarn:8032"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01", "/warnaserror-" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Hidden01", "/warnaserror-"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warnaserror-:Hidden01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);
@@ -10608,105 +10611,105 @@ class C
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 suppresses custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" }, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warn:0"], errorlog: errorlog);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/nowarn:Info01"], expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 can never be promoted to an error via /warnaserror+.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+", "/nowarn:8032"], expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when /warnaserror- is used.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually promoted to an error via /warnaserror:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror:Info01"], expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when passed to /warnaserror-:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-:Info01"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror:Info01", "/nowarn:Info01"], expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/nowarn:Info01", "/warnaserror:Info01"], expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-:Info01", "/nowarn:Info01"], expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/nowarn:Info01", "/warnaserror-:Info01"], expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warn:0", "/warnaserror:Info01"], errorlog: errorlog);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" });
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror:Info01", "/warn:0"]);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+:Info01", "/warnaserror-:Info01"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-:Info01", "/warnaserror+:Info01"], expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-", "/warnaserror+:Info01"], expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-:Info01", "/warnaserror+", "/nowarn:8032"], expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+:Info01", "/warnaserror+", "/nowarn:8032"], expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Info01", "/nowarn:8032" }, expectedErrorCount: 1, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+", "/warnaserror+:Info01", "/nowarn:8032"], expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+:Info01", "/warnaserror-"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Info01", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror+", "/warnaserror-:Info01", "/nowarn:8032"], expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-:Info01", "/warnaserror-"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            output = GetOutput(name, source, additionalFlags: ["/warnaserror-", "/warnaserror-:Info01"], expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             if (errorlog)
                 Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
@@ -10761,166 +10764,166 @@ class C
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0"]);
             Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be individually suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:0168,Warning01,58000"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that diagnostic ids are processed in case-sensitive fashion inside /nowarn:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:cs0168,warning01,700000" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:cs0168,warning01,700000"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be promoted to errors via /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/nowarn:8032" }, expectedErrorCount: 2);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror", "/nowarn:8032"], expectedErrorCount: 2);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be promoted to errors via /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" }, expectedErrorCount: 2);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/nowarn:8032"], expectedErrorCount: 2);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warnaserror- keeps compiler warning CS0168 as well as custom warning diagnostic Warning01 as warnings.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom warning diagnostic Warning01 can be individually promoted to an error via /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Something,Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Something,Warning01"], expectedWarningCount: 2, expectedErrorCount: 1);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler warning CS0168 can be individually promoted to an error via /warnaserror+:.
             // This doesn't work correctly currently - promoting compiler warning CS0168 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:CS0168" }, expectedWarningCount: 2, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:CS0168"], expectedWarningCount: 2, expectedErrorCount: 1);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that diagnostic ids are processed in case-sensitive fashion inside /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:cs0168,warning01,58000" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:cs0168,warning01,58000"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom warning diagnostic Warning01 as well as compiler warning CS0168 can be promoted to errors via /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:CS0168,Warning01" }, expectedWarningCount: 1, expectedErrorCount: 2);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:CS0168,Warning01"], expectedWarningCount: 1, expectedErrorCount: 2);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): error CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 overrides /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror+" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0", "/warnaserror+"]);
 
             // TEST: Verify that /warn:0 overrides /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror", "/warn:0"]);
 
             // TEST: Verify that /warn:0 overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warn:0"]);
 
             // TEST: Verify that /warn:0 overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror-" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0", "/warnaserror-"]);
 
             // TEST: Verify that /nowarn: overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Something,CS0168,Warning01", "/nowarn:0168,Warning01,58000" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Something,CS0168,Warning01", "/nowarn:0168,Warning01,58000"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000", "/warnaserror:Something,CS0168,Warning01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:0168,Warning01,58000", "/warnaserror:Something,CS0168,Warning01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Something,CS0168,Warning01", "/nowarn:0168,Warning01,58000" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Something,CS0168,Warning01", "/nowarn:0168,Warning01,58000"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000", "/warnaserror-:Something,CS0168,Warning01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:0168,Warning01,58000", "/warnaserror-:Something,CS0168,Warning01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/nowarn:0168,Warning01,58000,8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/nowarn:0168,Warning01,58000,8032"]);
 
             // TEST: Verify that /nowarn: overrides /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000,8032", "/warnaserror+" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:0168,Warning01,58000,8032", "/warnaserror+"]);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/nowarn:0168,Warning01,58000,8032" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/nowarn:0168,Warning01,58000,8032"]);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000,8032", "/warnaserror-" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:0168,Warning01,58000,8032", "/warnaserror-"]);
 
             // TEST: Verify that /warn:0 overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Something,CS0168,Warning01", "/warn:0" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Something,CS0168,Warning01", "/warn:0"]);
 
             // TEST: Verify that /warn:0 overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Something,CS0168,Warning01" });
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0", "/warnaserror:Something,CS0168,Warning01"]);
 
             // TEST: Verify that last /warnaserror[+/-] flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-] flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/warnaserror-" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror", "/warnaserror-"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Warning01", "/warnaserror+:Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Warning01", "/warnaserror+:Warning01"], expectedWarningCount: 2, expectedErrorCount: 1);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Warning01", "/warnaserror-:Warning01" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:Warning01", "/warnaserror-:Warning01"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Warning01,CS0168,58000,8032", "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Warning01,CS0168,58000,8032", "/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/warnaserror-:Warning01,CS0168,58000,8032" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror", "/warnaserror-:Warning01,CS0168,58000,8032"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Warning01,58000,8032", "/warnaserror-" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Warning01,58000,8032", "/warnaserror-"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Warning01" }, expectedWarningCount: 2, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warnaserror+:Warning01"], expectedWarningCount: 2, expectedErrorCount: 1);
             Assert.Contains("a.cs(2,7): error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Warning01,CS0168,58000", "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Warning01,CS0168,58000", "/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror", "/warnaserror+:Warning01,CS0168,58000" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror", "/warnaserror+:Warning01,CS0168,58000"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Warning01,58000,8032", "/warnaserror-" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Warning01,58000,8032", "/warnaserror-"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Warning01,58000,8032" }, expectedWarningCount: 3);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/warnaserror-:Warning01,58000,8032"], expectedWarningCount: 3);
             Assert.Contains("a.cs(2,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(6,13): warning CS0168: The variable 'i' is declared but never used", output, StringComparison.Ordinal);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
@@ -10946,66 +10949,66 @@ class C
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom error diagnostic Error01 can't be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warn:0"], expectedErrorCount: 1);
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom error diagnostic Error01 can be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror+.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/nowarn:Error01" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+", "/nowarn:Error01"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Error01", "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Error01", "/warnaserror"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror+:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Error01", "/warnaserror+:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Error01", "/warnaserror+:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Error01", "/nowarn:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Error01", "/nowarn:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-", "/nowarn:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-", "/nowarn:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Error01", "/warnaserror-" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Error01", "/warnaserror-"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Error01", "/nowarn:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Error01", "/nowarn:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /nowarn: overrides /warnaserror-.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Error01", "/warnaserror-:Error01" }, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/nowarn:Error01", "/warnaserror-:Error01"], expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens when using /warnaserror[+/-] when custom error diagnostic Error01 is present.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("error CS8032", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-"], expectedErrorCount: 1, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens if someone passes custom error diagnostic Error01 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Error01" }, expectedErrorCount: 1, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror:Error01"], expectedErrorCount: 1, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Error01" }, expectedErrorCount: 1, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror+:Error01"], expectedErrorCount: 1, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Error01" }, expectedErrorCount: 1, expectedWarningCount: 1);
+            output = VerifyOutput(dir, file, additionalFlags: ["/warnaserror-:Error01"], expectedErrorCount: 1, expectedWarningCount: 1);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Error01: Throwing a diagnostic for #pragma disable", output, StringComparison.Ordinal);
 
@@ -11080,37 +11083,37 @@ class C
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warn:0"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/nowarn:29"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/nowarn:CS0029"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error CS0029 is present.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror+"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror-"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens if someone passes compiler error CS0029 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror:0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror:0029"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror+:CS0029"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror-:29"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/warnaserror-:CS0029"], expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);
@@ -11623,9 +11626,9 @@ public class C
             Assert.True(File.Exists(exe));
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
-                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C.PrivateMethod()", "MethodDefinition:Void C..ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                ["TypeDefinition:<Module>", "TypeDefinition:C"],
+                ["MethodDefinition:Void C.Main()", "MethodDefinition:Void C.PrivateMethod()", "MethodDefinition:Void C..ctor()"],
+                ["CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute"]
                 );
 
             var doc = Path.Combine(dir.Path, "doc.xml");
@@ -11658,9 +11661,9 @@ public class C
             // The types and members that are included needs further refinement.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
+                ["TypeDefinition:<Module>", "TypeDefinition:C"],
+                ["MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"],
+                ["CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute"]
                 );
 
             // Clean up temp files
@@ -11741,9 +11744,9 @@ class C
             // The types and members that are included needs further refinement.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S" },
-                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
+                ["TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"],
+                ["MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"],
+                ["CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute"]
                 );
 
             var pdb = Path.Combine(dir.Path, "a.pdb");
@@ -12129,7 +12132,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             workingDir.CreateFile("a.cs");
 
             var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
-            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
+            var csc = new MockCSharpCompiler(null, buildPaths, args: ["/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs"]);
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
         }
@@ -12307,14 +12310,14 @@ class C
 
             // Verify that parser warning CS0078 is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false);
+                additionalFlags: ["/warnAsError"], includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("error CS0078", output, StringComparison.Ordinal);
 
             // Verify that parser warning CS0078 is suppressed with diagnostic suppressor even with /warnaserror
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId("CS0078");
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
-                additionalFlags: new[] { "/warnAsError" },
+                additionalFlags: ["/warnAsError"],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 analyzers: new[] { suppressor });
@@ -12376,13 +12379,13 @@ class C
 
             // Verify that compiler warning CS1522 is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
+                additionalFlags: ["/warnAsError"], includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("error CS1522", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror
             // and info diagnostic is logged with programmatic suppression information.
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
-                additionalFlags: new[] { "/warnAsError" },
+                additionalFlags: ["/warnAsError"],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 skipAnalyzers: skipAnalyzers,
@@ -12432,13 +12435,13 @@ class C
 
             // Verify that compiler warning CS0169 is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
+                additionalFlags: ["/warnAsError"], includeCurrentAssemblyAsAnalyzerReference: false, skipAnalyzers: skipAnalyzers);
             Assert.Contains("error CS0169", output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS0169 is suppressed with diagnostic suppressor even with /warnaserror
             // and info diagnostic is logged with programmatic suppression information.
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
-                additionalFlags: new[] { "/warnAsError" },
+                additionalFlags: ["/warnAsError"],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 skipAnalyzers: skipAnalyzers,
@@ -12539,7 +12542,7 @@ class C { }";
 
             // Verify that analyzer warning is reported as error for /warnaserror.
             output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
-                additionalFlags: new[] { "/warnAsError" },
+                additionalFlags: ["/warnAsError"],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 analyzers: new[] { analyzer });
             Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
@@ -12547,7 +12550,7 @@ class C { }";
             // Verify that analyzer warning is suppressed with diagnostic suppressor even with /warnaserror
             // and info diagnostic is logged with programmatic suppression information.
             output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0,
-                additionalFlags: new[] { "/warnAsError" },
+                additionalFlags: ["/warnAsError"],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 errorlog: true,
                 analyzers: analyzerAndSuppressor);
@@ -12558,7 +12561,7 @@ class C { }";
             // Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor.
             analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: false);
             suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
-            analyzerAndSuppressor = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            analyzerAndSuppressor = [analyzer, suppressor];
             output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1,
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 analyzers: analyzerAndSuppressor);
@@ -13137,7 +13140,7 @@ class C
         _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
     }
 }");
-            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/nullable" }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(dir, src, additionalFlags: ["/nullable"], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             // warning CS8602: Dereference of a possibly null reference.
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
 
@@ -13146,7 +13149,7 @@ class C
             var analyzerConfig = analyzerConfigFile.WriteAllText(@"
 [*.cs]
 generated_code = true");
-            output = VerifyOutput(dir, src, additionalFlags: new[] { "/nullable", "/analyzerconfig:" + analyzerConfig.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            output = VerifyOutput(dir, src, additionalFlags: ["/nullable", "/analyzerconfig:" + analyzerConfig.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.DoesNotContain("warning CS8602", output, StringComparison.Ordinal);
             // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
             Assert.Contains("warning CS8669", output, StringComparison.Ordinal);
@@ -13155,7 +13158,7 @@ generated_code = true");
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 [*.cs]
 generated_code = false");
-            output = VerifyOutput(dir, src, additionalFlags: new[] { "/nullable", "/analyzerconfig:" + analyzerConfig.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            output = VerifyOutput(dir, src, additionalFlags: ["/nullable", "/analyzerconfig:" + analyzerConfig.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             // warning CS8602: Dereference of a possibly null reference.
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
 
@@ -13163,7 +13166,7 @@ generated_code = false");
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 [*.cs]
 generated_code = auto");
-            output = VerifyOutput(dir, src, additionalFlags: new[] { "/nullable", "/analyzerconfig:" + analyzerConfig.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            output = VerifyOutput(dir, src, additionalFlags: ["/nullable", "/analyzerconfig:" + analyzerConfig.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             // warning CS8602: Dereference of a possibly null reference.
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
         }
@@ -13318,7 +13321,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/debug:embedded", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, $"generatedSource.cs"), generatedSource } }, dir, true);
@@ -13357,7 +13360,7 @@ class C
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
                 expectedWarningCount: expectedWarningCount,
-                additionalFlags: new[] { "/debug:embedded", "/out:embed.exe", skipAnalyzersFlag },
+                additionalFlags: ["/debug:embedded", "/out:embed.exe", skipAnalyzersFlag],
                 generators: new[] { generator });
 
             // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
@@ -13398,7 +13401,7 @@ class C
             var generator = new SingleFileTestGenerator(source1, source1Name);
             var generator2 = new SingleFileTestGenerator2(source2, source2Name);
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/debug:embedded", "/out:embed.exe"], generators: new[] { generator, generator2 }, analyzers: null);
 
             var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
@@ -13437,7 +13440,7 @@ class C
                 dir,
                 src,
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                additionalFlags: new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256" },
+                additionalFlags: ["/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256"],
                 generators: new[] { generator },
                 analyzers: null);
 
@@ -13484,7 +13487,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, hintName);
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateWrittenSources(new()
@@ -13510,7 +13513,7 @@ class C
             var generatedSource1 = "class D { } class E { }";
             var generator1 = new SingleFileTestGenerator(generatedSource1, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator1 }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
@@ -13518,7 +13521,7 @@ class C
             var generatedSource2 = "public class D { }";
             var generator2 = new SingleFileTestGenerator(generatedSource2, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator2 }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator2 }, analyzers: null);
 
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
 
@@ -13545,7 +13548,7 @@ class C
             var generator = new SingleFileTestGenerator(source1, source1Name);
             var generator2 = new SingleFileTestGenerator2(source2, source2Name);
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator, generator2 }, analyzers: null);
 
             var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
@@ -13586,7 +13589,7 @@ class C
             var generatedPath = Path.Combine(subdir, generatedFileName);
             var generator = new SingleFileTestGenerator(generatedSource, generatedPath);
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateWrittenSources(new()
@@ -13661,7 +13664,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
             ValidateWrittenSources(new() { { generatedDir.Path, new() } });
 
             // Clean up temp files
@@ -13682,7 +13685,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
             Assert.Contains("CS0016:", output);
 
             // Clean up temp files
@@ -13703,7 +13706,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
@@ -13774,7 +13777,7 @@ class C
 class C
 {
 }");
-            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:", "/langversion:preview", "/out:embed.exe" });
+            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:", "/langversion:preview", "/out:embed.exe"]);
             Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option", output);
 
             // Clean up temp files
@@ -13795,7 +13798,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/generatedfilesout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
             Assert.Equal(2, touchedFiles.Length);
@@ -13825,7 +13828,7 @@ key = value");
 
             var generator = new SingleFileTestGenerator("public class D {}", "generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/analyzerconfig:" + analyzerConfig.Path], generators: new[] { generator }, analyzers: null);
         }
 
         [Fact]
@@ -14037,7 +14040,7 @@ class C
             var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
             var generator = new CallbackGenerator(i => { }, e => throw null);
 
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:" + version.ToDisplayString()], generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
             Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
         }
 
@@ -14056,7 +14059,7 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/additionalfile:" + additionalFile.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/additionalfile:" + additionalFile.Path, "/langversion:preview", "/out:embed.exe"], generators: new[] { generator }, analyzers: null);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -14160,7 +14163,7 @@ is_global = true
 global_level = 100
 option1 = def");
 
-            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(dir, src, additionalFlags: ["/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
@@ -14179,7 +14182,7 @@ global_level = 100
 [/file.cs]
 option1 = def");
 
-            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            output = VerifyOutput(dir, src, additionalFlags: ["/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
@@ -14317,7 +14320,7 @@ is_global = true
 dotnet_diagnostic.CS0164.severity = none;
 ");
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+            VerifyOutput(dir, src, additionalFlags: ["/warnaserror+", "/analyzerconfig:" + globalConfig.Path], includeCurrentAssemblyAsAnalyzerReference: false);
         }
 
         [Theory, CombinatorialData]
@@ -14378,7 +14381,7 @@ is_global = true
 dotnet_diagnostic.CS0164.severity = error;
 ");
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+            VerifyOutput(dir, src, additionalFlags: ["/nowarn:0164", "/analyzerconfig:" + globalConfig.Path], expectedErrorCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 
         [Fact]
@@ -14395,9 +14398,9 @@ is_global = true
 dotnet_diagnostic.Warning01.severity = error;
 ");
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
+            VerifyOutput(dir, src, additionalFlags: ["/analyzerconfig:" + globalConfig.Path], expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
 
-            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
+            VerifyOutput(dir, src, additionalFlags: ["/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path], includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
         }
 
         [Theory, CombinatorialData]
@@ -14417,7 +14420,7 @@ dotnet_diagnostic.Warning01.severity = error;
             var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
 
             var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
-                additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
+                additionalFlags: ["/additionalfile:" + additionalFile.Path],
                 analyzers: new[] { analyzer });
             Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
 
@@ -14536,26 +14539,26 @@ class C
 
             // core
             var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/analyzer:" + coreGenerator]);
 
             // netstandard
             var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/analyzer:" + nsGenerator]);
 
             // no target
             var ntGenerator = emitGenerator(targetFramework: null);
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + ntGenerator });
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/analyzer:" + ntGenerator]);
 
             // framework
             var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
-            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
+            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/analyzer:" + frameworkGenerator]);
             Assert.Contains("CS8850", output); // ref's net fx
             Assert.Contains("CS8033", output); // no analyzers in assembly
 
             // framework, suppressed
-            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
+            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/nowarn:CS8850", "/analyzer:" + frameworkGenerator]);
             Assert.Contains("CS8033", output);
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator]);
 
             string emitGenerator(string targetFramework)
             {
@@ -14632,8 +14635,8 @@ public class Generator : ISourceGenerator
             });
 
             var output = VerifyOutput(srcDirectory, srcFile, includeCurrentAssemblyAsAnalyzerReference: false,
-                additionalFlags: new[] { "/additionalfile:" + path1, "/additionalfile:" + path2 },
-                generators: new[] { generator.AsSourceGenerator() });
+                additionalFlags: ["/additionalfile:" + path1, "/additionalfile:" + path2],
+                generators: [generator.AsSourceGenerator()]);
 
             Assert.Equal(expectedCount, count);
 
@@ -14671,14 +14674,14 @@ class C {}
             var notAnalyzer = dir.CreateFile("random.txt");
 
             // not suppresssed
-            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(dir, src, additionalFlags: ["/analyzer:" + notAnalyzer.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
             // supressed
-            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+            VerifyOutput(dir, src, additionalFlags: ["/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034"], expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
 
             // elevated
-            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/warnAsError:CS8034" }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            output = VerifyOutput(dir, src, additionalFlags: ["/analyzer:" + notAnalyzer.Path, "/warnAsError:CS8034"], expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("error CS8034", output, StringComparison.Ordinal);
         }
 
@@ -14695,11 +14698,11 @@ dotnet_diagnostic.CS8034.severity = none
             var notAnalyzer = dir.CreateFile("random.txt");
 
             // not suppresssed
-            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            var output = VerifyOutput(dir, src, additionalFlags: ["/analyzer:" + notAnalyzer.Path], expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
             // suppresssed via global analyzer config
-            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+            VerifyOutput(dir, src, additionalFlags: ["/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path], includeCurrentAssemblyAsAnalyzerReference: false);
         }
     }
 

@@ -1578,10 +1578,10 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                diagnostics: new[]
-                {
+                diagnostics:
+                [
                     Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -1626,10 +1626,10 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                diagnostics: new[]
-                {
+                diagnostics:
+                [
                     Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -10967,7 +10967,7 @@ class C
             _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetCoreApp },
+                targetFrameworks: [TargetFramework.NetCoreApp],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11539,8 +11539,7 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
-                new[]
-                {
+                [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
@@ -11549,7 +11548,7 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1))
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51177")]
@@ -11566,8 +11565,7 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
-                new[]
-                {
+                [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
@@ -11576,8 +11574,8 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", GetResource("method", "F()")) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", GetResource("method", "F()"))])
+                ]);
         }
 
         [Fact]
@@ -11590,8 +11588,7 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
-                new[]
-                {
+                [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
@@ -11600,8 +11597,8 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "C.F()")) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "C.F()"))])
+                ]);
         }
 
         #endregion
@@ -11965,14 +11962,14 @@ class C
     }
 }";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2, flags: new[]
-            {
+            var active = GetActiveStatements(src1, src2, flags:
+            [
                 ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame,
                 ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.NonLeafFrame,
                 ActiveStatementFlags.LeafFrame,
                 ActiveStatementFlags.NonLeafFrame,
                 ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
-            });
+            ]);
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10);"),
@@ -12000,10 +11997,10 @@ class C
     <AS:0>}</AS:0>
 }";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2, flags: new[]
-            {
+            var active = GetActiveStatements(src1, src2, flags:
+            [
                 ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame
-            });
+            ]);
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "{", FeaturesResources.code));
@@ -12028,10 +12025,10 @@ class C
     <AS:0>}</AS:0>
 }";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2, flags: new[]
-            {
+            var active = GetActiveStatements(src1, src2, flags:
+            [
                 ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
-            });
+            ]);
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{", FeaturesResources.code));
@@ -12125,7 +12122,7 @@ class C
             validator.VerifySemantics(
                 new[] { edits },
                 TargetFramework.NetCoreApp,
-                new[] { DocumentResults(diagnostics: new[] { expectedDiagnostic }) });
+                [DocumentResults(diagnostics: [expectedDiagnostic])]);
         }
 
         /// <summary>

@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis
                 return index >= id.Length ? '\0' : id[index];
             }
 
-            private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
+            private static readonly char[] s_nameDelimiters = [':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~'];
 
             private static string ParseName(string id, ref int index)
             {

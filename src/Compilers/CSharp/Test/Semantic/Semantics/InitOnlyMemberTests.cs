@@ -400,7 +400,7 @@ public class C
 
             var members = ((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMembers();
             AssertEx.SetEqual(members.ToTestDisplayStrings(),
-                new[] {
+                [
                     "System.String C.Property { set; }",
                     "void C.Property.set",
                     "System.String C.Property2 { init; }",
@@ -408,7 +408,7 @@ public class C
                     "System.String C.Property3 { init; }",
                     "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.init",
                     "C..ctor()"
-                });
+                ]);
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.SetMethod.IsInitOnly);
@@ -2422,10 +2422,10 @@ public class C
                 );
 
             var members = ((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMembers();
-            AssertEx.SetEqual(members.ToTestDisplayStrings(), new[] {
+            AssertEx.SetEqual(members.ToTestDisplayStrings(), [
                 "event System.Action C.Event",
                 "C..ctor()"
-            });
+            ]);
         }
 
         [Fact]
@@ -2533,7 +2533,7 @@ public record C(int i)
             comp.VerifyDiagnostics();
 
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
-            AssertEx.SetEqual(new[] {
+            AssertEx.SetEqual([
                 "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
@@ -2552,7 +2552,7 @@ public record C(int i)
                 "System.Boolean C.Equals(C? other)",
                 "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 i)",
-                }, cMembers.ToTestDisplayStrings());
+                ], cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {
@@ -4581,7 +4581,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilationWithMscorlib45([IsExternalInitTypeDefinition, pia], options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -4597,7 +4597,7 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+            var compilation = CreateCompilationWithMscorlib45([source],
                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                 options: TestOptions.DebugExe);
 

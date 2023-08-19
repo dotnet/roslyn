@@ -492,7 +492,7 @@ class X
                 {
                     string fldName = string.Format("_{0:X}", i);
                     source.AppendLine(string.Format("[MarshalAs(UnmanagedType.LPArray, ArraySubType = (UnmanagedType)0x{0:X})]int {1};", i, fldName));
-                    expectedBlobs.Add(fldName, new byte[] { 0x2a, (byte)i });
+                    expectedBlobs.Add(fldName, [0x2a, (byte)i]);
                 }
             }
 
@@ -635,7 +635,7 @@ class X
             {
                 string fldName = string.Format("_{0:X}", i);
                 source.AppendLine(string.Format("[MarshalAs(UnmanagedType.ByValArray, ArraySubType = (UnmanagedType)0x{0:X})]int {1};", i, fldName));
-                expectedBlobs.Add(fldName, new byte[] { 0x1e, 0x01, (byte)i });
+                expectedBlobs.Add(fldName, [0x1e, 0x01, (byte)i]);
             }
 
             source.AppendLine("}");

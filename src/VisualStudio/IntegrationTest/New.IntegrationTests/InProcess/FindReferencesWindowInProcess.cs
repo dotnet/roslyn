@@ -66,7 +66,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             referenceInGeneratedFile.NavigateTo(isPreview, shouldActivate);
 
             // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.FindReferences }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.FindReferences], cancellationToken);
 
             // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);

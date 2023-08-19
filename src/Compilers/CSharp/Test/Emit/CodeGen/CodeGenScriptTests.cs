@@ -233,7 +233,7 @@ class CLS
         public void CompilationChain_DynamicSiteDelegates()
         {
             // TODO: references should be inherited
-            MetadataReference[] references = { SystemCoreRef, CSharpRef };
+            MetadataReference[] references = [SystemCoreRef, CSharpRef];
 
             var s0 = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i);", references);
             var sx = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i, ref i);", references, previous: s0);

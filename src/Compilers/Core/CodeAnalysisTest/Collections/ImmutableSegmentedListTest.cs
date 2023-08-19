@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = Assert.IsAssignableFrom<IEnumerable>(createMethod.Invoke(null, null));
 
             var addMethod = list.GetType().GetMethod("Add");
-            list = Assert.IsAssignableFrom<IEnumerable>(addMethod!.Invoke(list, new object?[] { Activator.CreateInstance(dummType.AsType()) }));
+            list = Assert.IsAssignableFrom<IEnumerable>(addMethod!.Invoke(list, [Activator.CreateInstance(dummType.AsType())]));
 
             list.GetEnumerator(); // ensure this doesn't throw
         }

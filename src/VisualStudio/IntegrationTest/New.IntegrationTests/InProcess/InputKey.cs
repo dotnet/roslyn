@@ -89,7 +89,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     }
                     else
                     {
-                        var nextSpecial = Text.IndexOfAny(new[] { '\r', '\n', '\t' }, offset);
+                        var nextSpecial = Text.IndexOfAny(['\r', '\n', '\t'], offset);
                         var endOfCurrentSegment = nextSpecial < 0 ? Text.Length : nextSpecial;
                         simulator.Keyboard.TextEntry(Text[offset..endOfCurrentSegment]);
                         offset = endOfCurrentSegment;

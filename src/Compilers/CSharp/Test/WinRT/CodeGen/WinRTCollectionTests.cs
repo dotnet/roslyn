@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public static MetadataReference[] LegacyRefs
         { get; }
         =
-        {
+        [
             AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"),
             AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.SystemCore).GetReference(display: "SystemCore")
-        };
+        ];
 
         [Fact, WorkItem(762316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762316")]
         public void InheritFromTypeWithProjections()

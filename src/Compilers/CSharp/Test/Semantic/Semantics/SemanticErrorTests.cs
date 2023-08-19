@@ -3823,7 +3823,7 @@ class A
 }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-               new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstParam, Parameters = new string[] { "A.A(int)" } } });
+               new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstParam, Parameters = ["A.A(int)"] } });
         }
 
         [Fact]
@@ -12572,7 +12572,7 @@ public class Myclass
 }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] { LinqAssemblyRef },
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ExpressionTreeMustHaveDelegate, Line = 8, Column = 31 } });
+                [new ErrorDescription { Code = (int)ErrorCode.ERR_ExpressionTreeMustHaveDelegate, Line = 8, Column = 31 }]);
         }
 
         [Fact]
@@ -16562,7 +16562,7 @@ public class Child2 : Parent
 }";
             var compilation = CreateCompilation(text);
 
-            DiagnosticDescription[] expected = {
+            DiagnosticDescription[] expected = [
                 // (21,14): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
@@ -16575,7 +16575,7 @@ public class Child2 : Parent
                 // (9,37): error CS7036: There is no argument given that corresponds to the required parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37)
-            };
+            ];
 
             compilation.VerifyDiagnostics(expected);
 

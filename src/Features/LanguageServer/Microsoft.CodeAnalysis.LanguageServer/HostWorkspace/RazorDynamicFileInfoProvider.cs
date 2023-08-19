@@ -58,7 +58,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
-        var requestParams = new ProvideDynamicFileParams { RazorFiles = new[] { ProtocolConversions.CreateAbsoluteUri(filePath) } };
+        var requestParams = new ProvideDynamicFileParams { RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)] };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -82,7 +82,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var notificationParams = new RemoveDynamicFileParams { RazorFiles = new[] { ProtocolConversions.CreateAbsoluteUri(filePath) } };
+        var notificationParams = new RemoveDynamicFileParams { RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)] };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();

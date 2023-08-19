@@ -2070,7 +2070,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -2171,7 +2171,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                string[] candidates = ["C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -2310,7 +2310,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -6822,13 +6822,13 @@ public class D
 }
 ";
             var comp = CreateCompilation(src);
-            AssertEx.SetEqual(new string[] { "A..ctor()" },
+            AssertEx.SetEqual(["A..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "B..ctor()" },
+            AssertEx.SetEqual(["B..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "C..ctor(System.Int32 x)" },
+            AssertEx.SetEqual(["C..ctor(System.Int32 x)"],
                 comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "D..ctor(System.Int32 x)" },
+            AssertEx.SetEqual(["D..ctor(System.Int32 x)"],
                 comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
         }
 
@@ -6850,13 +6850,13 @@ public struct D
 }
 ";
             var comp = CreateCompilation(src);
-            AssertEx.SetEqual(new string[] { "A..ctor()" },
+            AssertEx.SetEqual(["A..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("A").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "B..ctor()" },
+            AssertEx.SetEqual(["B..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("B").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "C..ctor(System.Int32 x)", "C..ctor()" },
+            AssertEx.SetEqual(["C..ctor(System.Int32 x)", "C..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("C").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
-            AssertEx.SetEqual(new string[] { "D..ctor(System.Int32 x)", "D..ctor()" },
+            AssertEx.SetEqual(["D..ctor(System.Int32 x)", "D..ctor()"],
                 comp.GlobalNamespace.GetTypeMember("D").GetSimpleNonTypeMembers(".ctor").ToTestDisplayStrings());
         }
 

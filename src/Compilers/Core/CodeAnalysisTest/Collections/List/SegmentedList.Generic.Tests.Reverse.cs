@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (listLength % 2 != 0)
                 listLength++;
             SegmentedList<T> list = GenericListFactory(listLength);
-            Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
-            {
+            Tuple<int, int>[] InvalidParameters =
+            [
                 Tuple.Create(listLength     ,1             ),
                 Tuple.Create(listLength+1   ,0             ),
                 Tuple.Create(listLength+1   ,1             ),
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Tuple.Create(listLength/2+1 ,listLength/2  ),
                 Tuple.Create(2              ,listLength-1  ),
                 Tuple.Create(3              ,listLength-2  ),
-            };
+            ];
 
             Assert.All(InvalidParameters, invalidSet =>
             {
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (listLength % 2 != 0)
                 listLength++;
             SegmentedList<T> list = GenericListFactory(listLength);
-            Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
-            {
+            Tuple<int, int>[] InvalidParameters =
+            [
                 Tuple.Create(-1,-1),
                 Tuple.Create(-1, 0),
                 Tuple.Create(-1, 1),
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Tuple.Create(0 ,-1),
                 Tuple.Create(1 ,-1),
                 Tuple.Create(2 ,-1),
-            };
+            ];
 
             Assert.All(InvalidParameters, invalidSet =>
             {

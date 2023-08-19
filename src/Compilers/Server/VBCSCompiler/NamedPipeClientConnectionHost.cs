@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     if (!PlatformInformation.IsWindows)
                     {
                         var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
-                        var completedTask = await Task.WhenAny(new[] { connectTask, cancelTask }).ConfigureAwait(false);
+                        var completedTask = await Task.WhenAny([connectTask, cancelTask]).ConfigureAwait(false);
                         if (completedTask == cancelTask)
                         {
                             throw new OperationCanceledException();

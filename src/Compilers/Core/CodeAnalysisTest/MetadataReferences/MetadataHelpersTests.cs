@@ -181,27 +181,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     case ArrayKind.SzArray:
                         typeNameBuilder.Append("[]");
-                        expectedArrayRanks = new[] { 0 };
+                        expectedArrayRanks = [0];
                         break;
 
                     case ArrayKind.SingleDimensional:
                         typeNameBuilder.Append("[*]");
-                        expectedArrayRanks = new[] { 1 };
+                        expectedArrayRanks = [1];
                         break;
 
                     case ArrayKind.MultiDimensional:
                         typeNameBuilder.Append("[,]");
-                        expectedArrayRanks = new[] { 2 };
+                        expectedArrayRanks = [2];
                         break;
 
                     case ArrayKind.JaggedSzArray:
                         typeNameBuilder.Append("[,][]");
-                        expectedArrayRanks = new[] { 2, 0 };
+                        expectedArrayRanks = [2, 0];
                         break;
 
                     case ArrayKind.Jagged:
                         typeNameBuilder.Append("[,][*]");
-                        expectedArrayRanks = new[] { 2, 1 };
+                        expectedArrayRanks = [2, 1];
                         break;
                 }
 
@@ -300,11 +300,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNameAndVerify("System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 expectedTopLevelType: "System.Int32",
                 expectedAssemblyName: "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                expectedArrayRanks: new[] { 0 });
+                expectedArrayRanks: [0]);
             DecodeTypeNameAndVerify("System.Int32[*], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 expectedTopLevelType: "System.Int32",
                 expectedAssemblyName: "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                expectedArrayRanks: new[] { 1 });
+                expectedArrayRanks: [1]);
         }
 
         [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
@@ -314,50 +314,50 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Single-D Array
             DecodeTypeNameAndVerify("W[]",
                 expectedTopLevelType: "W",
-                expectedArrayRanks: new[] { 0 });
+                expectedArrayRanks: [0]);
 
             // Multi-D Array
             DecodeTypeNameAndVerify("W[,]",
                 expectedTopLevelType: "W",
-                expectedArrayRanks: new[] { 2 });
+                expectedArrayRanks: [2]);
 
             // Jagged Array
             DecodeTypeNameAndVerify("W[][,]",
                 expectedTopLevelType: "W",
-                expectedArrayRanks: new[] { 0, 2 });
+                expectedArrayRanks: [0, 2]);
 
             // Generic Type Jagged Array
             DecodeTypeNameAndVerify("Y`1[W][][,]",
                 expectedTopLevelType: "Y`1",
-                expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName("W", null, null, 0, null, null) },
-                expectedArrayRanks: new[] { 0, 2 });
+                expectedTypeArguments: [new MetadataHelpers.AssemblyQualifiedTypeName("W", null, null, 0, null, null)],
+                expectedArrayRanks: [0, 2]);
 
             // Nested Generic Type Jagged Array with Array type argument
             DecodeTypeNameAndVerify("Y`1+F[[System.Int32[], mscorlib]][,,][][,]",
                 expectedTopLevelType: "Y`1",
-                expectedNestedTypes: new[] { "F" },
-                expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName(
+                expectedNestedTypes: ["F"],
+                expectedTypeArguments: [ new MetadataHelpers.AssemblyQualifiedTypeName(
                                                     "System.Int32",
                                                     nestedTypes: null,
                                                     typeArguments: null,
                                                     pointerCount: 0,
-                                                    arrayRanks: new[] { 0 },
-                                                    assemblyName: "mscorlib") },
-                expectedArrayRanks: new[] { 3, 0, 2 });
+                                                    arrayRanks: [0],
+                                                    assemblyName: "mscorlib") ],
+                expectedArrayRanks: [3, 0, 2]);
 
             // Nested Generic Type Jagged Array with type arguments from nested type and outer type
             DecodeTypeNameAndVerify("Y`1+Z`1[[System.Int32[], mscorlib], W][][,]",
                 expectedTopLevelType: "Y`1",
-                expectedNestedTypes: new[] { "Z`1" },
-                expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName(
+                expectedNestedTypes: ["Z`1"],
+                expectedTypeArguments: [ new MetadataHelpers.AssemblyQualifiedTypeName(
                                                     "System.Int32",
                                                     nestedTypes: null,
                                                     typeArguments: null,
                                                     pointerCount: 0,
-                                                    arrayRanks: new[] { 0 },
+                                                    arrayRanks: [0],
                                                     assemblyName: "mscorlib"),
-                                               new MetadataHelpers.AssemblyQualifiedTypeName("W", null, null, 0, null, null) },
-                expectedArrayRanks: new[] { 0, 2 });
+                                               new MetadataHelpers.AssemblyQualifiedTypeName("W", null, null, 0, null, null) ],
+                expectedArrayRanks: [0, 2]);
         }
 
         [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
@@ -368,13 +368,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNameAndVerify("X[]+Y",
                 expectedTopLevelType: "X+Y",
                 expectedNestedTypes: null,
-                expectedArrayRanks: new[] { 0 });
+                expectedArrayRanks: [0]);
 
             // Error case, array shape before generic type arguments
             DecodeTypeNameAndVerify("X[]`1[T]",
                 expectedTopLevelType: "X`1[T]",
                 expectedTypeArguments: null,
-                expectedArrayRanks: new[] { 0 });
+                expectedArrayRanks: [0]);
 
             // Error case, invalid array shape
             DecodeTypeNameAndVerify("X[T]",
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNameAndVerify("X`1[[T, Assembly",
                 expectedTopLevelType: "X`1",
                 expectedAssemblyName: null,
-                expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName("T", null, null, 0, null, "Assembly") },
+                expectedTypeArguments: [new MetadataHelpers.AssemblyQualifiedTypeName("T", null, null, 0, null, "Assembly")],
                 expectedArrayRanks: null);
         }
 
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedTopLevelType: "W*",
                 expectedTypeArguments: null,
                 expectedPointerCount: 0,
-                expectedArrayRanks: new[] { 0 });
+                expectedArrayRanks: [0]);
         }
 
         [Fact, WorkItem(7396, "https://github.com/dotnet/roslyn/issues/7396")]

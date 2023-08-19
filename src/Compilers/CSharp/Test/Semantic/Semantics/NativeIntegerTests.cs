@@ -23,25 +23,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NativeIntegerTests : CSharpTestBase
     {
-        internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
-        internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };
-        internal static readonly ConversionKind[] Boxing = new[] { ConversionKind.Boxing };
-        internal static readonly ConversionKind[] Unboxing = new[] { ConversionKind.Unboxing };
-        internal static readonly ConversionKind[] IntPtrConversion = new[] { ConversionKind.IntPtr };
-        internal static readonly ConversionKind[] ImplicitNumeric = new[] { ConversionKind.ImplicitNumeric };
-        internal static readonly ConversionKind[] ExplicitIntegerToPointer = new[] { ConversionKind.ExplicitIntegerToPointer };
-        internal static readonly ConversionKind[] ExplicitPointerToInteger = new[] { ConversionKind.ExplicitPointerToInteger };
-        internal static readonly ConversionKind[] ExplicitEnumeration = new[] { ConversionKind.ExplicitEnumeration };
-        internal static readonly ConversionKind[] ExplicitNumeric = new[] { ConversionKind.ExplicitNumeric };
+        internal static readonly ConversionKind[] Identity = [ConversionKind.Identity];
+        internal static readonly ConversionKind[] NoConversion = [ConversionKind.NoConversion];
+        internal static readonly ConversionKind[] Boxing = [ConversionKind.Boxing];
+        internal static readonly ConversionKind[] Unboxing = [ConversionKind.Unboxing];
+        internal static readonly ConversionKind[] IntPtrConversion = [ConversionKind.IntPtr];
+        internal static readonly ConversionKind[] ImplicitNumeric = [ConversionKind.ImplicitNumeric];
+        internal static readonly ConversionKind[] ExplicitIntegerToPointer = [ConversionKind.ExplicitIntegerToPointer];
+        internal static readonly ConversionKind[] ExplicitPointerToInteger = [ConversionKind.ExplicitPointerToInteger];
+        internal static readonly ConversionKind[] ExplicitEnumeration = [ConversionKind.ExplicitEnumeration];
+        internal static readonly ConversionKind[] ExplicitNumeric = [ConversionKind.ExplicitNumeric];
 
-        internal static readonly ConversionKind[] ImplicitNullableNumeric = new[] { ConversionKind.ImplicitNullable, ConversionKind.ImplicitNumeric };
-        internal static readonly ConversionKind[] ImplicitNullableIdentity = new[] { ConversionKind.ImplicitNullable, ConversionKind.Identity };
+        internal static readonly ConversionKind[] ImplicitNullableNumeric = [ConversionKind.ImplicitNullable, ConversionKind.ImplicitNumeric];
+        internal static readonly ConversionKind[] ImplicitNullableIdentity = [ConversionKind.ImplicitNullable, ConversionKind.Identity];
 
-        internal static readonly ConversionKind[] ExplicitNullableEnumeration = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitEnumeration };
-        internal static readonly ConversionKind[] ExplicitNullableImplicitNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ImplicitNumeric };
-        internal static readonly ConversionKind[] ExplicitNullableNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric };
-        internal static readonly ConversionKind[] ExplicitNullablePointerToInteger = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger };
-        internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
+        internal static readonly ConversionKind[] ExplicitNullableEnumeration = [ConversionKind.ExplicitNullable, ConversionKind.ExplicitEnumeration];
+        internal static readonly ConversionKind[] ExplicitNullableImplicitNumeric = [ConversionKind.ExplicitNullable, ConversionKind.ImplicitNumeric];
+        internal static readonly ConversionKind[] ExplicitNullableNumeric = [ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric];
+        internal static readonly ConversionKind[] ExplicitNullablePointerToInteger = [ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger];
+        internal static readonly ConversionKind[] ExplicitNullableIdentity = [ConversionKind.ExplicitNullable, ConversionKind.Identity];
 
         internal static bool IsNoConversion(ConversionKind[] conversionKinds)
         {
@@ -5777,8 +5777,7 @@ $@"public class A
 }";
 
             var expectedDiagnostics = (type == "nuint") ?
-                new DiagnosticDescription[]
-                {
+                [
                     // (5,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
                     //         F1 = sbyte.MaxValue;
                     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(5, 14),
@@ -5791,7 +5790,7 @@ $@"public class A
                     // (14,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
                     //         F2 = short.MaxValue;
                     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint?").WithLocation(14, 14)
-                } :
+                ] :
                 new DiagnosticDescription[0];
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
@@ -6517,7 +6516,7 @@ class Program
     }}
 }}";
                 var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
+                comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : [expectedError]);
                 if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
                 {
                     CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -9446,7 +9445,7 @@ $@"{{
                 }
                 var expectedDiagnostics = expectedErrorCode == 0 ?
                     Array.Empty<DiagnosticDescription>() :
-                    new[] { Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType) };
+                    [Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType)];
                 if (useChecked)
                 {
                     value = $"checked({value})";
@@ -9510,7 +9509,7 @@ enum E {{ }}
                     diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
                 }
 
-                unaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>());
+                unaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? [diagnostic] : Array.Empty<DiagnosticDescription>());
             }
 
             unaryOp("+", "nint", "nint nint.op_UnaryPlus(nint value)", "3", "3",
@@ -9730,7 +9729,7 @@ $@"class Program
                     {
                         diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, isPrefix ? op + "operand" : "operand" + op).WithArguments(op, opType);
                     }
-                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                    return diagnostic != null ? [diagnostic] : Array.Empty<DiagnosticDescription>();
                 }
             }
 
@@ -10105,7 +10104,7 @@ class Program
                     {
                         diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, op + "operand").WithArguments(op, opType);
                     }
-                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                    return diagnostic != null ? [diagnostic] : Array.Empty<DiagnosticDescription>();
                 }
             }
 
@@ -10497,7 +10496,7 @@ $@"class MyInt
 
             static DiagnosticDescription[] getAmbiguousBinaryOpsDiagnostics(string op, string leftType, string rightType)
             {
-                return new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
+                return [Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType)];
             }
 
             var arithmeticOperators = new[]
@@ -11140,7 +11139,7 @@ $@"class MyInt
             {
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                binaryOps(symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", [Diagnostic(ErrorCode.ERR_VoidError, "x + y")]);
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -11214,7 +11213,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", [Diagnostic(ErrorCode.ERR_VoidError, "x + y")]);
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
@@ -13142,20 +13141,20 @@ class Program
                 var declarations = $"const {opType} A = {operand};";
                 var expr = $"{op}A";
                 constantDeclaration(opType, declarations, expr, null,
-                    new[] {
+                    [
                         Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
                         Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
-                    });
+                    ]);
                 constantDeclaration(opType, declarations, $"checked({expr})", null,
-                    new[] {
+                    [
                         Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
                         Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
-                    });
-                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+                    ]);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F")]);
 
                 expr = $"{op}({opType})({operand})";
-                constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
-                constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, expr, expectedResultUnchecked, [Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType)]);
+                constantExpression(opType, $"checked({expr})", expectedResultChecked, [Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType)]);
                 constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
             }
 
@@ -13163,9 +13162,9 @@ class Program
             {
                 var declarations = $"const {opType} A = {operand};";
                 var expr = $"{op}A";
-                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F") });
-                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F") });
-                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, expr, null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")]);
+                constantDeclaration(opType, declarations, $"checked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")]);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F")]);
 
                 expr = $"{op}({opType})({operand})";
                 constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
@@ -13196,20 +13195,20 @@ class Program
                 var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
                 var expr = $"A {op} B";
                 constantDeclaration(opType, declarations, expr, null,
-                    new[] {
+                    [
                         Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
                         Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
-                    });
+                    ]);
                 constantDeclaration(opType, declarations, $"checked({expr})", null,
-                    new[] {
+                    [
                         Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
                         Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
-                    });
-                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+                    ]);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F")]);
 
                 expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
-                constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
-                constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, expr, expectedResultUnchecked, [Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType)]);
+                constantExpression(opType, $"checked({expr})", expectedResultChecked, [Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType)]);
                 constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
             }
 
@@ -13217,9 +13216,9 @@ class Program
             {
                 var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
                 var expr = $"A {op} B";
-                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F") });
-                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F") });
-                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, expr, null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")]);
+                constantDeclaration(opType, declarations, $"checked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")]);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, [Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F")]);
 
                 expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
                 constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());

@@ -646,13 +646,13 @@ public class LocalTypes2
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
             Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
 
-            var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new MetadataReference[]
-                                {
+            var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(
+                                [
                     TestReferences.SymbolsTests.NoPia.Library1,
                     TestReferences.SymbolsTests.NoPia.Pia4,
                     Net40.mscorlib,
                     new CSharpCompilationReference(localTypes1)
-            });
+            ]);
 
             var library1_9 = assemblies9[0];
             var localTypes1_9 = assemblies9[3];

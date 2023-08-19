@@ -51,7 +51,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -75,7 +75,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Object.Equals$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Object.Equals(Nothing$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
@@ -96,7 +96,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim value = New Object$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim value = New Object($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -123,7 +123,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, HangMitigatingCancellationToken);
@@ -178,7 +178,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, HangMitigatingCancellationToken);
@@ -221,10 +221,10 @@ End Class
             await TestServices.Input.SendAsync("Tes", HangMitigatingCancellationToken);
 
             // Trigger the session and type '0' without waiting for the session to finish initializing
-            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.TAB, VirtualKeyCode.TAB, '0' }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync([VirtualKeyCode.TAB, VirtualKeyCode.TAB, '0'], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test(0$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test(0$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, HangMitigatingCancellationToken);
@@ -253,7 +253,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync((VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);

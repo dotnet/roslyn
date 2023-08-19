@@ -397,7 +397,7 @@ namespace N
     private static CSharpCompilation CreateCompilationWithExternAlias(CSharpTestSource source, params string[] aliases)
     {
         if (aliases.Length == 0)
-            aliases = new[] { "CORE" };
+            aliases = ["CORE"];
 
         var comp = CreateCompilation(source);
         var reference = comp.References.First(r => r.Display!.StartsWith("System.Core"));

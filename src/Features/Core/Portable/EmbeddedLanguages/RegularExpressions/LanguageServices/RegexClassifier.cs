@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     [ExtensionOrder(Before = PredefinedEmbeddedLanguageNames.Json)]
     [ExportEmbeddedLanguageClassifier(
         PredefinedEmbeddedLanguageNames.Regex,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        [LanguageNames.CSharp, LanguageNames.VisualBasic],
         supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal sealed class RegexClassifier : IEmbeddedLanguageClassifier
     {

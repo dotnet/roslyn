@@ -109,13 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // warning: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy.
                     info = new CSDiagnosticInfo(
                         warning,
-                        new object[]
-                        {
+                        [
                             referenceId.GetDisplayName(),
                             ownerAssembly.Name, // TODO (tomat): should rather be MetadataReference.Display for the corresponding reference
                             definitionId.GetDisplayName(),
                             dependentAssembly.Name
-                        },
+                        ],
                         involvedAssemblies,
                         ImmutableArray<Location>.Empty);
                 }
@@ -126,14 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // error: Assembly '{0}' with identity '{1}' uses '{2}' which has a higher version than referenced assembly '{3}' with identity '{4}'
                     info = new CSDiagnosticInfo(
                         ErrorCode.ERR_AssemblyMatchBadVersion,
-                        new object[]
-                        {
+                        [
                             ownerAssembly.Name, // TODO (tomat): should rather be MetadataReference.Display for the corresponding reference
                             ownerAssembly.Identity.GetDisplayName(),
                             referenceId.GetDisplayName(),
                             dependentAssembly.Name, // TODO (tomat): should rather be MetadataReference.Display for the corresponding reference
                             definitionId.GetDisplayName()
-                        },
+                        ],
                         involvedAssemblies,
                         ImmutableArray<Location>.Empty);
                 }

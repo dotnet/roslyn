@@ -1103,19 +1103,19 @@ public class C
                     switch (name)
                     {
                         case "args":
-                            expectedConstant = new byte[] { 0x00, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x00, 0x00, 0x00, 0x00];
                             break;
 
                         case "a":
-                            expectedConstant = new byte[] { 0x01, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x01, 0x00, 0x00, 0x00];
                             break;
 
                         case "b":
-                            expectedConstant = new byte[] { 0x02, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x02, 0x00, 0x00, 0x00];
                             break;
 
                         case "value":
-                            expectedConstant = new byte[] { 0x03, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x03, 0x00, 0x00, 0x00];
                             break;
 
                         default:
@@ -1192,15 +1192,15 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
                     switch (name)
                     {
                         case "a":
-                            expectedConstant = new byte[] { 0x01, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x01, 0x00, 0x00, 0x00];
                             break;
 
                         case "args":
-                            expectedConstant = new byte[] { 0x00, 0x00, 0x00, 0x00 };  // null
+                            expectedConstant = [0x00, 0x00, 0x00, 0x00];  // null
                             break;
 
                         case "b":
-                            expectedConstant = new byte[] { 0x02, 0x00, 0x00, 0x00 };
+                            expectedConstant = [0x02, 0x00, 0x00, 0x00];
                             break;
 
                         default:
@@ -1979,8 +1979,8 @@ public class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("C", "get_Item",
                     ".method public hidebysig specialname instance System.Decimal get_Item(" +
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(1, 2, 3, 4, 5)] [opt] System.Decimal a = -5534023223830852403.7, " +
@@ -1993,7 +1993,7 @@ public class C
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 0, 0, 2)] [opt] System.Decimal b = 2, " +
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(10, 20, 30, 40, 50)] [opt] System.Decimal value = -55340232238.3085240370) " +
                     "cil managed")
-            });
+            ]);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
@@ -2005,8 +2005,8 @@ using System.Runtime.CompilerServices;
 
 public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 4, low: 5, scale: 1)]ref decimal a, decimal b = 2m);
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("D", "BeginInvoke",
                     ".method public hidebysig newslot virtual instance System.IAsyncResult BeginInvoke(" +
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(1, 2, 3, 4, 5)] [opt] System.Decimal& a = -5534023223830852403.7, " +
@@ -2026,7 +2026,7 @@ public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(1, 2, 3, 4, 5)] [opt] System.Decimal& a = -5534023223830852403.7, " +
                     "[System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 0, 0, 2)] [opt] System.Decimal b = 2) " +
                     "runtime managed")
-            });
+            ]);
         }
 
         #endregion
@@ -4104,12 +4104,12 @@ public class MainClass
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
 
-            var assemblyRef = compDll.EmitToImageReference(expectedWarnings: new[]
-            {
+            var assemblyRef = compDll.EmitToImageReference(expectedWarnings:
+            [
                 // (11,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
                 Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet")
-            });
+            ]);
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilation(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
@@ -4815,7 +4815,7 @@ public class BobAttribute : Attribute
             void verify(CSharpCompilation comp, bool isSerializablePresent)
             {
                 NamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
-                var expectedAttributes = isSerializablePresent ? new[] { "System.SerializableAttribute", "BobAttribute" } : new[] { "BobAttribute" };
+                var expectedAttributes = isSerializablePresent ? ["System.SerializableAttribute", "BobAttribute"] : ["BobAttribute"];
                 AssertEx.SetEqual(expectedAttributes, typeC.GetAttributes().Select(a => a.ToString()));
 
                 Assert.True(typeC.IsSerializable);
@@ -4979,11 +4979,11 @@ namespace AttributeTest
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var comp = CompileAndVerify(
                 compilation,
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("AttributeTest.MyClass", "UseParams", ".method public hidebysig static System.Void UseParams([System.ParamArrayAttribute()] System.Int32[] list) cil managed"),
                     Signature("AttributeTest.MyClass", "NoParams", ".method public hidebysig static System.Void NoParams(System.Object list) cil managed"),
-                },
+                ],
                 symbolValidator: module =>
                 {
                     var @namespace = module.GlobalNamespace.GetNestedNamespace("AttributeTest");

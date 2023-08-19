@@ -30,12 +30,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
                     Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -49,11 +49,11 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readonly instance System.Int32 Item(System.Int32 x, System.Int32 y)"),
                     Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x, System.Int32 y) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -67,11 +67,11 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property writeonly instance System.Int32 Item(System.Int32 x, System.Int32 y, System.Int32 z)"),
                     Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 y, System.Int32 z, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -85,12 +85,12 @@ class C<T>
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C`1", "Item", ".property readwrite instance T Item(T x)"),
                     Signature("C`1", "get_Item", ".method public hidebysig specialname instance T get_Item(T x) cil managed"),
                     Signature("C`1", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(T x, T value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -104,12 +104,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2)"),
                     Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -123,12 +123,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item([System.ParamArrayAttribute()] System.Int32[] x)"),
                     Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([System.ParamArrayAttribute()] System.Int32[] x) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([System.ParamArrayAttribute()] System.Int32[] x, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -167,12 +167,12 @@ class C : I
                 Assert.Equal("void C.I.set_Item(System.Int32 x, System.Int32 value)", setMethod.ToTestDisplayString());
                 setMethod.CheckAccessorModifiers(indexer);
             };
-            var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
-            {
+            var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures:
+            [
                 Signature("C", "I.Item", ".property readwrite System.Int32 I.Item(System.Int32 x)"),
                 Signature("C", "I.get_Item", ".method private hidebysig newslot specialname virtual final instance System.Int32 I.get_Item(System.Int32 x) cil managed"),
                 Signature("C", "I.set_Item", ".method private hidebysig newslot specialname virtual final instance System.Void I.set_Item(System.Int32 x, System.Int32 value) cil managed")
-            });
+            ]);
         }
 
         [Fact]
@@ -191,12 +191,12 @@ class C : I
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
                     Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -215,12 +215,12 @@ class C : B
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
                     Signature("C", "get_Item", ".method public hidebysig specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -239,12 +239,12 @@ class C : B
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
                     Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual instance System.Int32 get_Item(System.Int32 x) cil managed"),
                     Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         // NOTE: assumes there's a single indexer (type = int) in a type C.

@@ -621,7 +621,7 @@ namespace Roslyn.Utilities
             return relativePath;
         }
 
-        private static readonly char[] s_pathChars = new char[] { VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar };
+        private static readonly char[] s_pathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
         private static string[] GetPathParts(string path)
         {

@@ -70,7 +70,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -128,7 +128,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -177,7 +177,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -269,7 +269,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -360,7 +360,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -426,7 +426,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -570,7 +570,7 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)]);
         }
     }
 }

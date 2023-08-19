@@ -415,7 +415,7 @@ namespace N2
 }";
 
             using var workspace = CreateWorkspace();
-            var solution = GetMultipleDocumentSolution(workspace, new[] { implText, interface1Text, interface2Text });
+            var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
             solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
 
             var project = solution.Projects.Single();

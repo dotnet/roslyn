@@ -13851,11 +13851,11 @@ THROW
                     ilSource: ilSource_template.Replace("INJECT", inject).Replace("RAN", ranBody).Replace("THROW", throwBody),
                     parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
 
-                var expectedDiagnostics = isError ? new[] {
+                var expectedDiagnostics = isError ? [
                     // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
                     // public record C : B
                     Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
-                } : new DiagnosticDescription[] { };
+                ] : new DiagnosticDescription[] { };
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
                 if (expectedDiagnostics is null)
@@ -22243,7 +22243,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -22344,7 +22344,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                string[] candidates = ["C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -22483,7 +22483,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);

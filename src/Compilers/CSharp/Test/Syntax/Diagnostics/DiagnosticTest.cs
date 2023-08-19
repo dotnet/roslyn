@@ -2558,8 +2558,8 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
+            [
                 // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var y = (ConsoleColor) - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
@@ -2578,7 +2578,7 @@ class Program
                 // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var z = (System.ConsoleColor) - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18)
-            });
+            ]);
         }
 
         /// <summary>
@@ -2598,15 +2598,15 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
+            [
                 // (6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         var y = (ConsoleColor) (- 1);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
                 // (7,13): warning CS0219: The variable 'z' is assigned but its value is never used
                 //         var z = (System.ConsoleColor) (- 1);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(7, 13)
-            });
+            ]);
         }
 
         /// <summary>
@@ -2629,8 +2629,8 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
+            [
                 // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var w = ((ConsoleColor)) - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
@@ -2655,7 +2655,7 @@ class Program
                 // (10,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var z = System.ConsoleColor - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(10, 17)
-            });
+            ]);
         }
 
         /// <summary>
@@ -2674,8 +2674,8 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
+            [
                 // (5,18): error CS0103: The name 'dynamic' does not exist in the current context
                 //         var y = (dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(5, 18),
@@ -2688,7 +2688,7 @@ class Program
                 // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var z = (@dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(@dynamic) - 1").WithLocation(6, 17)
-            });
+            ]);
         }
 
         /// <summary>
@@ -2729,15 +2729,15 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
+            [
                 // (5,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
                 //         var y = (dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(5, 17),
                 // (6,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
                 //         var z = (@dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(@dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(6, 17)
-            });
+            ]);
         }
 
         #region Mocks

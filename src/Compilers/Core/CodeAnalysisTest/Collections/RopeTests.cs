@@ -12,20 +12,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class RopeTests
     {
-        private static readonly string[] longStrings = new[]
-        {
+        private static readonly string[] longStrings =
+        [
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  ",
             "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.  ",
             "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.  ",
             "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.  ",
             // So true
-        };
+        ];
         private static readonly Rope[] longRopes = longStrings.Select(s => Rope.ForString(s)).ToArray();
 
-        private static readonly string[] shortStrings = new[]
-        {
+        private static readonly string[] shortStrings =
+        [
             "abcd", "efgh", "ijkl", "mnop", "qrst", "uvwx", "yz01", "2345", "6789"
-        };
+        ];
         private static readonly Rope[] shortRopes = shortStrings.Select(s => Rope.ForString(s)).ToArray();
 
         private static readonly Rope[] someRopes = shortRopes.Concat(longRopes).ToArray();

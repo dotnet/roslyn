@@ -985,7 +985,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToImmutableArray();
             var containingTypes = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol.ContainingSymbol).ToTestDisplayStrings();
-            Assert.Equal(new[] { "A", "B", "B", "A", "B", "B" }, containingTypes);
+            Assert.Equal(["A", "B", "B", "A", "B", "B"], containingTypes);
         }
     }
 }

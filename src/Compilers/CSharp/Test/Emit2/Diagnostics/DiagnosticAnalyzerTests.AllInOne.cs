@@ -102,7 +102,7 @@ public class C
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
 
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
+                compilation.GetAnalyzerDiagnostics([analyzer], options));
         }
 
         [Fact]

@@ -344,15 +344,15 @@ class C
             var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader);
 
             // all references to Lib should be to the baseline version:
-            VerifyAssemblyReferences(aggReader, new[]
-            {
+            VerifyAssemblyReferences(aggReader,
+            [
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
-            });
+            ]);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]

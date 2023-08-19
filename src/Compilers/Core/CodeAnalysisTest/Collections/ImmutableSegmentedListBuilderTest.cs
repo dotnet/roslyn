@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(6, list[1]);
             list.Remove(5);
             list[0] = 9;
-            Assert.Equal(new[] { 9, 8 }, list.Cast<int>().ToArray());
+            Assert.Equal([9, 8], list.Cast<int>().ToArray());
             list.Clear();
             Assert.Equal(0, list.Count);
         }

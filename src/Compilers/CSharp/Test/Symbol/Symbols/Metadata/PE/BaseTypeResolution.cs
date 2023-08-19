@@ -381,7 +381,7 @@ public class M4 : M2
             //CrossRefModule2.netmodule: error CS0011: The base class or interface 'M1' in assembly 'CrossRefModule1.netmodule'
             //        referenced by type 'M2' could not be resolved
 
-            DiagnosticDescription[] errors = {
+            DiagnosticDescription[] errors = [
                 // (2,19): error CS0246: The type or namespace name 'M1' could not be found (are you missing a using directive or an assembly reference?)
                 // public class M3 : M1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M1").WithArguments("M1"),
@@ -390,7 +390,7 @@ public class M4 : M2
                 Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "M2").WithArguments("M1", "CrossRefModule1.netmodule"),
                 // error CS8014: Reference to 'CrossRefModule1.netmodule' netmodule missing.
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("CrossRefModule1.netmodule")
-                                             };
+                                             ];
 
             compilation3.VerifyDiagnostics(errors);
         }

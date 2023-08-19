@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public const string MappedPath = nameof(MappedPath);
             public const string SourceLinkUrl = nameof(SourceLinkUrl);
 
-            public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
+            public static readonly string[] SourceRootMetadataNames = [SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl];
         }
 
         private static string EnsureEndsWithSlash(string path)

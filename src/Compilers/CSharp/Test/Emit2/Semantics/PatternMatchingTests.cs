@@ -4933,8 +4933,8 @@ public class Program738490379
             Random r = new Random(dt);
 
             // generate a pattern-matching switch randomly from templates
-            string[] expressions = new[]
-            {
+            string[] expressions =
+            [
                 "M",              // a method group
                 "(() => 1)",      // a lambda expression
                 "1",              // a constant
@@ -4946,14 +4946,14 @@ public class Program738490379
                 "double.NaN",     // a scary constant
                 "1.1",            // a double constant
                 "NotFound"        // an unbindable expression
-            };
+            ];
             string Expression()
             {
                 int index = r.Next(expressions.Length + 1) - 1;
                 return (index < 0) ? $"(({Type()})M())" : expressions[index];
             }
-            string[] types = new[]
-            {
+            string[] types =
+            [
                 "object",
                 "var",
                 "int",
@@ -4961,7 +4961,7 @@ public class Program738490379
                 "double",
                 "string",
                 "NotFound"
-            };
+            ];
             string Type() => types[r.Next(types.Length)];
             string Pattern(int d = 5)
             {

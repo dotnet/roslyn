@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics([new ComplainAboutX()], null, null,
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -110,7 +110,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics([new ComplainAboutX()], null, null,
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //     int x3 = x1 + x2;
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -170,7 +170,7 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics([new ComplainAboutX()], null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -203,7 +203,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics([new ComplainAboutX()], null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -225,7 +225,7 @@ public class C
     public event EventHandler e;
 }";
             CreateCompilationWithMscorlib45(source)
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ImplicitlyDeclaredSymbolAnalyzer() });
+                .VerifyAnalyzerDiagnostics([new ImplicitlyDeclaredSymbolAnalyzer()]);
         }
 
         private class SyntaxAndSymbolAnalyzer : DiagnosticAnalyzer
@@ -286,7 +286,7 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
+                .VerifyAnalyzerDiagnostics([new SyntaxAndSymbolAnalyzer()], null, null,
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
                     // Syntax diagnostics
@@ -1167,10 +1167,10 @@ class C
             // Verify, code block action diagnostics.
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: new[] {
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: [
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17),
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, "M").WithArguments("M").WithLocation(4, 17)
-                    });
+                    ]);
         }
 
         [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
@@ -1363,9 +1363,9 @@ class D
             // Verify, code block action diagnostics.
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: new[] {
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: [
                         Diagnostic(CSharpCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, "new C()").WithLocation(5, 18)
-                    });
+                    ]);
         }
 
         private static Compilation GetCompilationWithConcurrentBuildEnabled(string source)
@@ -1436,7 +1436,7 @@ class D
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
 
             // Verify analyzer diagnostics for Concurrent and NonConcurrent analyzer together (latter reports diagnostics only for error cases).
-            analyzers = new DiagnosticAnalyzer[] { new ConcurrentAnalyzer(typeNames), new NonConcurrentAnalyzer() };
+            analyzers = [new ConcurrentAnalyzer(typeNames), new NonConcurrentAnalyzer()];
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
@@ -1683,7 +1683,7 @@ class C
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null,
+            .VerifyAnalyzerDiagnostics([new OwningSymbolTestAnalyzer()], null, null,
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(13, 17),
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29));
@@ -1824,7 +1824,7 @@ class C
                 sortedCallbackCodeBlockStartNames.Join(",") + ";" +
                 sortedCallbackCodeBlockEndNames.Join(",") + ";" +
                 sortedCallbackCodeBlockNames.Join(",");
-            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary2, arguments: new[] { arg1, arg2, arg3 });
+            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary2, arguments: [arg1, arg2, arg3]);
 
             if (compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
             {
@@ -2183,7 +2183,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
 
-            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze) };
+            analyzers = [new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze)];
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
@@ -2191,7 +2191,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass(IsGeneratedCode:True),RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
 
-            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics) };
+            analyzers = [new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)];
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
@@ -2251,7 +2251,7 @@ public class Class
                 Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
-            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds) };
+            analyzers = [new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds)];
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
@@ -2259,7 +2259,10 @@ public class Class
                 Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
-            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds) };
+            analyzers =
+            [
+                new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds)
+            ];
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0").WithArguments("Node: var hiddenVar = 0").WithLocation(10, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "hiddenVar = 0").WithArguments("Operation: HiddenMethod").WithLocation(10, 13),
@@ -2454,7 +2457,7 @@ internal class C : MyInterface
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib45([source, IsExternalInitTypeDefinition], parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -2655,10 +2658,10 @@ internal class Derived : Base
 
             var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
             compilation.VerifyAnalyzerDiagnostics(analyzers,
-                expected: new[] {
+                expected: [
                     Diagnostic("ID", squiggledText: "protected Base(int i) { }").WithArguments(".ctor").WithLocation(4, 5),
                     Diagnostic("ID", squiggledText: "public Derived() : base(Field) { }").WithArguments(".ctor").WithLocation(11, 5)
-                });
+                ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -2729,35 +2732,35 @@ Block[B2] - Exit
             // Verify analyzer diagnostics and flow graphs for different kind of operation analyzers.
 
             var analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.Operation, verifyGetControlFlowGraph: true);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([analyzer],
+                expected: [
                     Diagnostic("ID", "0").WithArguments("Operation").WithLocation(1, 26),
                     Diagnostic("ID", "1").WithArguments("Operation").WithLocation(1, 39),
                     Diagnostic("ID", "2").WithArguments("Operation").WithLocation(1, 43)
-                });
+                ]);
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
             analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationInOperationBlockStart, verifyGetControlFlowGraph: true);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([analyzer],
+                expected: [
                 Diagnostic("ID", "0").WithArguments("OperationInOperationBlockStart").WithLocation(1, 26),
                 Diagnostic("ID", "1").WithArguments("OperationInOperationBlockStart").WithLocation(1, 39),
                 Diagnostic("ID", "2").WithArguments("OperationInOperationBlockStart").WithLocation(1, 43)
-            });
+            ]);
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
             analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlock, verifyGetControlFlowGraph: true);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([analyzer],
+                expected: [
                     Diagnostic("ID", "M").WithArguments("OperationBlock").WithLocation(1, 16)
-                });
+                ]);
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
             analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlockEnd, verifyGetControlFlowGraph: true);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([analyzer],
+                expected: [
                     Diagnostic("ID", "M").WithArguments("OperationBlockEnd").WithLocation(1, 16)
-                });
+                ]);
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
             void verifyFlowGraphs(ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> flowGraphs)
@@ -2773,7 +2776,7 @@ Block[B2] - Exit
 
         private static void TestSymbolStartAnalyzerCore(SymbolStartAnalyzer analyzer, params DiagnosticDescription[] diagnostics)
         {
-            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer }, diagnostics);
+            TestSymbolStartAnalyzerCore([analyzer], diagnostics);
         }
 
         private static void TestSymbolStartAnalyzerCore(DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
@@ -2928,7 +2931,7 @@ namespace N5
             var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace, analyzerId: 1);
             var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
 
-            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+            TestSymbolStartAnalyzerCore([analyzer1, analyzer2],
                 Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
@@ -2954,7 +2957,7 @@ namespace N5
             var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, analyzerId: 1);
             var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
 
-            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+            TestSymbolStartAnalyzerCore([analyzer1, analyzer2],
                 Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
@@ -3184,7 +3187,7 @@ static partial class B
     private static void M() { }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            var compilation = CreateCompilationWithMscorlib45([source1, source2]);
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.Invocation) };
@@ -3216,7 +3219,7 @@ static partial class B
     private static int _field = 0;
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            var compilation = CreateCompilationWithMscorlib45([source1, source2]);
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.NamedType, OperationKind.FieldReference) };
@@ -3248,7 +3251,7 @@ class C
     private int _field3 = 3;
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var compilation = CreateCompilationWithMscorlib45([source1, source2, source3]);
             var tree1 = compilation.SyntaxTrees[0];
             var semanticModel1 = compilation.GetSemanticModel(tree1);
             var analyzer1 = new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Field, analyzerId: 1);
@@ -3280,11 +3283,11 @@ class C
 
             // Verify analyzer diagnostics and callbacks without suppression.
             var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
@@ -3295,20 +3298,20 @@ class C
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
-                });
+                ]);
 
             Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify analyzer diagnostics and callbacks for non-configurable diagnostic even suppression on second file.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
@@ -3323,11 +3326,11 @@ class C
 
             // Verify analyzer diagnostics and callbacks without suppression.
             var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
@@ -3339,29 +3342,29 @@ class C
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.None);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
-                });
+                ]);
 
             Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, configurable: false);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
@@ -3376,10 +3379,10 @@ class C
 
             // Verify analyzer diagnostics and callbacks without suppression.
             var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
@@ -3391,28 +3394,28 @@ class C
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.None);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A").WithLocation(1, 1)
-                });
+                ]);
 
             Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with suppression on second file.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, configurable: false);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
@@ -3427,11 +3430,11 @@ class C
 
             // Verify analyzer diagnostics and callbacks without suppression.
             var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
@@ -3442,17 +3445,17 @@ class C
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer });
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer]);
 
             Assert.Equal("", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify analyzer diagnostics and callbacks for non-configurable diagnostic even suppression on second file.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
                     Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
-                });
+                ]);
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
@@ -3463,10 +3466,10 @@ class C
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
-            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
-                expected: new[] {
+            compilation.VerifyAnalyzerDiagnostics([namedTypeAnalyzer],
+                expected: [
                     Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
-                });
+                ]);
             Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
 
@@ -3558,11 +3561,11 @@ class B
 
             var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
             compilation.VerifyAnalyzerDiagnostics(analyzers,
-                expected: new[]
-                {
+                expected:
+                [
                     Diagnostic("ID0001", "B").WithLocation(5, 12),
                     Diagnostic("ID0001", "B").WithLocation(7, 12)
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]
@@ -3584,7 +3587,7 @@ class C
     private int _field3 = 3;
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var compilation = CreateCompilationWithMscorlib45([source1, source2, source3]);
             var tree1 = compilation.SyntaxTrees[0];
             var field1 = tree1.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single().Declaration.Variables.Single().Identifier;
             var semanticModel1 = compilation.GetSemanticModel(tree1);
@@ -3651,7 +3654,7 @@ class B
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var compilation = CreateCompilationWithMscorlib45([source]);
             var tree = compilation.SyntaxTrees[0];
             var localDecl1 = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -4047,7 +4050,7 @@ public record A(int X, int Y);";
 
             // Verify single analyzer diagnostic reported in the compilation.
             compilation.VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, null, null,
+                .VerifyAnalyzerDiagnostics([analyzer], null, null,
                     Diagnostic("ID1", "C1").WithLocation(1, 7));
 
             // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
@@ -4150,7 +4153,7 @@ partial class B
 }";
             string additionalText = @"This is an additional file!";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            var compilation = CreateCompilationWithMscorlib45([source1, source2]);
             var tree = compilation.SyntaxTrees[0];
             var localDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);

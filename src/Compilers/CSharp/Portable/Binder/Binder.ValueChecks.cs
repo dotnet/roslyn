@@ -2741,13 +2741,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ErrorCode[] ReadOnlyLocalErrors =
-            {
+            [
                 ErrorCode.ERR_RefReadonlyLocalCause,
                 ErrorCode.ERR_AssgReadonlyLocalCause,
 
                 ErrorCode.ERR_RefReadonlyLocal2Cause,
                 ErrorCode.ERR_AssgReadonlyLocal2Cause
-            };
+            ];
 
             int index = (checkingReceiver ? 2 : 0) + (RequiresRefOrOut(kind) ? 0 : 1);
 
@@ -2886,7 +2886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(kind != BindValueKind.AddressOf); // If this assert fails, we probably should report ErrorCode.ERR_InvalidAddrOp
 
             ErrorCode[] ReadOnlyErrors =
-            {
+            [
                 ErrorCode.ERR_RefReturnReadonly,
                 ErrorCode.ERR_RefReadonly,
                 ErrorCode.ERR_AssgReadonly,
@@ -2899,7 +2899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ErrorCode.ERR_RefReturnReadonlyStatic2,
                 ErrorCode.ERR_RefReadonlyStatic2,
                 ErrorCode.ERR_AssgReadonlyStatic2
-            };
+            ];
             int index = (checkingReceiver ? 6 : 0) + (field.IsStatic ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
             if (checkingReceiver)
             {
@@ -2927,14 +2927,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbolKind = symbol.Kind.Localize();
 
             ErrorCode[] ReadOnlyErrors =
-            {
+            [
                 ErrorCode.ERR_RefReturnReadonlyNotField,
                 ErrorCode.ERR_RefReadonlyNotField,
                 ErrorCode.ERR_AssignReadonlyNotField,
                 ErrorCode.ERR_RefReturnReadonlyNotField2,
                 ErrorCode.ERR_RefReadonlyNotField2,
                 ErrorCode.ERR_AssignReadonlyNotField2,
-            };
+            ];
 
             int index = (checkingReceiver ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));

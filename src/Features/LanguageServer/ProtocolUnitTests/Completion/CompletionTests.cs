@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {
             var itemDefaultArray = isPublicDefaultCommitChars
                 ? new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName }
-                : new string[] { CompletionCapabilityHelper.EditRangePropertyName };
+                : [CompletionCapabilityHelper.EditRangePropertyName];
 
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
@@ -236,7 +236,7 @@ static class Extensions
 
             // If the client supports more completion kinds, then we can give a more precise answer.
             var capabilities = CreateCoreCompletionCapabilities();
-            capabilities.TextDocument.Completion.CompletionItemKind.ValueSet = new[] { LSP.CompletionItemKind.ExtensionMethod };
+            capabilities.TextDocument.Completion.CompletionItemKind.ValueSet = [LSP.CompletionItemKind.ExtensionMethod];
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, capabilities);
             var completionParams = CreateCompletionParams(

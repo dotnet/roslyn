@@ -437,12 +437,12 @@ class Test
 Base.Method(1, 2, b)
 Class.Method(3, 4, c)
 Class2.Method(4, 5, c)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Class1", "I1<System.String>.Method", ".method private hidebysig newslot virtual final instance System.Void I1<System.String>.Method(System.Int32 a, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
                     Signature("Class2", "I1<System.String>.Method", ".method private hidebysig newslot virtual final instance System.Void I1<System.String>.Method(System.Int32 a, System.Int64 b, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
                     Signature("Class3", "I1<System.String>.Method", ".method private hidebysig newslot virtual final instance System.Void I1<System.String>.Method([opt] System.Int32 a = 4, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [opt] System.Collections.Generic.List`1[System.String][] d) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(
                 // (11,40): warning CS1066: The default value specified for parameter 'b' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
@@ -600,8 +600,8 @@ Derived5.set_Property
 Derived5.Method
 Derived6.set_Property
 Derived6.Method",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Outer`1+Inner`1+Derived1", "Outer<T>.Inner<System.Int32>.Interface<System.Int64,System.String>.set_Property", ".method private hidebysig newslot specialname virtual final instance System.Void Outer<T>.Inner<System.Int32>.Interface<System.Int64,System.String>.set_Property(T value) cil managed"),
                     Signature("Outer`1+Inner`1+Derived1", "Outer<T>.Inner<System.Int32>.Interface<System.Int64,System.String>.Method", ".method private hidebysig newslot virtual final instance System.Void Outer<T>.Inner<System.Int32>.Interface<System.Int64,System.String>.Method<K>(T A, System.Int32[] B, System.Collections.Generic.List`1[System.Int64] c, System.Collections.Generic.Dictionary`2[System.String,K] D) cil managed"),
 
@@ -619,7 +619,7 @@ Derived6.Method",
 
                     Signature("Outer`1+Inner`1+Derived4+Derived5+Derived6", "Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>,T>.set_Property", ".method private hidebysig newslot specialname virtual final instance System.Void Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>,T>.set_Property(System.Collections.Generic.List`1[T] value) cil managed"),
                     Signature("Outer`1+Inner`1+Derived4+Derived5+Derived6", "Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>,T>.Method", ".method private hidebysig newslot virtual final instance System.Void Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>,T>.Method<K>(System.Collections.Generic.List`1[T] AA, U[] b, System.Collections.Generic.List`1[System.Collections.Generic.List`1[U]] c, System.Collections.Generic.Dictionary`2[T,K] d) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(); // No Errors
         }
@@ -671,11 +671,11 @@ class Test
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Outer`1+Inner`1+Derived1`2", "Outer<System.Int64>.Inner<System.Int32>.Interface<System.Int64,Y>.Method", ".method private hidebysig newslot virtual final instance System.Void Outer<System.Int64>.Inner<System.Int32>.Interface<System.Int64,Y>.Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
                     Signature("Outer`1+Inner`1+Derived1`2", "Outer<System.Int64>.Inner<System.Int32>.Interface<System.Int64,Y>.Method", ".method private hidebysig newslot virtual final instance System.Void Outer<System.Int64>.Inner<System.Int32>.Interface<System.Int64,Y>.Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed"),
-                });
+                ]);
 
             comp.VerifyDiagnostics(
                 // (11,25): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
@@ -957,11 +957,11 @@ class Outer<T>
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Outer`1+IInner", "M", ".method public hidebysig newslot abstract virtual instance System.Void M(T t) cil managed"),
                 Signature("Outer`1+Inner", "Outer<T>.IInner.M", ".method private hidebysig newslot virtual final instance System.Void Outer<T>.IInner.M(T t) cil managed"),
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -1059,8 +1059,8 @@ class C : A::I, B::I
 
             // Two assemblies with the same content, two aliases.
             var comp2 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
-            var verifier2 = CompileAndVerify(comp2, expectedSignatures: new[]
-            {
+            var verifier2 = CompileAndVerify(comp2, expectedSignatures:
+            [
                 Signature("C", "A::I.M", ".method private hidebysig newslot virtual final instance System.Void A::I.M() cil managed"),
                 Signature("C", "A::I.get_P", ".method private hidebysig newslot specialname virtual final instance System.Int32 A::I.get_P() cil managed"),
                 Signature("C", "A::I.set_P", ".method private hidebysig newslot specialname virtual final instance System.Void A::I.set_P(System.Int32 value) cil managed"),
@@ -1072,7 +1072,7 @@ class C : A::I, B::I
                 Signature("C", "B::I.set_P", ".method private hidebysig newslot specialname virtual final instance System.Void B::I.set_P(System.Int32 value) cil managed"),
                 Signature("C", "B::I.add_E", ".method private hidebysig newslot specialname virtual final instance System.Void B::I.add_E(System.Action value) cil managed"),
                 Signature("C", "B::I.remove_E", ".method private hidebysig newslot specialname virtual final instance System.Void B::I.remove_E(System.Action value) cil managed"),
-            });
+            ]);
 
             // Simple verification that the test infrastructure supports such methods.
             var testData = verifier2.TestData;

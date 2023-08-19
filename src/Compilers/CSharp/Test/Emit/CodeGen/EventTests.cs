@@ -35,12 +35,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: false),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "E", ".event System.Action E"),
                     Signature("C", "add_E", ".method public hidebysig specialname instance System.Void add_E(System.Action value) cil managed"),
                     Signature("C", "remove_E", ".method public hidebysig specialname instance System.Void remove_E(System.Action value) cil managed"),
-                });
+                ]);
 
             var accessorBody = @"
 {
@@ -69,12 +69,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: false),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "E", ".event System.Action E"),
                     Signature("C", "add_E", ".method public hidebysig specialname static System.Void add_E(System.Action value) cil managed"),
                     Signature("C", "remove_E", ".method public hidebysig specialname static System.Void remove_E(System.Action value) cil managed")
-                });
+                ]);
 
             var accessorBody = @"
 {
@@ -99,12 +99,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "E", ".event System.Action E"),
                     Signature("C", "add_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname instance System.Void add_E(System.Action value) cil managed"),
                     Signature("C", "remove_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname instance System.Void remove_E(System.Action value) cil managed")
-                });
+                ]);
 
             var accessorBodyFormat = @"
 {{
@@ -162,12 +162,12 @@ class C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: true),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "E", ".event System.Action E"),
                     Signature("C", "add_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname static System.Void add_E(System.Action value) cil managed"),
                     Signature("C", "remove_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname static System.Void remove_E(System.Action value) cil managed")
-                });
+                ]);
 
             var accessorBodyFormat = @"
 {{
@@ -433,12 +433,12 @@ interface C
 ";
             var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("C", "E", ".event System.Action E"),
                     Signature("C", "add_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig newslot specialname abstract virtual instance System.Void add_E(System.Action value) cil managed"),
                     Signature("C", "remove_E", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig newslot specialname abstract virtual instance System.Void remove_E(System.Action value) cil managed")
-                });
+                ]);
         }
 
         #endregion

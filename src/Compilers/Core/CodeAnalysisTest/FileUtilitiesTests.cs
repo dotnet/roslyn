@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ResolveRelativePath()
         {
             string baseDir = @"X:\rootdir\dir";
-            string[] noSearchPaths = new string[0];
+            string[] noSearchPaths = [];
 
             // absolute path:
             TestPath(@"C:\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"C:\abc\def.dll");

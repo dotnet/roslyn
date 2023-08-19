@@ -4402,7 +4402,7 @@ class OuterClass<X>
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
-            var actual = GetDocumentationCommentText(comp, expectedDiagnostics: new[] {
+            var actual = GetDocumentationCommentText(comp, expectedDiagnostics: [
                 // (3,5): warning CS1711: XML comment has a typeparam tag for 'Y', but there is no type parameter by that name
                 // /// <include file='b16c2dc7f738.xml' path='//target'/>
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, includeElement).WithArguments("Y").WithLocation(3, 5),
@@ -4436,7 +4436,7 @@ class OuterClass<X>
                 // (9,13): warning CS1735: XML comment on 'OuterClass<X>.InnerClass<Y>.Foo()' has a typeparamref tag for 'XY', but there is no type parameter by that name
                 //         /// <include file='b16c2dc7f738.xml' path='//target'/>
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, includeElement).WithArguments("XY", "OuterClass<X>.InnerClass<Y>.Foo()").WithLocation(9, 13)
-            });
+            ]);
             var expected = (@"
 <?xml version=""1.0""?>
 <doc>
@@ -4631,10 +4631,10 @@ partial class C
             // Files passed in order.
             var comp = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
 
-            var actual1 = GetDocumentationCommentText(comp, null, filterTree: tree1, expectedDiagnostics: new[] {
+            var actual1 = GetDocumentationCommentText(comp, null, filterTree: tree1, expectedDiagnostics: [
                 // (4,20): warning CS1574: XML comment has cref attribute 'Bogus1' that could not be resolved
                 //     /// <see cref="Bogus1"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Bogus1").WithArguments("Bogus1") });
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Bogus1").WithArguments("Bogus1") ]);
             var expected1 = @"
 <?xml version=""1.0""?>
 <doc>
@@ -4650,10 +4650,10 @@ partial class C
 ".Trim();
             Assert.Equal(expected1, actual1);
 
-            var actual2 = GetDocumentationCommentText(comp, null, filterTree: tree2, expectedDiagnostics: new[] {
+            var actual2 = GetDocumentationCommentText(comp, null, filterTree: tree2, expectedDiagnostics: [
                 // (4,20): warning CS1574: XML comment has cref attribute 'Bogus2' that could not be resolved
                 //     /// <see cref="Bogus2"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Bogus2").WithArguments("Bogus2")});
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Bogus2").WithArguments("Bogus2")]);
             var expected2 = @"
 <?xml version=""1.0""?>
 <doc>

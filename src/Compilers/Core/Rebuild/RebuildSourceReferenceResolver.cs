@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             // via #line directive across many source files we always return the same name for that 
             // file. What name we return is irrelevant, it just needs to be the same. The actual name 
             // return here is eventually discarded and we end up writing the name from the PDB. 
-            var index = baseFilePath.LastIndexOfAny(new[] { '/', '\\' });
+            var index = baseFilePath.LastIndexOfAny(['/', '\\']);
             if (index > 0)
             {
                 var root = baseFilePath.Substring(0, index);

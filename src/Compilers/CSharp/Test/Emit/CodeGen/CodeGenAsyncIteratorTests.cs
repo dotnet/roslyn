@@ -4223,13 +4223,13 @@ label2:
         [Fact]
         public void AsyncIteratorWithCustomCode()
         {
-            verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
-            verify(new[] { AwaitSlow, Write, Yield, Yield });
-            verify(new[] { Write, Yield, Write, AwaitFast, Yield });
-            verify(new[] { Yield, Write, AwaitFast, Yield });
-            verify(new[] { AwaitFast, YieldBreak });
-            verify(new[] { AwaitSlow, YieldBreak });
-            verify(new[] { AwaitSlow, Yield, YieldBreak });
+            verify([AwaitSlow, Write, Yield, AwaitSlow]);
+            verify([AwaitSlow, Write, Yield, Yield]);
+            verify([Write, Yield, Write, AwaitFast, Yield]);
+            verify([Yield, Write, AwaitFast, Yield]);
+            verify([AwaitFast, YieldBreak]);
+            verify([AwaitSlow, YieldBreak]);
+            verify([AwaitSlow, Yield, YieldBreak]);
 
             void verify(Instruction[] spec)
             {

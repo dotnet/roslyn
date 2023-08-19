@@ -309,12 +309,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             ListNode n2;
             ListNode n1 = new ListNode();
-            object[] obj = new object[5];
-            obj[0] = 1;
-            obj[1] = obj;
-            obj[2] = n2 = new ListNode() { data = obj, next = n1 };
-            obj[3] = new object[] { 4, 5, obj, 6, new ListNode() };
-            obj[4] = 3;
+            object[] obj =
+            [
+                1,
+                obj,
+                n2 = new ListNode() { data = obj, next = n1 },
+                new object[] { 4, 5, obj, 6, new ListNode() },
+                3,
+            ];
             n1.next = n2;
             n1.data = new object[] { 7, n2, 8, obj };
 
@@ -425,15 +427,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("int[2][,][,,,] { int[1, 2][,,,] { { int[1, 2, 3, 4] { { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } } }, null } }, null }", str);
 
-            Array x = Array.CreateInstance(typeof(Object), lengths: new int[] { 2, 3 }, lowerBounds: new int[] { 2, 9 });
+            Array x = Array.CreateInstance(typeof(Object), lengths: [2, 3], lowerBounds: [2, 9]);
             str = s_formatter.FormatObject(x, SingleLineOptions);
             Assert.Equal("object[2..4, 9..12] { { null, null, null }, { null, null, null } }", str);
 
-            Array y = Array.CreateInstance(typeof(Object), lengths: new int[] { 1, 1 }, lowerBounds: new int[] { 0, 0 });
+            Array y = Array.CreateInstance(typeof(Object), lengths: [1, 1], lowerBounds: [0, 0]);
             str = s_formatter.FormatObject(y, SingleLineOptions);
             Assert.Equal("object[1, 1] { { null } }", str);
 
-            Array z = Array.CreateInstance(typeof(Object), lengths: new int[] { 0, 0 }, lowerBounds: new int[] { 0, 0 });
+            Array z = Array.CreateInstance(typeof(Object), lengths: [0, 0], lowerBounds: [0, 0]);
             str = s_formatter.FormatObject(z, SingleLineOptions);
             Assert.Equal("object[0, 0] { }", str);
         }
@@ -634,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("SortedList<int, int>(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
             var obj2 = new SortedList<int[], int[]>();
-            obj2.Add(new[] { 3 }, new int[] { 4 });
+            obj2.Add([3], [4]);
 
             str = s_formatter.FormatObject(obj2, SingleLineOptions);
             Assert.Equal("SortedList<int[], int[]>(1) { { int[1] { 3 }, int[1] { 4 } } }", str);

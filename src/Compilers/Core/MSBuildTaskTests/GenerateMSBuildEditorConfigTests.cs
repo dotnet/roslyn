@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 }
+                PropertyItems = [property1, property2]
             };
             configTask.Execute();
 
@@ -58,7 +58,7 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = [item1]
             };
             configTask.Execute();
 
@@ -80,7 +80,7 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = [item1, item2, item3]
             };
             configTask.Execute();
 
@@ -109,7 +109,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = [item1, item2, item3]
             };
             configTask.Execute();
 
@@ -136,7 +136,7 @@ build_metadata.Compile.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2 }
+                MetadataItems = [item1, item2]
             };
             configTask.Execute();
 
@@ -157,7 +157,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = [item1]
             };
             configTask.Execute();
 
@@ -179,7 +179,7 @@ build_metadata.Compile.ToRetrieve =
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = [item1, item2, item3]
             };
             configTask.Execute();
 
@@ -204,8 +204,8 @@ build_metadata.Compile.ToRetrieve =
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3, item4 },
-                PropertyItems = new[] { property1, property2 }
+                MetadataItems = [item1, item2, item3, item4],
+                PropertyItems = [property1, property2]
             };
             configTask.Execute();
 
@@ -340,7 +340,7 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = [item1]
             };
             configTask.Execute();
 
@@ -363,7 +363,7 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 },
+                PropertyItems = [property1, property2],
                 FileName = new TaskItem(fileName)
             };
             configTask.Execute();

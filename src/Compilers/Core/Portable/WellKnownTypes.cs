@@ -350,8 +350,8 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_metadataNames = new string[]
-        {
+        private static readonly string[] s_metadataNames =
+        [
             "System.Math",
             "System.Array",
             "System.Attribute",
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
-        };
+        ];
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
 

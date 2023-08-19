@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // issue the notification, see if we're still at the end of the chain.  If we're not,
             // then we don't need to notify as a later task will do so.
             _notifyControllerTask = Task.Factory.ContinueWhenAll(
-                new[] { _notifyControllerTask, nextTask },
+                [_notifyControllerTask, nextTask],
                 async tasks =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);

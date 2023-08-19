@@ -3425,10 +3425,10 @@ enum VirtualKey
         private static void CommentOutText(SourceText oldText, int locationOfChange, int widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
             var newText = oldText.WithChanges(
-                new TextChange[] {
+                [
                     new TextChange(new TextSpan(locationOfChange, 0), "/*"),
                     new TextChange(new TextSpan(locationOfChange + widthOfChange, 0), "*/")
-                });
+                ]);
             var tree = SyntaxFactory.ParseSyntaxTree(oldText);
             incrementalTree = tree.WithChangedText(newText);
             parsedTree = SyntaxFactory.ParseSyntaxTree(newText);

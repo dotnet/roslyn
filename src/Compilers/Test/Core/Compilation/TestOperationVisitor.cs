@@ -1551,8 +1551,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.Value);
             VisitLocals(operation.Locals);
             var children = operation.Guard == null
-                ? new[] { operation.Pattern, operation.Value }
-                : new[] { operation.Pattern, operation.Guard, operation.Value };
+                ? [operation.Pattern, operation.Value]
+                : [operation.Pattern, operation.Guard, operation.Value];
             AssertEx.Equal(children, operation.ChildOperations);
         }
 

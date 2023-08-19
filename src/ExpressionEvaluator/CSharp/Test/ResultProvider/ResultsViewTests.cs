@@ -1203,7 +1203,7 @@ public class C : IEnumerable
                 var runtime = new DkmClrRuntimeInstance(assemblies);
                 var type = assembly.GetType("C");
                 var value = CreateDkmClrValue(
-                    value: type.Instantiate(new object[] { new object[] { string.Empty } }),
+                    value: type.Instantiate([new object[] { string.Empty }]),
                     type: runtime.GetType((TypeImpl)type));
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
@@ -1804,7 +1804,7 @@ class C
                 var parameters = ctor.GetParameters();
                 var listType = typeof(List<>).MakeGenericType(anonymousType);
                 var source = listType.Instantiate();
-                listType.GetMethod("Add").Invoke(source, new[] { anonymousType.Instantiate(1, 1) });
+                listType.GetMethod("Add").Invoke(source, [anonymousType.Instantiate(1, 1)]);
                 var predicate = Delegate.CreateDelegate(parameters[1].ParameterType, instance, displayClass.GetMethod("<M>b__0_2", BindingFlags.Instance | BindingFlags.NonPublic));
                 var selector = Delegate.CreateDelegate(parameters[2].ParameterType, instance, displayClass.GetMethod("<M>b__0_3", BindingFlags.Instance | BindingFlags.NonPublic));
                 var value = CreateDkmClrValue(

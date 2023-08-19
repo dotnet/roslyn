@@ -453,14 +453,14 @@ abstract class Goo : AbstractGoo
     public virtual void Method3() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 11, Column = 17, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 11, Column = 17 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 12, Column = 26, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 12, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 13, Column = 25, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 13, Column = 25 },
-            });
+            ]);
         }
 
         [Fact]
@@ -481,14 +481,14 @@ abstract class Goo : AbstractGoo
     public virtual long Property3 { set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 11, Column = 17, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 11, Column = 17 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 12, Column = 26, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 12, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 13, Column = 25, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 13, Column = 25 },
-            });
+            ]);
         }
 
         [Fact]
@@ -509,14 +509,14 @@ abstract class Goo : AbstractGoo
     public virtual long this[char x] { set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 11, Column = 17, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 11, Column = 17 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 12, Column = 26, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 12, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 13, Column = 25, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod,  Line = 13, Column = 25 },
-            });
+            ]);
         }
 
         [Fact]
@@ -581,12 +581,12 @@ class Derived : Base, Interface
     public override void Method3() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 16, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 17, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 18, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -624,7 +624,7 @@ class Derived : Base, Interface
     public override int Property9 { get; set; } //nothing to override
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 21, Column = 25 }, //0
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 22, Column = 28 }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 23, Column = 25 }, //2
@@ -633,7 +633,7 @@ class Derived : Base, Interface
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 26, Column = 37 }, //5.get
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 27, Column = 37 }, //6.get
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 30, Column = 25 }, //9
-            });
+            ]);
         }
 
         [Fact]
@@ -1201,9 +1201,9 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 12, Column = 28 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1226,9 +1226,9 @@ class Derived : Base
 }
 ";
             // CONSIDER: Dev10 reports on both accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 14, Column = 25 }, //Derived.Property
-            });
+            ]);
         }
 
         [Fact]
@@ -1251,9 +1251,9 @@ class Derived : Base
 }
 ";
             // CONSIDER: Dev10 reports on both accessors, but not on the indexer itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 14, Column = 25 }, //Derived indexer
-            });
+            ]);
         }
 
         [Fact]
@@ -1301,9 +1301,9 @@ class Derived : Base
 }
 ";
             // CONSIDER: Dev10 reports on accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 14, Column = 25 }, //Derived.Property
-            });
+            ]);
         }
 
         [Fact]
@@ -1326,9 +1326,9 @@ class Derived : Base
 }
 ";
             // CONSIDER: Dev10 reports on accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 14, Column = 25 }, //Derived indexer
-            });
+            ]);
         }
 
         [Fact]
@@ -1577,10 +1577,10 @@ class Derived2 : Derived
     public override void Method2() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1605,10 +1605,10 @@ class Derived2 : Derived
 }
 ";
             // CONSIDER: Dev10 reports on both accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1633,10 +1633,10 @@ class Derived2 : Derived
 }
 ";
             // CONSIDER: Dev10 reports on both accessors, but not on the indexer itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1661,10 +1661,10 @@ class Derived2 : Derived
 }
 ";
             // CONSIDER: Dev10 reports on accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1689,10 +1689,10 @@ class Derived2 : Derived
 }
 ";
             // CONSIDER: Dev10 reports on accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 26 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1717,10 +1717,10 @@ class Derived2 : Derived
 }
 ";
             // CONSIDER: Dev10 reports on both accessors, but not on the property itself
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 15, Column = 41 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 16, Column = 41 },
-            });
+            ]);
         }
 
         [Fact]
@@ -1747,11 +1747,11 @@ class Derived : Base
     public override void Method5() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 17, Column = 28 }, //3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 18, Column = 25 }, //4
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 19, Column = 26 }, //5
-            });
+            ]);
         }
 
         [Fact]
@@ -1842,7 +1842,7 @@ abstract class Derived : Base
 }
 ";
 
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 20, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 21, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 22, Column = 25 },
@@ -1867,7 +1867,7 @@ abstract class Derived : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 42, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 43, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 44, Column = 25 }
-            });
+            ]);
         }
 
         [Fact]
@@ -1892,10 +1892,10 @@ class Derived : Base
     public override int Property4 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 16, Column = 28 }, //3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 17, Column = 25 }, //4
-            });
+            ]);
         }
 
         [Fact]
@@ -1951,10 +1951,10 @@ class Derived : Base
     public override int this[string x, string y] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 16, Column = 28 }, //3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 17, Column = 25 }, //4
-            });
+            ]);
         }
 
         [Fact]
@@ -2271,10 +2271,10 @@ class Derived : Base
     public override event System.Action<int> Event4 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 16, Column = 49 }, //3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 17, Column = 46 }, //4
-            });
+            ]);
         }
 
         [Fact]
@@ -2293,10 +2293,10 @@ class Derived : Base<string>
     public override object Method2<U>(U u) { return null; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 10, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 11, Column = 28 },
-            });
+            ]);
         }
 
         [Fact]
@@ -2415,9 +2415,9 @@ class Derived : Base<string>
     public override object Property2 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 11, Column = 28 }, //2
-            });
+            ]);
         }
 
         [Fact]
@@ -2478,9 +2478,9 @@ class Derived : Base<string>
     public override event System.Action<object> Event2 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 11, Column = 49 }, //2
-            });
+            ]);
         }
 
         [Fact]
@@ -2503,8 +2503,7 @@ class Derived : Base
     public override IGoo<X> Method2<X>(X u) { return null; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-            });
+            CompileAndVerifyDiagnostics(text, []);
         }
 
         [Fact]
@@ -2523,8 +2522,7 @@ class Derived<S> : Base<S>
     public override S Method(S s) { return s; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-            });
+            CompileAndVerifyDiagnostics(text, []);
         }
 
         [Fact]
@@ -2841,10 +2839,10 @@ class Concrete : Abstract2
     public override void Method5() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //Method2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //Method4
-            });
+            ]);
         }
 
         [Fact]
@@ -2872,12 +2870,12 @@ class Concrete : Abstract2
     public override long Property5 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //2.get
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //2.set
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //4.get
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //4.set
-            });
+            ]);
         }
 
         [Fact]
@@ -2941,12 +2939,12 @@ class Concrete : Abstract2
     public override event System.Action Event5 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //2.add
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //2.remove
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //4.add
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 17, Column = 7 }, //4.remove
-            });
+            ]);
         }
 
         [Fact]
@@ -3171,9 +3169,9 @@ class Class : Interface
     //missed Event1 entirely
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 7, Column = 15 }, //1
-            });
+            ]);
         }
 
         [Fact]
@@ -3746,14 +3744,14 @@ class Base : Interface
     protected internal long Property6 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
-            });
+            ]);
         }
 
         [Fact]
@@ -3780,14 +3778,14 @@ class Base : Interface
     protected internal long this[string x, string y, int z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 24 }, //indexer can't be static
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
-            });
+            ]);
         }
 
         [Fact]
@@ -3814,14 +3812,14 @@ class Base : Interface
     protected internal event System.Action Event6 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
-            });
+            ]);
         }
 
         [Fact]
@@ -3873,7 +3871,7 @@ class Base3 : Base2 { }
 
 class Derived : Base3, Interface { }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 13, Column = 22 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 13, Column = 22 },
@@ -3900,7 +3898,7 @@ class Derived : Base3, Interface { }
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 }
-            });
+            ]);
         }
 
         [Fact]
@@ -3949,7 +3947,7 @@ class Derived3 : Base2, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
@@ -3973,7 +3971,7 @@ class Derived3 : Base2, Interface
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
-            });
+            ]);
         }
 
         [Fact]
@@ -4022,7 +4020,7 @@ class Derived3 : Base2, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 24 }, //indexer can't be static
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
@@ -4047,7 +4045,7 @@ class Derived3 : Base2, Interface
 
                 //Base2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 32, Column = 24 }, //indexer can't be static
-            });
+            ]);
         }
 
         [Fact]
@@ -4096,7 +4094,7 @@ class Derived3 : Base2, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
@@ -4120,7 +4118,7 @@ class Derived3 : Base2, Interface
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
-            });
+            ]);
         }
 
         [Fact]
@@ -4402,7 +4400,7 @@ abstract class Derived2 : Derived
     public virtual void Method12() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 28, Column = 17, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 28, Column = 17, IsWarning = false },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 29, Column = 26, IsWarning = true },
@@ -4421,7 +4419,7 @@ abstract class Derived2 : Derived
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 51, Column = 17, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 52, Column = 26, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 53, Column = 25, IsWarning = true },
-            });
+            ]);
         }
 
         [Fact]
@@ -4482,7 +4480,7 @@ abstract class Derived2 : Derived
     public virtual long Property12 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 28, Column = 17, IsWarning = true }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 28, Column = 17, IsWarning = false }, //1.get/set
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 29, Column = 26, IsWarning = true }, //2
@@ -4501,7 +4499,7 @@ abstract class Derived2 : Derived
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 51, Column = 17, IsWarning = true }, //10
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 52, Column = 26, IsWarning = true }, //11
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 53, Column = 25, IsWarning = true }, //12
-            });
+            ]);
         }
 
         [Fact]
@@ -4562,7 +4560,7 @@ abstract class Derived2 : Derived
     public virtual long this[string w, string x, int y, int z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 28, Column = 17, IsWarning = true }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 28, Column = 17, IsWarning = false }, //1.get/set
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 29, Column = 26, IsWarning = true }, //2
@@ -4581,7 +4579,7 @@ abstract class Derived2 : Derived
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 51, Column = 17, IsWarning = true }, //10
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 52, Column = 26, IsWarning = true }, //11
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 53, Column = 25, IsWarning = true }, //12
-            });
+            ]);
         }
 
         [Fact]
@@ -4706,9 +4704,9 @@ public class Class : Interface<int>
     public void Method(int i) { } //this is here to avoid CS0535 - not implementing interface method
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ExplicitImplCollision, Line = 10, Column = 25, IsWarning = true },
-            });
+            ]);
         }
 
         [Fact]
@@ -4777,9 +4775,9 @@ public class Class : Interface<int>
     public long this[int i] { set { } } //this is here to avoid CS0535 - not implementing interface method
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ExplicitImplCollision, Line = 10, Column = 25, IsWarning = true },
-            });
+            ]);
         }
 
         [Fact]
@@ -5083,9 +5081,9 @@ public class Derived : Base
     internal override void Method() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
-            });
+            ]);
         }
 
         [Fact]
@@ -5104,9 +5102,9 @@ public class Derived : Base
     internal override long Property { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
-            });
+            ]);
         }
 
         [Fact]
@@ -5125,9 +5123,9 @@ public class Derived : Base
     internal override long this[int x] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
-            });
+            ]);
         }
 
         [Fact]
@@ -5146,9 +5144,9 @@ public class Derived : Base
     internal override event System.Action Event { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 43 }, //can't see internal method in other compilation
-            });
+            ]);
         }
 
         [Fact]
@@ -5302,7 +5300,7 @@ public class Derived1 : Base
 }
 ";
 
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 24, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 25, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 26, Column = 26 },
@@ -5318,7 +5316,7 @@ public class Derived1 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 37, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 38, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 39, Column = 38 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5366,7 +5364,7 @@ public class Derived1 : Base
 }
 ";
 
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 24, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 25, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 26, Column = 26 },
@@ -5382,7 +5380,7 @@ public class Derived1 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 37, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 38, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 39, Column = 38 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5430,7 +5428,7 @@ public class Derived1 : Base
 }
 ";
 
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 24, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 25, Column = 53 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 26, Column = 41 },
@@ -5446,7 +5444,7 @@ public class Derived1 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 37, Column = 43 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 38, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 39, Column = 53 },
-            });
+            ]);
         }
 
         [WorkItem(540185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540185")]
@@ -5535,7 +5533,7 @@ public class Derived2 : Base
     protected internal override void Method13() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5551,7 +5549,7 @@ public class Derived2 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 19, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 20, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 21, Column = 38 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5602,7 +5600,7 @@ public class Derived2 : Base
     protected internal override long Property13 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5618,7 +5616,7 @@ public class Derived2 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 19, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 20, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 21, Column = 38 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5669,7 +5667,7 @@ public class Derived2 : Base
     protected internal override long this[string w, string x, int y, string z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5685,7 +5683,7 @@ public class Derived2 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 19, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 20, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 21, Column = 38 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5736,7 +5734,7 @@ public class Derived2 : Base
     protected internal override event System.Action Event13 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 53 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 41 },
@@ -5752,7 +5750,7 @@ public class Derived2 : Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 19, Column = 43 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 20, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 21, Column = 53 },
-            });
+            ]);
         }
 
         [Fact]
@@ -5790,7 +5788,7 @@ class Class : Interface
 }
 ";
 
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text, [
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 19, Column = 19 }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 20, Column = 19 }, //2
 
@@ -5806,7 +5804,7 @@ class Class : Interface
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //4
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //7
-            });
+            ]);
         }
 
         [Fact]

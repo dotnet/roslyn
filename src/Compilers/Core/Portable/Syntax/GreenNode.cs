@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis
             // If the green node already has errors, add those on.
             if (GetDiagnostics() == null)
             {
-                errorInfos = new[] { err };
+                errorInfos = [err];
             }
             else
             {

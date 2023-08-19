@@ -550,22 +550,22 @@ class Program
 IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
   Instance Receiver: 
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-", new DiagnosticDescription[]
-            {
+",
+            [
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
-            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            ], parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, @"
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
   Children(1):
       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-", new DiagnosticDescription[]
-            {
+",
+            [
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -780,22 +780,22 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'p.M1')
       Instance Receiver: 
         ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(8,30): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "(Action)p.M1").WithArguments("Program.M1()", "int").WithLocation(8, 30)
-            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            ], parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'p.M1')
       Children(1):
           ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(8,38): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "p.M1").WithArguments("Program.M1()", "int").WithLocation(8, 38)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1164,22 +1164,22 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-", new DiagnosticDescription[] {
+", [
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
-            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            ], parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
   Target: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
       Children(1):
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(7,41): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

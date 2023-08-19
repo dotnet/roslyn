@@ -667,7 +667,7 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[] { CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False },
+                    [CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False],
                     parameters: Parameters(Parameter("C", "other")),
                     returnType: typeof(bool),
                     statements: "Return False");
@@ -696,12 +696,11 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.UnaryPlus,
                         CodeGenerationOperatorKind.UnaryNegation,
                         CodeGenerationOperatorKind.LogicalNot
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "other")),
                     returnType: typeof(object),
                     statements: "Return Nothing");
@@ -774,8 +773,7 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.Addition,
                         CodeGenerationOperatorKind.Subtraction,
                         CodeGenerationOperatorKind.Multiplication,
@@ -790,7 +788,7 @@ End Class
                         CodeGenerationOperatorKind.ExclusiveOr,
                         CodeGenerationOperatorKind.LeftShift,
                         CodeGenerationOperatorKind.RightShift
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                     returnType: typeof(object),
                     statements: "Return Nothing");
@@ -831,15 +829,14 @@ Class C
 End Class
 ";
                 await TestAddOperatorsAsync(input, expected,
-                    new[]
-                    {
+                    [
                         CodeGenerationOperatorKind.Equality,
                         CodeGenerationOperatorKind.Inequality,
                         CodeGenerationOperatorKind.GreaterThan,
                         CodeGenerationOperatorKind.LessThan,
                         CodeGenerationOperatorKind.GreaterThanOrEqual,
                         CodeGenerationOperatorKind.LessThanOrEqual
-                    },
+                    ],
                     parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                     returnType: typeof(bool),
                     statements: "Return True");

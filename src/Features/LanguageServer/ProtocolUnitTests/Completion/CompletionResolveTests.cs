@@ -235,7 +235,7 @@ class A
                     {
                         CompletionItem = new CompletionItemSetting
                         {
-                            DocumentationFormat = new MarkupKind[] { MarkupKind.Markdown }
+                            DocumentationFormat = [MarkupKind.Markdown]
                         }
                     }
                 }

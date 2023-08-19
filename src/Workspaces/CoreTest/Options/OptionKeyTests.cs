@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]

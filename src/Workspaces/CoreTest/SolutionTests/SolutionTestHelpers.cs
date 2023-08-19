@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         public static Workspace CreateWorkspaceWithNormalText()
-            => CreateWorkspace(new[]
-            {
+            => CreateWorkspace(
+            [
                 typeof(TestTemporaryStorageServiceFactory)
-            });
+            ]);
 
         public static Workspace CreateWorkspaceWithRecoverableText()
             => CreateWorkspace();
 
         public static Workspace CreateWorkspaceWithPartialSemantics()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestTemporaryStorageServiceFactory) });
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics([typeof(TestTemporaryStorageServiceFactory)]);
 
 #nullable disable
 

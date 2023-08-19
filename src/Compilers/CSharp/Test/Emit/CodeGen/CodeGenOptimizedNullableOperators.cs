@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // literal null to object, so we do not need to allocate space on the stack 
             // for the nullable int, initialize it, and then box that to a null ref.
 
-            string[] sources = {
+            string[] sources = [
 @"class Program
 {
     static void Main()
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.WriteLine((object)(int?)null);
     }
 }
-"};
+"];
 
             string expectedOutput = "";
             string expectedIL = @"{
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // literal null to object, so we do not need to allocate space on the stack 
             // for the nullable int, initialize it, and then box that to a null ref.
 
-            string[] sources = {
+            string[] sources = [
 @"class Program
 {
     static void Main()
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.WriteLine((object)(int?)123);
     }
 }
-"};
+"];
 
             string expectedOutput = "123";
             string expectedIL = @"{

@@ -660,7 +660,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(new[] { source1, source2 }, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45([source1, source2], parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
         }
 
         [Fact]

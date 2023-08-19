@@ -581,7 +581,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(new[] { text, text1, text2 });
+            var comp = CreateCompilationWithMscorlib45([text, text1, text2]);
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -755,13 +755,13 @@ namespace N1.N2  {
             var comp1 = CreateCompilationWithMscorlib45(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateCompilationWithMscorlib45([text1], new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateCompilationWithMscorlib45([text2], new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });

@@ -222,8 +222,8 @@ namespace Microsoft.Cci
             return documentRowId;
         }
 
-        private static readonly char[] s_separator1 = { '/' };
-        private static readonly char[] s_separator2 = { '\\' };
+        private static readonly char[] s_separator1 = ['/'];
+        private static readonly char[] s_separator2 = ['\\'];
 
         private BlobHandle SerializeDocumentName(string name)
         {

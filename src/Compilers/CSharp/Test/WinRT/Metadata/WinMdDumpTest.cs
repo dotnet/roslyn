@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         public void DumpWinMDPrefixing()
         {
             var winmd = MetadataReference.CreateFromImage(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
-            var actual = Dump(winmd, new[] { _windowsRef });
+            var actual = Dump(winmd, [_windowsRef]);
             var expected = Encoding.UTF8.GetString(TestResources.WinRt.WinMDPrefixing_dump);
             AssertDumpsEqual(expected, actual);
         }

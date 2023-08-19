@@ -90,25 +90,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             VerifyCommandLineSplitter("", new string[0]);
             VerifyCommandLineSplitter("   \t   ", new string[0]);
-            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new[] { "abc", "def", "baz", "quuz" });
+            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", ["abc", "def", "baz", "quuz"]);
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
-                                        new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
+                                        [@"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there"""]);
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",
-                                        new string[] { @"abc def \"" baz quuz", @"\""straw berry", @"fi\""zz", @"\""buzz", @"fizzbuzz" });
+                                        [@"abc def \"" baz quuz", @"\""straw berry", @"fi\""zz", @"\""buzz", @"fizzbuzz"]);
             VerifyCommandLineSplitter(@"  \\""abc def""  \\\""abc def"" ",
-                                        new string[] { @"\\""abc def""", @"\\\""abc", @"def"" " });
+                                        [@"\\""abc def""", @"\\\""abc", @"def"" "]);
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
-                                        new string[] { @"\\\\""abc def""", @"\\\\\""abc", @"def"" " });
+                                        [@"\\\\""abc def""", @"\\\\\""abc", @"def"" "]);
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" q a r ",
-                                        new string[] { @"\\\\""abc def""", @"\\\\\""abc", @"def"" q a r " });
+                                        [@"\\\\""abc def""", @"\\\\\""abc", @"def"" q a r "]);
             VerifyCommandLineSplitter(@"abc #Comment ignored",
-                                        new string[] { @"abc" }, removeHashComments: true);
+                                        [@"abc"], removeHashComments: true);
             VerifyCommandLineSplitter(@"""goo bar"";""baz"" ""tree""",
-                                        new string[] { @"""goo bar"";""baz""", "tree" });
+                                        [@"""goo bar"";""baz""", "tree"]);
             VerifyCommandLineSplitter(@"/reference:""a, b"" ""test""",
-                                        new string[] { @"/reference:""a, b""", "test" });
+                                        [@"/reference:""a, b""", "test"]);
             VerifyCommandLineSplitter(@"fo""o ba""r",
-                                        new string[] { @"fo""o ba""r" });
+                                        [@"fo""o ba""r"]);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, new string[] { "" });
+            var ruleSet = ParseRuleSet(source, [""]);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
             Assert.Equal(1, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
@@ -1119,12 +1119,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseSeparatedStrings_ExcludeSeparatorChar()
         {
             Assert.Equal(
-                ParseSeparatedStrings(@"a,b", new[] { ',' }),
-                new[] { "a", "b" });
+                ParseSeparatedStrings(@"a,b", [',']),
+                ["a", "b"]);
 
             Assert.Equal(
-                ParseSeparatedStrings(@"a,,b", new[] { ',' }),
-                new[] { "a", "b" });
+                ParseSeparatedStrings(@"a,,b", [',']),
+                ["a", "b"]);
         }
 
         /// <summary>
@@ -1135,16 +1135,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseSeparatedStrings_IncludeQuotes()
         {
             Assert.Equal(
-                ParseSeparatedStrings(@"""a"",b", new[] { ',' }),
-                new[] { @"""a""", "b" });
+                ParseSeparatedStrings(@"""a"",b", [',']),
+                [@"""a""", "b"]);
 
             Assert.Equal(
-                ParseSeparatedStrings(@"""a,b""", new[] { ',' }),
-                new[] { @"""a,b""" });
+                ParseSeparatedStrings(@"""a,b""", [',']),
+                [@"""a,b"""]);
 
             Assert.Equal(
-                ParseSeparatedStrings(@"""a"",""b", new[] { ',' }),
-                new[] { @"""a""", @"""b" });
+                ParseSeparatedStrings(@"""a"",""b", [',']),
+                [@"""a""", @"""b"]);
         }
 
         /// <summary>

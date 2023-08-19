@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// </summary>
         private readonly bool _ignoreOutputPath;
 
-        private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static readonly char[] PathSeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
         #region Mutable fields that should only be used from the UI thread
 

@@ -1081,8 +1081,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestTriggerCharacters()
         {
-            char[] expectedCharacters = { ',', '(' };
-            char[] unexpectedCharacters = { ' ', '[', '<' };
+            char[] expectedCharacters = [',', '('];
+            char[] unexpectedCharacters = [' ', '[', '<'];
 
             VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
         }

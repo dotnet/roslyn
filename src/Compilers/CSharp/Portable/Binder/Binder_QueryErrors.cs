@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProviderStandard,
-                    new object[] { instanceArgument.Type, name },
+                    [instanceArgument.Type, name],
                     symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
             }
             else if (fromClause != null && fromClause.Type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteInfo))
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProviderCastable,
-                    new object[] { instanceArgument.Type, name, fromClause.Identifier.ValueText },
+                    [instanceArgument.Type, name, fromClause.Identifier.ValueText],
                     symbols), new SourceLocation(fromClause.Expression));
             }
             else
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProvider,
-                    new object[] { instanceArgument.Type, name },
+                    [instanceArgument.Type, name],
                     symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
             }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 multiple ? ErrorCode.ERR_QueryTypeInferenceFailedMulti : ErrorCode.ERR_QueryTypeInferenceFailed,
-                new object[] { clauseKind, methodName },
+                [clauseKind, methodName],
                 symbols), queryClause.GetFirstToken().GetLocation());
         }
 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType = receiver?.Type;
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_QueryTypeInferenceFailedSelectMany,
-                new object[] { type, receiverType, methodName },
+                [type, receiverType, methodName],
                 symbols), fromClause.Expression.Location);
             return true;
         }

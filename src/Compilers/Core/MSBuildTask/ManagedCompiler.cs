@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/keycontainer:", KeyContainer);
             commandLine.AppendSwitchIfNotNull("/keyfile:", KeyFile);
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
-            commandLine.AppendSwitchIfNotNull("/linkresource:", LinkResources, new string[] { "LogicalName", "Access" });
+            commandLine.AppendSwitchIfNotNull("/linkresource:", LinkResources, ["LogicalName", "Access"]);
             commandLine.AppendWhenTrue("/nologo", _store, nameof(NoLogo));
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", SubsystemVersion);
             commandLine.AppendWhenTrue("/reportanalyzer", _store, nameof(ReportAnalyzer));
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
-            commandLine.AppendSwitchIfNotNull("/resource:", Resources, new string[] { "LogicalName", "Access" });
+            commandLine.AppendSwitchIfNotNull("/resource:", Resources, ["LogicalName", "Access"]);
             commandLine.AppendSwitchIfNotNull("/target:", TargetType);
             commandLine.AppendPlusOrMinusSwitch("/warnaserror", _store, nameof(TreatWarningsAsErrors));
             commandLine.AppendWhenTrue("/utf8output", _store, nameof(Utf8Output));

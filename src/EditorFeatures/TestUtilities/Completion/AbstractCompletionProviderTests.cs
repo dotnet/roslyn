@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
-            foreach (var sourceKind in sourceCodeKind.HasValue ? new[] { sourceCodeKind.Value } : new[] { SourceCodeKind.Regular, SourceCodeKind.Script })
+            foreach (var sourceKind in sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script])
             {
                 using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             Assert.NotNull(validChars);
-            invalidChars ??= new[] { 'x' };
+            invalidChars ??= ['x'];
 
             using (var workspace = CreateWorkspace(initialMarkup))
             {

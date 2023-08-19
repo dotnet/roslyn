@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-            => CreateWorkspace(new[]
-            {
+            => CreateWorkspace(
+            [
                 typeof(TestTemporaryStorageServiceFactory)
-            });
+            ]);
 
         private static Solution AddSingleFileCSharpProject(Solution solution, string source)
         {

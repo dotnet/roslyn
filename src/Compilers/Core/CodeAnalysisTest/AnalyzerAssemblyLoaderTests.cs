@@ -1303,7 +1303,7 @@ Delta.2: Test D2
                 {
                     if (loader is ShadowCopyAnalyzerAssemblyLoader)
                     {
-                        File.WriteAllBytes(path, new byte[] { 42 });
+                        File.WriteAllBytes(path, [42]);
                     }
                     loader.AddDependencyLocation(path);
                     var actual = loader.LoadFromPath(path);

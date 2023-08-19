@@ -571,11 +571,11 @@ public class C
                 emitResult.Diagnostics.Verify();
 
                 verifyEntryPoint(output, expectZero: false);
-                VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
+                VerifyMethods(output, "C", ["void C.Main()", "C..ctor()"]);
                 VerifyMvid(output, hasMvidSection: false);
 
                 verifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                VerifyMethods(metadataOutput, "C", ["C..ctor()"]);
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
@@ -709,9 +709,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
-                    "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
-                VerifyMethods(metadataOutput, "C", new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
+                VerifyMethods(output, "C", [ "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
+                    "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" ]);
+                VerifyMethods(metadataOutput, "C", ["System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }"]);
                 VerifyMvid(output, hasMvidSection: false);
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
@@ -735,9 +735,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
-                    "C..ctor()", "System.Int32 C.PrivateGetter { private get; set; }" });
-                VerifyMethods(metadataOutput, "C", new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
+                VerifyMethods(output, "C", [ "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
+                    "C..ctor()", "System.Int32 C.PrivateGetter { private get; set; }" ]);
+                VerifyMethods(metadataOutput, "C", ["void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }"]);
             }
         }
 
@@ -759,10 +759,10 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, "C", new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
-                    "C..ctor()", "System.Int32 C.this[System.Int32 i] { private get; set; }" });
-                VerifyMethods(metadataOutput, "C", new[] { "void C.this[System.Int32 i].set", "C..ctor()",
-                    "System.Int32 C.this[System.Int32 i] { set; }" });
+                VerifyMethods(output, "C", [ "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
+                    "C..ctor()", "System.Int32 C.this[System.Int32 i] { private get; set; }" ]);
+                VerifyMethods(metadataOutput, "C", [ "void C.this[System.Int32 i].set", "C..ctor()",
+                    "System.Int32 C.this[System.Int32 i] { set; }" ]);
             }
         }
 
@@ -788,9 +788,9 @@ public class C : Base
                 emitResult.Diagnostics.Verify();
                 Assert.True(emitResult.Success);
 
-                VerifyMethods(output, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(output, "C", ["void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }"]);
                 // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
-                VerifyMethods(metadataOutput, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(metadataOutput, "C", ["void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }"]);
             }
         }
 
@@ -840,10 +840,10 @@ public class C
                 emitResult.Diagnostics.Verify();
                 Assert.True(emitResult.Success);
 
-                VerifyMethods(output, "C", new[] { "C..ctor()" });
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
-                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
-                VerifyMethods(metadataOutput, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
+                VerifyMethods(output, "C", ["C..ctor()"]);
+                VerifyMethods(metadataOutput, "C", ["C..ctor()"]);
+                VerifyMethods(output, "SomeAttribute", ["SomeAttribute..ctor()"]);
+                VerifyMethods(metadataOutput, "SomeAttribute", ["SomeAttribute..ctor()"]);
             }
         }
 
@@ -881,10 +881,10 @@ public class C
                 emitResult.Diagnostics.Verify();
                 Assert.True(emitResult.Success);
 
-                VerifyMethods(output, "C", new[] { "C..ctor()" });
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
-                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()", "SomeAttribute..cctor()", "void SomeAttribute.F()" });
-                VerifyMethods(metadataOutput, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
+                VerifyMethods(output, "C", ["C..ctor()"]);
+                VerifyMethods(metadataOutput, "C", ["C..ctor()"]);
+                VerifyMethods(output, "SomeAttribute", ["SomeAttribute..ctor()", "SomeAttribute..cctor()", "void SomeAttribute.F()"]);
+                VerifyMethods(metadataOutput, "SomeAttribute", ["SomeAttribute..ctor()"]);
             }
         }
 
@@ -932,11 +932,11 @@ public class C
                 var reader = assembly.GetMetadataReader();
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.SetEqual(attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)),
-                    new string[] {
+                    [
                         "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
                         "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
                         "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)"
-                    });
+                    ]);
             };
 
             var comp = CreateCompilation("");
@@ -2612,8 +2612,8 @@ struct S
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
-                verifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                verifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
+                verifyEmbeddedDebugInfo(output, [DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb]);
+                verifyEmbeddedDebugInfo(metadataOutput, [DebugDirectoryEntryType.Reproducible]);
             }
 
             void verifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
@@ -3878,14 +3878,14 @@ using System;
             CompileAndVerify(source,
                              sourceSymbolValidator: delegate (ModuleSymbol m)
                              {
-                                 string[] expectedGlobalMembers = { "C1", "B", "A1", "F", "G", "E", "D" };
+                                 string[] expectedGlobalMembers = ["C1", "B", "A1", "F", "G", "E", "D"];
                                  var actualGlobalMembers = m.GlobalNamespace.GetMembers().Where(member => !member.IsImplicitlyDeclared).ToArray();
                                  for (int i = 0; i < System.Math.Max(expectedGlobalMembers.Length, actualGlobalMembers.Length); i++)
                                  {
                                      Assert.Equal(expectedGlobalMembers[i], actualGlobalMembers[i].Name);
                                  }
 
-                                 string[] expectedAMembers = {
+                                 string[] expectedAMembers = [
                                                         "C", "B", "F", "A",
                                                         "<I>k__BackingField", "I", "get_I", "set_I",
                                                         "E",
@@ -3898,7 +3898,7 @@ using System;
                                                         "O", "N", "M",
                                                         "F", "E", "D",
                                                         ".ctor", ".cctor"
-                                                };
+                                                ];
 
                                  var actualAMembers = ((SourceModuleSymbol)m).GlobalNamespace.GetTypeMembers("A1").Single().GetMembers().ToArray();
 
@@ -3907,7 +3907,7 @@ using System;
                                      Assert.Equal(expectedAMembers[i], actualAMembers[i].Name);
                                  }
 
-                                 string[] expectedBMembers = { ".ctor", "Invoke", "BeginInvoke", "EndInvoke" };
+                                 string[] expectedBMembers = [".ctor", "Invoke", "BeginInvoke", "EndInvoke"];
                                  var actualBMembers = ((SourceModuleSymbol)m).GlobalNamespace.GetTypeMembers("B").Single().GetMembers().ToArray();
 
                                  for (int i = 0; i < System.Math.Max(expectedBMembers.Length, actualBMembers.Length); i++)
@@ -3915,16 +3915,16 @@ using System;
                                      Assert.Equal(expectedBMembers[i], actualBMembers[i].Name);
                                  }
 
-                                 string[] expectedCMembers = {".cctor",
+                                 string[] expectedCMembers = [".cctor",
                                                             "C", "B", "F", "A",
-                                                            ".ctor"};
+                                                            ".ctor"];
                                  var actualCMembers = ((SourceModuleSymbol)m).GlobalNamespace.GetTypeMembers("C1").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedCMembers, actualCMembers.Select(s => s.Name));
                              },
                              symbolValidator: delegate (ModuleSymbol m)
                              {
-                                 string[] expectedAMembers = {"C", "B", "A",
+                                 string[] expectedAMembers = ["C", "B", "A",
                                                         "F",
                                                         "get_I", "set_I",
                                                         "E",
@@ -3939,18 +3939,18 @@ using System;
                                                         "I", "H", "G",
                                                         "L", "K", "J",
                                                         "O", "N", "M",
-                                                        };
+                                                        ];
 
                                  var actualAMembers = m.GlobalNamespace.GetTypeMembers("A1").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedAMembers, actualAMembers.Select(s => s.Name));
 
-                                 string[] expectedBMembers = { ".ctor", "BeginInvoke", "EndInvoke", "Invoke" };
+                                 string[] expectedBMembers = [".ctor", "BeginInvoke", "EndInvoke", "Invoke"];
                                  var actualBMembers = m.GlobalNamespace.GetTypeMembers("B").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedBMembers, actualBMembers.Select(s => s.Name));
 
-                                 string[] expectedCMembers = { "C", "B", "A", ".ctor", "F" };
+                                 string[] expectedCMembers = ["C", "B", "A", ".ctor", "F"];
                                  var actualCMembers = m.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedCMembers, actualCMembers.Select(s => s.Name));
@@ -5140,7 +5140,7 @@ class C
                 Assert.Equal(bytes.Length, stream.Read(bytes, 0, bytes.Length));
 
                 // The constant should appear exactly once
-                byte[] pattern = new byte[] { 0x25, 0x42, 0xDE, 0xBC, 0x9A, 0x30, 0x75, 0x86 };
+                byte[] pattern = [0x25, 0x42, 0xDE, 0xBC, 0x9A, 0x30, 0x75, 0x86];
                 int firstMatch = IndexOfPattern(bytes, 0, pattern);
                 Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.");
                 int secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern);

@@ -122,8 +122,8 @@ Derived.Property.get()
 Derived.Property.set(8)
 Derived.Property.set(9)
 Derived.Property.set(10)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Method", ".method public hidebysig newslot abstract virtual instance System.Void Method(System.Int32 a, System.String[]& b) cil managed"),
                     Signature("Base", "Method", ".method public hidebysig newslot virtual instance System.Void Method(System.Int32 a, System.Exception b) cil managed"),
                     Signature("Base", "Property", ".property readwrite instance System.Int32 Property"),
@@ -134,7 +134,7 @@ Derived.Property.set(10)",
                     Signature("Derived", "get_Property", ".method public hidebysig specialname virtual instance System.Int32 get_Property() cil managed"),
                     Signature("Derived", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(System.Int32 value) cil managed"),
                     Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.Int32 b, System.Exception c) cil managed")
-                });
+                ]);
         }
 
         [WorkItem(6470, "DevDiv_Projects/Roslyn")]
@@ -209,8 +209,8 @@ DerivedClass.GetHashCode(3)
 BaseClass.GetHashCode()
 DerivedClass.GetHashCode(4)
 DerivedClass.Equals(5, 6)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("BaseClass`2", "ToString", ".method public hidebysig virtual instance System.String ToString() cil managed"),
                     Signature("BaseClass`2", "ToString", ".method public hidebysig newslot virtual instance System.String ToString<T>() cil managed"),
                     Signature("DerivedClass", "ToString", ".method public hidebysig instance System.String ToString() cil managed"),
@@ -219,7 +219,7 @@ DerivedClass.Equals(5, 6)",
                     Signature("BaseClass`2", "GetHashCode", ".method public hidebysig newslot virtual instance System.Int64 GetHashCode(TInt x) cil managed"),
                     Signature("DerivedClass", "GetHashCode", ".method public hidebysig newslot virtual instance System.Int32 GetHashCode() cil managed"),
                     Signature("DerivedClass", "GetHashCode", ".method public hidebysig virtual instance System.Int64 GetHashCode(System.Int32 y) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(
                 // (12,7): warning CS0659: 'DerivedClass' overrides Object.Equals(object o) but does not override Object.GetHashCode()
@@ -328,8 +328,8 @@ Class5.get_Member1
 Class5.set_Member1
 Class7.Member2
 Class5.Member2",
-               expectedSignatures: new[]
-               {
+               expectedSignatures:
+               [
                     Signature("Class2+Class3", "Member1", ".method family hidebysig newslot virtual instance System.Void Member1() cil managed"),
                     Signature("Class2+Class3", "Member2", ".field public static System.Int32 Member2"),
                     Signature("Class2+Class3+Class4", "Member1", ".method public hidebysig static System.Void Member1() cil managed"),
@@ -338,7 +338,7 @@ Class5.Member2",
                     Signature("Class5", "Member2", ".method public hidebysig newslot virtual instance System.Void Member2() cil managed"),
                     Signature("Class5+Class6", "Member2", ".field private instance System.Double[] Member2"),
                     Signature("Class5+Class7", "Member2", ".method public hidebysig virtual instance System.Void Member2() cil managed")
-               });
+               ]);
         }
 
         [Fact]
@@ -391,15 +391,15 @@ Derived.virtual1
 Derived.virtual2
 Derived2.virtual1
 Derived2.virtual2",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base`3", "virtual", ".method public hidebysig newslot virtual instance System.Collections.Generic.List`1[T] virtual<A, B>(T x, U y, V z, A a, B b) cil managed"),
                     Signature("Base`3", "virtual", ".method public hidebysig newslot virtual instance System.Collections.Generic.List`1[T] virtual<T, U>(T& x, U y, V z) cil managed"),
                     Signature("Derived`2", "virtual", ".method public hidebysig virtual instance System.Collections.Generic.List`1[T] virtual<A, B>(T x, U y, System.Int32 z, A a, B b) cil managed"),
                     Signature("Derived`2", "virtual", ".method public hidebysig virtual instance System.Collections.Generic.List`1[T] virtual<T, U>(T& x, U y, System.Int32 z) cil managed"),
                     Signature("Derived2`2", "virtual", ".method public hidebysig virtual instance System.Collections.Generic.List`1[A] virtual<A, B>(A& a, B b, System.Int32 c) cil managed"),
                     Signature("Derived2`2", "virtual", ".method public hidebysig virtual instance System.Collections.Generic.List`1[X] virtual<T, U>(X a, Y b, System.Int32 c, T d, U e) cil managed")
-                });
+                ]);
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
@@ -476,15 +476,15 @@ Derived.Method( , 2, [2])
 Base2.Method2( , , [3])
 Derived.Method3([4], [5])
 Derived.Method3([6], [7])",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base", "Method", ".method assembly hidebysig newslot strict abstract virtual instance System.Int32 Method(System.Exception a, System.Int32 b, [System.ParamArrayAttribute()] NS.Derived[] c) cil managed"),
                     Signature("NS.Derived", "Method", ".method assembly hidebysig strict virtual instance System.Int32 Method(System.Exception A, System.Int32 B, [System.ParamArrayAttribute()] NS.Derived[] C) cil managed"),
                     Signature("Base", "Method2", ".method public hidebysig newslot virtual instance System.Void Method2(NS.Derived c1, NS.Derived c2, NS.Derived[] c3) cil managed"),
                     Signature("NS.Base2", "Method2", ".method public hidebysig virtual instance System.Void Method2(NS.Derived c1, NS.Derived c2, NS.Derived[] C3) cil managed"),
                     Signature("Base", "Method3", ".method public hidebysig newslot abstract virtual instance System.Void Method3(System.Int32[] b1, [System.ParamArrayAttribute()] System.Int32[] b2) cil managed"),
                     Signature("NS.Derived", "Method3", ".method public hidebysig virtual instance System.Void Method3(System.Int32[] B1, [System.ParamArrayAttribute()] System.Int32[] b2) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -587,8 +587,8 @@ Base2.set_Property
 Base.get_Property
 Base2.set_Property
 Base.get_Property",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base`2", "Method", ".method public hidebysig newslot abstract virtual instance System.Void Method(T i, U j) cil managed"),
                     Signature("Base`2", "Property", ".property readwrite instance T Property"),
                     Signature("Base`2", "get_Property", ".method public hidebysig newslot specialname virtual instance T get_Property() cil managed"),
@@ -602,7 +602,7 @@ Base.get_Property",
                     Signature("Base4`2", "Method", ".method public hidebysig virtual instance System.Void Method(U x, V y) cil managed"),
                     Signature("Base4`2", "Property", ".property writeonly instance U Property"),
                     Signature("Base4`2", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(U value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -942,8 +942,8 @@ Derived.Finalize(2L)
 Base.Finalize()
 Derived2.Finalize()
 ",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base`2", "Finalize", ".method family hidebysig newslot virtual instance System.Void Finalize() cil managed"),
                     Signature("Base`2", "Finalize", ".method family hidebysig newslot abstract virtual instance System.Void Finalize(TInt x) cil managed"),
                     Signature("Base`2", "Finalize", ".method family hidebysig newslot abstract virtual instance System.Void Finalize(TLong y) cil managed"),
@@ -952,7 +952,7 @@ Derived2.Finalize()
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize(System.Int32 x) cil managed"),
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize(System.Int64 y) cil managed"),
                     Signature("Derived2", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
-                });
+                ]);
 
             comp.VerifyIL("Derived.Test", @"
 {
@@ -1318,10 +1318,10 @@ Derived.P.Get=1
 Base.P.Set(2)
 Derived.P.Get=1
 Base.P.Set(2)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Derived", "set_P", ".method public hidebysig specialname virtual final instance System.Void set_P(System.Int32 value) cil managed")
-                });
+                ]);
         }
 
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
@@ -1375,10 +1375,10 @@ Base.P.Get=1
 Derived.P.Set(2)
 Base.P.Get=1
 Derived.P.Set(2)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Derived", "get_P", ".method public hidebysig specialname virtual final instance System.Int32 get_P() cil managed")
-                });
+                ]);
         }
 
         [WorkItem(540327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
@@ -1418,8 +1418,8 @@ Derived.get_Property2
 Derived.set_Property1
 Derived.get_Property3
 Derived.set_Property3",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base+Derived", "Property1", ".property writeonly instance System.Single Property1"),
                     Signature("Base+Derived", "set_Property1", ".method public hidebysig specialname virtual final instance System.Void set_Property1(System.Single value) cil managed"),
                     Signature("Base+Derived", "Property2", ".property readonly instance System.Single Property2"),
@@ -1427,7 +1427,7 @@ Derived.set_Property3",
                     Signature("Base+Derived", "Property3", ".property readwrite instance System.Single Property3"),
                     Signature("Base+Derived", "get_Property3", ".method public hidebysig specialname virtual final instance System.Single get_Property3() cil managed"),
                     Signature("Base+Derived", "set_Property3", ".method public hidebysig specialname virtual final instance System.Void set_Property3(System.Single value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -1488,8 +1488,8 @@ Derived.get_Property1
 Base1.set_Property1
 Derived.get_Property2
 Derived.set_Property2",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base2", "Property1", ".property readonly instance System.Int64 Property1"),
                     Signature("Base2", "get_Property1", ".method public hidebysig specialname abstract virtual instance System.Int64 get_Property1() cil managed"),
                     Signature("Base2", "Property2", ".property writeonly instance System.Int64 Property2"),
@@ -1499,7 +1499,7 @@ Derived.set_Property2",
                     Signature("Derived", "Property2", ".property readwrite instance System.Int64 Property2"),
                     Signature("Derived", "get_Property2", ".method public hidebysig specialname virtual instance System.Int64 get_Property2() cil managed"),
                     Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual instance System.Void set_Property2(System.Int64 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -1568,8 +1568,8 @@ Derived.get_Property1
 Derived.set_Property2
 Derived.get_Property3
 Derived.set_Property3",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base2", "Property1", ".property readonly instance System.Int64 Property1"),
                     Signature("Base2", "get_Property1", ".method public hidebysig specialname abstract virtual instance System.Int64 get_Property1() cil managed"),
                     Signature("Base2", "Property2", ".property writeonly instance System.Int64 Property2"),
@@ -1584,7 +1584,7 @@ Derived.set_Property3",
                     Signature("Derived", "Property3", ".property readwrite instance System.Int64 Property3"),
                     Signature("Derived", "get_Property3", ".method public hidebysig specialname virtual instance System.Int64 get_Property3() cil managed"),
                     Signature("Derived", "set_Property3", ".method public hidebysig specialname virtual instance System.Void set_Property3(System.Int64 value) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -1963,8 +1963,8 @@ class Derived2 : Base2
     public override void Method(ref ArgumentException x) { }
 }";
 
-            var comp = CompileAndVerify(text, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(text, expectedSignatures:
+            [
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.ArgumentException x) cil managed"),
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.ArgumentException& x) cil managed"),
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.Exception x) cil managed"),
@@ -1973,7 +1973,7 @@ class Derived2 : Base2
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.Int32& x) cil managed"),
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.Int64 x) cil managed"),
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method([out] System.Int64& x) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics();
         }
@@ -2004,13 +2004,13 @@ class Derived : Base2<int>
     internal sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "Method1", ".method assembly hidebysig newslot strict virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method assembly hidebysig newslot strict abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
                 Signature("Derived", "Method1", ".method assembly hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method1() cil managed"),
                 Signature("Derived", "Method2", ".method assembly hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed"),
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2040,13 +2040,13 @@ class Derived : Base2<int>
     protected internal sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "Method1", ".method famorassem hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method famorassem hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
                 Signature("Derived", "Method1", ".method famorassem hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method1() cil managed"),
                 Signature("Derived", "Method2", ".method famorassem hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2077,13 +2077,13 @@ class Derived : Base2<int>
     protected sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "Method1", ".method family hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method family hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
                 Signature("Derived", "Method1", ".method family hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method1() cil managed"),
                 Signature("Derived", "Method2", ".method family hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed")
-            });
+            ]);
         }
 
         [Fact]
@@ -2111,13 +2111,13 @@ class Derived : Base2<int>
     public sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "Method1", ".method public hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method public hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
                 Signature("Derived", "Method1", ".method public hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method1() cil managed"),
                 Signature("Derived", "Method2", ".method public hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed"),
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2156,8 +2156,8 @@ class Derived : Base2<int>
     internal sealed override List<int> Property6 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method assembly hidebysig newslot strict specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
                 Signature("Base`1", "get_Property2", ".method assembly hidebysig newslot strict specialname virtual instance System.Collections.Generic.List`1[T] get_Property2() cil managed"),
@@ -2182,7 +2182,7 @@ class Derived : Base2<int>
                 Signature("Derived", "set_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig specialname virtual final instance System.Void set_Property5(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived", "get_Property6", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property6() cil managed"),
                 Signature("Derived", "set_Property6", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig specialname virtual final instance System.Void set_Property6(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2210,8 +2210,8 @@ class Derived : Base<int>
     protected internal sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method famorassem hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
                 Signature("Base`1", "get_Property2", ".method famorassem hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property2() cil managed"),
@@ -2224,7 +2224,7 @@ class Derived : Base<int>
                 Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual final instance System.Void set_Property2(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived", "get_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] famorassem hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property5() cil managed"),
                 Signature("Derived", "set_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] famorassem hidebysig specialname virtual final instance System.Void set_Property5(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2257,8 +2257,8 @@ public class Derived2 : Base<int>
     public sealed override List<int> Property1 { protected set { } }
     public sealed override List<int> Property2 { protected get { return null; } }
 }";
-            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures:
+            [
                 Signature("Derived", "get_Property1", ".method public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property1() cil managed"),
                 Signature("Derived", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived", "get_Property2", ".method family hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property2() cil managed"),
@@ -2267,7 +2267,7 @@ public class Derived2 : Base<int>
                 Signature("Derived2", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived2", "get_Property2", ".method family hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property2() cil managed"),
                 Signature("Derived2", "set_Property2", ".method public hidebysig specialname virtual final instance System.Void set_Property2(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2295,8 +2295,8 @@ class Derived : Base<int>
     protected sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method family hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
                 Signature("Base`1", "get_Property2", ".method family hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property2() cil managed"),
@@ -2309,7 +2309,7 @@ class Derived : Base<int>
                 Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual final instance System.Void set_Property2(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived", "get_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] family hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property5() cil managed"),
                 Signature("Derived", "set_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] family hidebysig specialname virtual final instance System.Void set_Property5(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2335,8 +2335,8 @@ class Derived : Base<int>
     public sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method public hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
                 Signature("Base`1", "get_Property5", ".method public hidebysig newslot specialname abstract virtual instance System.Collections.Generic.List`1[T] get_Property5() cil managed"),
@@ -2345,7 +2345,7 @@ class Derived : Base<int>
                 Signature("Derived", "set_Property1", ".method public hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
                 Signature("Derived", "get_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property5() cil managed"),
                 Signature("Derived", "set_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public hidebysig specialname virtual final instance System.Void set_Property5(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2375,13 +2375,13 @@ class Derived : Base2<int>
     public override int Method(List<int> x, long y) { return 0; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
-            {
+            var comp = CompileAndVerify(source, expectedSignatures:
+            [
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Int32 Method(System.Collections.Generic.List`1[System.Int32] x, System.Int64 y) cil managed"),
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Collections.Generic.List`1[System.Int32] x, System.Int32 y) cil managed"),
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Int32 x) cil managed"),
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed")
-            });
+            ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2449,8 +2449,8 @@ Derived.Method<T>(int x)
 Derived.Method(List<int> x, int y)
 Base2<T>.get_Property
 Derived.set_Property",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base2`1", "Method", ".method public hidebysig newslot virtual instance System.Void Method(System.Collections.Generic.List`1[T] x, System.Int32 y) cil managed"),
                     Signature("Base2`1", "Method", ".method public hidebysig newslot virtual instance System.Void Method<U>(T x) cil managed"),
                     Signature("Base2`1", "get_Property", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property() cil managed"),
@@ -2458,7 +2458,7 @@ Derived.set_Property",
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Collections.Generic.List`1[System.Int32] x, System.Int32 y) cil managed"),
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed"),
                     Signature("Derived", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -2669,15 +2669,15 @@ Base<T>.Method(List<T> x, int y)
 Derived.Method(List<int> x, int y)
 Base<T>.set_Property
 Derived.set_Property",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Base2`1", "Method", ".method assembly hidebysig static System.Void Method(System.Collections.Generic.List`1[T] x, System.Int32 y) cil managed"),
                     Signature("Base2`1", "Method", ".method private hidebysig instance System.Void Method<U>(T x) cil managed"),
                     Signature("Base2`1", "set_Property", ".method assembly hidebysig specialname instance System.Void set_Property(System.Collections.Generic.List`1[T] value) cil managed"),
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Collections.Generic.List`1[System.Int32] x, System.Int32 y) cil managed"),
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed"),
                     Signature("Derived", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(System.Collections.Generic.List`1[System.Int32] value) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(); // No errors
         }
@@ -3225,11 +3225,11 @@ partial class Test
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: @"Derived (OVSealed) VBaseFunc (Non-Virtual)",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("D", "NestedSub", ".method public hidebysig virtual final instance System.Void NestedSub(System.UInt16 p) cil managed"),
                     Signature("D", "IMeth03.INested.NestedFunc", ".method private hidebysig newslot virtual final instance System.String IMeth03.INested.NestedFunc(System.Object& p) cil managed")
-                });
+                ]);
         }
 
         [Fact]
@@ -3296,13 +3296,13 @@ Derived1.set_Property
 Derived1.Method
 Derived2.set_Property
 Derived2.Method",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Derived1`2", "set_Property", ".method famorassem hidebysig specialname virtual instance System.Void set_Property(T value) cil managed"),
                     Signature("Derived1`2", "Method", ".method assembly hidebysig strict virtual instance System.Void Method<K>(T a, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] c, System.Collections.Generic.Dictionary`2[U,K] d) cil managed"),
                     Signature("Derived1`2+Derived2", "set_Property", ".method famorassem hidebysig specialname virtual instance System.Void set_Property(System.String value) cil managed"),
                     Signature("Derived1`2+Derived2", "Method", ".method assembly hidebysig strict virtual instance System.Void Method<K>(System.String a, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] c, System.Collections.Generic.Dictionary`2[System.String,K] d) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(); // No Errors
         }
@@ -3526,8 +3526,8 @@ namespace Metadata
                 text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     // The ILDASM output is following, and Roslyn handles it correctly. 
                     // Verifier tool gives different output due to the limitation of Reflection
                     // @".method public hidebysig virtual instance System.Void Method<X>(" +
@@ -3538,7 +3538,7 @@ namespace Metadata
                               @".method public hidebysig virtual instance System.Void Method<X>(" +
                               @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
                               @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
-                });
+                ]);
         }
 
         [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
@@ -3588,10 +3588,10 @@ public class Test
                 expectedOutput: @"88
 88
 ",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                    Signature("Derived", "M", ".method public hidebysig virtual final instance modopt(System.Runtime.CompilerServices.IsConst) System.Byte M(System.Byte t, System.Byte v) cil managed")
-                });
+                ]);
 
             var comp = (CSharpCompilation)verifier.Compilation;
             comp.VerifyDiagnostics();
@@ -3652,11 +3652,11 @@ class Test
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig virtual final instance System.Void Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method assembly hidebysig virtual final instance System.Void Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed")
-                });
+                ]);
 
             comp.VerifyDiagnostics(
                 // (11,43): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Base<V, W>'
@@ -3703,11 +3703,11 @@ class Test
             var verifier = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("D1", "M", @".method public hidebysig instance System.Void M(System.UInt32 x) cil managed"),
                     Signature("D2", "M", @".method public hidebysig instance System.Void M(System.UInt32 x) cil managed")
-                });
+                ]);
         }
 
         [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]

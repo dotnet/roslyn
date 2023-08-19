@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
             }
 
-            private static readonly char[] s_separators = new char[] { ' ' };
+            private static readonly char[] s_separators = [' '];
 
             public static SpanMarker FromAnnotation(SyntaxAnnotation annotation)
             {

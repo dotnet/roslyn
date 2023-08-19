@@ -601,7 +601,7 @@ class Derived : Base
 [RequiredMember] Derived
     [RequiredMember] System.Int32 Derived.Prop { get; set; }
 ";
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["Derived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, symbolValidator: symbolValidator, sourceSymbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }
@@ -657,7 +657,7 @@ class DerivedDerived : Derived
 [RequiredMember] DerivedDerived
     [RequiredMember] System.Int32 DerivedDerived.Prop { get; set; }
 ";
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "DerivedDerived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["DerivedDerived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }
@@ -735,7 +735,7 @@ class Derived : Base
     [RequiredMember] System.Int32 Derived.Prop { get; set; }
 ";
 
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["Derived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }

@@ -76,7 +76,7 @@ class Program
                 var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
                 AssertEx.SetEqual(renameSpans, tagSpans);
 
-                await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+                await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
                 await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
                 await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -97,7 +97,7 @@ class Program
 
     }
 }", HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
             }
         }
 
@@ -119,7 +119,7 @@ class [|$$ustom|]Attribute : Attribute
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -279,7 +279,7 @@ class Program
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -341,7 +341,7 @@ class Program
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class Program
@@ -391,7 +391,7 @@ class B : I
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 interface I
@@ -439,7 +439,7 @@ class SomeOtherClass
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class SomeOtherClass
@@ -542,7 +542,7 @@ public class Class2 { static void Main(string [] args) { } }", HangMitigatingCan
             await TestServices.Editor.PlaceCaretAsync("Class2", charsOffset: 0, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class RenameRocks 
@@ -599,7 +599,7 @@ class Program
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class Program
@@ -629,7 +629,7 @@ class Program
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextEqualsAsync(

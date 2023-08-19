@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public void ExpressionGeneratorTest01()
         {
             var ctx = new CaptureContext(1);
-            int[] captures = { 1 }; // Capture 1 var at the 0 depth
+            int[] captures = [1]; // Capture 1 var at the 0 depth
             var expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_0", expr);
             VerifyContext(new[]
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }, ctx.VariablesByScope);
 
             ctx = new CaptureContext(3);
-            captures = new[] { 3 }; // Capture 3 vars at 0 depth
+            captures = [3]; // Capture 3 vars at 0 depth
             expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_0 + field_1 + field_2", expr);
             VerifyContext(new[]
@@ -193,14 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }, ctx.VariablesByScope);
 
             ctx = new CaptureContext(3);
-            captures = new[] { 1, 1, 1 }; // Capture 1 var at each of 3 depths
+            captures = [1, 1, 1]; // Capture 1 var at each of 3 depths
             expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_2 + captureVar_0 + captureVar_1", expr);
             VerifyContext(new[]
             {
-                new[] { "field_0", "field_1", "field_2"},
-                new[] { "captureVar_0"},
-                new[] { "captureVar_1"}
+                ["field_0", "field_1", "field_2"],
+                ["captureVar_0"],
+                ["captureVar_1"]
             }, ctx.VariablesByScope);
 
             void VerifyContext(IList<IEnumerable<string>> expectedCtx, List<IList<string>> actualCtx)

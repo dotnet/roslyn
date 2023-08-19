@@ -2196,20 +2196,20 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation,
+            [
                 "// WriteLine",
                 "// ReadLine"
-            });
+            ]);
 
             replace(ref compilation, parseOptions, """
                 System.Console.WriteLine();
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation,
+            [
                 "// WriteLine"
-            });
+            ]);
 
             replace(ref compilation, parseOptions, "_ = 0;");
             verify(ref driver, compilation, Array.Empty<string>());
@@ -2305,13 +2305,13 @@ class C { }
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation,
+            [
                 "// WriteLine",
                 "// ReadLine",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             // edit part of source 1
             replace(ref compilation, parseOptions, """
@@ -2319,13 +2319,13 @@ class C { }
                 System.Console.Write(' ');
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation,
+            [
                 "// WriteLine",
                 "// Write",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             Assert.Equal(new (object, IncrementalStepRunReason)[]
             {
@@ -2341,12 +2341,12 @@ class C { }
                 System.Console.WriteLine();
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation,
+            [
                 "// WriteLine",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             Assert.Equal(new (object, IncrementalStepRunReason)[]
             {

@@ -4793,7 +4793,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
             : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: "100");
-        verifier.VerifyDiagnostics(fromMetadata ? Array.Empty<DiagnosticDescription>() : new[] { warning1 });
+        verifier.VerifyDiagnostics(fromMetadata ? Array.Empty<DiagnosticDescription>() : [warning1]);
         verifier.VerifyIL("D.Main", """
             {
               // Code size       17 (0x11)
@@ -7084,15 +7084,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         if (validInCSharp12 ?? validInCSharp11 == true)
         {
             var expectedWarnings = (x, y) is ("in", "ref readonly") or ("ref", "in") or ("ref", "ref readonly")
-                ? new[]
-                {
+                ?
+                [
                     // (8,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
                     // x = C.Y;
                     Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{y} int p", $"{x} int p").WithLocation(8, 5),
                     // (9,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
                     // y = C.X;
                     Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments($"{x} int p", $"{y} int p").WithLocation(9, 5)
-                }
+                ]
                 : Array.Empty<DiagnosticDescription>();
 
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedWarnings);

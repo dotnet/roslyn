@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         #region Local Suppression
 
         public static IEnumerable<string[]> QualifiedAttributeNames { get; } = new[] {
-            new[] { "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute" },
-            new[] { "System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute" },
+            ["System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"],
+            ["System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"],
         };
 
         public static IEnumerable<string[]> SimpleAttributeNames { get; } = new[] {
-            new[] { "SuppressMessage" },
-            new[] { "UnconditionalSuppressMessage" }
+            ["SuppressMessage"],
+            ["UnconditionalSuppressMessage"]
         };
 
         [Theory]
@@ -61,7 +61,7 @@ public class C
 {
 }
 ",
-                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer() });
+                [new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer()]);
         }
 
         [Theory]
@@ -77,7 +77,7 @@ public class C
 {
 }
 ",
-                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
+                [new WarningOnNamePrefixDeclarationAnalyzer("C")]);
         }
 
         [Theory]
@@ -317,7 +317,7 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") },
-                new[] { Diagnostic("Declaration", "M2") });
+                [Diagnostic("Declaration", "M2")]);
         }
 
         [Theory]
@@ -354,7 +354,7 @@ public class E
 {
 }
 ",
-                new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
+                [new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer()]);
         }
 
         [Theory]
@@ -1395,7 +1395,7 @@ End Class
             MarkupTestFile.GetSpans(markup, out var source, out ImmutableArray<TextSpan> spans);
             Assert.True(spans.Length > 0, "Must specify a span within which to generate diagnostics on each token");
 
-            return VerifyAsync(source, language, new DiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
+            return VerifyAsync(source, language, [new WarningOnTokenAnalyzer(spans)], diagnostics);
         }
 
         protected abstract bool ConsiderArgumentsForComparingDiagnostics { get; }

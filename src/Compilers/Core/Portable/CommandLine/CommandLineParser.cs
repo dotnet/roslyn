@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly CommonMessageProvider _messageProvider;
         internal readonly bool IsScriptCommandLineParser;
-        private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
+        private static readonly char[] s_searchPatternTrimChars = ['\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0'];
         internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|2|2.1}]";
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;
 
-        private static readonly char[] s_resourceSeparators = { ',' };
+        private static readonly char[] s_resourceSeparators = [','];
 
         internal static void ParseResourceDescription(
             ReadOnlyMemory<char> resourceDescriptor,
@@ -1024,8 +1024,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static readonly char[] s_pathSeparators = { ';', ',' };
-        private static readonly char[] s_wildcards = new[] { '*', '?' };
+        private static readonly char[] s_pathSeparators = [';', ','];
+        private static readonly char[] s_wildcards = ['*', '?'];
 
         internal static IEnumerable<string> ParseSeparatedPaths(string arg)
         {

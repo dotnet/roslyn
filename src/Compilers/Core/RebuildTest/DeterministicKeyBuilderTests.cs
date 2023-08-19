@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         where TCompilationOptions : CompilationOptions
         where TParseOptions : ParseOptions
     {
-        private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
+        private static readonly char[] s_trimChars = [' ', '\n', '\r'];
 
         public static EmitOptions EmitOptions { get; } = new();
         public static SourceHashAlgorithm HashAlgorithm { get; } = SourceHashAlgorithm.Sha256;
-        public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
-        {
+        public static SourceHashAlgorithm[] HashAlgorithms { get; } =
+        [
             SourceHashAlgorithm.Sha1,
             SourceHashAlgorithm.Sha256
-        };
+        ];
 
         protected static void AssertJson(
             string expected,
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         protected JObject GetCompilationOptionsValue(CompilationOptions options)
         {
-            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, options: (TCompilationOptions)options);
+            var compilation = CreateCompilation(syntaxTrees: [], options: (TCompilationOptions)options);
             var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.options");
             return (JObject)property.Value;
         }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         protected JObject GetParseOptionsValue(ParseOptions parseOptions)
         {
             var syntaxTree = ParseSyntaxTree("", fileName: "test", SourceHashAlgorithm.Sha256, (TParseOptions)parseOptions);
-            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { syntaxTree });
+            var compilation = CreateCompilation(syntaxTrees: [syntaxTree]);
             var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.syntaxTrees");
             var trees = (JArray)property.Value;
             var obj = (JObject)trees[0];
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         protected JObject GetReferenceValue(MetadataReference reference)
         {
             var expectedMvid = DeterministicKeyBuilder.GetGuidValue(reference.GetModuleVersionId());
-            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, references: new[] { reference });
+            var compilation = CreateCompilation(syntaxTrees: [], references: [reference]);
             var array = GetReferenceValues(compilation);
 
             foreach (var item in array!.Values<JObject>())
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             DeterministicKeyOptions options = default)
         {
-            var compilation = CreateCompilation(new SyntaxTree[] { });
+            var compilation = CreateCompilation([]);
             var key = compilation.GetDeterministicKey(
                 emitOptions: emitOptions,
                 pathMap: pathMap,
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             {
                 var syntaxTree = ParseSyntaxTree(content, fileName: "file.cs", hashAlgorithm);
                 var contentChecksum = GetChecksum(syntaxTree.GetText());
-                var compilation = CreateCompilation(new[] { syntaxTree });
+                var compilation = CreateCompilation([syntaxTree]);
                 var key = compilation.GetDeterministicKey();
                 var expected = @$"
 ""syntaxTrees"": [
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void CompilationOptionsDeterministicOff()
         {
             var options = GetCompilationOptions();
-            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, options: options);
+            var compilation = CreateCompilation(syntaxTrees: [], options: options);
             var key = compilation.GetDeterministicKey();
 
             Assert.Equal(key, compilation.GetDeterministicKey());
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var additionalText = new InMemoryAdditionalText(filePath, "hello world");
             var array = GetAdditionalTextValues(
-                CreateCompilation(new SyntaxTree[] { }),
+                CreateCompilation([]),
                 ImmutableArray.Create<AdditionalText>(additionalText),
                 pathMap);
 
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var additionalText = new TestAdditionalText(path: @"test.txt", text: null);
             var array = GetAdditionalTextValues(
-                CreateCompilation(new SyntaxTree[] { }),
+                CreateCompilation([]),
                 ImmutableArray.Create<AdditionalText>(additionalText));
 
             var expected = @"

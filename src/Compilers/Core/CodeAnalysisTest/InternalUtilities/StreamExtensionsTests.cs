@@ -131,7 +131,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             var sourceArray = new byte[] { 1, 2, 3, 4 };
             var stream = new TestStream(canSeek: canSeek, backingStream: new MemoryStream(sourceArray));
             stream.ReadByte();
-            Assert.Equal(new byte[] { 2, 3, 4 }, stream.ReadAllBytes());
+            Assert.Equal([2, 3, 4], stream.ReadAllBytes());
         }
 
         [Theory]
@@ -153,7 +153,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         {
             var sourceArray = new byte[] { 1, 2 };
             var stream = new TestStream(canSeek: canSeek, backingStream: new MemoryStream(sourceArray), length: 3);
-            Assert.Equal(new byte[] { 1, 2 }, stream.ReadAllBytes());
+            Assert.Equal([1, 2], stream.ReadAllBytes());
         }
     }
 }

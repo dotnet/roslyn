@@ -15248,7 +15248,7 @@ End Class";
     }/*</bind>*/
 }";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedDiagnostics: DiagnosticDescription.None, references: new[] { reference1 },
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedDiagnostics: DiagnosticDescription.None, references: [reference1],
                 expectedFlowGraph: @"
 Block[B0] - Entry
     Statements (0)

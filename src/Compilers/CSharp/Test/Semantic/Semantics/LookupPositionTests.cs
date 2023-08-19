@@ -150,7 +150,7 @@ record " + keyword + @" C(int x, int y)
 
             if (keyword == "class")
             {
-                members = new[] {
+                members = [
                     "C.Nested",
                     "event System.Action C.E1",
                     "event System.Action<System.Int32> C.E2",
@@ -184,11 +184,11 @@ record " + keyword + @" C(int x, int y)
                     "void C.M1([System.Int32 x3 = 3])",
                     "void C.M2([System.Int32 x4 = 4])",
                     "void System.Object.Finalize()",
-                    };
+                    ];
             }
             else
             {
-                members = new[] {
+                members = [
                     "C.Nested",
                     "event System.Action C.E1",
                     "event System.Action<System.Int32> C.E2",
@@ -224,7 +224,7 @@ record " + keyword + @" C(int x, int y)
                     "void C.M1([System.Int32 x3 = 3])",
                     "void C.M2([System.Int32 x4 = 4])",
                     "void System.Object.Finalize()"
-                    };
+                    ];
             }
 
             var expectedNames = MakeExpectedSymbols(
@@ -530,7 +530,7 @@ partial " + keyword + @" C
 
             if (keyword == "class")
             {
-                members_plus_y = new[] {
+                members_plus_y = [
                     "C.Nested",
                     "event System.Action C.E1",
                     "event System.Action<System.Int32> C.E2",
@@ -557,11 +557,11 @@ partial " + keyword + @" C
                     "void System.Object.Finalize()",
                     "System.Int32 C.x { get; }",
                     "System.Int32 y"
-                    };
+                    ];
             }
             else
             {
-                members_plus_y = new[] {
+                members_plus_y = [
                     "C.Nested",
                     "event System.Action C.E1",
                     "event System.Action<System.Int32> C.E2",
@@ -591,7 +591,7 @@ partial " + keyword + @" C
                     "void C.M2([System.Int32 x4 = 4])",
                     "void System.Object.Finalize()",
                     "System.Int32 y"
-                    };
+                    ];
             }
 
             var expectedNames = MakeExpectedSymbols(
@@ -955,7 +955,7 @@ class C
 `}
 ";
 
-            string[] class_C_members = new string[] {
+            string[] class_C_members = [
                 "C<T, Z>.S<U, Z>",
                 "System.Int32 C<T, Z>.x",
                 "System.Int32 C<T, Z>.P { get; set; }",
@@ -968,9 +968,9 @@ class C
                 "void System.Object.Finalize()",
                 "System.String System.Object.ToString()",
                 "System.Type System.Object.GetType()"
-            };
+            ];
 
-            string[] struct_S_members = new string[] {
+            string[] struct_S_members = [
                 "C<T, Z>.S<U, Z>.I<V, Z>",
                 "System.Int32 C<T, Z>.S<U, Z>.y",
                 "System.Int32 C<T, Z>.S<U, Z>.Q { set; }",
@@ -978,7 +978,7 @@ class C
                 "System.Boolean System.ValueType.Equals(System.Object obj)",
                 "System.Int32 System.ValueType.GetHashCode()",
                 "System.String System.ValueType.ToString()"
-            };
+            ];
 
             string interface_I_member = "void C<T, Z>.S<U, Z>.I<V, Z>.M()";
 
@@ -1071,7 +1071,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        private static readonly string[] s_commonDelegateTypeMembers = new string[] {
+        private static readonly string[] s_commonDelegateTypeMembers = [
                 "System.Boolean System.Delegate.Equals(System.Object obj)",
                 "System.Boolean System.MulticastDelegate.Equals(System.Object obj)",
                 "System.Delegate System.Delegate.Combine(params System.Delegate[] delegates)",
@@ -1105,9 +1105,9 @@ class C
                 "System.Reflection.MethodInfo System.MulticastDelegate.GetMethodImpl()",
                 "void System.Delegate.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)",
                 "void System.MulticastDelegate.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)",
-            };
+            ];
 
-        private static readonly string[] s_commonEnumTypeMembers = new string[] {
+        private static readonly string[] s_commonEnumTypeMembers = [
                 "System.Array System.Enum.GetValues(System.Type enumType)",
                 "System.Boolean System.Enum.Equals(System.Object obj)",
                 "System.Boolean System.Enum.HasFlag(System.Enum flag)",
@@ -1139,7 +1139,7 @@ class C
                 "System.String[] System.Enum.GetNames(System.Type enumType)",
                 "System.Type System.Enum.GetUnderlyingType(System.Type enumType)",
                 "System.TypeCode System.Enum.GetTypeCode()",
-            };
+            ];
 
         [Fact, WorkItem(545556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545556")]
         public void TestAssortedMembers()
@@ -1189,7 +1189,7 @@ public abstract `class C`<T`> : NS.I
     `public abstract void `M`<W>(W w)`;
 `}
 ";
-            string[] class_C_members = new string[]{
+            string[] class_C_members = [
                 "C<T>.D1",
                 "C<T>.D2",
                 "C<T>.D3<U>",
@@ -1207,7 +1207,7 @@ public abstract `class C`<T`> : NS.I
                 "System.Object System.Object.MemberwiseClone()",
                 "void System.Object.Finalize()",
                 "System.String System.Object.ToString()",
-                "System.Type System.Object.GetType()"};
+                "System.Type System.Object.GetType()"];
 
             string[] delegate_d1_members = new string[]{
                 "System.IAsyncResult C<T>.D1.BeginInvoke(System.AsyncCallback callback, System.Object @object)",

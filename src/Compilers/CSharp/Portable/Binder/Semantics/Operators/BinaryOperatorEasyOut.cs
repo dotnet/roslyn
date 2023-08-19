@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             private static readonly BinaryOperatorKind[][,] s_opkind =
-            {
+            [
                 /* *   */ s_arithmetic,
                 /* +   */ s_addition,
                 /* -   */ s_arithmetic,
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /* |   */ s_logical,
                 /* ^   */ s_logical,
                 /* >>> */ s_shift,
-            };
+            ];
 
             public static BinaryOperatorKind OpKind(BinaryOperatorKind kind, TypeSymbol left, TypeSymbol right)
             {

@@ -244,12 +244,12 @@ partial class C
 
         public static readonly object[][] s_accessMods = new[]
         {
-            new[] { "public" },
-            new[] { "internal" },
-            new[] { "protected" },
-            new[] { "private" },
-            new[] { "protected internal" },
-            new[] { "private protected" }
+            ["public"],
+            ["internal"],
+            ["protected"],
+            ["private"],
+            ["protected internal"],
+            ["private protected"]
         };
 
         [Theory]

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return new[]
                     {
                         new object[] { TestOptions.Regular },
-                        new object[] { TestOptions.RegularWithLegacyStrongName }
+                        [TestOptions.RegularWithLegacyStrongName]
                     };
                 }
 
@@ -1162,7 +1162,7 @@ public class A
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
+                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: ["Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"]));
         }
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]

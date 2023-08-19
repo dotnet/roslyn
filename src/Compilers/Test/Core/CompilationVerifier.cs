@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleName = Emit(testEnvironment, null, null);
-                string[] actualOutput = testEnvironment.VerifyModules(new[] { mainModuleName });
+                string[] actualOutput = testEnvironment.VerifyModules([mainModuleName]);
                 Assert.Equal(expectedPeVerifyOutput, actualOutput);
             }
         }

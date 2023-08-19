@@ -324,7 +324,7 @@ namespace Roslyn.Test.Utilities.Desktop
             try
             {
                 emitData.RuntimeData.PeverifyRequested = true;
-                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
+                emitData.Manager.PeVerifyModules([emitData.MainModule.FullName], throwOnError: true);
                 if (!shouldSucceed)
                 {
                     throw new Exception("PE Verify succeeded unexpectedly");

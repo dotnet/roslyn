@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult, string)"/>
         public static Task VerifyRefactoringAsync(string source, DiagnosticResult expected, string fixedSource)
         {
-            return VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
+            return VerifyRefactoringAsync(source, [expected], fixedSource);
         }
 
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>

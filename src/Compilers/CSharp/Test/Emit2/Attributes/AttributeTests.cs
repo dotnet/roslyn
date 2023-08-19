@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : WellKnownAttributesTestBase
     {
-        static readonly string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-        static readonly string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
-                "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+        static readonly string[] s_autoPropAttributes = ["System.Runtime.CompilerServices.CompilerGeneratedAttribute"];
+        static readonly string[] s_backingFieldAttributes = [ "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" ];
 
         #region Function Tests
 
@@ -2199,12 +2199,12 @@ public class Test
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
                 var fieldAttributesExpected = isFromSource ? new string[0]
-                    : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
-                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+                    : [ "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" ];
 
                 var constantExpected = "1844674407800451891300";
 
-                string[] decimalAttributeExpected = new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" };
+                string[] decimalAttributeExpected = ["System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)"];
 
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
@@ -2591,7 +2591,7 @@ public class Test
                 var event9 = @class.GetMember<EventSymbol>("E9");
                 var event10 = @class.GetMember<EventSymbol>("E10");
 
-                var accessorsExpected = isFromSource ? new string[0] : new[] { "CompilerGeneratedAttribute" };
+                var accessorsExpected = isFromSource ? new string[0] : ["CompilerGeneratedAttribute"];
 
                 Assert.Equal("AA", GetSingleAttributeName(event1));
                 AssertEx.SetEqual(accessorsExpected, GetAttributeNames(event1.AddMethod.GetAttributes()));
@@ -3094,7 +3094,7 @@ namespace AttributeTest
                 attrs[0].VerifyValue<long>(1, TypedConstantKind.Primitive, 256);
                 attrs[0].VerifyValue<float>(2, TypedConstantKind.Primitive, 0);
                 attrs[0].VerifyValue<short>(3, TypedConstantKind.Primitive, -1);
-                attrs[0].VerifyNamedArgumentValue<ulong[]>(0, "AryField", TypedConstantKind.Array, new ulong[] { 0, 1, 12345657 });
+                attrs[0].VerifyNamedArgumentValue<ulong[]>(0, "AryField", TypedConstantKind.Array, [0, 1, 12345657]);
 
                 attrs[1].VerifyValue<object>(0, TypedConstantKind.Type, typeof(Dictionary<string, int>));
                 attrs[1].VerifyValue<long>(1, TypedConstantKind.Primitive, 265);
@@ -3139,7 +3139,7 @@ namespace AttributeTest
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Array, new object[] { 0, "", null });
                 attrs.First().VerifyValue<byte>(1, TypedConstantKind.Primitive, 255);
                 attrs.First().VerifyValue<sbyte>(2, TypedConstantKind.Primitive, -128);
-                attrs.First().VerifyNamedArgumentValue<object[]>(0, "AryProp", TypedConstantKind.Array, new object[] { new object[] { "", typeof(IList<string>) } });
+                attrs.First().VerifyNamedArgumentValue<object[]>(0, "AryProp", TypedConstantKind.Array, [new object[] { "", typeof(IList<string>) }]);
                 var mem = dele.GetMember<MethodSymbol>("Invoke");
                 attrs = mem.Parameters[0].GetAttributes();
                 Assert.Equal(1, attrs.Length);
@@ -3410,8 +3410,8 @@ namespace AttributeTest
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
-                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
-                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
+                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, [' ']);
+                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, [""]);
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
             };
@@ -3421,8 +3421,8 @@ namespace AttributeTest
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
-                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
-                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
+                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, [' ']);
+                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, [""]);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
@@ -3491,14 +3491,14 @@ namespace AttributeTest
                 var attr = attrs.Single();
                 Assert.Equal(2, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<string>(0, TypedConstantKind.Primitive, "MultipleArgumentsToParamsParameter");
-                attr.VerifyValue<int[]>(1, TypedConstantKind.Array, new int[] { 4, 5, 6 });
+                attr.VerifyValue<int[]>(1, TypedConstantKind.Array, [4, 5, 6]);
 
                 method = (MethodSymbol)type.GetMember("NoArgumentsToParamsParameter");
                 attrs = method.GetAttributes(attributeClass);
                 attr = attrs.Single();
                 Assert.Equal(2, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<string>(0, TypedConstantKind.Primitive, "NoArgumentsToParamsParameter");
-                attr.VerifyValue<int[]>(1, TypedConstantKind.Array, new int[] { });
+                attr.VerifyValue<int[]>(1, TypedConstantKind.Array, []);
 
                 method = (MethodSymbol)type.GetMember("NullArgumentToParamsParameter");
                 attrs = method.GetAttributes(attributeClass);
@@ -3514,12 +3514,12 @@ namespace AttributeTest
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: attributeValidator,
                 expectedOutput: "True\r\n",
-                expectedSignatures: new[]
-                {
+                expectedSignatures:
+                [
                     Signature("AttributeTest.Program", "MultipleArgumentsToParamsParameter", ".method [AttributeTest.ExampleAttribute(\"MultipleArgumentsToParamsParameter\", System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] public hidebysig instance System.Void MultipleArgumentsToParamsParameter() cil managed"),
                     Signature("AttributeTest.Program", "NoArgumentsToParamsParameter", ".method [AttributeTest.ExampleAttribute(\"NoArgumentsToParamsParameter\", System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] public hidebysig instance System.Void NoArgumentsToParamsParameter() cil managed"),
                     Signature("AttributeTest.Program", "NullArgumentToParamsParameter", ".method [AttributeTest.ExampleAttribute(\"NullArgumentToParamsParameter\", )] public hidebysig instance System.Void NullArgumentToParamsParameter() cil managed"),
-                });
+                ]);
         }
 
         [Fact, WorkItem(531385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531385")]
@@ -3547,8 +3547,8 @@ namespace AttributeTest
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
-                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
-                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
+                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, [' ']);
+                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, ["whatever"]);
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
             };
@@ -3558,8 +3558,8 @@ namespace AttributeTest
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
-                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
-                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
+                attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, [' ']);
+                attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, ["whatever"]);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.

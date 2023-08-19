@@ -3675,7 +3675,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "114" }
+                WarningList = ["114"]
             });
         }
 
@@ -3707,7 +3707,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "114" }
+                WarningList = ["114"]
             });
         }
 
@@ -3723,7 +3723,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "nullable" }
+                WarningList = ["nullable"]
             });
         }
 
@@ -3739,7 +3739,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "nullable" }
+                WarningList = ["nullable"]
             });
         }
 
@@ -3756,7 +3756,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "114" }
+                WarningList = ["114"]
             });
         }
 
@@ -3772,7 +3772,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "114", "CS0162", "168" }
+                WarningList = ["114", "CS0162", "168"]
             });
         }
 
@@ -3788,7 +3788,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "114", "nullable" }
+                WarningList = ["114", "nullable"]
             });
         }
 
@@ -3804,7 +3804,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "nullable", "114" }
+                WarningList = ["nullable", "114"]
             });
         }
 
@@ -3820,7 +3820,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "114", "CS0162", "168" }
+                WarningList = ["114", "CS0162", "168"]
             });
         }
 
@@ -3836,7 +3836,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "114", "nullable" }
+                WarningList = ["114", "nullable"]
             });
         }
 
@@ -3852,7 +3852,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                WarningList = new[] { "nullable", "CS0162" }
+                WarningList = ["nullable", "CS0162"]
             });
         }
 
@@ -3883,7 +3883,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "1633" }
+                WarningList = ["1633"]
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -3908,7 +3908,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "99999" }
+                WarningList = ["99999"]
             });
         }
 
@@ -3924,7 +3924,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new[] { "CS0114" }
+                WarningList = ["CS0114"]
             });
         }
 
@@ -3940,7 +3940,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new[] { "CS0114", "162", "Something" }
+                WarningList = ["CS0114", "162", "Something"]
             });
         }
 
@@ -3956,7 +3956,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new[] { "CS0114", "nullable" }
+                WarningList = ["CS0114", "nullable"]
             });
         }
 
@@ -3972,7 +3972,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new[] { "nullable", "CS0114" }
+                WarningList = ["nullable", "CS0114"]
             });
         }
 
@@ -3989,7 +3989,7 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new[] { string.Empty }
+                WarningList = [string.Empty]
             });
         }
 
@@ -4132,7 +4132,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, bytes }
+                FileGuidByte = [file, guid, bytes]
             });
         }
 
@@ -4150,7 +4150,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, null }
+                FileGuidByte = [file, guid, null]
             });
         }
 
@@ -4167,7 +4167,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, null, null }
+                FileGuidByte = [file, null, null]
             });
         }
 
@@ -4182,7 +4182,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { null, null, null }
+                FileGuidByte = [null, null, null]
             });
         }
 
@@ -4200,7 +4200,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, bytes }
+                FileGuidByte = [file, guid, bytes]
             });
         }
 
@@ -4219,7 +4219,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, bytes }
+                FileGuidByte = [file, guid, bytes]
             });
         }
 
@@ -4239,7 +4239,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, bytes }
+                FileGuidByte = [file, guid, bytes]
             });
         }
 
@@ -4259,7 +4259,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, null/*guid*/, null/*bytes*/ }
+                FileGuidByte = [file, null/*guid*/, null/*bytes*/]
             });
         }
 
@@ -4284,7 +4284,7 @@ class A
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-                FileGuidByte = new string[] { file, guid, bytes }
+                FileGuidByte = [file, guid, bytes]
             });
         }
 

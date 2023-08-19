@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             // Register Roslyn supported capabilities
             languageServerGuestService.RegisterClientMetadata(
-                new string[] { StringConstants.TypeScriptLanguageName },
+                [StringConstants.TypeScriptLanguageName],
                 new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities

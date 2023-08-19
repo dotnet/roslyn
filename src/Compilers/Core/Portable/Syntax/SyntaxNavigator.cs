@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis
             SkippedTokens = 4,
         }
 
-        private static readonly Func<SyntaxTrivia, bool>?[] s_stepIntoFunctions = new Func<SyntaxTrivia, bool>?[]
-        {
+        private static readonly Func<SyntaxTrivia, bool>?[] s_stepIntoFunctions =
+        [
             /* 000 */ null,
             /* 001 */ t =>                                             t.IsDocumentationCommentTrivia,
             /* 010 */ t =>                            t.IsDirective,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             /* 101 */ t => t.IsSkippedTokensTrivia                  || t.IsDocumentationCommentTrivia,
             /* 110 */ t => t.IsSkippedTokensTrivia || t.IsDirective,
             /* 111 */ t => t.IsSkippedTokensTrivia || t.IsDirective || t.IsDocumentationCommentTrivia,
-        };
+        ];
 
         private static Func<SyntaxTrivia, bool>? GetStepIntoFunction(
             bool skipped, bool directives, bool docComments)

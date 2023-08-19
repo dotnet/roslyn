@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncEHTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_asyncRefs = [MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929];
 
         public CodeGenAsyncEHTests()
         {
@@ -939,8 +939,8 @@ class Test
 ";
             var v = CompileAndVerify(source, s_asyncRefs, targetFramework: TargetFramework.Empty, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<x>5__1",
@@ -951,7 +951,7 @@ class Test
                     "<>s__6", // spill
                     "<>s__7", // spill
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("Test.<G>d__1"));
+                ], module.GetFieldNames("Test.<G>d__1"));
             });
 
             v.VerifyPdb("Test.G", @"

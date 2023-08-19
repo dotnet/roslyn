@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(dictionary.IsFixedSize);
             Assert.True(dictionary.IsReadOnly);
             Assert.Equal(new[] { "c" }, dictionary.Keys.Cast<string>().ToArray());
-            Assert.Equal(new[] { 3 }, dictionary.Values.Cast<int>().ToArray());
+            Assert.Equal([3], dictionary.Values.Cast<int>().ToArray());
         }
 
         [Fact]

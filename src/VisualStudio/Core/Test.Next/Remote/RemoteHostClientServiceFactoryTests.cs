@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
 
             var oldText = document.GetTextSynchronously(CancellationToken.None);
-            var newText = oldText.WithChanges(new[] { new TextChange(new TextSpan(0, 1), "abc") });
+            var newText = oldText.WithChanges([new TextChange(new TextSpan(0, 1), "abc")]);
             var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
 
             workspace.TryApplyChanges(newSolution);

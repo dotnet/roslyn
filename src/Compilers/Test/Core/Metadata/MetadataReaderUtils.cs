@@ -500,7 +500,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        static readonly byte[] ThrowNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
+        static readonly byte[] ThrowNull = [(byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw];
 
         internal static void AssertEmptyOrThrowNull(ImmutableArray<byte> peImage)
         {

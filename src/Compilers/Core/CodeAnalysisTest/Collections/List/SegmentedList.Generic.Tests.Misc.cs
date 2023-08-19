@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public Driver()
             {
-                CollectionGenerators = new Func<T?[], IEnumerable<T?>>[]
-                {
+                CollectionGenerators =
+                [
                     ConstructTestList,
                     ConstructTestEnumerable,
                     ConstructLazyTestEnumerable,
-                };
+                ];
             }
 
             #region Insert
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void InsertValidations(T[] items)
             {
                 SegmentedList<T> list = new SegmentedList<T>(items);
-                int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
+                int[] bad = [items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue];
                 for (int i = 0; i < bad.Length; i++)
                 {
                     Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(bad[i], items[0])); //"ArgumentOutOfRangeException expected."
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
-                int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
+                int[] bad = [items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue];
                 for (int i = 0; i < bad.Length; i++)
                 {
                     Assert.Throws<ArgumentOutOfRangeException>(() => _ilist.Insert(bad[i], items[0])); //"ArgumentOutOfRangeException expected."
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void InsertRangeValidations(T?[] items, Func<T?[], IEnumerable<T?>> constructIEnumerable)
             {
                 SegmentedList<T?> list = new SegmentedList<T?>(constructIEnumerable(items));
-                int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
+                int[] bad = [items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue];
                 for (int i = 0; i < bad.Length; i++)
                 {
                     Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(bad[i], constructIEnumerable(items))); //"ArgumentOutOfRangeException expected"
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 //Always send items.Length is even
                 //
                 SegmentedList<T> list = new SegmentedList<T>(items);
-                int[] bad = new int[] {  /**/items.Length,1,
+                int[] bad = [  /**/items.Length,1,
                     /**/
                                     items.Length+1,0,
                     /**/
@@ -280,14 +280,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                                     2,items.Length-1,
                     /**/
                                     3,items.Length-2
-                                };
+                                ];
 
                 for (int i = 0; i < bad.Length; i++)
                 {
                     Assert.Throws<ArgumentException>(null, () => list.GetRange(bad[i], bad[++i])); //"ArgumentException expected."
                 }
 
-                bad = new int[] {
+                bad = [
                     /**/
                                     -1,-1,
                     /**/
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                                     1,-1,
                     /**/
                                     2,-1
-                                };
+                                ];
 
                 for (int i = 0; i < bad.Length; i++)
                 {
@@ -744,18 +744,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             StringDriver.BasicInsert(stringArr1, "strobia", 1, 5);
             StringDriver.BasicInsert(stringArr1, "strobia", 50, 51);
             StringDriver.BasicInsert(stringArr1, "strobia", 0, 100);
-            StringDriver.BasicInsert(new string?[] { null, null, null, "strobia", null }, null, 2, 3);
-            StringDriver.BasicInsert(new string?[] { null, null, null, null, null }, "strobia", 0, 5);
-            StringDriver.BasicInsert(new string?[] { null, null, null, null, null }, "strobia", 5, 1);
+            StringDriver.BasicInsert([null, null, null, "strobia", null], null, 2, 3);
+            StringDriver.BasicInsert([null, null, null, null, null], "strobia", 0, 5);
+            StringDriver.BasicInsert([null, null, null, null, null], "strobia", 5, 1);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 99, 2);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 100, 3);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 0, 4);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 1, 5);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 50, 51);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 0, 100);
-            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, "strobia", null }, null, 2, 3);
-            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, null, null }, "strobia", 0, 5);
-            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, null, null }, "strobia", 5, 1);
+            StringDriver.NonGenericIListBasicInsert([null, null, null, "strobia", null], null, 2, 3);
+            StringDriver.NonGenericIListBasicInsert([null, null, null, null, null], "strobia", 0, 5);
+            StringDriver.NonGenericIListBasicInsert([null, null, null, null, null], "strobia", 5, 1);
         }
 
         [Fact]
@@ -816,10 +816,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 99, 1, collectionGenerator);
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 100, 1, collectionGenerator);
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 50, 50, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, stringArr2, 0, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, stringArr2, 4, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, new string?[] { null, null, null, null }, 0, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, new string?[] { null, null, null, null }, 4, 50, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable([null, null, null, null], stringArr2, 0, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable([null, null, null, null], stringArr2, 4, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable([null, null, null, null], [null, null, null, null], 0, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable([null, null, null, null], [null, null, null, null], 4, 50, collectionGenerator);
             }
         }
 
@@ -913,11 +913,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             intDriver.Exists_Verify(new int[0]);
-            intDriver.Exists_Verify(new int[] { 1 });
+            intDriver.Exists_Verify([1]);
             intDriver.Exists_Verify(intArray);
 
             stringDriver.Exists_Verify(new string[0]);
-            stringDriver.Exists_Verify(new string[] { "1" });
+            stringDriver.Exists_Verify(["1"]);
             stringDriver.Exists_Verify(stringArray);
         }
 
@@ -1077,11 +1077,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             intDriver.TrueForAll_VerifyVanilla(new int[0]);
-            intDriver.TrueForAll_VerifyVanilla(new int[] { 1 });
+            intDriver.TrueForAll_VerifyVanilla([1]);
             intDriver.TrueForAll_VerifyVanilla(intArray);
 
             stringDriver.TrueForAll_VerifyVanilla(new string[0]);
-            stringDriver.TrueForAll_VerifyVanilla(new string[] { "1" });
+            stringDriver.TrueForAll_VerifyVanilla(["1"]);
             stringDriver.TrueForAll_VerifyVanilla(stringArray);
         }
 

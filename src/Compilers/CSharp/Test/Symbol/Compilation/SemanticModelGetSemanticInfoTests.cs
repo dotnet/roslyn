@@ -15370,7 +15370,7 @@ public class C {
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            string[] expectedNames = { null, "Where", "Select" };
+            string[] expectedNames = [null, "Where", "Select"];
             int i = 0;
             foreach (var qc in tree.GetRoot().DescendantNodes().OfType<QueryClauseSyntax>())
             {

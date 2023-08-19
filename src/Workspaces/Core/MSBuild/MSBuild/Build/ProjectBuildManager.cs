@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 Loggers = _msbuildLogger is null
                     ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
-                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
+                    : ([_batchBuildLogger, _msbuildLogger])
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);

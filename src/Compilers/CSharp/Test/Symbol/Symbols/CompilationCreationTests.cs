@@ -227,14 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
 
             var varV3MTTestLib4Ref = TestReferences.SymbolsTests.V3.MTTestLib4.dll;
-            var asm4 = MetadataTestHelpers.GetSymbolsForReferences(new MetadataReference[]
-                {
+            var asm4 = MetadataTestHelpers.GetSymbolsForReferences(
+                [
                 Net451.mscorlib,
                 varV1MTTestLib2Ref,
                 TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                 varV2MTTestLib3Ref,
                 varV3MTTestLib4Ref
-            });
+            ]);
 
             Assert.Same(asm3[0], asm1[0]);
 
@@ -2875,11 +2875,11 @@ Console.WriteLine(2);
             var tree1 = CreateSyntaxTree("A");
             var tree2 = CreateSyntaxTree("B");
 
-            SyntaxTree[] treeOrder1 = new[] { tree1, tree2 };
+            SyntaxTree[] treeOrder1 = [tree1, tree2];
             var compilation1 = CSharpCompilation.Create("Compilation1", syntaxTrees: treeOrder1);
             CheckCompilationSyntaxTrees(compilation1, treeOrder1);
 
-            SyntaxTree[] treeOrder2 = new[] { tree2, tree1 };
+            SyntaxTree[] treeOrder2 = [tree2, tree1];
             var compilation2 = CSharpCompilation.Create("Compilation2", syntaxTrees: treeOrder2);
             CheckCompilationSyntaxTrees(compilation2, treeOrder2);
         }
@@ -2892,20 +2892,20 @@ Console.WriteLine(2);
             var tree3 = CreateSyntaxTree("C");
             var tree4 = CreateSyntaxTree("D");
 
-            SyntaxTree[] treeList1 = new[] { tree1, tree2 };
+            SyntaxTree[] treeList1 = [tree1, tree2];
             var compilation1 = CSharpCompilation.Create("Compilation1", syntaxTrees: treeList1);
             CheckCompilationSyntaxTrees(compilation1, treeList1);
 
-            SyntaxTree[] treeList2 = new[] { tree3, tree4 };
+            SyntaxTree[] treeList2 = [tree3, tree4];
             var compilation2 = compilation1.AddSyntaxTrees(treeList2);
             CheckCompilationSyntaxTrees(compilation1, treeList1); //compilation1 untouched
             CheckCompilationSyntaxTrees(compilation2, treeList1.Concat(treeList2).ToArray());
 
-            SyntaxTree[] treeList3 = new[] { tree4, tree3 };
+            SyntaxTree[] treeList3 = [tree4, tree3];
             var compilation3 = CSharpCompilation.Create("Compilation3", syntaxTrees: treeList3);
             CheckCompilationSyntaxTrees(compilation3, treeList3);
 
-            SyntaxTree[] treeList4 = new[] { tree2, tree1 };
+            SyntaxTree[] treeList4 = [tree2, tree1];
             var compilation4 = compilation3.AddSyntaxTrees(treeList4);
             CheckCompilationSyntaxTrees(compilation3, treeList3); //compilation3 untouched
             CheckCompilationSyntaxTrees(compilation4, treeList3.Concat(treeList4).ToArray());
@@ -2919,20 +2919,20 @@ Console.WriteLine(2);
             var tree3 = CreateSyntaxTree("C");
             var tree4 = CreateSyntaxTree("D");
 
-            SyntaxTree[] treeList1 = new[] { tree1, tree2, tree3, tree4 };
+            SyntaxTree[] treeList1 = [tree1, tree2, tree3, tree4];
             var compilation1 = CSharpCompilation.Create("Compilation1", syntaxTrees: treeList1);
             CheckCompilationSyntaxTrees(compilation1, treeList1);
 
-            SyntaxTree[] treeList2 = new[] { tree3, tree1 };
+            SyntaxTree[] treeList2 = [tree3, tree1];
             var compilation2 = compilation1.RemoveSyntaxTrees(treeList2);
             CheckCompilationSyntaxTrees(compilation1, treeList1); //compilation1 untouched
             CheckCompilationSyntaxTrees(compilation2, tree2, tree4);
 
-            SyntaxTree[] treeList3 = new[] { tree4, tree3, tree2, tree1 };
+            SyntaxTree[] treeList3 = [tree4, tree3, tree2, tree1];
             var compilation3 = CSharpCompilation.Create("Compilation3", syntaxTrees: treeList3);
             CheckCompilationSyntaxTrees(compilation3, treeList3);
 
-            SyntaxTree[] treeList4 = new[] { tree3, tree1 };
+            SyntaxTree[] treeList4 = [tree3, tree1];
             var compilation4 = compilation3.RemoveSyntaxTrees(treeList4);
             CheckCompilationSyntaxTrees(compilation3, treeList3); //compilation3 untouched
             CheckCompilationSyntaxTrees(compilation4, tree4, tree2);
@@ -2945,7 +2945,7 @@ Console.WriteLine(2);
             var tree2 = CreateSyntaxTree("B");
             var tree3 = CreateSyntaxTree("C");
 
-            SyntaxTree[] treeList1 = new[] { tree1, tree2 };
+            SyntaxTree[] treeList1 = [tree1, tree2];
             var compilation1 = CSharpCompilation.Create("Compilation1", syntaxTrees: treeList1);
             CheckCompilationSyntaxTrees(compilation1, treeList1);
 
@@ -2953,7 +2953,7 @@ Console.WriteLine(2);
             CheckCompilationSyntaxTrees(compilation1, treeList1); //compilation1 untouched
             CheckCompilationSyntaxTrees(compilation2, tree3, tree2);
 
-            SyntaxTree[] treeList3 = new[] { tree2, tree1 };
+            SyntaxTree[] treeList3 = [tree2, tree1];
             var compilation3 = CSharpCompilation.Create("Compilation3", syntaxTrees: treeList3);
             CheckCompilationSyntaxTrees(compilation3, treeList3);
 

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis
 
         static SpecialMembers()
         {
-            byte[] initializationBytes = new byte[]
-            {
+            byte[] initializationBytes =
+            [
                 // System_String__CtorSZArrayChar
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -1052,10 +1052,10 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-            };
+            ];
 
-            string[] allNames = new string[(int)SpecialMember.Count]
-            {
+            string[] allNames =
+            [
                 ".ctor",                                    // System_String__CtorSZArrayChar
                 "Concat",                                   // System_String__ConcatStringString
                 "Concat",                                   // System_String__ConcatStringStringString
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis
                 "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
-            };
+            ];
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
         }

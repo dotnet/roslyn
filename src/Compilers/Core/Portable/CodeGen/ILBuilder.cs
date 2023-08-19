@@ -1258,7 +1258,7 @@ tryAgain:
             if (visType != null)
             {
                 var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
-                return (string)method.Invoke(null, new object[] { this, null, null });
+                return (string)method.Invoke(null, [this, null, null]);
             }
 #endif
 

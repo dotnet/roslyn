@@ -758,12 +758,12 @@ class C
             // Thus the locals are not available in EE.
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -846,14 +846,14 @@ class C
 ");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "b",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -951,13 +951,13 @@ class C
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1038,14 +1038,14 @@ class C
 ");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "b",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1154,8 +1154,8 @@ class C
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "b",
@@ -1163,7 +1163,7 @@ class C
                     "<>u__1",  // awaiter
                     "<y1>5__3",
                     "<z>5__4",
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1258,8 +1258,8 @@ class C
 ");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "b",
@@ -1269,7 +1269,7 @@ class C
                     "<y1>5__4",
                     "<z>5__5",
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1365,13 +1365,13 @@ class C
 ");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<d>5__1",
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
@@ -1463,12 +1463,12 @@ class C
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1549,13 +1549,13 @@ class C
 ");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<d>5__1",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1657,13 +1657,13 @@ class C
 
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<x>5__1",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
         }
 
@@ -1693,8 +1693,8 @@ class C
 }");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<x>5__1",
@@ -1702,7 +1702,7 @@ class C
                     "<>s__3",
                     "<>s__4",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<G>d__0"));
+                ], module.GetFieldNames("C.<G>d__0"));
             });
 
             v.VerifyPdb("C.G", @"
@@ -1947,8 +1947,8 @@ class C
 }");
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>t__builder",
                     "<z0>5__1",
@@ -1966,7 +1966,7 @@ class C
                     "<>s__12",
                     "<>s__13",
                     "<>s__14",
-                }, module.GetFieldNames("C.<G>d__1"));
+                ], module.GetFieldNames("C.<G>d__1"));
             });
 
             v.VerifyPdb("C.G", @"

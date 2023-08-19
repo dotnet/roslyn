@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(dictionary.Contains("a"));
             Assert.Equal(1, dictionary["a"]);
             Assert.Equal(new[] { "a" }, dictionary.Keys.Cast<string>().ToArray());
-            Assert.Equal(new[] { 1 }, dictionary.Values.Cast<int>().ToArray());
+            Assert.Equal([1], dictionary.Values.Cast<int>().ToArray());
             dictionary["a"] = 2;
             Assert.Equal(2, dictionary["a"]);
             dictionary.Remove("a");
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var entryArray = new DictionaryEntry[builder.Count + 1];
             collection.CopyTo(entryArray, 1);
             Assert.Equal(default(DictionaryEntry), entryArray[0]);
-            Assert.Equal(new DictionaryEntry[] { default, new DictionaryEntry("b", 2) }, entryArray);
+            Assert.Equal([default, new DictionaryEntry("b", 2)], entryArray);
 
             Assert.False(collection.IsSynchronized);
             Assert.NotNull(collection.SyncRoot);

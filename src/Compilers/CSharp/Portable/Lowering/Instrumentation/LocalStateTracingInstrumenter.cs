@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refAssignmentSourceIndex != null)
             {
-                return ImmutableArray.Create(_factory.Sequence(new[] { value }, refAssignmentSourceIndex), index);
+                return ImmutableArray.Create(_factory.Sequence([value], refAssignmentSourceIndex), index);
             }
 
             Debug.Assert(parameter.RefKind == RefKind.None);
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var addressOf = value is BoundLocal or BoundParameter ?
                     (BoundExpression)new BoundAddressOfOperator(_factory.Syntax, value, isManaged: false, parameter.Type) :
-                    _factory.Sequence(new[] { value }, new BoundAddressOfOperator(_factory.Syntax, VariableRead(targetSymbol), isManaged: false, parameter.Type));
+                    _factory.Sequence([value], new BoundAddressOfOperator(_factory.Syntax, VariableRead(targetSymbol), isManaged: false, parameter.Type));
 
                 return ImmutableArray.Create(addressOf, _factory.Sizeof(targetType), index);
             }

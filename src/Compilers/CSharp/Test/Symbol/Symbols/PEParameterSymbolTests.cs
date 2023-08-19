@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                         "M",
                         MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual,
                         typeof(void),
-                        new Type[] { typeof(object), typeof(object) });
+                        [typeof(object), typeof(object)]);
                     methodBuilder.DefineParameter(1, ParameterAttributes.None, null);
                     methodBuilder.DefineParameter(2, ParameterAttributes.None, null);
                     typeBuilder.CreateType();

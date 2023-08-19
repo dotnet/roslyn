@@ -285,13 +285,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         //NOTE: odd positions assume inverted sense
-        private static readonly ILOpCode[] s_compOpCodes = new ILOpCode[]
-        {
+        private static readonly ILOpCode[] s_compOpCodes =
+        [
             //  <            <=               >                >=
             ILOpCode.Clt,    ILOpCode.Cgt,    ILOpCode.Cgt,    ILOpCode.Clt,     // Signed
             ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un,  // Unsigned
             ILOpCode.Clt,    ILOpCode.Cgt_un, ILOpCode.Cgt,    ILOpCode.Clt_un,  // Float
-        };
+        ];
 
         //NOTE: The result of this should be a boolean on the stack.
         private void EmitBinaryCondOperator(BoundBinaryOperator binOp, bool sense)

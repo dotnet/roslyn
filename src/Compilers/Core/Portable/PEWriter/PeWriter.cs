@@ -278,11 +278,11 @@ namespace Microsoft.Cci
                     .Single();
             }
 
-            return (uint)s_calculateChecksumMethod.Invoke(null, new object[]
-            {
+            return (uint)s_calculateChecksumMethod.Invoke(null,
+            [
                 peBlob,
                 checksumBlob,
-            });
+            ]);
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)

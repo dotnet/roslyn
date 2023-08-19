@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var nameOnly = expType.Name;
                 //generic <Name>'1
-                var idx = expType.Name.LastIndexOfAny(new char[] { '`' });
+                var idx = expType.Name.LastIndexOfAny(['`']);
                 if ((idx > 0))
                 {
                     nameOnly = expType.Name.Substring(0, idx);

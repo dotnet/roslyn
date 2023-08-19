@@ -453,25 +453,25 @@ class Program
             }
         }
 
-        private static readonly NullableDirectives[] s_nullableDirectives = new[]
-        {
+        private static readonly NullableDirectives[] s_nullableDirectives =
+        [
             new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
-            new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
-            new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
-            new NullableDirectives(new[] { "#nullable restore" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
-            new NullableDirectives(new[] { "#nullable disable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Disabled),
-            new NullableDirectives(new[] { "#nullable enable warnings", "#nullable disable annotations", }, NullableContextState.State.Enabled, NullableContextState.State.Disabled),
-            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable disable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
-            new NullableDirectives(new[] { "#nullable enable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Enabled),
-            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable enable annotations" }, NullableContextState.State.Disabled, NullableContextState.State.Enabled),
-            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable enable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
-            new NullableDirectives(new[] { "#nullable restore annotations" }, NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
-            new NullableDirectives(new[] { "#nullable enable warnings" , "#nullable restore annotations" }, NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
-            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable restore annotations" }, NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
-            new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
-            new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
-            new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
-        };
+            new NullableDirectives(["#nullable disable"], NullableContextState.State.Disabled, NullableContextState.State.Disabled),
+            new NullableDirectives(["#nullable enable"], NullableContextState.State.Enabled, NullableContextState.State.Enabled),
+            new NullableDirectives(["#nullable restore"], NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(["#nullable disable annotations"], NullableContextState.State.Unknown, NullableContextState.State.Disabled),
+            new NullableDirectives(["#nullable enable warnings", "#nullable disable annotations",], NullableContextState.State.Enabled, NullableContextState.State.Disabled),
+            new NullableDirectives(["#nullable restore warnings", "#nullable disable annotations"], NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
+            new NullableDirectives(["#nullable enable annotations"], NullableContextState.State.Unknown, NullableContextState.State.Enabled),
+            new NullableDirectives(["#nullable disable warnings", "#nullable enable annotations"], NullableContextState.State.Disabled, NullableContextState.State.Enabled),
+            new NullableDirectives(["#nullable restore warnings", "#nullable enable annotations"], NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
+            new NullableDirectives(["#nullable restore annotations"], NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(["#nullable enable warnings" , "#nullable restore annotations"], NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(["#nullable disable warnings", "#nullable restore annotations"], NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(["#nullable disable warnings"], NullableContextState.State.Disabled, NullableContextState.State.Unknown),
+            new NullableDirectives(["#nullable enable warnings"], NullableContextState.State.Enabled, NullableContextState.State.Unknown),
+            new NullableDirectives(["#nullable restore warnings"], NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
+        ];
 
         // AnalyzeMethodsInEnabledContextOnly_01_Data is split due to https://github.com/dotnet/roslyn/issues/50337
         public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data1()
@@ -619,7 +619,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M1" },
+            verify(source, expectedAnalyzedKeys: ["M1"],
                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 22));
@@ -635,7 +635,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M2" },
+            verify(source, expectedAnalyzedKeys: ["M2"],
                 // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22));
@@ -651,7 +651,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M3" },
+            verify(source, expectedAnalyzedKeys: ["M3"],
                 // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22));
@@ -682,7 +682,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M5" });
+            verify(source, expectedAnalyzedKeys: ["M5"]);
 
             source =
 @"#pragma warning disable 219
@@ -696,7 +696,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M6" });
+            verify(source, expectedAnalyzedKeys: ["M6"]);
 
             source =
 @"static class Program
@@ -705,7 +705,7 @@ static class Program
 #nullable enable
         => default(object);
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M7" });
+            verify(source, expectedAnalyzedKeys: ["M7"]);
 
             source =
 @"static class Program
@@ -716,7 +716,7 @@ static class Program
 #nullable enable
             object);
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "M8" });
+            verify(source, expectedAnalyzedKeys: ["M8"]);
 
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
@@ -787,7 +787,7 @@ class Program
 #nullable enable
     static object F2 = null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
+            verify(source, expectedAnalyzedKeys: [".cctor"],
                 // (7,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     static object F2 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 24));
@@ -801,7 +801,7 @@ class Program
 #nullable disable
     static object F2 = null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
@@ -815,7 +815,7 @@ static class Program
 #nullable enable
     static Program() { F1 = null; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".cctor" });
+            verify(source, expectedAnalyzedKeys: [".cctor"]);
 
             source =
 @"#pragma warning disable 414
@@ -826,7 +826,7 @@ static class Program
 #nullable disable
     static Program() { F1 = null; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
+            verify(source, expectedAnalyzedKeys: [".cctor"],
                 // (5,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     static object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 24));
@@ -840,7 +840,7 @@ class Program
 #nullable enable
     Program() { F1 = null; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor"]);
 
             source =
 @"#pragma warning disable 414
@@ -851,7 +851,7 @@ class Program
 #nullable disable
     Program() { F1 = null; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
@@ -867,7 +867,7 @@ class Program
 #nullable enable
     object F3 = null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17),
@@ -886,7 +886,7 @@ class Program
 #nullable disable
     object F3 = null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "F2" },
+            verify(source, expectedAnalyzedKeys: ["F2"],
                 // (7,20): warning CS8603: Possible null reference return.
                 //     object F2() => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 20));
@@ -901,7 +901,7 @@ class Program
     Program() { }
     Program(object obj) : base() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor", ".ctor"]);
 
             source =
 @"#pragma warning disable 169
@@ -913,7 +913,7 @@ class Program
     Program() { }
     Program(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor"]);
 
             source =
 @"#pragma warning disable 169
@@ -926,7 +926,7 @@ class Program
 #nullable enable
     Program(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor", ".ctor"]);
 
             source =
 @"#pragma warning disable 169
@@ -938,7 +938,7 @@ class Program
 #nullable enable
     Program(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor"]);
 
             source =
 @"#pragma warning disable 169
@@ -951,7 +951,7 @@ class Program
 #nullable disable
     Program(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor"]);
 
             source =
 @"#pragma warning disable 169
@@ -961,7 +961,7 @@ struct S
     object F1;
     S(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (6,5): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S(object obj) : this() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F1").WithLocation(6, 5)
@@ -1022,33 +1022,33 @@ partial class Program
 }";
             var options = TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable);
 
-            verify(new[] { source1, source2 }, options, new string[0]);
+            verify([source1, source2], options, new string[0]);
 
-            verify(new[] { source1, source3 }, options, new[] { ".ctor" },
+            verify([source1, source3], options, [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source4 }, options, new string[0]);
+            verify([source1, source4], options, new string[0]);
 
-            verify(new[] { source2, source3 }, options, new[] { ".ctor" },
+            verify([source2, source3], options, [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source2, source4 }, options, new string[0]);
+            verify([source2, source4], options, new string[0]);
 
-            verify(new[] { source3, source4 }, options, new[] { ".ctor" },
+            verify([source3, source4], options, [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, options, new[] { ".ctor" },
+            verify([source1, source2, source3, source4], options, [".ctor"],
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".ctor" },
+            verify([source1, source2, source3, source4], TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), [".ctor"],
                 // (4,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17),
@@ -1082,7 +1082,7 @@ partial class Program
 #nullable enable
     static object P2 { get; set; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
+            verify(source, expectedAnalyzedKeys: [".cctor"],
                 // (6,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     static object P2 { get; set; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(6, 19));
@@ -1095,7 +1095,7 @@ partial class Program
 #nullable disable
     static object P2 { get; set; }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     object P1 { get; set; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
@@ -1108,7 +1108,7 @@ partial class Program
     object P2 { get { return 2; } set { } }
     object P3 => 3;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", "get_P2", "get_P3", "set_P2" },
+            verify(source, expectedAnalyzedKeys: [".ctor", "get_P2", "get_P3", "set_P2"],
                 // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     object P1 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
@@ -1123,7 +1123,7 @@ class Program
 #nullable enable
     static event D E2;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
+            verify(source, expectedAnalyzedKeys: [".cctor"],
                 // (8,20): warning CS8618: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static event D E2;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2").WithLocation(8, 20));
@@ -1138,7 +1138,7 @@ class Program
 #nullable disable
     static event D E2;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
+            verify(source, expectedAnalyzedKeys: [".ctor"],
                 // (6,13): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     event D E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(6, 13));
@@ -1170,7 +1170,7 @@ class Program
         F = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: [".ctor"]);
 
             source =
 @"#pragma warning disable 414
@@ -1184,7 +1184,7 @@ class Program
         F = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "Finalize" });
+            verify(source, expectedAnalyzedKeys: ["Finalize"]);
 
             source =
 @"#pragma warning disable 414
@@ -1197,7 +1197,7 @@ class Program
         F = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", "Finalize" },
+            verify(source, expectedAnalyzedKeys: [".ctor", "Finalize"],
                 // (8,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 13));
@@ -1229,7 +1229,7 @@ class Program
 #nullable disable
         => null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "get_P" },
+            verify(source, expectedAnalyzedKeys: ["get_P"],
                 // (7,12): warning CS8603: Possible null reference return.
                 //         => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 12));
@@ -1253,7 +1253,7 @@ class Program
         set => value = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "get_P", "set_Q" },
+            verify(source, expectedAnalyzedKeys: ["get_P", "set_Q"],
                 // (6,22): warning CS8603: Possible null reference return.
                 //         get { return null; }
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22),
@@ -1285,7 +1285,7 @@ class Program
         remove => _f = null;
     }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", "add_E", "remove_F" },
+            verify(source, expectedAnalyzedKeys: [".ctor", "add_E", "remove_F"],
                 // (12,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         add { _e = null; }
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 20),
@@ -1327,7 +1327,7 @@ class B
 #nullable enable
     public static explicit operator B(A a) => null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "op_Explicit" },
+            verify(source, expectedAnalyzedKeys: ["op_Explicit"],
                 // (7,47): warning CS8603: Possible null reference return.
                 //     public static explicit operator B(A a) => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 47));
@@ -1345,7 +1345,7 @@ class B
 #nullable enable
     public static C operator~(C c) => null;
 }";
-            verify(source, expectedAnalyzedKeys: new[] { "op_OnesComplement" },
+            verify(source, expectedAnalyzedKeys: ["op_OnesComplement"],
                 // (4,39): warning CS8603: Possible null reference return.
                 //     public static C operator~(C c) => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 39));
@@ -1375,14 +1375,14 @@ record R;
 @"#nullable enable
 record R();
 ";
-            verify(source, expectedAnalyzedKeys: new[] { "R..ctor()" });
+            verify(source, expectedAnalyzedKeys: ["R..ctor()"]);
 
             source =
 @"record R(object P
 #nullable enable
     );
 ";
-            verify(source, expectedAnalyzedKeys: new[] { "R..ctor(System.Object P)" });
+            verify(source, expectedAnalyzedKeys: ["R..ctor(System.Object P)"]);
 
             source =
 @"record A;
@@ -1401,7 +1401,7 @@ record B2() : A
 #nullable enable
     ();
 ";
-            verify(source, expectedAnalyzedKeys: new[] { "B2..ctor()" });
+            verify(source, expectedAnalyzedKeys: ["B2..ctor()"]);
 
             source =
 @"record A;
@@ -1440,7 +1440,7 @@ record B2() : A(
 #nullable enable
     F(null));
 ";
-            verify(source, expectedAnalyzedKeys: new[] { "B2..ctor()", "System.Object A.F(System.Object obj)" },
+            verify(source, expectedAnalyzedKeys: ["B2..ctor()", "System.Object A.F(System.Object obj)"],
                 // (12,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     F(null));
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 7));
@@ -1628,7 +1628,7 @@ if (x == null) { }
 _ = x.ToString();
 #nullable enable
 ";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0]);
+            verify([source], projectContext: null, expectedAnalyzedKeys: new string[0]);
 
             source =
 @"#nullable disable
@@ -1637,7 +1637,7 @@ if (x == null) { }
 #nullable enable
 _ = x.ToString();
 ";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" },
+            verify([source], projectContext: null, expectedAnalyzedKeys: ["<Main>$"],
                 // (5,5): warning CS8602: Dereference of a possibly null reference.
                 // _ = x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5));
@@ -1649,7 +1649,7 @@ if (x == null) { }
 #nullable restore
 _ = x.ToString();
 ";
-            verify(new[] { source }, projectContext: NullableContextOptions.Warnings, expectedAnalyzedKeys: new[] { "<Main>$" },
+            verify([source], projectContext: NullableContextOptions.Warnings, expectedAnalyzedKeys: ["<Main>$"],
                 // (5,5): warning CS8602: Dereference of a possibly null reference.
                 // _ = x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5));
@@ -1661,7 +1661,7 @@ if (x == null) { }
 #nullable disable
 _ = x.ToString();
 ";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0]);
+            verify([source], projectContext: null, expectedAnalyzedKeys: new string[0]);
 
             source =
 @"object x = A.F();
@@ -1672,7 +1672,7 @@ static class A
 #nullable enable
     internal static object F() => new object();
 }";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "F" });
+            verify([source], projectContext: null, expectedAnalyzedKeys: ["F"]);
 
             source =
 @"object x = typeof(A);
@@ -1684,7 +1684,7 @@ class A
 if (x == null) { }
 _ = x.ToString();
 ";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0],
+            verify([source], projectContext: null, expectedAnalyzedKeys: new string[0],
                 // (7,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // if (x == null) { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "if (x == null) { }").WithLocation(7, 1));
@@ -1700,7 +1700,7 @@ static class A
 if (x == null) { }
 _ = x.ToString();
 ";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" },
+            verify([source], projectContext: null, expectedAnalyzedKeys: ["<Main>$"],
                 // (8,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // if (x == null) { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "if (x == null) { }").WithLocation(8, 1));
@@ -1715,7 +1715,7 @@ static object F()
     return new object();
 #nullable disable
 }";
-            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" });
+            verify([source], projectContext: null, expectedAnalyzedKeys: ["<Main>$"]);
 
             var sourceA =
 @"static class A
@@ -1728,7 +1728,7 @@ static object F()
 if (x == null) { }
 _ = x.ToString();
 ";
-            verify(new[] { sourceA, sourceB }, projectContext: null, expectedAnalyzedKeys: new[] { "F" });
+            verify([sourceA, sourceB], projectContext: null, expectedAnalyzedKeys: ["F"]);
 
             static void verify(string[] source, NullableContextOptions? projectContext, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {

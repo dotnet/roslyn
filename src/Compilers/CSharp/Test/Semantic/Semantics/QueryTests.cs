@@ -2425,7 +2425,7 @@ public class QueryExpressionTest
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             int count = 0;
-            string[] names = { "OrderByDescending", "ThenBy", "ThenByDescending" };
+            string[] names = ["OrderByDescending", "ThenBy", "ThenByDescending"];
             foreach (var ordering in tree.GetCompilationUnitRoot().DescendantNodes().OfType<OrderingSyntax>())
             {
                 var symbolInfo = model.GetSemanticInfoSummary(ordering);
@@ -2795,14 +2795,14 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.GC) (Syntax: 'x')
-", new DiagnosticDescription[] {
+", [
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
-            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            ], parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
   Expression: 
@@ -2818,14 +2818,14 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
-", new DiagnosticDescription[] {
+", [
                 // file.cs(9,31): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Cast<GC>").WithArguments("System.GC").WithLocation(9, 31),
                 // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3603,7 +3603,7 @@ public class QueryExpressionTest
             Assert.True(success);
 
             int count = 0;
-            string[] names = { "OrderByDescending", "ThenBy", "ThenByDescending" };
+            string[] names = ["OrderByDescending", "ThenBy", "ThenByDescending"];
             foreach (var ordering in queryStatement.DescendantNodes().OfType<OrderingSyntax>())
             {
                 var symbolInfo = speculativeModel.GetSemanticInfoSummary(ordering);

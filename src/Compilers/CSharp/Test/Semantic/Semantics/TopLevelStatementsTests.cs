@@ -7613,7 +7613,7 @@ return;
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "Return_01", args: new[] { "Return_01" });
+            CompileAndVerify(comp, expectedOutput: "Return_01", args: ["Return_01"]);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7660,7 +7660,7 @@ return 10;
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "Return_02", args: new[] { "Return_02" }, expectedReturnCode: 10);
+            CompileAndVerify(comp, expectedOutput: "Return_02", args: ["Return_02"], expectedReturnCode: 10);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7707,7 +7707,7 @@ return;
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "hello Return_03", args: new[] { "Return_03" });
+            CompileAndVerify(comp, expectedOutput: "hello Return_03", args: ["Return_03"]);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7776,7 +7776,7 @@ return 11;
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
+            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: ["Return_04"], expectedReturnCode: 11);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -8610,7 +8610,7 @@ void local()
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            CompileAndVerify(comp, expectedOutput: "Args_03", args: new[] { "Args_03" }).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Args_03", args: ["Args_03"]).VerifyDiagnostics();
         }
 
         [Fact]
@@ -8622,7 +8622,7 @@ lambda();
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            CompileAndVerify(comp, expectedOutput: "Args_04", args: new[] { "Args_04" }).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Args_04", args: ["Args_04"]).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9062,11 +9062,11 @@ System.Console.WriteLine(""Hi!"");
 
                 if (fromSource)
                 {
-                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                    Assert.Equal(["<top-level-statements-entry-point>", "Program..ctor()"], program.GetMembers().ToTestDisplayStrings());
                 }
                 else
                 {
-                    Assert.Equal(new[] { "void Program.<Main>$(System.String[] args)", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                    Assert.Equal(["void Program.<Main>$(System.String[] args)", "Program..ctor()"], program.GetMembers().ToTestDisplayStrings());
                 }
             }
         }
@@ -9495,18 +9495,18 @@ partial class Program
                 {
                     Assert.Empty(fieldAttributes);
 
-                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "System.Int32 Program.<Property>k__BackingField",
+                    Assert.Equal([ "<top-level-statements-entry-point>", "System.Int32 Program.<Property>k__BackingField",
                             "System.Int32 Program.Property { get; set; }", "System.Int32 Program.Property.get",
-                            "void Program.Property.set", "Program..ctor()" },
+                            "void Program.Property.set", "Program..ctor()" ],
                         field.ContainingType.GetMembers().ToTestDisplayStrings());
                 }
                 else
                 {
                     Assert.Equal(new[] { "CompilerGeneratedAttribute", "DebuggerBrowsableAttribute" }, fieldAttributes);
 
-                    Assert.Equal(new[] { "System.Int32 Program.<Property>k__BackingField", "void Program.<Main>$(System.String[] args)",
+                    Assert.Equal([ "System.Int32 Program.<Property>k__BackingField", "void Program.<Main>$(System.String[] args)",
                             "System.Int32 Program.Property.get", "void Program.Property.set",
-                            "Program..ctor()", "System.Int32 Program.Property { get; set; }" },
+                            "Program..ctor()", "System.Int32 Program.Property { get; set; }" ],
                         field.ContainingType.GetMembers().ToTestDisplayStrings());
                 }
             }

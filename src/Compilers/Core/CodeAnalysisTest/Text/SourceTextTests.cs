@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.True(SourceText.IsBinary("abc\0\0"));
 
             var encoding = Encoding.UTF8;
-            Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
+            Assert.False(SourceText.IsBinary(encoding.GetString([0x81, 0x8D, 0x8F, 0x90, 0x9D])));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
             Assert.True(SourceText.IsBinary(encoding.GetString(TestMetadata.ResourcesNet451.System)));
@@ -303,16 +303,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         public void TryReadByteOrderMark()
         {
             TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[0]);
-            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef });
-            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef, 0xbb });
-            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef, 0xBB, 0xBF }, validLength: 2);
-            TestTryReadByteOrderMark(expectedEncoding: Encoding.UTF8, expectedPreambleLength: 3, data: new byte[] { 0xef, 0xBB, 0xBF });
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: [0xef]);
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: [0xef, 0xbb]);
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: [0xef, 0xBB, 0xBF], validLength: 2);
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.UTF8, expectedPreambleLength: 3, data: [0xef, 0xBB, 0xBF]);
 
-            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xff });
-            TestTryReadByteOrderMark(expectedEncoding: Encoding.Unicode, expectedPreambleLength: 2, data: new byte[] { 0xff, 0xfe });
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: [0xff]);
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.Unicode, expectedPreambleLength: 2, data: [0xff, 0xfe]);
 
-            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
-            TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: [0xfe]);
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: [0xfe, 0xff]);
         }
 
         [Fact]

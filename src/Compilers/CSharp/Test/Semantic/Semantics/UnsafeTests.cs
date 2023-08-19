@@ -237,11 +237,11 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
 ";
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(text, expectedOperationTree,
                 compilationOptions: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false),
-                expectedDiagnostics: new DiagnosticDescription[] {
+                expectedDiagnostics: [
                     // file.cs(6,19): error CS0227: Unsafe code may only appear if compiling with /unsafe
                     //         /*<bind>*/unsafe
                     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(6, 19)
-                });
+                ]);
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -640,7 +640,7 @@ unsafe class C<T>
 }}
 ";
             DiagnosticDescription[] expected =
-            {
+            [
                 // (4,17): error CS0066: 'I.E': event must be of a delegate type
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E").WithArguments("I.E"),
                 // (9,17): error CS0066: 'C.E1': event must be of a delegate type
@@ -649,7 +649,7 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E2").WithArguments("C.E2"),
                 // (9,17): warning CS0067: The event 'C.E1' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("C.E1")
-            };
+            ];
 
             CompareUnsafeDiagnostics(template, expected, expected);
         }
@@ -670,8 +670,7 @@ unsafe class C<T>
                 """;
 
             CompareUnsafeDiagnostics(template,
-                new[]
-                {
+                [
                     // (3,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //      void Test(I<int*> i);
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 18),
@@ -684,16 +683,15 @@ unsafe class C<T>
                     // (8,24): error CS0306: The type 'int*' may not be used as a type argument
                     //      void Test(C<int*> c) { }
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*").WithLocation(8, 24)
-                },
-                new[]
-                {
+                ],
+                [
                     // (3,30): error CS0306: The type 'int*' may not be used as a type argument
                     //     unsafe void Test(I<int*> i);
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "i").WithArguments("int*"),
                     // (8,30): error CS0306: The type 'int*' may not be used as a type argument
                     //     unsafe void Test(C<int*> c) { }
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*"),
-                });
+                ]);
         }
 
         [Fact]
@@ -874,7 +872,7 @@ unsafe class C<T>
 ";
 
             DiagnosticDescription[] expectedWithoutUnsafe =
-            {
+            [
                 // (4,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      void Test(int* p = Unsafe()) //CS0214 * 2
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
@@ -893,14 +891,14 @@ unsafe class C<T>
                 // (14,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      static int* Unsafe() { return null; } //CS0214
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*")
-            };
+            ];
 
             DiagnosticDescription[] expectedWithUnsafe =
-            {
+            [
                 // (4,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //      void Test(int* p = Unsafe()) //CS0214 * 2
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Unsafe()").WithArguments("p")
-            };
+            ];
 
             CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, expectedWithUnsafe);
         }
@@ -1628,8 +1626,7 @@ class Container<T> {{ }}
 ";
 
             CompareUnsafeDiagnostics(template,
-                new[]
-                {
+                [
                 // CONSIDER: this differs slightly from dev10, but is clearer.
                 // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'int*[]', which is not a valid attribute parameter type
                 // [A]
@@ -1638,14 +1635,13 @@ class Container<T> {{ }}
                 // (5,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      A(params int*[] a) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*")
-                },
-                new[]
-                {
+                ],
+                [
                 // CONSIDER: this differs slightly from dev10, but is clearer.
                 // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'int*[]', which is not a valid attribute parameter type
                 // [A]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "int*[]")
-                });
+                ]);
         }
 
         [WorkItem(544938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544938")]
@@ -1661,8 +1657,7 @@ class Container<T> {{ }}
 ";
 
             CompareUnsafeDiagnostics(template,
-                new[]
-                {
+                [
                 // CONSIDER: this differs slightly from dev10, but is clearer.
                 // (2,2): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                 // [A]
@@ -1671,14 +1666,13 @@ class Container<T> {{ }}
                 // (5,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      A(int* p = null) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*")
-                },
-                new[]
-                {
+                ],
+                [
                 // CONSIDER: this differs slightly from dev10, but is clearer.
                 // (2,2): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                 // [A]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*")
-                });
+                ]);
         }
 
         [WorkItem(544938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544938")]
@@ -9094,15 +9088,15 @@ class C<T> : A
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
 
-            expected = new[]
-            {
+            expected =
+            [
                 // (8,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     private static C<T*[]>.B b;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(8, 22),
                 // (8,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(8, 30)
-            };
+            ];
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
@@ -9198,8 +9192,8 @@ class C<T> : A
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
 
-            expected = new[]
-            {
+            expected =
+            [
                 // (17,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     private static C<T*[]> c;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(17, 22),
@@ -9221,7 +9215,7 @@ class C<T> : A
                 // (10,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 30)
-            };
+            ];
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
@@ -9361,8 +9355,8 @@ class C<T> : A
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
 
-            expected = new[]
-            {
+            expected =
+            [
                 // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     private static C<string*[]> c;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string*").WithLocation(13, 22),
@@ -9378,7 +9372,7 @@ class C<T> : A
                 // (10,35): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<string*[]>.B b;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 35)
-            };
+            ];
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);

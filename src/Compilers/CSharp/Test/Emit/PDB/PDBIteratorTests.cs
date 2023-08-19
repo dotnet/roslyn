@@ -179,11 +179,11 @@ class Program
 ";
             var c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>3__i0",
                     "<>3__i1"
-                }, module.GetFieldNames("Program.<IEI>d__0"));
+                ], module.GetFieldNames("Program.<IEI>d__0"));
             });
 
             c.VerifyPdb(@"
@@ -250,12 +250,12 @@ class Program
 
             var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>3__i0",
                     "<>3__i1",
                     "<>4__this",
-                }, module.GetFieldNames("Program.<IEI>d__0"));
+                ], module.GetFieldNames("Program.<IEI>d__0"));
             });
             c.VerifyPdb(@"
 <symbols>
@@ -735,15 +735,15 @@ class C
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "o", "<>3__o",
                     "<i>5__1",
                     "<t>5__2"
-                }, module.GetFieldNames("C.<F>d__0"));
+                ], module.GetFieldNames("C.<F>d__0"));
             });
 
             v.VerifyPdb("C+<F>d__0`1.MoveNext", @"
@@ -806,12 +806,12 @@ class C
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
-                }, module.GetFieldNames("C.<F>d__1"));
+                ], module.GetFieldNames("C.<F>d__1"));
             });
 
             v.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
@@ -1026,13 +1026,13 @@ class C
 ");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<>8__1",                   // hoisted display class
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             // One iterator local entry for the lambda local.
@@ -1100,12 +1100,12 @@ class C
 
             var v = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
@@ -1224,13 +1224,13 @@ class C
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<>8__1",                   // hoisted display class
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
@@ -1370,13 +1370,13 @@ class C
 ");
             var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<d>5__1"
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
@@ -1456,12 +1456,12 @@ class C
 ";
             var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
@@ -1518,13 +1518,13 @@ class C
 ");
             var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal(
+                [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<d>5__1",
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"

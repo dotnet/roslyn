@@ -20337,7 +20337,7 @@ class B
         Console.WriteLine(x4);
     }}
 }}";
-            string[] fillIns = new[] { "int", "var" };
+            string[] fillIns = ["int", "var"];
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
@@ -20521,7 +20521,7 @@ class B
         ia[out {0} _] = 4;
     }}
 }}";
-            string[] fillIns = new[] { "int", "var", "" };
+            string[] fillIns = ["int", "var", ""];
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
@@ -20883,10 +20883,10 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (19,50): error CS0128: A local variable named 'x4' is already defined in this scope
@@ -20993,10 +20993,10 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (12,13): error CS0818: Implicitly-typed variables must be initialized
@@ -21093,11 +21093,11 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (13,16): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -21190,12 +21190,12 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (13,16): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -21326,10 +21326,10 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -21551,12 +21551,12 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_UseDefViolation
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -21716,12 +21716,12 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (13,47): error CS0128: A local variable or function named 'x4' is already defined in this scope
@@ -21906,7 +21906,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
@@ -21914,7 +21914,7 @@ public class X
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer,
                                         (int)ErrorCode.ERR_UseDefViolation
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -22058,14 +22058,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer,
                                         (int)ErrorCode.ERR_UseDefViolation
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (12,58): error CS0128: A local variable or function named 'x1' is already defined in this scope
@@ -22153,14 +22153,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
                                         (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (13,35): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -22321,13 +22321,13 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -22487,14 +22487,14 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
                                         (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (14,59): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -22585,10 +22585,10 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+            int[] exclude = [ (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.WRN_UnreferencedField
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (20,27): error CS0103: The name 'x7' does not exist in the current context
@@ -22698,11 +22698,11 @@ public unsafe struct X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+            int[] exclude = [ (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.WRN_UnreferencedField,
                                         (int)ErrorCode.ERR_NoImplicitConv
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (10,18): error CS0841: Cannot use local variable 'x4' before it is declared
@@ -22791,9 +22791,9 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+            int[] exclude = [ (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (21,27): error CS0103: The name 'x7' does not exist in the current context
@@ -22873,11 +22873,11 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+            int[] exclude = [ (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.ERR_EventNotDelegate,
                                         (int)ErrorCode.WRN_UnreferencedEvent
-                                      };
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (21,27): error CS0103: The name 'x7' does not exist in the current context
@@ -22937,8 +22937,8 @@ public unsafe struct X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
-                                      };
+            int[] exclude = [ (int)ErrorCode.ERR_BadVarDecl,
+                                      ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (8,28): error CS1003: Syntax error, '[' expected
@@ -31197,7 +31197,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = [(int)ErrorCode.ERR_NamespaceUnexpected];
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
@@ -31370,7 +31370,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = [(int)ErrorCode.ERR_NamespaceUnexpected];
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
@@ -34857,7 +34857,7 @@ class MyAttribute: System.Attribute
     public MyAttribute(bool x, int y) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { text1, text2 });
+            var compilation = CreateCompilationWithMscorlib45([text1, text2]);
             compilation.VerifyDiagnostics(
                 // (2,26): error CS8081: Expression does not have a name.
                 // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
