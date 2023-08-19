@@ -1621,6 +1621,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                     return true;
+                case BindValueKind.RValue:
+                    if (expression.IsRef)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_UnusedSwitchExpressionRef, expression.Syntax);
+                        return false;
+                    }
+                    return true;
             }
 
             return true;

@@ -5577,6 +5577,81 @@ void M(out int x) => throw null;
         }
 
         [Fact]
+        public void RefSwitchStatement_UnusedRef()
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        int x = direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                        };
+                
+                        // Method invocation
+                        A(direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                        });
+
+                        return x;
+                    }
+
+                    private static void A(int x) { }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS9304: The reference of a ref-returning switch expression may not be discarded
+                //         int x = direction switch
+                Diagnostic(ErrorCode.ERR_UnusedSwitchExpressionRef, @"direction switch
+        {
+            Direction.North => ref NorthField,
+            Direction.South => ref SouthField,
+            Direction.East => ref EastField,
+            Direction.West => ref WestField,
+        }").WithLocation(10, 17),
+                // (10,27): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Direction)4' is not covered.
+                //         int x = direction switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Direction)4").WithLocation(10, 27),
+                // (19,11): error CS9304: The reference of a ref-returning switch expression may not be discarded
+                //         A(direction switch
+                Diagnostic(ErrorCode.ERR_UnusedSwitchExpressionRef, @"direction switch
+        {
+            Direction.North => ref NorthField,
+            Direction.South => ref SouthField,
+            Direction.East => ref EastField,
+            Direction.West => ref WestField,
+        }").WithLocation(19, 11),
+                // (19,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Direction)4' is not covered.
+                //         A(direction switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Direction)4").WithLocation(19, 21)
+                );
+        }
+
+        [Fact]
         public void RefSwitchStatement_MissingRefInArms()
         {
             string source =
