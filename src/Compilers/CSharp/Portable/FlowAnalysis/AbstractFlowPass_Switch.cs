@@ -174,7 +174,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetState(StateWhenTrue);
                 }
 
-                VisitPotentialByRefExpression(arm.Value, arm.IsRef);
+                if (arm.IsRef)
+                {
+                    VisitLvalue(arm.Value);
+                    // exposing ref is a potential write
+                    WriteArgument(arm.Value, RefKind.Ref, method: null);
+                }
+                else
+                {
+                    VisitRvalue(arm.Value);
+                }
+
                 Join(ref endState, ref this.State);
             }
 

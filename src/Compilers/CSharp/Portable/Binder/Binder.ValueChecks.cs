@@ -3186,7 +3186,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (switchExpression.IsRef)
                     {
-                        // ref conditional defers to its operands
                         uint maxScope = uint.MinValue;
                         foreach (var arm in switchExpression.SwitchArms)
                         {
@@ -3201,7 +3200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return maxScope;
                     }
 
-                    // otherwise it is an RValue
                     break;
 
                 case BoundKind.FieldAccess:

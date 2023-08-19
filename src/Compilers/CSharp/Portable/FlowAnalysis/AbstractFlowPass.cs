@@ -3199,11 +3199,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitConditionalOperand(TLocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
-            VisitPotentialByRefExpression(operand, isByRef);
-        }
-
-        protected void VisitPotentialByRefExpression(BoundExpression operand, bool isByRef)
-        {
             if (isByRef)
             {
                 VisitLvalue(operand);

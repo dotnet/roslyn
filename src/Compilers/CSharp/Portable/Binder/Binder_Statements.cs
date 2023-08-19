@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return ConvertIdentityRefExpression(expression, targetType, diagnostics, ref useSiteInfo);
+                    return ConvertIdentityRefExpression(expression, targetType, diagnostics);
                 }
             }
             else if (!conversion.IsValid ||
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
         }
 
-        private BoundExpression ConvertIdentityRefExpression(BoundExpression expression, TypeSymbol destination, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BoundExpression ConvertIdentityRefExpression(BoundExpression expression, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
             switch (expression.Kind)
             {
