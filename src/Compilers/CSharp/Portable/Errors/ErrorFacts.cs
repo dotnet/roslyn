@@ -2405,6 +2405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RequiresRefReturningSwitchExpression:
                 case ErrorCode.ERR_MissingRefInSwitchExpressionArm:
                 case ErrorCode.ERR_UnusedSwitchExpressionRef:
+                case ErrorCode.ERR_RefOnNonRefSwitchExpression:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
