@@ -5736,9 +5736,9 @@ void M(out int x) => throw null;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (10,25): error CS1510: A ref or out value must be an assignable variable
+                // (10,25): error CS9305: The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?
                 //         ref int x = ref direction switch
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "direction switch").WithLocation(10, 25)
+                Diagnostic(ErrorCode.ERR_RefOnNonRefSwitchExpression, "direction switch").WithLocation(10, 25)
                 );
         }
 

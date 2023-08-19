@@ -7811,4 +7811,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnusedSwitchExpressionRef" xml:space="preserve">
     <value>The reference of a ref-returning switch expression may not be discarded</value>
   </data>
+  <data name="ERR_RefOnNonRefSwitchExpression" xml:space="preserve">
+    <value>The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?</value>
+  </data>
 </root>

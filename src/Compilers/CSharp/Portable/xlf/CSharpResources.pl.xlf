@@ -1627,6 +1627,11 @@
         <target state="translated">Lewa strona przypisania referencyjnego musi być zmienną referencyjną.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefOnNonRefSwitchExpression">
+        <source>The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?</source>
+        <target state="new">The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
         <target state="new">'readonly' modifier must be specified after 'ref'.</target>

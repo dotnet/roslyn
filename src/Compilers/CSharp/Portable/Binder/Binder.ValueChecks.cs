@@ -840,7 +840,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (RequiresReferenceToLocation(valueKind))
                         {
-                            break;
+                            // We use a different error to better hint the user about the feature
+                            var switchExpressionErrorLocation = Location.Create(node.SyntaxTree, errorSpan);
+                            Error(diagnostics, ErrorCode.ERR_RefOnNonRefSwitchExpression, switchExpressionErrorLocation);
+                            return false;
                         }
                     }
 
