@@ -5742,6 +5742,49 @@ void M(out int x) => throw null;
                 );
         }
 
+        [Fact]
+        public void RefSwitchStatement_UnavailableFeature()
+        {
+            string source =
+                $$"""
+                class C
+                {
+                    public void M(int input)
+                    {
+                        int _1 = 1;
+                        int _2 = 1;
+                        int _3 = 1;
+                        int _4 = 1;
+
+                        ref int x = ref input switch
+                        {
+                            1 => ref _1,
+                            2 => ref _2,
+                            3 => ref _3,
+                            4 => ref _4,
+                            _ => throw null!,
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (12,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             1 => ref _1,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(12, 18),
+                // (13,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             2 => ref _2,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(13, 18),
+                // (14,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             3 => ref _3,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(14, 18),
+                // (15,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             4 => ref _4,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(15, 18)
+                );
+        }
+
         #endregion
     }
 }
