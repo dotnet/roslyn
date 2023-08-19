@@ -126,13 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];
-                var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
-                foreach (var symbol in symbols)
-                {
-                    builder.Add(symbol);
-                }
-
-                return builder.ToImmutableAndFree();
+                return [.. symbols];
             }
 
             internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)

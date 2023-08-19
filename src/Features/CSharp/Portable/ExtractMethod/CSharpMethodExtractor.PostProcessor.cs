@@ -293,14 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 var variable = declaration.Declaration.Variables[0].WithInitializer(SyntaxFactory.EqualsValueClause(assignmentExpression.Right));
-                using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
-
-                result.Add(declaration.WithDeclaration(
-                    declaration.Declaration.WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(variable))));
-                result.AddRange(statements.Skip(2));
-
-                return result.ToImmutable();
+                return
+                [
+                    declaration.WithDeclaration(
+                        declaration.Declaration.WithVariables(
+                            SyntaxFactory.SingletonSeparatedList(variable))),
+                    .. statements.Skip(2),
+                ];
             }
         }
     }

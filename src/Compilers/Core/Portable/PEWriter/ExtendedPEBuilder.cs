@@ -54,14 +54,13 @@ namespace Microsoft.Cci
 
             if (_withMvidSection)
             {
-                var builder = ArrayBuilder<Section>.GetInstance(baseSections.Length + 1);
-
-                builder.Add(new Section(MvidSectionName, SectionCharacteristics.MemRead |
-                    SectionCharacteristics.ContainsInitializedData |
-                    SectionCharacteristics.MemDiscardable));
-
-                builder.AddRange(baseSections);
-                return builder.ToImmutableAndFree();
+                return
+                [
+                    new Section(MvidSectionName, SectionCharacteristics.MemRead |
+                        SectionCharacteristics.ContainsInitializedData |
+                        SectionCharacteristics.MemDiscardable),
+                    .. baseSections,
+                ];
             }
             else
             {

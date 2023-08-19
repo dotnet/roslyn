@@ -185,17 +185,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Return());
 
             var newStatements = bodyBuilder.ToImmutableAndFree();
-
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            locals.Add(cachedState);
-            if ((object)cachedThis != null) locals.Add(cachedThis);
-            if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
-
             var newBody =
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(),
+                        [
+                            cachedState,
+                            .. (object)cachedThis != null ? [cachedThis] : [],
+                            .. (object)_exprRetValue != null ? [_exprRetValue] : [],
+                        ],
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)

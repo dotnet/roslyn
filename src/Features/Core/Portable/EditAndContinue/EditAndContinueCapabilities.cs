@@ -100,30 +100,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public static ImmutableArray<string> ToStringArray(this EditAndContinueCapabilities capabilities)
         {
-            using var _ = ArrayBuilder<string>.GetInstance(out var builder);
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
-                builder.Add(nameof(EditAndContinueCapabilities.Baseline));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.AddMethodToExistingType))
-                builder.Add(nameof(EditAndContinueCapabilities.AddMethodToExistingType));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.AddStaticFieldToExistingType))
-                builder.Add(nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
-                builder.Add(nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
-                builder.Add(nameof(EditAndContinueCapabilities.NewTypeDefinition));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
-                builder.Add(nameof(EditAndContinueCapabilities.ChangeCustomAttributes));
-
-            if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
-                builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
-
-            return builder.ToImmutable();
+            return
+            [
+                .. capabilities.HasFlag(EditAndContinueCapabilities.Baseline) ? [nameof(EditAndContinueCapabilities.Baseline)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.AddMethodToExistingType) ? [nameof(EditAndContinueCapabilities.AddMethodToExistingType)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.AddStaticFieldToExistingType) ? [nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.AddInstanceFieldToExistingType) ? [nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition) ? [nameof(EditAndContinueCapabilities.NewTypeDefinition)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes) ? [nameof(EditAndContinueCapabilities.ChangeCustomAttributes)] : [],
+                .. capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters) ? [nameof(EditAndContinueCapabilities.UpdateParameters)] : [],
+            ];
         }
     }
 }

@@ -296,22 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement payloadIf = _methodBodyFactory.If(payloadNullTest, createPayloadCall);
 
             additionalLocals.Add(_methodPayload);
-
-            var prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(2 + (_methodEntryInstrumentation != null ? 1 : 0) + (previousPrologue != null ? 1 : 0));
-
-            prologueStatements.Add(payloadInitialization);
-            prologueStatements.Add(payloadIf);
-            if (_methodEntryInstrumentation != null)
-            {
-                prologueStatements.Add(_methodEntryInstrumentation);
-            }
-
-            if (previousPrologue != null)
-            {
-                prologueStatements.Add(previousPrologue);
-            }
-
-            prologue = _methodBodyFactory.StatementList(prologueStatements.ToImmutableAndFree());
+            prologue = _methodBodyFactory.StatementList(
+            [
+                payloadInitialization,
+                payloadIf,
+                .. _methodEntryInstrumentation != null ? [_methodEntryInstrumentation] : [],
+                .. previousPrologue != null ? [previousPrologue] : [],
+            ]);
         }
 
         public ImmutableArray<SourceSpan> DynamicAnalysisSpans => _dynamicAnalysisSpans;

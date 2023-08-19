@@ -6144,17 +6144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
             symbols.AddRange(candidateConstructors);
-
-            // NOTE: The use site diagnostics of the candidate constructors have already been reported (in PerformConstructorOverloadResolution).
-
-            var childNodes = ArrayBuilder<BoundExpression>.GetInstance();
-            childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors));
-            if (initializerSyntaxOpt != null)
-            {
-                childNodes.Add(boundInitializerOpt ?? makeBoundInitializerOpt());
-            }
-
-            return new BoundBadExpression(node, resultKind, symbols.ToImmutableAndFree(), childNodes.ToImmutableAndFree(), type);
+            return new BoundBadExpression(node, resultKind, symbols.ToImmutableAndFree(),
+            [
+                .. BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors),
+                .. initializerSyntaxOpt != null ? [boundInitializerOpt ?? makeBoundInitializerOpt()] : [],
+            ], type);
 
             BoundObjectInitializerExpressionBase makeBoundInitializerOpt()
             {

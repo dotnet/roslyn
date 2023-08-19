@@ -71,20 +71,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ArrayBuilder<string>.GetInstance();
-            if (PathUtilities.IsAbsolute(info.FilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
-            }
-
-            if (PathUtilities.IsAbsolute(info.OutputFilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
-            }
-
-            return builder.ToImmutableAndFree();
+            return
+            [
+                .. PathUtilities.IsAbsolute(info.FilePath) ? [PathUtilities.GetDirectoryName(info.FilePath)!] : [],
+                .. PathUtilities.IsAbsolute(info.OutputFilePath) ? [PathUtilities.GetDirectoryName(info.OutputFilePath)!] : [],
+            ];
         }
     }
 }

@@ -79,23 +79,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static string[] Create(bool isUnnecessary, bool isConfigurable, EnforceOnBuild enforceOnBuild)
         {
             Debug.Assert(isConfigurable || enforceOnBuild == EnforceOnBuild.Never);
-
-            var customTagsBuilder = ImmutableArray.CreateBuilder<string>();
-            customTagsBuilder.AddRange(Microsoft);
-
-            customTagsBuilder.Add(enforceOnBuild.ToCustomTag());
-
-            if (!isConfigurable)
-            {
-                customTagsBuilder.Add(WellKnownDiagnosticTags.NotConfigurable);
-            }
-
-            if (isUnnecessary)
-            {
-                customTagsBuilder.Add(WellKnownDiagnosticTags.Unnecessary);
-            }
-
-            return customTagsBuilder.ToArray();
+            return
+            [
+                .. Microsoft,
+                enforceOnBuild.ToCustomTag(),
+                .. !isConfigurable ? [WellKnownDiagnosticTags.NotConfigurable] : [],
+                .. isUnnecessary ? [WellKnownDiagnosticTags.Unnecessary] : [],
+            ];
         }
     }
 }

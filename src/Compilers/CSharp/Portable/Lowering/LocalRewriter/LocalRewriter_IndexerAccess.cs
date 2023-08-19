@@ -743,24 +743,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
                 {
-                    var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
-
-                    if (startMakeOffsetInput is not null)
-                    {
-                        argumentsBuilder.Add(startMakeOffsetInput);
-                    }
-
-                    if (endMakeOffsetInput is not null)
-                    {
-                        argumentsBuilder.Add(endMakeOffsetInput);
-                    }
-
-                    if (rewrittenRangeArg is not null)
-                    {
-                        argumentsBuilder.Add(rewrittenRangeArg);
-                    }
-
-                    if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
+                    if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(
+                    [
+                        .. startMakeOffsetInput is not null ? [startMakeOffsetInput] : [],
+                        .. endMakeOffsetInput is not null ? [endMakeOffsetInput] : [],
+                        .. rewrittenRangeArg is not null ? [rewrittenRangeArg] : [],
+                    ]))
                     {
                         BoundAssignmentOperator? extraRefInitialization;
                         ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);

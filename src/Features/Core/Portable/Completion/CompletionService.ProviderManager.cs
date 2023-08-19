@@ -129,18 +129,17 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 ImmutableArray<CompletionProvider> GetImportedAndBuiltInProvidersWorker(ImmutableHashSet<string> roles)
                 {
-                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
-                    providers.AddRange(GetLazyImportedProviders()
-                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                        .Select(lz => lz.Value));
-
-#pragma warning disable 0618
-                    // We need to keep supporting built-in providers for a while longer since this is a public API.
-                    // https://github.com/dotnet/roslyn/issues/42367
-                    providers.AddRange(_service.GetBuiltInProviders());
 #pragma warning restore 0618
 
-                    return providers.ToImmutable();
+                    return
+                    [
+                        .. GetLazyImportedProviders()
+                            .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                            .Select(lz => lz.Value),
+                        // We need to keep supporting built-in providers for a while longer since this is a public API.
+                        // https://github.com/dotnet/roslyn/issues/42367
+                        .. _service.GetBuiltInProviders(),
+                    ];
                 }
             }
 

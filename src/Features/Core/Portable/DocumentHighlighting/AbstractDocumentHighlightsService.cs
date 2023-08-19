@@ -266,11 +266,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             using var _1 = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                using var _2 = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
-                foreach (var span in kvp.Value)
-                    spans.Add(span);
-
-                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndClear()));
+                list.Add(new DocumentHighlights(kvp.Key, [.. kvp.Value]));
             }
 
             return list.ToImmutableAndClear();

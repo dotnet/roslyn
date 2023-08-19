@@ -305,10 +305,7 @@ namespace Roslyn.Utilities
                 return ImmutableArray<TResult>.Empty;
             }
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
-            builder.AddRange(source.Select(selector));
-
-            return builder.ToImmutableAndFree();
+            return [.. source.Select(selector)];
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)

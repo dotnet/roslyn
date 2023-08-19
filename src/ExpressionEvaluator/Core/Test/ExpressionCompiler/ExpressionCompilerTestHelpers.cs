@@ -585,10 +585,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static ImmutableArray<MetadataReference> AddIntrinsicAssembly(this ImmutableArray<MetadataReference> references)
         {
-            var builder = ArrayBuilder<MetadataReference>.GetInstance();
-            builder.AddRange(references);
-            builder.Add(IntrinsicAssemblyReference);
-            return builder.ToImmutableAndFree();
+            return [.. references, IntrinsicAssemblyReference];
         }
 
         private static MetadataReference GetIntrinsicAssemblyReference()

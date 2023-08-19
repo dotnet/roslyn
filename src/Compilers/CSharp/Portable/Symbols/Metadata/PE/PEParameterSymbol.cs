@@ -1066,19 +1066,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
                 {
-                    var builder = ArrayBuilder<CSharpAttributeData>.GetInstance();
-
-                    if (!paramArrayAttribute.IsNil)
-                    {
-                        builder.Add(new PEAttributeData(containingPEModuleSymbol, paramArrayAttribute));
-                    }
-
-                    if (!constantAttribute.IsNil)
-                    {
-                        builder.Add(new PEAttributeData(containingPEModuleSymbol, constantAttribute));
-                    }
-
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes,
+                    [
+                        .. !paramArrayAttribute.IsNil ? [new PEAttributeData(containingPEModuleSymbol, paramArrayAttribute)] : [],
+                        .. !constantAttribute.IsNil ? [new PEAttributeData(containingPEModuleSymbol, constantAttribute)] : [],
+                    ]);
                 }
                 else
                 {

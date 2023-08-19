@@ -28,11 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static async Task<ImmutableArray<T>> ToImmutableArrayAsync<T>(this IAsyncEnumerable<T> values, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<T>.GetInstance(out var result);
-            await foreach (var value in values.WithCancellation(cancellationToken).ConfigureAwait(false))
-                result.Add(value);
-
-            return result.ToImmutable();
+            return [.. values.WithCancellation(cancellationToken).ConfigureAwait(false)];
         }
 
         /// <summary>

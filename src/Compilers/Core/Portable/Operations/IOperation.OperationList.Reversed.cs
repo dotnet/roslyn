@@ -47,12 +47,7 @@ namespace Microsoft.CodeAnalysis
                         case InvalidOperation { Children: var children }:
                             return reverseArray(children);
                         default:
-                            var builder = ArrayBuilder<IOperation>.GetInstance(Count);
-                            foreach (var child in this)
-                            {
-                                builder.Add(child);
-                            }
-                            return builder.ToImmutableAndFree();
+                            return [.. this];
                     }
 
                     static ImmutableArray<IOperation> reverseArray(ImmutableArray<IOperation> input)

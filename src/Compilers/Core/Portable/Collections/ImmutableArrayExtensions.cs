@@ -756,44 +756,30 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            return builder.ToImmutableAndFree();
+            return [.. first, .. second, .. third];
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            return builder.ToImmutableAndFree();
+            return [.. first, .. second, .. third, .. fourth];
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            builder.AddRange(fifth);
-            return builder.ToImmutableAndFree();
+            return [.. first, .. second, .. third, .. fourth, .. fifth];
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            builder.AddRange(fifth);
-            builder.AddRange(sixth);
-            return builder.ToImmutableAndFree();
+            return
+            [
+                .. first,
+                .. second,
+                .. third,
+                .. fourth,
+                .. fifth,
+                .. sixth,
+            ];
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
@@ -813,15 +799,7 @@ namespace Microsoft.CodeAnalysis
                 return self.Add(items[0]);
             }
 
-            var builder = ArrayBuilder<T>.GetInstance(self.Length + items.Count);
-            builder.AddRange(self);
-
-            foreach (var item in items)
-            {
-                builder.Add(item);
-            }
-
-            return builder.ToImmutableAndFree();
+            return [.. self, .. items];
         }
 
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)

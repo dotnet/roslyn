@@ -155,12 +155,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             UnitTestingSearchQuery query,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
-
-            await foreach (var item in GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false))
-                result.Add(item);
-
-            return result.ToImmutable();
+            return [.. GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false)];
         }
 
         private static IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(

@@ -62,22 +62,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public ImmutableArray<Parameter> ToListOfParameters()
         {
-            var list = ArrayBuilder<Parameter>.GetInstance();
-
-            if (ThisParameter != null)
-            {
-                list.Add(ThisParameter);
-            }
-
-            list.AddRange(ParametersWithoutDefaultValues);
-            list.AddRange(RemainingEditableParameters);
-
-            if (ParamsParameter != null)
-            {
-                list.Add(ParamsParameter);
-            }
-
-            return list.ToImmutableAndFree();
+            return
+            [
+                .. ThisParameter != null ? [ThisParameter] : [],
+                .. ParametersWithoutDefaultValues,
+                .. RemainingEditableParameters,
+                .. ParamsParameter != null ? [ParamsParameter] : [],
+            ];
         }
     }
 }

@@ -7023,10 +7023,11 @@ $@"class MyInt
 
             static DiagnosticDescription[] getBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
             {
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-                if (includeBadBinaryOps) builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, AsNative(leftType), AsNative(rightType)));
-                if (includeVoidError) builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
-                return builder.ToArrayAndFree();
+                return
+                [
+                    .. includeBadBinaryOps ? [Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, AsNative(leftType), AsNative(rightType))] : [],
+                    .. includeVoidError ? [Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y")] : [],
+                ];
             }
 
             static DiagnosticDescription[] getAmbiguousBinaryOpsDiagnostics(string op, string leftType, string rightType)

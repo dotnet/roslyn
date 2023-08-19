@@ -269,13 +269,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
-
-            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
-            if (state.DelegatedConstructor != null)
-                result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
-
-            return result.ToImmutable();
+            return
+            [
+                new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions),
+                .. state.DelegatedConstructor != null ? [new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions)] : [],
+            ];
         }
 
         private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)

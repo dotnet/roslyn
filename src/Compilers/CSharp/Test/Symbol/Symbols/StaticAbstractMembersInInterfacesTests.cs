@@ -10205,39 +10205,21 @@ class Test
                 }
                 else
                 {
-                    var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                    builder.AddRange(
-                        // (10,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = x && x;
+                    compilation1.VerifyDiagnostics(
+                    [
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
-                        // (15,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = y && y;
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + op + " y").WithLocation(15, 13),
-                        // (23,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = a && a;
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + op + " a").WithLocation(23, 13),
-                        // (28,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
                         Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
-                        );
-
-                    if (op == "&" ? falseIsAbstract : trueIsAbstract)
-                    {
-                        builder.Add(
+,
+                        .. op == "&" ? falseIsAbstract : trueIsAbstract ? [
                             // (33,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                             //         _ = b || c;
                             Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
-                            );
-                    }
-
-                    builder.Add(
-                        // (38,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must define operator 'true'.
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d || e).ToString());
+] : [],
                         Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(38, 98)
-                        );
-
-                    compilation1.VerifyDiagnostics(builder.ToArrayAndFree());
+,
+                    ]);
                 }
             }
         }
@@ -12266,37 +12248,24 @@ class Test
                 var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: TargetFramework.DesktopLatestExtended);
-
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                if (binaryIsAbstract)
-                {
-                    builder.Add(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation).Verify(
+                [
+                    .. binaryIsAbstract ? [
                         // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                         //     abstract static I1 operator& (I1 x, I1 y);
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
-                        );
-                }
-
-                if (trueIsAbstract)
-                {
-                    builder.Add(
+] : [],
+                    .. trueIsAbstract ? [
                         // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                         //     abstract static bool operator true (I1 x);
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(13, 35)
-                        );
-                }
-
-                if (falseIsAbstract)
-                {
-                    builder.Add(
+] : [],
+                    .. falseIsAbstract ? [
                         // (14,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                         //     abstract static bool operator false (I1 x);
                         Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(14, 35)
-                        );
-                }
-
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation).Verify(builder.ToArrayAndFree());
+] : [],
+                ]);
             }
         }
 
@@ -12573,37 +12542,24 @@ class Test
                 var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular10,
                                                      targetFramework: _supportingFramework);
-
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                if (binaryIsAbstract)
-                {
-                    builder.Add(
+                compilation3.VerifyDiagnostics(
+                [
+                    .. binaryIsAbstract ? [
                         // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static I1 operator& (I1 x, I1 y);
                         Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 32)
-                        );
-                }
-
-                if (trueIsAbstract)
-                {
-                    builder.Add(
+] : [],
+                    .. trueIsAbstract ? [
                         // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static bool operator true (I1 x);
                         Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(13, 35)
-                        );
-                }
-
-                if (falseIsAbstract)
-                {
-                    builder.Add(
+] : [],
+                    .. falseIsAbstract ? [
                         // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static bool operator false (I1 x);
                         Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 35)
-                        );
-                }
-
-                compilation3.VerifyDiagnostics(builder.ToArrayAndFree());
+] : [],
+                ]);
             }
         }
 
