@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            properties ??= ImmutableDictionary<string, string>.Empty;
+            properties ??= [];
             if (!description.IsDefault && description.Length > 0)
             {
                 properties = properties.Add(DescriptionProperty, EncodeDescription(description.ToTaggedText()));

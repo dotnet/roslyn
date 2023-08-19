@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         {
             Document = document;
             SourceSpan = sourceSpan;
-            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
+            Properties = properties ?? [];
         }
 
         public DocumentSpan(Document document, TextSpan sourceSpan)

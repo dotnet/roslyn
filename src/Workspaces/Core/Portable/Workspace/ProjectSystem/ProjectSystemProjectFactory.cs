@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// A set of documents that were added by <see cref="ProjectSystemProject.AddSourceTextContainer"/>, and aren't otherwise
         /// tracked for opening/closing.
         /// </summary>
-        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = ImmutableHashSet<DocumentId>.Empty;
+        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = [];
 
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
-        private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
+        private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = [];
 
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
-        private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = ImmutableDictionary<ProjectId, string>.Empty;
+        private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = [];
 
         /// <summary>
         /// Set by the host if the solution is currently closing; this can be used to optimize some things there.

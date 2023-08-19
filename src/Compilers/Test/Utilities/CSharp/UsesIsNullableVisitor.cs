@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     {
                         return false;
                     }
-                    inProgress = inProgress ?? ConsList<TypeParameterSymbol>.Empty;
+                    inProgress = inProgress ?? [];
                     inProgress = inProgress.Prepend(typeParameter);
                     return UsesIsNullable(typeParameter.ConstraintTypesNoUseSiteDiagnostics, inProgress) ||
                         typeParameter.ReferenceTypeConstraintIsNullable == true;

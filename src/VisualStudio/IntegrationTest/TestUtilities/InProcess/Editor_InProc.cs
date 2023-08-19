@@ -378,7 +378,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassifiedToken>();
+            return [];
         }
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)

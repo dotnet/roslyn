@@ -4793,7 +4793,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
             : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: "100");
-        verifier.VerifyDiagnostics(fromMetadata ? Array.Empty<DiagnosticDescription>() : new[] { warning1 });
+        verifier.VerifyDiagnostics(fromMetadata ? [] : new[] { warning1 });
         verifier.VerifyIL("D.Main", """
             {
               // Code size       17 (0x11)

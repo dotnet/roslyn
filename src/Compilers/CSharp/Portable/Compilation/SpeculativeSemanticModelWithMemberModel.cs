@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly int _position;
         private readonly NullableWalker.SnapshotManager? _parentSnapshotManagerOpt;
         private readonly MemberSemanticModel _memberModel;
-        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _childMemberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
+        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _childMemberModels = [];
 
         private SpeculativeSemanticModelWithMemberModel(
             SyntaxTreeSemanticModel parentSemanticModel,

@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Constant value already determined. No need to
                 // compute dependencies since the constant values
                 // of all dependencies should be evaluated as well.
-                return ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
+                return [];
             }
 
             ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     earlyDecodingWellKnownAttributes,
                     diagnostics,
                     startsCycle: false);
-                dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
+                dependencies = [];
             }
             else
             {

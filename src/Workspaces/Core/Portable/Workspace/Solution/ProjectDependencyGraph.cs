@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
         internal static readonly ProjectDependencyGraph Empty = new(
-            ImmutableHashSet<ProjectId>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            [],
+            [],
+            [],
+            [],
+            [],
             ImmutableArray<ProjectId>.Empty,
             ImmutableArray<IEnumerable<ProjectId>>.Empty);
 
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis
                   projectIds,
                   RemoveItemsWithEmptyValues(referencesMap),
                   reverseReferencesMap: null,
-                  transitiveReferencesMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-                  reverseTransitiveReferencesMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+                  transitiveReferencesMap: [],
+                  reverseTransitiveReferencesMap: [],
                   default,
                   default)
         {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            return _referencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
+            return _referencesMap.GetValueOrDefault(projectId, []);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
                 ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
             }
 
-            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
+            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, []);
         }
 
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()

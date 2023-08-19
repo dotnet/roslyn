@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class TokenMap
     {
         private readonly ConcurrentDictionary<IReferenceOrISignature, uint> _itemIdentityToToken = new();
-        private object[] _items = Array.Empty<object>();
+        private object[] _items = [];
         private int _count = 0;
 
         internal TokenMap() { }

@@ -340,7 +340,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
-                var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
+                var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? [];
                 if (disabledFlights.Any(flight => string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)))
                 {
                     disabledFlights = disabledFlights.Where(flight => !string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)).ToArray();

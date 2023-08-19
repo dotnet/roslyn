@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private const string ExternalProjectName = "ExternalDocuments";
 
         // A collection of opened documents in RDT, indexed by the moniker of the document.
-        private ImmutableDictionary<string, DocumentId> _openedDocs = ImmutableDictionary<string, DocumentId>.Empty;
+        private ImmutableDictionary<string, DocumentId> _openedDocs = [];
 
         private CollaborationSession? _session;
 
@@ -100,8 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
 
-            _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
-            _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+            _remoteWorkspaceRootPaths = [];
+            _registeredExternalPaths = [];
         }
 
         private IGlobalOptionService GlobalOptions
@@ -212,8 +212,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // Clear the remote paths on end of session.  Live share handles closing all the files.
             using (s_RemotePathsGate.DisposableWait())
             {
-                _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
-                _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+                _remoteWorkspaceRootPaths = [];
+                _registeredExternalPaths = [];
             }
         }
 

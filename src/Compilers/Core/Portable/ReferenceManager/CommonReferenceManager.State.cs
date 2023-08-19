@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
             _lazyReferencedModulesReferences = referencedModulesReferences;
             _lazyReferencedAssemblies = referencedAssemblies;
             _lazyAliasesOfReferencedAssemblies = aliasesOfReferencedAssemblies;
-            _lazyMergedAssemblyReferencesMap = mergedAssemblyReferencesMapOpt?.ToImmutableDictionary() ?? ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>>.Empty;
+            _lazyMergedAssemblyReferencesMap = mergedAssemblyReferencesMapOpt?.ToImmutableDictionary() ?? [];
             _lazyUnifiedAssemblies = unifiedAssemblies;
             _lazyHasCircularReference = containsCircularReferences.ToThreeState();
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return lazyBuilder?.ToImmutable() ?? ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty;
+            return lazyBuilder?.ToImmutable() ?? [];
         }
 
         internal static bool CompareVersionPartsSpecifiedInSource(Version version, Version candidateVersion, TAssemblySymbol candidateSymbol)

@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
             : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
-                  .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
+                  .Add(s_descriptorSimplifyNames, [])
+                  .Add(s_descriptorSimplifyMemberAccess, [])
                   .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)),
                   fadingOption: null)
         {

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SourceText.From(""),
                 options: null,
                 path: "",
-                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty,
+                diagnosticOptions: [],
                 isGeneratedCode: null,
                 cancellationToken: default);
             Assert.NotNull(tree.DiagnosticOptions);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithDiagnosticOptionsEmpty()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
-            var newTree = tree.WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty);
+            var newTree = tree.WithDiagnosticOptions([]);
             Assert.NotNull(tree.DiagnosticOptions);
             Assert.True(newTree.DiagnosticOptions.IsEmpty);
             // Default empty immutable dictionary is case sensitive

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                 AppendData(hash, pooledBuffer.Object, "\0");
             }
 
-            hash.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            hash.TransformFinalBlock([], 0, 0);
             return From(hash.Hash);
 #endif
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
 
             AppendData(hash, pooledBuffer.Object, value);
 
-            hash.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            hash.TransformFinalBlock([], 0, 0);
             return From(hash.Hash);
 #endif
         }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             }
             while (bytesRead > 0);
 
-            hash.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            hash.TransformFinalBlock([], 0, 0);
             var bytes = hash.Hash;
 
             // if bytes array is bigger than certain size, checksum
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
 
             hash.Object.TransformBlock(bytes.Object, 0, bytes.Object.Length, null, 0);
 
-            hash.Object.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            hash.Object.TransformFinalBlock([], 0, 0);
             return From(hash.Object.Hash);
         }
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
 
             hash.Object.TransformBlock(bytes.Object, 0, bytes.Object.Length, null, 0);
 
-            hash.Object.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            hash.Object.TransformFinalBlock([], 0, 0);
             return From(hash.Object.Hash);
         }
 

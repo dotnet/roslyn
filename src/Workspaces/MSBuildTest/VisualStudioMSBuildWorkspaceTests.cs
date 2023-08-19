@@ -3052,7 +3052,7 @@ class C { }";
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
+            var buildManager = new ProjectBuildManager([]);
             buildManager.StartBatchBuild();
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);

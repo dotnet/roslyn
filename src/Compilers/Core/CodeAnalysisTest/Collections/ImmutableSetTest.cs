@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void ICollectionMethods()
         {
             ICollection builder = (ICollection)this.Empty<string>();
-            string[] array = Array.Empty<string>();
+            string[] array = [];
             builder.CopyTo(array, 0);
 
             builder = (ICollection)this.Empty<string>().Add("a");
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(set);
             Assert.NotNull(values);
 
-            Assert.True(IsSame(set, set.Except(Enumerable.Empty<T>())));
+            Assert.True(IsSame(set, set.Except([])));
 
             int initialCount = set.Count;
             int removedCount = 0;
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(set);
             Assert.NotNull(values);
 
-            Assert.True(IsSame(set, set.Union(Enumerable.Empty<T>())));
+            Assert.True(IsSame(set, set.Union([])));
 
             int initialCount = set.Count;
 

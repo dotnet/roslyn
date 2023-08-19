@@ -44,13 +44,13 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
     {
         var service = await CreateReporterAsync();
         service.LogBlockStart(GetEventName(nameof(TestBlockLogging)), kind: 0, blockId: 0);
-        service.LogBlockEnd(blockId: 0, ImmutableDictionary<string, object?>.Empty, CancellationToken.None);
+        service.LogBlockEnd(blockId: 0, [], CancellationToken.None);
     }
 
     [Fact]
     public async Task TestLog()
     {
         var service = await CreateReporterAsync();
-        service.Log(GetEventName(nameof(TestLog)), ImmutableDictionary<string, object?>.Empty);
+        service.Log(GetEventName(nameof(TestLog)), []);
     }
 }

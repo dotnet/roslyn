@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
 
-        private ImmutableDictionary<string, IHistogram<int>> _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+        private ImmutableDictionary<string, IHistogram<int>> _histograms = [];
 
         /// <summary>
         /// Creates a new aggregating telemetry log
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
                 session.PostMetricEvent(histogramEvent);
             }
 
-            _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+            _histograms = [];
         }
     }
 }

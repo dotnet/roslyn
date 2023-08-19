@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // so we can surface the error later, and subscribe to file change notifications
                             // so that we'll automatically reload the file if the user can fix the issue.
                             _optionsRead = true;
-                            _specificDiagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                            _specificDiagnosticOptions = [];
                             _exception = e;
 
                             includes = ImmutableArray.Create(FilePath);

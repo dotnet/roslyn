@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var oldTagTrees = this.CachedTagTrees;
-                this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+                this.CachedTagTrees = [];
 
                 var snapshot = _subjectBuffer.CurrentSnapshot;
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);

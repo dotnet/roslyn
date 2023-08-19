@@ -91,7 +91,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
-                    Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+                    Items = [],
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
                     ResultId = null,
@@ -121,7 +121,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
         {
             Items = progressValues != null
             ? progressValues.SelectMany(report => report.Match(r => r.Items, partial => partial.Items)).ToArray()
-            : Array.Empty<SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>(),
+            : [],
         };
     }
 

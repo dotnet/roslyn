@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     container: null,
                                     baseName: name,
                                     filter: s => IsRelevantSymbolKind(s),
-                                    usedNames: Enumerable.Empty<string>(),
+                                    usedNames: [],
                                     cancellationToken: cancellationToken);
 
                                 if (seenUniqueNames.Add(uniqueName.Text))

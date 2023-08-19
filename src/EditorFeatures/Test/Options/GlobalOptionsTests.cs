@@ -134,9 +134,9 @@ public class GlobalOptionsTests
 
                         if (propertyType != property.PropertyType)
                         {
-                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", Array.Empty<Type>());
-                            value = getValueOrDefault.Invoke(value, Array.Empty<object>());
-                            defaultValue = getValueOrDefault.Invoke(defaultValue, Array.Empty<object>());
+                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", []);
+                            value = getValueOrDefault.Invoke(value, []);
+                            defaultValue = getValueOrDefault.Invoke(defaultValue, []);
                         }
 
                         Recurse(propertyType, value, defaultValue, language);

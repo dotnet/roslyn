@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initialState = uniquifyState(new
                 FrozenArrayBuilder<StateForCase>(rewrittenCases),
-                ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+                []);
 
             // Go through the worklist of DagState nodes for which we have not yet computed
             // successor states.

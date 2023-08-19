@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 if (id != 1)
                 {
-                    return ImmutableArray<FullyPopulateRaceHelper>.Empty;
+                    return [];
                 }
 
                 itemAccessCount++;

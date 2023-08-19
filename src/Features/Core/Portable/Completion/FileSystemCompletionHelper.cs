@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // virtual for testing
         protected virtual string[] GetLogicalDrives()
-            => IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>());
+            => IOUtilities.PerformIO(Directory.GetLogicalDrives, []);
 
         // virtual for testing
         protected virtual bool DirectoryExists(string fullPath)

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var testValues = new IEnumerable<TElement>?[] {
                 objectUnderTest,
                 null,
-                Enumerable.Empty<TElement>(),
+                [],
                 equivalentSequence,
                 longerSequence,
                 shorterSequence,

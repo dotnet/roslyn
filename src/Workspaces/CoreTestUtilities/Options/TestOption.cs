@@ -23,7 +23,7 @@ internal class TestOption : IOption
 internal class TestOption<T> : Option<T>
 {
     public TestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
-        : base(feature, name, defaultValue!, storageLocations ?? Array.Empty<OptionStorageLocation>())
+        : base(feature, name, defaultValue!, storageLocations ?? [])
     {
     }
 }
@@ -31,7 +31,7 @@ internal class TestOption<T> : Option<T>
 internal class PerLanguageTestOption<T> : PerLanguageOption<T>
 {
     public PerLanguageTestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
-        : base(feature, name, defaultValue!, storageLocations ?? Array.Empty<OptionStorageLocation>())
+        : base(feature, name, defaultValue!, storageLocations ?? [])
     {
     }
 }

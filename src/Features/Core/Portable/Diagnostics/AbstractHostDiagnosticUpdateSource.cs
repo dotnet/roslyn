@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
-            ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
+            [];
 
         public abstract Workspace Workspace { get; }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (!_abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
                 {
-                    diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                    diagnostics = [];
                 }
 
                 return diagnostics;

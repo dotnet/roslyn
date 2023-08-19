@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty();
-            _features = features?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
+            _features = features?.ToImmutableDictionary() ?? [];
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableDictionary<string, string> dictionary =
                 features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
-                ?? ImmutableDictionary<string, string>.Empty;
+                ?? [];
 
             return new CSharpParseOptions(this) { _features = dictionary };
         }

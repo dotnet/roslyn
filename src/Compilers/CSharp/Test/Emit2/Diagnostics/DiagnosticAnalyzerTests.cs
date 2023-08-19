@@ -1528,7 +1528,7 @@ class NonGeneratedCode{0}
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), DictionaryAnalyzerConfigOptions.Empty);
-            var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+            var analyzerOptions = new AnalyzerOptions(additionalFiles: [], analyzerConfigOptionsProvider);
 
             // Verify no compiler diagnostics.
             var trees = builder.ToImmutable();
@@ -3511,7 +3511,7 @@ internal class A
             var compWithAnalyzers = new CompilationWithAnalyzers(
                 compilation,
                 analyzers.ToImmutableArray(),
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+                new AnalyzerOptions([]));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
         }
@@ -3933,7 +3933,7 @@ public class C
                         return diagnostics;
                     }
 
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
             }
         }

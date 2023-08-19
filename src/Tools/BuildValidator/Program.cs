@@ -102,9 +102,9 @@ namespace BuildValidator
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
-            referencesPath ??= Array.Empty<string>();
+            referencesPath ??= [];
 
-            var excludes = new List<string>(exclude ?? Array.Empty<string>());
+            var excludes = new List<string>(exclude ?? []);
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 

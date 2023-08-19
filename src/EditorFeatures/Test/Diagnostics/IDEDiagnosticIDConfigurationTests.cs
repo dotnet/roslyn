@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
                         if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                         {
-                            options = ImmutableHashSet<IOption2>.Empty;
+                            options = [];
                         }
 
                         if (uniqueDiagnosticIds.Add(diagnosticId))

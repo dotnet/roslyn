@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public sealed class TestComposition
     {
-        public static readonly TestComposition Empty = new TestComposition(ImmutableHashSet<Assembly>.Empty, ImmutableHashSet<Type>.Empty, ImmutableHashSet<Type>.Empty);
+        public static readonly TestComposition Empty = new TestComposition([], [], []);
 
         private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = new Dictionary<CacheKey, IExportProviderFactory>();
 

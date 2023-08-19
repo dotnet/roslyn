@@ -194,7 +194,7 @@ static CliRootCommand CreateCommandLineParser()
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
         var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
-        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(

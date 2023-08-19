@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 this.EnsureAllConstraintsAreResolved();
-                return this.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
+                return this.GetConstraintTypes([]);
             }
         }
 
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 this.EnsureAllConstraintsAreResolved();
-                return this.GetEffectiveBaseClass(ConsList<TypeParameterSymbol>.Empty);
+                return this.GetEffectiveBaseClass([]);
             }
         }
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 this.EnsureAllConstraintsAreResolved();
-                return this.GetInterfaces(ConsList<TypeParameterSymbol>.Empty);
+                return this.GetInterfaces([]);
             }
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 this.EnsureAllConstraintsAreResolved();
-                return this.GetDeducedBaseType(ConsList<TypeParameterSymbol>.Empty);
+                return this.GetDeducedBaseType([]);
             }
         }
 
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var typeParameter in typeParameters)
             {
                 // Invoke any method that forces constraints to be resolved.
-                var unused = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
+                var unused = typeParameter.GetConstraintTypes([]);
             }
         }
 

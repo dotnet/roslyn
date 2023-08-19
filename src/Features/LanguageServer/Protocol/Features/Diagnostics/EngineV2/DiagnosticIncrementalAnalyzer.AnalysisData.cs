@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!version.HasValue)
                 {
                     // there is no saved data to return.
-                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, []);
                 }
 
                 return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());

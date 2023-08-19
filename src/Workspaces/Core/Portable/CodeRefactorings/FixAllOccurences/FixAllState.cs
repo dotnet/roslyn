@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     Contract.ThrowIfNull(Document);
                     var spanMappingService = Document.GetLanguageService<IFixAllSpanMappingService>();
                     if (spanMappingService is null)
-                        return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
+                        return [];
 
                     var spansByDocument = await spanMappingService.GetFixAllSpansAsync(
                         Document, _selectionSpan, Scope, cancellationToken).ConfigureAwait(false);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     break;
 
                 default:
-                    return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
+                    return [];
             }
 
             return documentsToFix.ToImmutableDictionary(d => d, _ => default(Optional<ImmutableArray<TextSpan>>));

@@ -78,7 +78,7 @@ public class VisualStudioSettingsOptionPersisterTests
     }
 
     private static readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> s_noFallbacks =
-        ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty;
+        [];
 
     private static readonly NamingStylePreferences s_nonDefaultNamingStylePreferences = OptionsTestHelpers.GetNonDefaultNamingStylePreference();
 
@@ -112,7 +112,7 @@ public class VisualStudioSettingsOptionPersisterTests
            optionType;
 
     private static bool IsDefaultImmutableArray(object array)
-        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, Array.Empty<object>())!;
+        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, [])!;
 
     [Fact]
     public void SettingsChangeEvent()

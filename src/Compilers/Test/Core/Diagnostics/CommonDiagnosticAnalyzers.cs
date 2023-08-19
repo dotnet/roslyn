@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity severity,
                 bool configurable)
             {
-                var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+                var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : [];
                 Descriptor = new DiagnosticDescriptor(
                     DiagnosticId,
                     "Description1",
@@ -2333,7 +2333,7 @@ namespace Microsoft.CodeAnalysis
                 _analysisFlags = analysisFlags;
                 _symbolCallbacks = new ConcurrentSet<ISymbol>();
 
-                var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
+                var customTags = configurable ? [] : new[] { WellKnownDiagnosticTags.NotConfigurable };
                 _rule = new DiagnosticDescriptor(
                     RuleId,
                     "Title1",

@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var diagnosticContext = CreateDiagnosticContext(diagnostics, oldMember, newMember, newDeclaration, newModel);
 
             syntaxMap = null;
-            var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatements(oldActiveStatements)?.ToArray() ?? Array.Empty<int>();
+            var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatements(oldActiveStatements)?.ToArray() ?? [];
 
             try
             {
@@ -1446,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // since the debugger does not support remapping active statements to a different method.
             if (hasActiveStatement && oldStateMachineInfo.IsStateMachine != newStateMachineInfo.IsStateMachine)
             {
-                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: []);
             }
 
             // report removing async as rude:
@@ -3880,14 +3880,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Adding a state machine, either for async or iterator, will require creating a new helper class
                 // so is a rude edit if the runtime doesn't support it
                 var rudeEdit = newStateMachineInfo.IsAsync ? RudeEditKind.MakeMethodAsyncNotSupportedByRuntime : RudeEditKind.MakeMethodIteratorNotSupportedByRuntime;
-                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: []);
             }
 
             if (oldStateMachineInfo.IsStateMachine && newStateMachineInfo.IsStateMachine)
             {
                 if (!capabilities.Grant(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
                 {
-                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: Array.Empty<string>());
+                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: []);
                 }
 
                 if ((InGenericContext(oldMember) ||

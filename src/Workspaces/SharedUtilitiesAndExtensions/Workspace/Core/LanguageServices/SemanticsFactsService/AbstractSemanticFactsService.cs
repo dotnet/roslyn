@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             string baseName, CancellationToken cancellationToken)
         {
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: Enumerable.Empty<string>(), cancellationToken);
+                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: [], cancellationToken);
         }
 
         public SyntaxToken GenerateUniqueLocalName(

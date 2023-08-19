@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 public static readonly ProjectAnalyzerStateSets Default = new(
                     ImmutableArray<AnalyzerReference>.Empty,
-                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>.Empty,
-                    ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty,
+                    [],
+                    [],
                     SkippedHostAnalyzersInfo.Empty);
 
                 public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;

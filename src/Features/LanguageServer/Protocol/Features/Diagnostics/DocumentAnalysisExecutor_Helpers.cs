@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isEnabledByDefault: true,
                 warningLevel: 0,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string?>.Empty,
+                properties: [],
                 projectId: projectId,
                 location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
                 description: description,

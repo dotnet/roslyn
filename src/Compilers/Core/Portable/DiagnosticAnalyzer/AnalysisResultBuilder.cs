@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (localDiagnosticsOpt == null)
             {
-                return ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>.Empty;
+                return [];
             }
 
             var builder = ImmutableDictionary.CreateBuilder<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>();
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (nonLocalDiagnosticsOpt == null)
             {
-                return ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+                return [];
             }
 
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetFieldType(ConsList<FieldSymbol>.Empty);
+                return GetFieldType([]);
             }
         }
 

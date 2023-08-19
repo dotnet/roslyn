@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
 
         private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>>.Empty;
+            = [];
 
         public MefLanguageServices(
             MefWorkspaceServices workspaceServices,

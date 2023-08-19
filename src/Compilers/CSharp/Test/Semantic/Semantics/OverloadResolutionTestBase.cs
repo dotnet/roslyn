@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // the symbols given to the comment that follows the call.
 
             var mscorlibRef = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib).GetReference(display: "mscorlib");
-            var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
+            var references = new[] { mscorlibRef }.Concat(additionalRefs ?? []);
 
             var compilation = CreateEmptyCompilation(source, references, TestOptions.ReleaseDll);
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionChange(
             TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
-            : this(textChange, textChanges, newPosition, includesCommitCharacter, ImmutableDictionary<string, string>.Empty)
+            : this(textChange, textChanges, newPosition, includesCommitCharacter, [])
         {
         }
 

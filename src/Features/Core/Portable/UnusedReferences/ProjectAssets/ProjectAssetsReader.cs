@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
                 .SelectMany(framework => framework.Dependencies!.Keys.Where(key => framework.Dependencies[key].AutoReferenced))
                 .Distinct()
                 .ToImmutableHashSet();
-            autoReferences ??= ImmutableHashSet<string>.Empty;
+            autoReferences ??= [];
 
             // Targets contain a hashmap of Libraries keyed by `{LibraryName}/{LibraryVersion}` we need to split these keys
             // and create a mapping of LibraryName to the complete library key.

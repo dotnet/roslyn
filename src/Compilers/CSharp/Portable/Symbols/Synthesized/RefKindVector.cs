@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(firstWord is not null);
 
-            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? Array.Empty<ulong>(), capacity * BitsPerRefKind);
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? [], capacity * BitsPerRefKind);
             result = new RefKindVector(bitVector);
             return true;
         }

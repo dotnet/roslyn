@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         return null;
                     }
-                    else if (GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty).IsEmpty)
+                    else if (GetDeclaredConstraintTypes([]).IsEmpty)
                     {
                         // We must have filtered out some Object constraints, lets calculate nullability from them.
                         var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty);
+                GetDeclaredConstraintTypes([]);
                 return this._lazyHasIsUnmanagedConstraint.Value();
             }
         }
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (_lazyBounds == TypeParameterBounds.Unset)
             {
-                var constraintTypes = GetDeclaredConstraintTypes(ConsList<PETypeParameterSymbol>.Empty);
+                var constraintTypes = GetDeclaredConstraintTypes([]);
                 Debug.Assert(!constraintTypes.IsDefault);
 
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();

@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Rename
             ReplacementTextValid = false;
             DocumentIds = ImmutableArray<DocumentId>.Empty;
             RelatedLocations = ImmutableArray<RelatedLocation>.Empty;
-            _documentToModifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>.Empty;
-            _documentToComplexifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>>.Empty;
-            _documentToRelatedLocationsMap = ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>>.Empty;
+            _documentToModifiedSpansMap = [];
+            _documentToComplexifiedSpansMap = [];
+            _documentToRelatedLocationsMap = [];
         }
 
         public ConflictResolution(

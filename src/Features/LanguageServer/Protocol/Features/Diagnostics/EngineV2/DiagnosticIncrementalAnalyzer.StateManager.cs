@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _workspace = workspace;
                 _analyzerInfoCache = analyzerInfoCache;
 
-                _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
+                _hostAnalyzerStateMap = [];
                 _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
             }
 

@@ -539,7 +539,7 @@ namespace Roslyn.Utilities
             if (length == 0)
             {
                 // quick check
-                return Array.Empty<T>();
+                return [];
             }
             else
             {

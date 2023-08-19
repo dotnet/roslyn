@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
-            MetadataItems = Array.Empty<ITaskItem>();
-            PropertyItems = Array.Empty<ITaskItem>();
+            MetadataItems = [];
+            PropertyItems = [];
             FileName = new TaskItem();
         }
 

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return TryGetBytesFromFileStream(fileStream, out bytes);
             }
 
-            bytes = new ArraySegment<byte>(Array.Empty<byte>());
+            bytes = new ArraySegment<byte>([]);
             return false;
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Text
             int length = (int)stream.Length;
             if (length == 0)
             {
-                bytes = new ArraySegment<byte>(Array.Empty<byte>());
+                bytes = new ArraySegment<byte>([]);
                 return true;
             }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             bytes = success
                 ? new ArraySegment<byte>(buffer)
-                : new ArraySegment<byte>(Array.Empty<byte>());
+                : new ArraySegment<byte>([]);
 
             return success;
         }

@@ -846,7 +846,7 @@ class C
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
-            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+            var options = new CompilerAnalyzerConfigOptionsProvider([], new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
 
             AnalyzerConfigOptionsProvider? passedIn = null;
             var testGenerator = new CallbackGenerator(
@@ -2212,7 +2212,7 @@ class C { }
             });
 
             replace(ref compilation, parseOptions, "_ = 0;");
-            verify(ref driver, compilation, Array.Empty<string>());
+            verify(ref driver, compilation, []);
 
             static void verify(ref GeneratorDriver driver, Compilation compilation, string[] generatedContent)
             {
@@ -2621,7 +2621,7 @@ class C { }
 
             var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
             builder.Add("test", "value1");
-            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider([], new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
 
             // run the generator once, and check it was passed the configs
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));

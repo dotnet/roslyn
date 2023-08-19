@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     // The constraint type parameter is from a different containing symbol so no cycle.
-                                    constraintsInProgress = ConsList<TypeParameterSymbol>.Empty;
+                                    constraintsInProgress = [];
                                 }
 
                                 // Use the calculated bounds from the constraint type parameter.

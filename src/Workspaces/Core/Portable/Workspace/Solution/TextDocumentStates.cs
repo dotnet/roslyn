@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         where TState : TextDocumentState
     {
         public static readonly TextDocumentStates<TState> Empty =
-            new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
+            new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
 
         private readonly ImmutableList<DocumentId> _ids;
 

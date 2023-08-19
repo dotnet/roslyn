@@ -5083,7 +5083,7 @@ public class Derived : Base
     internal override void Method() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -5104,7 +5104,7 @@ public class Derived : Base
     internal override long Property { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -5125,7 +5125,7 @@ public class Derived : Base
     internal override long this[int x] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -5146,7 +5146,7 @@ public class Derived : Base
     internal override event System.Action Event { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 43 }, //can't see internal method in other compilation
             });
         }
@@ -5535,7 +5535,7 @@ public class Derived2 : Base
     protected internal override void Method13() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5602,7 +5602,7 @@ public class Derived2 : Base
     protected internal override long Property13 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5669,7 +5669,7 @@ public class Derived2 : Base
     protected internal override long this[string w, string x, int y, string z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5736,7 +5736,7 @@ public class Derived2 : Base
     protected internal override event System.Action Event13 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, [], new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 53 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 41 },

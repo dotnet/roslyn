@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo,
-                additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
+                additionalProperties: additionalProperties ?? [],
                 candidateReason: CandidateReason);
         }
 

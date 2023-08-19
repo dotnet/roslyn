@@ -47,7 +47,7 @@ internal class TestHistoryManager
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return [];
         }
 
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
@@ -63,7 +63,7 @@ internal class TestHistoryManager
         {
             // If this is a new branch we may not have any historical data for it.
             ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return [];
         }
 
         using var testClient = connection.GetClient<TestResultsHttpClient>();
@@ -72,7 +72,7 @@ internal class TestHistoryManager
         {
             // If this is a new stage, historical runs will not have any data for it.
             ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return [];
         }
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");

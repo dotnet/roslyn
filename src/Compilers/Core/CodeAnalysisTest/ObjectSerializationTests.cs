@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             else
             {
-                children = Array.Empty<Node>();
+                children = [];
             }
 
             return new Node(name, children);

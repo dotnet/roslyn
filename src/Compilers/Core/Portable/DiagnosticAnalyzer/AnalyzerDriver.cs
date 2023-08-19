@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     walker.Visit(tree.GetRoot(cancellationToken));
                     if (!walker.HasGeneratedCodeIdentifier)
                     {
-                        return ImmutableHashSet<ISymbol>.Empty;
+                        return [];
                     }
 
                     var model = compilation.GetSemanticModel(tree);
@@ -1297,7 +1297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (options is null)
             {
-                return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+                return [];
             }
 
             ImmutableHashSet<DiagnosticAnalyzer>.Builder? suppressedAnalyzersBuilder = null;

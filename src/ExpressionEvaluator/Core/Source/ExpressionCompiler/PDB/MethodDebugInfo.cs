@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
-                return ImmutableSortedSet<int>.Empty;
+                return [];
             }
 
             methodContextReuseSpan = MethodContextReuseConstraints.CalculateReuseSpan(

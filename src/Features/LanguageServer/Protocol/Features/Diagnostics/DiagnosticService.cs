@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
             // the aggregator is created.
-            _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
+            _updateSources = [];
 
             // queue to serialize events.
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);

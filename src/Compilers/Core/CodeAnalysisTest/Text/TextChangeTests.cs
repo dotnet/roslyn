@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             else
             {
-                return ImmutableArray<char[]>.Empty;
+                return [];
             }
         }
 

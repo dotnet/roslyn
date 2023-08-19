@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
 
             DiagnosticInfo = diagnosticInfo;
             PrimaryDependency = primaryDependency;
-            SecondaryDependencies = secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty;
+            SecondaryDependencies = secondaryDependencies ?? [];
         }
 
         public bool IsEmpty => DiagnosticInfo is null && PrimaryDependency is null && SecondaryDependencies?.IsEmpty != false;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
         public void MergeDependencies(ref TAssemblySymbol? primaryDependency, ref ImmutableHashSet<TAssemblySymbol>? secondaryDependencies)
         {
-            secondaryDependencies = (secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty).Union(SecondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty);
+            secondaryDependencies = (secondaryDependencies ?? []).Union(SecondaryDependencies ?? []);
             primaryDependency ??= PrimaryDependency;
 
             if (!object.Equals(primaryDependency, PrimaryDependency) && PrimaryDependency is object)
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis
         public void Initialize(DiagnosticInfo? diagnosticInfo)
         {
             Debug.Assert(diagnosticInfo is null || diagnosticInfo.Severity == DiagnosticSeverity.Error);
-            Initialize(diagnosticInfo, dependencies: ImmutableHashSet<TAssemblySymbol>.Empty);
+            Initialize(diagnosticInfo, dependencies: []);
         }
 
         public void Initialize(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> useSiteInfo)
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableHashSet<TAssemblySymbol> GetDependenciesToCache(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
-            var secondaryDependencies = useSiteInfo.SecondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty;
+            var secondaryDependencies = useSiteInfo.SecondaryDependencies ?? [];
             Debug.Assert(primaryDependency is object || (useSiteInfo.PrimaryDependency is null && secondaryDependencies.IsEmpty));
             Debug.Assert(primaryDependency == useSiteInfo.PrimaryDependency || useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error);
             if (useSiteInfo.PrimaryDependency is object)

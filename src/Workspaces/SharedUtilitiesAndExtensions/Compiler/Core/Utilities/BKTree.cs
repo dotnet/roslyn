@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
     internal readonly partial struct BKTree
     {
         public static readonly BKTree Empty = new(
-            Array.Empty<char>(),
+            [],
             ImmutableArray<Node>.Empty,
             ImmutableArray<Edge>.Empty);
 

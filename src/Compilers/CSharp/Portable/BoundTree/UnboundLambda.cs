@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (includeCache)
             {
                 _bindingCache = ImmutableDictionary<(NamedTypeSymbol Type, bool IsExpressionLambda), BoundLambda>.Empty.WithComparers(BindingCacheComparer.Instance);
-                _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
+                _returnInferenceCache = [];
             }
 
             this.Binder = binder;

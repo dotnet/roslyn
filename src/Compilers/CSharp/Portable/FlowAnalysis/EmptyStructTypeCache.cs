@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public virtual bool IsEmptyStructType(TypeSymbol type)
         {
-            return IsEmptyStructType(type, ConsList<NamedTypeSymbol>.Empty);
+            return IsEmptyStructType(type, []);
         }
 
         /// <summary>

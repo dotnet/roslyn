@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableDictionary<OptionKey, object?> _values;
 
         internal DocumentOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, string language)
-            : this(configOptions, underlyingOptions, language, ImmutableDictionary<OptionKey, object?>.Empty)
+            : this(configOptions, underlyingOptions, language, [])
         {
         }
 

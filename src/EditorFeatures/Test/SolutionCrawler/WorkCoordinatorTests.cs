@@ -1345,7 +1345,7 @@ class C
 
             var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
 
-            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet<IIncrementalAnalyzer>.Empty, item.AsyncToken);
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: [], item.AsyncToken);
 
             Assert.True(item.SpecificAnalyzers.IsEmpty);
             Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());

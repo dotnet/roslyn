@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
-            this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+            this.AdditionalProperties = additionalProperties ?? [];
             this.CandidateReason = candidateReason;
             this.ContainingStringLocation = containingStringLocation;
         }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal ReferenceLocation(Document document, Location location, Location containingStringLocation)
             : this(document, alias: null, location, isImplicit: false,
-                   SymbolUsageInfo.None, additionalProperties: ImmutableDictionary<string, string>.Empty,
+                   SymbolUsageInfo.None, additionalProperties: [],
                    CandidateReason.None, containingStringLocation)
         {
         }

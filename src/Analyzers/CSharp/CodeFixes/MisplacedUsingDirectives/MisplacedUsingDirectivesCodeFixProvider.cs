@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
                     // Add any orphaned trivia to this node.
                     deduplicatedUsingsBuilder.Add(usingDirective.WithPrependedLeadingTrivia(orphanedTrivia));
-                    orphanedTrivia = Enumerable.Empty<SyntaxTrivia>();
+                    orphanedTrivia = [];
                 }
             }
 

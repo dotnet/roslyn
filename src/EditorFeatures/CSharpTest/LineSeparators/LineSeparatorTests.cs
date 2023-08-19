@@ -514,7 +514,7 @@ class Program
         public async Task IncompleteOperator()
         {
             // top level operators not supported in script code
-            await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", [], Options.Regular);
         }
 
         [Fact]

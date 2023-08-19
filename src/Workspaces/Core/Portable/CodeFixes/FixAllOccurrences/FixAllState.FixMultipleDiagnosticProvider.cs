@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public FixMultipleDiagnosticProvider(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsMap)
             {
                 DocumentDiagnosticsMap = diagnosticsMap;
-                ProjectDiagnosticsMap = ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
+                ProjectDiagnosticsMap = [];
             }
 
             public FixMultipleDiagnosticProvider(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsMap)
             {
                 ProjectDiagnosticsMap = diagnosticsMap;
-                DocumentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+                DocumentDiagnosticsMap = [];
             }
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)

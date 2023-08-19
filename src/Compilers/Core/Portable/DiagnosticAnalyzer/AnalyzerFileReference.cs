@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _allowNetFramework = allowNetFramework;
                 _coerceFunction = coerceFunction;
                 _lazyAllExtensions = default;
-                _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
+                _lazyExtensionsPerLanguage = [];
             }
 
             internal ImmutableArray<TExtension> GetExtensionsForAllLanguages(bool includeDuplicates)

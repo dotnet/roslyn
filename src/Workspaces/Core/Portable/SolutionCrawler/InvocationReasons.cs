@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
-        private readonly ImmutableHashSet<string> _reasons = reasons ?? ImmutableHashSet<string>.Empty;
+        private readonly ImmutableHashSet<string> _reasons = reasons ?? [];
 
         public InvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
@@ -43,6 +43,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             => _reasons.GetEnumerator();
 
         public override string ToString()
-            => string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
+            => string.Join("|", _reasons ?? []);
     }
 }

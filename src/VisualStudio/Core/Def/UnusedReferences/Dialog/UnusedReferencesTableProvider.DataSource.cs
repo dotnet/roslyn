@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             public string Identifier => Name;
             public string? DisplayName => null;
 
-            private ImmutableList<SinkManager> _managers = ImmutableList<SinkManager>.Empty;
+            private ImmutableList<SinkManager> _managers = [];
             private ImmutableArray<UnusedReferencesEntry> _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
 
             public IDisposable Subscribe(ITableDataSink sink)

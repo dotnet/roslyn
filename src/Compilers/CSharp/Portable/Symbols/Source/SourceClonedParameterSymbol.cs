@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
-            get { return ImmutableHashSet<string>.Empty; }
+            get { return []; }
         }
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 emitOptions: EmitOptions.Default,
                 outputKind: OutputKind.ConsoleApplication,
                 serializationProperties: GetDefaultModulePropertiesForSerialization(),
-                manifestResources: Enumerable.Empty<ResourceDescription>());
+                manifestResources: []);
 
             TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 

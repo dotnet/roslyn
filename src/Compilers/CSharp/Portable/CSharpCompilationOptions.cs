@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (values == null)
             {
-                values = ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                values = [];
             }
 
             if (this.SpecificDiagnosticOptions == values)

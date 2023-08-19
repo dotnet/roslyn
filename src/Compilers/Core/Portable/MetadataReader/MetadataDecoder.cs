@@ -1526,7 +1526,7 @@ tryAgain:
             }
             else if (count == 0)
             {
-                values = Array.Empty<TypedConstant>();
+                values = [];
             }
             else
             {
@@ -1684,8 +1684,8 @@ tryAgain:
         {
             try
             {
-                positionalArgs = Array.Empty<TypedConstant>();
-                namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
+                positionalArgs = [];
+                namedArgs = [];
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1749,8 +1749,8 @@ tryAgain:
             }
             catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
-                positionalArgs = Array.Empty<TypedConstant>();
-                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = [];
+                namedArgs = [];
             }
 
             return false;

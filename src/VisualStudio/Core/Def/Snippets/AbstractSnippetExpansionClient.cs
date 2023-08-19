@@ -554,7 +554,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 // This is the method name as it appears in source text
                 var methodName = dataBufferSpan.GetText();
-                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
+                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, []);
 
                 var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))

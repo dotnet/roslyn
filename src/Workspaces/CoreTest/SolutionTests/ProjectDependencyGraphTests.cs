@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
 
             solution = solution.WithProjectReferences(solution.GetProjectsByName("A").Single().Id,
-                Enumerable.Empty<ProjectReference>());
+                []);
 
             VerifyDirectReferences(solution, "A", new string[] { });
             VerifyDirectReverseReferences(solution, "B", new string[] { });

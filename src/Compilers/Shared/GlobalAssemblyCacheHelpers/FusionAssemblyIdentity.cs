@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
 
             if (IsKeyOrTokenEmpty(nameObject, PropertyId.NULL_PUBLIC_KEY_TOKEN))
             {
-                return Array.Empty<byte>();
+                return [];
             }
 
             return null;
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
 
             if (IsKeyOrTokenEmpty(nameObject, PropertyId.NULL_PUBLIC_KEY))
             {
-                return Array.Empty<byte>();
+                return [];
             }
 
             return null;

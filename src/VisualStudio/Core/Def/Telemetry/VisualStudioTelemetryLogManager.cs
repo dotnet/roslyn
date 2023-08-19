@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         private readonly TelemetrySession _session;
         private readonly ILogger _telemetryLogger;
 
-        private ImmutableDictionary<FunctionId, VisualStudioTelemetryLog> _logs = ImmutableDictionary<FunctionId, VisualStudioTelemetryLog>.Empty;
+        private ImmutableDictionary<FunctionId, VisualStudioTelemetryLog> _logs = [];
 
         public VisualStudioTelemetryLogManager(TelemetrySession session, ILogger telemetryLogger)
         {

@@ -315,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             title: message,
                             location: location,
                             customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
-                            properties: ImmutableDictionary<string, string?>.Empty,
+                            properties: [],
                             projectId: project.Id);
                     }
                 }

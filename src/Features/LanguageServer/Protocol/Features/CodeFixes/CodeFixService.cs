@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
 
-        private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
-        private ImmutableDictionary<object, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo?>.Empty;
-        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata?> _fixerToMetadataMap = ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata?>.Empty;
+        private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = [];
+        private ImmutableDictionary<object, FixAllProviderInfo?> _fixAllProviderMap = [];
+        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata?> _fixerToMetadataMap = [];
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (!_lazyWorkspaceFixersMap.TryGetValue(document.Project.Language, out var lazyFixerMap))
             {
-                fixerMap = ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty;
+                fixerMap = [];
                 return false;
             }
 

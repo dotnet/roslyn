@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     testLspServer.GetLocations("caret").Single()),
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     testLspServer.GetLocations("caret").Single()),
@@ -162,7 +162,7 @@ class {|caret:ABC|}
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                     testLspServer.GetLocations("caret").Single()),
@@ -183,7 +183,7 @@ class {|caret:ABC|}
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                     testLspServer.GetLocations("caret").Single()),
@@ -218,7 +218,7 @@ class {|caret:ABC|}
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                     testLspServer.GetLocations("caret").Single()),
@@ -287,7 +287,7 @@ class {|caret:ABC|}
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                     testLspServer.GetLocations("caret").Single()),
@@ -327,7 +327,7 @@ class BCD
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                     testLspServer.GetLocations("caret").Single()),
@@ -407,7 +407,7 @@ class BCD
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                     testLspServer.GetLocations("caret").Single()),

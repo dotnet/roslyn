@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             else
             {
                 _locals = ImmutableArray<LocalSymbol>.Empty;
-                _displayClassVariables = ImmutableDictionary<string, DisplayClassVariable>.Empty;
+                _displayClassVariables = [];
                 _localsForBindingInside = ImmutableArray<LocalSymbol>.Empty;
                 _localsForBindingOutside = ImmutableArray<LocalSymbol>.Empty;
             }
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: ImmutableArray<string>.Empty,
                                                                                          possiblyCapturingType: currentFrame.ContainingType,
-                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
+                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: []),
                                                                                          displayClassVariablesBuilder, displayClassVariableNamesInsideInOrderBuilder);
             }
 
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: parameterNamesInOrder,
                                                                                          possiblyCapturingType: currentFrame.ContainingType,
-                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
+                                                                                         possiblyCapturingTypeInstance: (Instance: null, Fields: []),
                                                                                          displayClassVariablesBuilder, displayClassVariableNamesOutsideInOrderBuilder);
             }
 
@@ -1920,7 +1920,7 @@ REPARSE:
             internal readonly ConsList<FieldSymbol> Fields;
 
             internal DisplayClassInstanceAndFields(DisplayClassInstance instance)
-                : this(instance, ConsList<FieldSymbol>.Empty)
+                : this(instance, [])
             {
                 Debug.Assert(IsDisplayClassType(instance.Type) ||
                     GeneratedNameParser.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType ||

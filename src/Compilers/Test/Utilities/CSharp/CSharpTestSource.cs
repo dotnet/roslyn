@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 case CSharpTestSource[] testSources:
                     return testSources.SelectMany(s => s.GetSyntaxTrees(parseOptions, sourceFileName)).ToArray();
                 case null:
-                    return Array.Empty<SyntaxTree>();
+                    return [];
                 default:
                     throw new Exception($"Unexpected value: {Value}");
             }

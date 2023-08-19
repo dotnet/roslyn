@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             EditSession = new EditSession(
                 this,
-                nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                nonRemappableRegions: [],
                 _editSessionTelemetry,
                 lazyActiveStatementMap: null,
                 inBreakState: false);

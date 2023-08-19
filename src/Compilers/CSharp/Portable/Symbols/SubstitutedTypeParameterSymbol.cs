@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
                 {
                     var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
+                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes([]), constraintTypes, null);
                     return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
                 }
 

@@ -185,7 +185,7 @@ namespace [||]{declaredNamespace}
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -261,7 +261,7 @@ namespace Foo
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -324,7 +324,7 @@ End Class";
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -381,7 +381,7 @@ namespace A.B.C
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -438,7 +438,7 @@ namespace A.B.C
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -509,7 +509,7 @@ namespace Foo
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -564,7 +564,7 @@ namespace Foo
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -635,7 +635,7 @@ namespace NS1
             var declaredNamespace = "Foo.Bar.Baz";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -708,7 +708,7 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -749,7 +749,7 @@ class Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -798,8 +798,8 @@ class Class2 : Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -864,8 +864,8 @@ class Class2
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -915,8 +915,8 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -972,8 +972,8 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1027,8 +1027,8 @@ class Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1094,8 +1094,8 @@ namespace NS1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1243,7 +1243,7 @@ class Class2 : Class1
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1307,7 +1307,7 @@ namespace Foo
         {
             var defaultNamespace = "A";
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1355,7 +1355,7 @@ namespace Foo
         {
             var defaultNamespace = "A";
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1405,7 +1405,7 @@ namespace A
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1475,7 +1475,7 @@ namespace NS1
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1547,7 +1547,7 @@ namespace Foo
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1593,7 +1593,7 @@ End Class";
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1674,7 +1674,7 @@ End Class";
         {
             var defaultNamespace = "A";
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1731,7 +1731,7 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1772,7 +1772,7 @@ End Class";
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1821,8 +1821,8 @@ End Namespace";
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1885,7 +1885,7 @@ namespace Foo
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1941,7 +1941,7 @@ namespace {defaultNamespace}
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1997,7 +1997,7 @@ namespace A
             var defaultNamespace = "A";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2059,7 +2059,7 @@ namespace A
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -2118,7 +2118,7 @@ End Class";
             var declaredNamespace = "Foo.Bar.Baz";
 
             var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2181,8 +2181,8 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2240,7 +2240,7 @@ namespace Foo
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -2292,7 +2292,7 @@ End Class";
             var defaultNamespace = "";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>

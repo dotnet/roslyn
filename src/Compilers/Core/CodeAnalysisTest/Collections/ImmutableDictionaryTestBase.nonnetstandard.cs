@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             Assert.NotNull(empty);
 
-            Assert.True(IsSame(empty, empty.RemoveRange(Enumerable.Empty<int>())));
-            Assert.True(IsSame(empty, empty.AddRange(Enumerable.Empty<KeyValuePair<int, int>>())));
+            Assert.True(IsSame(empty, empty.RemoveRange([])));
+            Assert.True(IsSame(empty, empty.AddRange([])));
             var list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(3, 5), new KeyValuePair<int, int>(8, 10) };
             var nonEmpty = empty.AddRange(list);
             var halfRemoved = nonEmpty.RemoveRange(Enumerable.Range(1, 5));

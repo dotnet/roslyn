@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
         {
-            _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+            _additionalGlobalProperties = additionalGlobalProperties ?? [];
             _msbuildLogger = msbuildLogger;
         }
 

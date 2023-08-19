@@ -688,7 +688,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     if (project == null)
                     {
                         // projectId no longer exist
-                        return ImmutableHashSet<string>.Empty;
+                        return [];
                     }
 
                     // set ids set

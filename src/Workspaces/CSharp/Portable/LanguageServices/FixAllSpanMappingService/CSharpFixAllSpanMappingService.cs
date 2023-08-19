@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixesAndRefactorings
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span);
             if (node.GetAncestorOrThis<GlobalStatementSyntax>() is null)
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                return [];
 
             // Compute the fix all span for the global statements to be fixed.
             // If the file has type or namespace declaration towards the end, they need to be excluded
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixesAndRefactorings
                 // C# compiler requires all global statements to preceed type and namespace declarations.
                 var globalStatements = root.ChildNodes().OfType<GlobalStatementSyntax>();
                 if (globalStatements.Any(g => firstTypeOrNamespaceDecl.SpanStart < g.SpanStart))
-                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                    return [];
 
                 fixAllSpan = new TextSpan(root.FullSpan.Start, firstTypeOrNamespaceDecl.FullSpan.Start - 1);
             }

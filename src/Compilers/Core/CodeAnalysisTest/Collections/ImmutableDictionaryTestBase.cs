@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             // no-op remove
             Assert.True(IsSame(map, map.Remove(key)));
-            Assert.True(IsSame(map, map.RemoveRange(Enumerable.Empty<TKey>())));
+            Assert.True(IsSame(map, map.RemoveRange([])));
 
             // substantial remove
             var addedMap = map.Add(key, default(TValue));

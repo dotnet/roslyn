@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 */
             }
 
-            return ImmutableHashSet<string>.Empty;
+            return [];
         }
 
         private ImmutableArray<AnalyzerReference> GetFilteredAnalyzers(IEnumerable<AnalyzerReference> analyzerReferences, Project project)

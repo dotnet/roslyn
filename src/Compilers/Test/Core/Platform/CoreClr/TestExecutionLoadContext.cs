@@ -74,11 +74,11 @@ namespace Roslyn.Test.Utilities.CoreClr
                 object[] args;
                 if (count == 0)
                 {
-                    args = Array.Empty<object>();
+                    args = [];
                 }
                 else if (count == 1)
                 {
-                    args = new[] { mainArgs ?? Array.Empty<string>() };
+                    args = new[] { mainArgs ?? [] };
                 }
                 else
                 {

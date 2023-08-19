@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             IEnumerable<SyntaxToken> leadingTokensForSelect,
             IEnumerable<SyntaxToken> trailingTokensForSelect)
             => SyntaxFactory.QueryExpression(
-                CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), Enumerable.Empty<SyntaxTrivia>()),
+                CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), []),
                 SyntaxFactory.QueryBody(
                     SyntaxFactory.List(ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))),
                     SyntaxFactory.SelectClause(selectExpression)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 receiverForInvocation: foreachStatement.Expression,
                 selectExpression: selectExpression,
                 leadingCommentsTrivia: ForEachInfo.LeadingTokens.GetTrivia(),
-                trailingCommentsTrivia: Enumerable.Empty<SyntaxTrivia>(),
+                trailingCommentsTrivia: [],
                 currentExtendedNodeIndex: ref currentExtendedNodeIndex)
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }

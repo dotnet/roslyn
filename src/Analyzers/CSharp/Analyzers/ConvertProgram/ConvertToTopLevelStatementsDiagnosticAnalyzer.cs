@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                                 methodDeclaration, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                             severity,
                             ImmutableArray.Create(methodDeclaration.GetLocation()),
-                            ImmutableDictionary<string, string?>.Empty));
+                            []));
                     }
 
                     // We found the main method, but it's not convertible, bail out as we have nothing else to do.

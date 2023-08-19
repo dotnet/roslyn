@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             UnionTestHelper(this.Empty<int>(), new[] { 1, 3, 5, 7 });
             UnionTestHelper(this.Empty<int>().Union(new[] { 2, 4, 6 }), new[] { 1, 3, 5, 7 });
-            UnionTestHelper(this.Empty<int>().Union(new[] { 1, 2, 3 }), Array.Empty<int>());
+            UnionTestHelper(this.Empty<int>().Union(new[] { 1, 2, 3 }), []);
             UnionTestHelper(this.Empty<int>().Union(new[] { 2 }), Enumerable.Range(0, 1000).ToArray());
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(set);
             Assert.NotNull(values);
 
-            Assert.True(set.Intersect(Enumerable.Empty<T>()).Count == 0);
+            Assert.True(set.Intersect([]).Count == 0);
 
             var expected = new HashSet<T>(set);
             expected.IntersectWith(values);

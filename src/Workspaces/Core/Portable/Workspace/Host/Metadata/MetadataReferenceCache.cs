@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
     {
         private ImmutableDictionary<string, ReferenceSet> _referenceSets
-            = ImmutableDictionary<string, ReferenceSet>.Empty;
+            = [];
 
         private readonly Func<string, MetadataReferenceProperties, MetadataReference> _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
 

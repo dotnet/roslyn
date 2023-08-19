@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 }
             };
 #else
-            return Array.Empty<ILogger>();
+            return [];
 #endif
         }
     }

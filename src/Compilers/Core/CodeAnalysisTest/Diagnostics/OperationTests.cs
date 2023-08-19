@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static void TestCore(Func<ImmutableArray<IOperation>, ImmutableArray<string>, ImmutableArray<RefKind>, HasDynamicArgumentsExpression> createDynamicExpression)
         {
             // Empty arguments and default argument names/refkinds
-            ImmutableArray<IOperation> arguments = ImmutableArray<IOperation>.Empty;
+            ImmutableArray<IOperation> arguments = [];
             ImmutableArray<string> argumentNames = default;
             ImmutableArray<RefKind> argumentRefKinds = default;
             HasDynamicArgumentsExpression dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             // Non-empty arguments and empty argument names/refkinds
             arguments = ImmutableArray.Create((IOperation)null);
-            argumentNames = ImmutableArray<string>.Empty;
-            argumentRefKinds = ImmutableArray<RefKind>.Empty;
+            argumentNames = [];
+            argumentRefKinds = [];
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
             Assert.Null(dynamicExpression.GetArgumentName(0));
             Assert.Equal(RefKind.None, dynamicExpression.GetArgumentRefKind(0));
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void TestGetFlowGraphInvalidArgumentWithNonNullParent()
         {
-            IOperation parent = new BlockOperation(ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+            IOperation parent = new BlockOperation([], [],
                     semanticModel: null, syntax: null, isImplicit: false);
 
             TestGetFlowGraphInvalidArgumentCore(argumentExceptionMessage: CodeAnalysisResources.NotARootOperation, parent);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IBlockOperation block = new BlockOperation(
-                    ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    [], [],
                     semanticModel: null, syntax: null, isImplicit: false);
                 block = Operation.SetParentOperation(block, parent);
                 _ = ControlFlowGraph.Create(block);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IFieldInitializerOperation initializer = new FieldInitializerOperation(
-                    ImmutableArray<IFieldSymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    [], [],
                     value: null, semanticModel: null,
                     syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IPropertyInitializerOperation initializer = new PropertyInitializerOperation(
-                    ImmutableArray<IPropertySymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    [], [],
                     value: null, semanticModel: null,
                     syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IParameterInitializerOperation initializer = new ParameterInitializerOperation(
-                                    parameter: null, locals: ImmutableArray<ILocalSymbol>.Empty,
+                                    parameter: null, locals: [],
                     value: null, semanticModel: null,
                     syntax: null, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IConstructorBodyOperation constructorBody = new ConstructorBodyOperation(
-                                    ImmutableArray<ILocalSymbol>.Empty,
+                                    [],
                                     initializer: null,
                                     blockBody: null,
                                     expressionBody: null,

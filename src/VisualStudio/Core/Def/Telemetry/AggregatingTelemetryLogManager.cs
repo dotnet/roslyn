@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly TelemetrySession _session;
         private readonly AsyncBatchingWorkQueue _postTelemetryQueue;
 
-        private ImmutableDictionary<FunctionId, AggregatingTelemetryLog> _aggregatingLogs = ImmutableDictionary<FunctionId, AggregatingTelemetryLog>.Empty;
+        private ImmutableDictionary<FunctionId, AggregatingTelemetryLog> _aggregatingLogs = [];
 
         public AggregatingTelemetryLogManager(TelemetrySession session, IAsynchronousOperationListener asyncListener)
         {

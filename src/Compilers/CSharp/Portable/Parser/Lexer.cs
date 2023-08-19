@@ -3018,7 +3018,7 @@ top:
 
             if (error != null)
             {
-                this.AddError(error.Value, errorArgs ?? Array.Empty<object>());
+                this.AddError(error.Value, errorArgs ?? []);
             }
         }
 

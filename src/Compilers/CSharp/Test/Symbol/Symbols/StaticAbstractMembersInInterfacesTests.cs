@@ -6376,7 +6376,7 @@ class C8
             }
             else
             {
-                expected = Array.Empty<DiagnosticDescription>();
+                expected = [];
             }
 
             compilation2.VerifyDiagnostics(expected);

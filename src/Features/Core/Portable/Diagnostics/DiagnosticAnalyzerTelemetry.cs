@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()
-            => _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
+            => _analyzerInfoMap = [];
 
         public void UpdateAnalyzerActionsTelemetry(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             lock (_guard)
             {
                 map = _analyzerInfoMap;
-                _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
+                _analyzerInfoMap = [];
             }
 
             foreach (var (analyzerType, analyzerInfo) in map)

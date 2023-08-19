@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Analyzers()
         {
             var array = GetAnalyzerValues(
-                CreateCompilation(Array.Empty<SyntaxTree>()),
+                CreateCompilation([]),
                 new Analyzer(),
                 new Analyzer2());
 
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Generators()
         {
             var array = GetGeneratorValues(
-                CreateCompilation(Array.Empty<SyntaxTree>()),
+                CreateCompilation([]),
                 new Generator(),
                 new Generator2());
 

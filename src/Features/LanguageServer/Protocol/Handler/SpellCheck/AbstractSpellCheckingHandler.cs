@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             if (spans.Length == 0)
             {
-                yield return CreateReport(textDocumentIdentifier, Array.Empty<int>(), resultId);
+                yield return CreateReport(textDocumentIdentifier, [], resultId);
                 yield break;
             }
 

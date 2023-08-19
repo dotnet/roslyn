@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 expectedOutput,
                                 trimOutput,
                                 expectedReturnCode,
-                                args ?? Array.Empty<string>(),
+                                args ?? [],
                                 assemblyValidator,
                                 symbolValidator,
                                 emitOptions,

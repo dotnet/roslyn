@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
+                    visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? []);
                     return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                 }
             }

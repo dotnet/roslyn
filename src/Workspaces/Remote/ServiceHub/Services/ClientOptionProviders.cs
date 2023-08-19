@@ -24,7 +24,7 @@ internal sealed class RemoteOptionsProviderCache<TOptions>
     private readonly Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> _callback;
     private readonly RemoteServiceCallbackId _callbackId;
 
-    private ImmutableDictionary<string, AsyncLazy<TOptions>> _cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<TOptions>> _cache = [];
 
     public RemoteOptionsProviderCache(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<TOptions>> callback, RemoteServiceCallbackId callbackId)
     {

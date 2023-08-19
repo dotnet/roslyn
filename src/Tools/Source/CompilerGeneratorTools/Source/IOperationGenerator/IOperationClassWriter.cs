@@ -217,13 +217,13 @@ namespace IOperationGenerator
                 if (node.OperationKind is { } kind)
                 {
                     if (kind.Include is false)
-                        return Enumerable.Empty<string>();
+                        return [];
 
                     return node.OperationKind.Entries.Select(entry => entry.Name);
                 }
 
                 if (node.IsAbstract || node.IsInternal)
-                    return Enumerable.Empty<string>();
+                    return [];
 
                 return new[] { GetSubName(node.Name) };
             }
@@ -290,7 +290,7 @@ namespace IOperationGenerator
         {
             if (prop.IsInternal || prop.IsOverride)
                 return;
-            WriteComments(prop.Comments, operationKinds: Enumerable.Empty<string>(), writeReservedRemark: false);
+            WriteComments(prop.Comments, operationKinds: [], writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
             WriteLine($"{modifiers}{prop.Type} {prop.Name} {{ get; }}");
         }

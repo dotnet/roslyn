@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 Uri = r.identifier.Uri,
                 Value = r.resultId
-            }).ToArray() ?? Array.Empty<PreviousResultId>();
+            }).ToArray() ?? [];
             return new WorkspaceDiagnosticParams
             {
                 PreviousResultId = previousResultsLsp,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, true);
                 },
                 ServerKind = serverKind,
-                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()
+                SourceGeneratedMarkups = sourceGeneratedMarkups ?? []
             };
         }
 

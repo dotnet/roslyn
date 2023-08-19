@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return completionProvider.TriggerCharacters;
             }
 
-            return ImmutableHashSet<char>.Empty;
+            return [];
         }
 
         private static bool IsEmbeddedLanguageProvider(Lazy<ILanguageService, LanguageServiceMetadata> lazyLanguageService, string languageName, string? embeddedLanguageServiceType)

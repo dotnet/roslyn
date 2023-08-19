@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class DeclarationTable
     {
         public static readonly DeclarationTable Empty = new DeclarationTable(
-            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>>.Empty,
+            allOlderRootDeclarations: [],
             latestLazyRootDeclaration: null,
             cache: null);
 

@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (str.Length == 0)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             var result = ArrayBuilder<string>.GetInstance();

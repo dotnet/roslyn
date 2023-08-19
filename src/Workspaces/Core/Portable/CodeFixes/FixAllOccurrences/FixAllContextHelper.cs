@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (allDiagnostics.IsEmpty)
             {
-                return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+                return [];
             }
 
             return await GetDocumentDiagnosticsToFixAsync(

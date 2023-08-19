@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
         private static readonly ImmutableDictionary<string, string?> s_takeCondition
-            = ImmutableDictionary<string, string?>.Empty;
+            = [];
         private static readonly ImmutableDictionary<string, string?> s_negateCondition
             = s_takeCondition.Add(Negate, Negate);
         private static readonly ImmutableDictionary<string, string?> s_takeConditionOrWhenFalse

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    map = SmallDictionary<SyntaxNode, Binder>.Empty;
+                    map = [];
                 }
             }
 

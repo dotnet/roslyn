@@ -1737,7 +1737,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1797,7 +1797,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1913,7 +1913,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1973,7 +1973,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]

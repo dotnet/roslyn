@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         /// Solutions containing projects that use older compiler toolset that does not provide a checksum algorithm.
         /// Used only for EnC issue diagnostics.
         /// </summary>
-        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = ImmutableHashSet<string>.Empty;
+        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

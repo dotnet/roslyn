@@ -124,7 +124,7 @@ namespace B
                 warningLevel: 1,
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: [],
                 location: new DiagnosticDataLocation(new("originalFile1", new(startLine, startColumn), new(endLine, endColumn)), document.Id),
                 language: document.Project.Language);
 
@@ -157,7 +157,7 @@ namespace B
                 warningLevel: 1,
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: [],
                 location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
                 additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
@@ -181,7 +181,7 @@ namespace B
     }
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(files: Array.Empty<string>(), sourceGeneratedFiles: new[] { content }, composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = TestWorkspace.CreateCSharp(files: [], sourceGeneratedFiles: new[] { content }, composition: EditorTestCompositions.EditorFeatures);
             var hostDocument = workspace.Documents.Single();
             Assert.True(hostDocument.IsSourceGenerated);
 
@@ -203,7 +203,7 @@ namespace B
                 warningLevel: 1,
                 projectId: documentId.ProjectId,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: [],
                 location: location,
                 additionalLocations: ImmutableArray<DiagnosticDataLocation>.Empty,
                 language: project.Language);
@@ -251,7 +251,7 @@ namespace B
                 warningLevel: 1,
                 projectId: firstDocument.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: [],
                 location: new DiagnosticDataLocation(new FileLinePositionSpan(firstDocument.FilePath, span: default), firstDocument.Id),
                 additionalLocations: ImmutableArray.Create(additionalLocation),
                 language: firstDocument.Project.Language);

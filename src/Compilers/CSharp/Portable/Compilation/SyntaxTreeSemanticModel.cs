@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// used to store models for attributes and default parameter values, which are
         /// not members.
         /// </summary>
-        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _memberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
+        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _memberModels = [];
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;

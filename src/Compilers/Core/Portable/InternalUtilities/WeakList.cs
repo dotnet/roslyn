@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
 
         public WeakList()
         {
-            _items = Array.Empty<WeakReference<T>>();
+            _items = [];
         }
 
         private void Resize()
@@ -186,7 +186,7 @@ namespace Roslyn.Utilities
 
             if (alive == 0)
             {
-                _items = Array.Empty<WeakReference<T>>();
+                _items = [];
                 _size = 0;
             }
             else if (alive < _items.Length / 4)

@@ -5850,7 +5850,7 @@ public class C
 ";
             var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
-            var symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
+            var symReader = new MockSymUnmanagedReader([]);
             var module = ModuleInstance.Create(peImage, symReader);
 
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 syntaxTrees: new[] { VisualBasicSyntaxTree.ParseText(@"// this is a comment", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)) },
                 options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
             var compilation = CreateCompilation(
-                Array.Empty<SyntaxTree>(),
+                [],
                 references: new[] { utilCompilation.ToMetadataReference() });
             var references = GetReferenceValues(compilation);
             var compilationValue = references.Values<JObject>().Single()!;

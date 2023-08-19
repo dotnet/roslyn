@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         }
                     }
 
-                    return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
+                    return [];
                 }
             }
         }

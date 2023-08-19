@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
                 long length = stream.Length - stream.Position;
                 if (length == 0)
                 {
-                    return Array.Empty<byte>();
+                    return [];
                 }
 
                 var buffer = new byte[length];

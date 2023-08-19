@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private static IEnumerable<IList<int>> GenerateAllSetCombinations(int sum, int numSubsets)
         {
             Assert.True(numSubsets > 0);
-            return GenerateAll(sum, 0, ImmutableList<int>.Empty);
+            return GenerateAll(sum, 0, []);
 
             IEnumerable<ImmutableList<int>> GenerateAll(
                 int remainingSum,

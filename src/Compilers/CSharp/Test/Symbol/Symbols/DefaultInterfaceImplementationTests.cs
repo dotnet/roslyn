@@ -9241,7 +9241,7 @@ class Test1 : I1
                                                   Accessibility accessibility,
                                                   params DiagnosticDescription[] expectedIn9)
         {
-            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemblyBoundaries: expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemblyBoundaries: expectedIn9, expectedAcrossAssemblyBoundaries: []);
         }
 
         private void ValidateMethodModifiers_10_02(string source1, string source2,
@@ -12300,7 +12300,7 @@ class Test1 : Test2, I1
                         //     public void M1() 
                         Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M1").WithArguments("Test1.M1()", "I1.M1()", "Test1", "static abstract members in interfaces", "9.0", "11.0").WithLocation(5, 17)
                         ),
-                expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>(),
+                expectedAcrossAssemblyBoundaries: [],
                 isStatic: isStatic
                 );
         }
@@ -14716,7 +14716,7 @@ class Test1 : I1
                                                   DiagnosticDescription[] expectedIn9,
                                                   params DiagnosticDescription[] expectedNoImplementation)
         {
-            ValidatePropertyModifiers_11_01(source1, source2, accessibility, expectedIn9, expectedNoImplementation, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_01(source1, source2, accessibility, expectedIn9, expectedNoImplementation, expectedAcrossAssemblyBoundaries: []);
         }
 
         private void ValidatePropertyModifiers_11_01(string source1, string source2, Accessibility accessibility,
@@ -15760,7 +15760,7 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_11(string source1, string source2,
                                                      params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_11_11(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_11(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: []);
         }
 
         private void ValidatePropertyModifiers_11_11(string source1, string source2,
@@ -18264,7 +18264,7 @@ class Test1 : I1
 
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_23(source1, source2, getAccess, setAccess, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_23(source1, source2, getAccess, setAccess, expectedIn9, expectedAcrossAssemblyBoundaries: []);
         }
 
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, DiagnosticDescription[] expectedIn9, params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
@@ -28225,7 +28225,7 @@ class Test1 : I1
 
         private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expectedIn9, params DiagnosticDescription[] expectedNoImplementation)
         {
-            ValidateEventModifiers_11(source1, source2, accessibility, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>(), expectedNoImplementation);
+            ValidateEventModifiers_11(source1, source2, accessibility, expectedIn9, expectedAcrossAssemblyBoundaries: [], expectedNoImplementation);
         }
 
         private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expectedIn9, DiagnosticDescription[] expectedAcrossAssemblyBoundaries, params DiagnosticDescription[] expectedNoImplementation)

@@ -527,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             if (builder.Count == 0)
             {
-                return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+                return [];
             }
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
@@ -573,7 +573,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                         {
                             // Ignore stale diagnostics in error list.
-                            latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                            latestDocumentDiagnostics = [];
                         }
 
                         // Filter out stale diagnostics in error list.
@@ -619,7 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             if (builder.Count == 0)
             {
-                return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
+                return [];
             }
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();

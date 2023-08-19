@@ -862,13 +862,13 @@ class A
             string[] sourceGeneratedFiles;
             if (isSourceGenerated)
             {
-                files = Array.Empty<string>();
+                files = [];
                 sourceGeneratedFiles = new[] { code };
             }
             else
             {
                 files = new[] { code };
-                sourceGeneratedFiles = Array.Empty<string>();
+                sourceGeneratedFiles = [];
             }
 
             var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         public void CreateZero()
         {
             Verify(OneOrMany.Create(ImmutableArray<int>.Empty));
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty));
+            Verify(new OneOrMany<int>([]));
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(3), 3);
             Verify(new OneOrMany<int>(1), 1);
             Verify(new OneOrMany<int>(ImmutableArray.Create(2)), 2);
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(3), 3);
+            Verify(new OneOrMany<int>([]).Add(3), 3);
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
             Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3)).Add(4), 1, 2, 3, 4);
             Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3, 4)), 1, 2, 3, 4);
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
+            Verify(new OneOrMany<int>([]).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
             Verify(OneOrMany.Create(ImmutableArray.Create(1)).Add(4), 1, 4);
             Verify(OneOrMany.Create(ImmutableArray.Create(1)), 1);
 

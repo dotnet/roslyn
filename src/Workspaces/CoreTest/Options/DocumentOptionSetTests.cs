@@ -70,7 +70,7 @@ public sealed class DocumentOptionSetTests
     [Fact]
     public void InternalPublicValueMapping()
     {
-        var underlyingSet = new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty);
+        var underlyingSet = new TestOptionSet([]);
         var set = new DocumentOptionSet(configOptions: null, underlyingSet, LanguageNames.CSharp);
 
         var newValue = new CodeStyleOption<bool>(true, NotificationOption.Error);
@@ -87,7 +87,7 @@ public sealed class DocumentOptionSetTests
     [Fact]
     public void InternalStorageMapping_NewLineBeforeOpenBrace()
     {
-        var underlyingSet = new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty);
+        var underlyingSet = new TestOptionSet([]);
         var set = new DocumentOptionSet(configOptions: null, underlyingSet, LanguageNames.CSharp);
 
         var option = CSharpFormattingOptions2.NewLineBeforeOpenBrace;
@@ -148,7 +148,7 @@ public sealed class DocumentOptionSetTests
     [Fact]
     public void InternalStorageMapping_SpaceBetweenParentheses()
     {
-        var underlyingSet = new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty);
+        var underlyingSet = new TestOptionSet([]);
         var set = new DocumentOptionSet(configOptions: null, underlyingSet, LanguageNames.CSharp);
 
         var option = CSharpFormattingOptions2.SpaceBetweenParentheses;

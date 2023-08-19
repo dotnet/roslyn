@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _propertyNamingRule = propertyNamingRule;
                 _parameterNamingRule = parameterNamingRule;
 
-                ParameterToNewFieldMap = ImmutableDictionary<string, string>.Empty;
-                ParameterToNewPropertyMap = ImmutableDictionary<string, string>.Empty;
+                ParameterToNewFieldMap = [];
+                ParameterToNewPropertyMap = [];
                 _fallbackOptions = fallbackOptions;
             }
 

@@ -139,7 +139,7 @@ S5();
                 CreateInfo(1, 0, 1, 4, "x")
             );
 
-            var map = ActiveStatementsMap.Create(debugInfos, remapping: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+            var map = ActiveStatementsMap.Create(debugInfos, remapping: []);
 
             var oldSpans = await map.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None);
 
@@ -189,7 +189,7 @@ S1();
                 CreateInfo(7, 9, 7, 10, "a.cs")
             );
 
-            var map = ActiveStatementsMap.Create(debugInfos, remapping: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+            var map = ActiveStatementsMap.Create(debugInfos, remapping: []);
 
             var oldSpans = await map.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None);
 

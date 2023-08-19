@@ -40,14 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             GlobalOptions = globalOptions;
 
-            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
-            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _globalValues = [];
+            _updatedValues = [];
         }
 
         public void Clear()
         {
-            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
-            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _globalValues = [];
+            _updatedValues = [];
         }
 
         public ImmutableArray<(OptionKey2 key, object? oldValue, object? newValue)> GetChangedOptions()

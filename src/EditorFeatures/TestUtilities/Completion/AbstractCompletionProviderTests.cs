@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual CompletionService GetCompletionService(Project project)
         {
             var completionService = project.Services.GetRequiredService<CompletionService>();
-            var completionProviders = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty);
+            var completionProviders = completionService.GetTestAccessor().GetImportedAndBuiltInProviders([]);
             var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 

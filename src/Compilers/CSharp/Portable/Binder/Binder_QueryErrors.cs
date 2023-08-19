@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // CS1979: Query expressions over source type 'dynamic' or with a join sequence of type 'dynamic' are not allowed
                 diagnostics.Add(
-                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, Array.Empty<object>(), symbols),
+                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, [], symbols),
                     new SourceLocation(queryClause));
             }
             else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteInfo))

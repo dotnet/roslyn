@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph? glyph = null,
             bool isComplexTextEdit = false)
         {
-            var props = properties ?? ImmutableDictionary<string, string>.Empty;
+            var props = properties ?? [];
 
             if (insertionText != null)
             {

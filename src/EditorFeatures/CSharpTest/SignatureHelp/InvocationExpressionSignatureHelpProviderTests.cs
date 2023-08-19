@@ -1046,7 +1046,7 @@ class C
         Goo(/*,$$*/);
     }
 }";
-            await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
+            await TestAsync(markup, [], usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -1061,7 +1061,7 @@ class C
             );
     }
 }";
-            await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
+            await TestAsync(markup, [], usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -1075,7 +1075,7 @@ class C
         Goo("",$$"");
     }
 }";
-            await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
+            await TestAsync(markup, [], usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]

@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     SyntaxFactory.Identifier("_"),
                     CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.AnonymousObjectCreationExpression(),
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     identifiers.Single(),
                     CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.IdentifierName(identifiers.Single()),
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }
@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     declaration,
                     CreateQueryExpressionOrLinqInvocation(
                         tupleForSelectExpression,
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilationOptions,
                 parseOptions,
                 files,
-                sourceGeneratedFiles: Array.Empty<string>(),
+                sourceGeneratedFiles: [],
                 metadataReferences,
                 extension,
                 commonReferences);
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 code = markupCode;
                 cursorPosition = null;
-                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+                spans = [];
             }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);

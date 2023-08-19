@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             _rudeEditKind = rudeEditKind;
             _squiggle = squiggle;
             _firstLine = firstLine;
-            _arguments = arguments ?? Array.Empty<string>();
+            _arguments = arguments ?? [];
         }
 
         public string? FirstLine => _firstLine;

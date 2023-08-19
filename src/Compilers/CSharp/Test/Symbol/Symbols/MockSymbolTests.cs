@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             CSharpCompilation compilation = CSharpCompilation.Create("Test");
 
-            NamedTypeSymbol elementType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
+            NamedTypeSymbol elementType = new MockNamedTypeSymbol("TestClass", []);   // this can be any type.
 
             ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 1);
             Assert.Equal(1, ats1.Rank);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestPointerType()
         {
-            NamedTypeSymbol pointedAtType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
+            NamedTypeSymbol pointedAtType = new MockNamedTypeSymbol("TestClass", []);   // this can be any type.
 
             PointerTypeSymbol pts1 = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
             Assert.Same(pointedAtType, pts1.PointedAtType);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblyIdentity missingAssemblyId = new AssemblyIdentity("goo");
             AssemblySymbol assem = new MockAssemblySymbol("banana");
             ModuleSymbol module = new MissingModuleSymbol(assem, ordinal: -1);
-            NamedTypeSymbol container = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>(), TypeKind.Class);
+            NamedTypeSymbol container = new MockNamedTypeSymbol("TestClass", [], TypeKind.Class);
 
             var mms1 = new MissingMetadataTypeSymbol.TopLevel(new MissingAssemblySymbol(missingAssemblyId).Modules[0], "Elvis", "Lives", 2, true);
             Assert.Equal(2, mms1.Arity);

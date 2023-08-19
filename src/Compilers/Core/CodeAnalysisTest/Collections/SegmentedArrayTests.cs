@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.Throws<NullReferenceException>(() => data.Clone());
             Assert.Throws<NullReferenceException>(() => data.CopyTo(Array.Empty<IntPtr>(), 0));
-            Assert.Throws<NullReferenceException>(() => ((ICollection<IntPtr>)data).CopyTo(Array.Empty<IntPtr>(), 0));
+            Assert.Throws<NullReferenceException>(() => ((ICollection<IntPtr>)data).CopyTo([], 0));
 
             var enumerator1 = data.GetEnumerator();
             Assert.Throws<NullReferenceException>(() => enumerator1.MoveNext());

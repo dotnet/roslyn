@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return new DiagnosticAnalysisResult(
                 projectId,
                 version,
-                documentIds: ImmutableHashSet<DocumentId>.Empty,
-                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                documentIds: [],
+                syntaxLocals: [],
+                semanticLocals: [],
+                nonLocals: [],
                 others: ImmutableArray<DiagnosticData>.Empty,
                 fromBuild: false);
         }
@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 project.Id,
                 version,
                 documentIds: documentIds.ToImmutable(),
-                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                syntaxLocals: [],
                 semanticLocals: diagnosticsWithDocumentId.ToImmutableMultiDictionaryAndFree(),
-                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                nonLocals: [],
                 others: diagnosticsWithoutDocumentId.ToImmutableAndFree(),
                 fromBuild: true);
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public bool IsDefault => DocumentIds == null;
 
         // make sure we don't return null
-        public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? ImmutableHashSet<DocumentId>.Empty;
+        public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? [];
 
         private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
             => kind switch
@@ -290,8 +290,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                ProjectId,
                Version,
                _syntaxLocals,
-               semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-               nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+               semanticLocals: [],
+               nonLocals: [],
                others: ImmutableArray<DiagnosticData>.Empty,
                documentIds: null,
                fromBuild: false);
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var allEmpty = syntaxLocals ?? semanticLocals ?? nonLocals;
             if (allEmpty == null)
             {
-                return ImmutableHashSet<DocumentId>.Empty;
+                return [];
             }
 
             var documents = SpecializedCollections.EmptyEnumerable<DocumentId>();

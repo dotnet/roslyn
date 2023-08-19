@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal readonly struct SkippedHostAnalyzersInfo
     {
         public static readonly SkippedHostAnalyzersInfo Empty = new(
-            ImmutableHashSet<DiagnosticAnalyzer>.Empty,
-            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>>.Empty);
+            [],
+            []);
 
         /// <summary>
         /// Analyzers supplied by the host (IDE), which can be completely skipped for the corresponding project

@@ -28,7 +28,7 @@ public class FileModifierParsingTests : ParsingTests
     private void UsingNode(string text, CSharpParseOptions? options = null, DiagnosticDescription[]? expectedParsingDiagnostics = null, DiagnosticDescription[]? expectedBindingDiagnostics = null)
     {
         options ??= TestOptions.RegularPreview;
-        expectedParsingDiagnostics ??= Array.Empty<DiagnosticDescription>();
+        expectedParsingDiagnostics ??= [];
         expectedBindingDiagnostics ??= expectedParsingDiagnostics;
 
         var tree = UsingTree(text, options, expectedParsingDiagnostics);

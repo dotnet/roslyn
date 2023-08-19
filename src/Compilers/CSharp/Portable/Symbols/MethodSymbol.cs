@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (value.Values.IsDefaultOrEmpty)
             {
-                callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                callingConventionTypes = [];
                 return (true, callingConventionTypes);
             }
 

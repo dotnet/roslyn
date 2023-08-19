@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
         /// name of the <see cref="IAssemblySymbol"/> defined by it.
         /// </summary>
-        private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+        private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = [];
 
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)

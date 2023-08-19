@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         // map of type name to workspace service
         private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
+            = [];
 
         // accumulated cache for language services
         private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
-            = ImmutableDictionary<string, MefLanguageServices>.Empty;
+            = [];
 
         public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
         {

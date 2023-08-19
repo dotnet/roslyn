@@ -696,7 +696,7 @@ namespace BoundTreeGenerator
                 return from n in ((Node)node).Fields where !n.Override select n;
             if (node is AbstractNode)
                 return from n in ((AbstractNode)node).Fields where !n.Override select n;
-            return Enumerable.Empty<Field>();
+            return [];
         }
 
         private static IEnumerable<Field> FieldsIncludingOverrides(TreeType node)
@@ -705,7 +705,7 @@ namespace BoundTreeGenerator
                 return ((Node)node).Fields;
             if (node is AbstractNode)
                 return ((AbstractNode)node).Fields;
-            return Enumerable.Empty<Field>();
+            return [];
         }
 
         private Field GetMostDerivedField(Node node, string fieldName)
@@ -746,7 +746,7 @@ namespace BoundTreeGenerator
         private IEnumerable<Field> AllFields(TreeType node)
         {
             if (node == null)
-                return Enumerable.Empty<Field>();
+                return [];
             return from t in TypeAndBaseTypes(node)
                    from f in Fields(t)
                    select f;

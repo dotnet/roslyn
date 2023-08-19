@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
-            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            Properties = properties ?? [];
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
             IsComplexTextEdit = isComplexTextEdit;

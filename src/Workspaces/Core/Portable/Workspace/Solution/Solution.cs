@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution(SolutionState state)
         {
-            _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
+            _projectIdToProjectMap = [];
             _state = state;
         }
 

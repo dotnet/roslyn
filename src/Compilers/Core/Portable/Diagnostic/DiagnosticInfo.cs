@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         private readonly DiagnosticSeverity _effectiveSeverity;
         private readonly object[] _arguments;
 
-        private static ImmutableDictionary<int, DiagnosticDescriptor> s_errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
+        private static ImmutableDictionary<int, DiagnosticDescriptor> s_errorCodeToDescriptorMap = [];
 
         // Mark compiler errors as non-configurable to ensure they can never be suppressed or filtered.
         private static readonly ImmutableArray<string> s_compilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
-            : this(messageProvider, errorCode, Array.Empty<object>())
+            : this(messageProvider, errorCode, [])
         {
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                _arguments = Array.Empty<object>();
+                _arguments = [];
             }
         }
 

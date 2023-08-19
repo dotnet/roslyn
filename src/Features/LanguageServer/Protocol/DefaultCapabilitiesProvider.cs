@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             capabilities.FoldingRangeProvider = true;
-            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = Array.Empty<string>() };
+            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.Incremental,

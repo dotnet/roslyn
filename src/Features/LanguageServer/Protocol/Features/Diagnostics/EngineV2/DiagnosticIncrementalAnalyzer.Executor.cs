@@ -524,9 +524,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 DiagnosticAnalysisResult.Create(
                     project,
                     version,
-                    syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? [],
+                    semanticLocalMap: [],
+                    nonLocalMap: [],
                     others: ImmutableArray<DiagnosticData>.Empty,
                     documentIds: null));
 

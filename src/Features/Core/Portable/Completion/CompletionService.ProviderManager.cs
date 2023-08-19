@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
             {
-                roles ??= ImmutableHashSet<string>.Empty;
+                roles ??= [];
 
                 lock (_gate)
                 {

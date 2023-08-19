@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     tokens: SpecializedCollections.SingletonCollection(nextToken),
                     computeReplacementToken: (_, _) =>
                         SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
-                    trivia: Enumerable.Empty<SyntaxTrivia>(),
+                    trivia: [],
                     computeReplacementTrivia: (_, syntaxTrivia) => syntaxTrivia);
                 return (replacementContainerNode, objectCreationNodeContainer);
             }

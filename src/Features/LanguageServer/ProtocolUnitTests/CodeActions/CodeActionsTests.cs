@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expected = CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     CSharpAnalyzersResources.Use_implicit_type,
                     caretLocation,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expected = CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),

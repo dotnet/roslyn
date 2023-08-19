@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var compilation = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel);
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
-            var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
+            var analyzerOptions = new AnalyzerOptions([]);
             var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
 
             var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;

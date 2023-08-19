@@ -107,8 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// </summary>
             private bool _currentlyGroupingByDefinition;
 
-            protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
-            protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+            protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = [];
+            protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = [];
 
             private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }

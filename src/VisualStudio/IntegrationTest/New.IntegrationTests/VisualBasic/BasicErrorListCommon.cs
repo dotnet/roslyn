@@ -100,7 +100,7 @@ End Namespace
             await TestServices.Editor.PlaceCaretAsync("FF = 0 ' Comment", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            expectedContents = Array.Empty<string>();
+            expectedContents = [];
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(

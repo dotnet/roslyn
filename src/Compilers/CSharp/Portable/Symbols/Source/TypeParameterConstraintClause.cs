@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                isValueType(typeParameter, constraintClauses, isValueTypeMap, ConsList<TypeParameterSymbol>.Empty);
+                isValueType(typeParameter, constraintClauses, isValueTypeMap, []);
             }
 
             return isValueTypeMap;
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                isReferenceTypeFromConstraintTypes(typeParameter, constraintClauses, isReferenceTypeFromConstraintTypesMap, ConsList<TypeParameterSymbol>.Empty);
+                isReferenceTypeFromConstraintTypes(typeParameter, constraintClauses, isReferenceTypeFromConstraintTypesMap, []);
             }
 
             return isReferenceTypeFromConstraintTypesMap;

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableHashSet<string> _notNullIfParameterNotNull = ImmutableHashSet<string>.Empty;
+        private ImmutableHashSet<string> _notNullIfParameterNotNull = [];
         public ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get

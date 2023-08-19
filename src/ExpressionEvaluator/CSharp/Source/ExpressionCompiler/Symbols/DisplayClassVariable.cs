@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!fields.Any())
             {
-                return ConsList<FieldSymbol>.Empty;
+                return [];
             }
 
             var head = SubstituteField(fields.Head, typeMap);

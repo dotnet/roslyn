@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 if (partCount == 0)
                 {
-                    return Array.Empty<TextChunk>();
+                    return [];
                 }
 
                 var result = new TextChunk[partCount];

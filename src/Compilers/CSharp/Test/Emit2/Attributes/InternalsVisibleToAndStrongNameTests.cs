@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
         private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
         private static readonly StrongNameProvider s_providerNoSigningTempPath = new DesktopStrongNameProvider(
-            ImmutableArray<string>.Empty,
+            [],
             new VirtualizedStrongNameFileSystem(tempPath: null));
 
         private StrongNameProvider GetProviderWithPath(string keyFilePath) =>

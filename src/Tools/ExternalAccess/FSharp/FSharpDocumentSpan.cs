@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         {
             Document = document;
             SourceSpan = sourceSpan;
-            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
+            Properties = properties ?? [];
         }
 
         public override bool Equals(object obj)

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull
-            => GetDecodedReturnTypeWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
+            => GetDecodedReturnTypeWellKnownAttributeData()?.NotNullIfParameterNotNull ?? [];
 
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source method symbols.

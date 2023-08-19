@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
     {
-        private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+        private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = [];
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)

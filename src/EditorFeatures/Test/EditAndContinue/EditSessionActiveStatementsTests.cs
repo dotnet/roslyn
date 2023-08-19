@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);
+            debuggingSession.RestartEditSession(nonRemappableRegions ?? [], inBreakState: true, out _);
             return debuggingSession.EditSession;
         }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 module2,
                 baseActiveStatementsMap,
                 updatedMethodTokens: ImmutableArray.Create(0x06000004), // contains only recompiled methods in the project we are interested in (module2)
-                previousNonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                previousNonRemappableRegions: [],
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions,
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 module1,
                 baseActiveStatementMap,
                 updatedMethodTokens: ImmutableArray.Create(0x06000001), // F1
-                previousNonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                previousNonRemappableRegions: [],
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions,

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
 
-            _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
+            _compilerDiagnosticAnalyzerMap = [];
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             lock (box)
             {
-                box.Value ??= ImmutableDictionary<string, SkippedHostAnalyzersInfo>.Empty;
+                box.Value ??= [];
 
                 if (!box.Value.TryGetValue(project.Language, out info))
                 {

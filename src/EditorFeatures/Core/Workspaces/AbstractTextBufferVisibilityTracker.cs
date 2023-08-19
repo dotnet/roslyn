@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             /// The callbacks that want to be notified when our <see cref="TextViews"/> change visibility.  Stored as an
             /// <see cref="ImmutableHashSet{T}"/> so we can enumerate it safely without it changing underneath us.
             /// </summary>
-            public ImmutableHashSet<Action> Callbacks { get; private set; } = ImmutableHashSet<Action>.Empty;
+            public ImmutableHashSet<Action> Callbacks { get; private set; } = [];
 
             public VisibleTrackerData(
                 AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> tracker,

@@ -57,7 +57,7 @@ internal sealed class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPul
         => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,
-            Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+            Items = [],
         });
 
     protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)

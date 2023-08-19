@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             /// A <see langword="null"/> value simply means we haven't cached any information for that particular id.
             /// </para>
             /// </summary>
-            private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
+            private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = [];
 
             public SemanticModelReuseWorkspaceService(Workspace workspace)
             {

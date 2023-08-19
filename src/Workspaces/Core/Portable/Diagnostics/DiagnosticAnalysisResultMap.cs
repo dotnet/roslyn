@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         where TKey : notnull
     {
         public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
-            ImmutableDictionary<TKey, TValue>.Empty,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
+            [],
+            []);
 
         public readonly ImmutableDictionary<TKey, TValue> AnalysisResult;
         public readonly ImmutableDictionary<TKey, AnalyzerTelemetryInfo> TelemetryInfo;

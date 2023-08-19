@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                 location: forEachStatement.Statement,
                                 container: forEachStatement.Statement,
                                 baseName: identifierName,
-                                usedNames: Enumerable.Empty<string>(),
+                                usedNames: [],
                                 _cancellationToken).ValueText != identifierName)
                         {
                             documentUpdateInfo = null;

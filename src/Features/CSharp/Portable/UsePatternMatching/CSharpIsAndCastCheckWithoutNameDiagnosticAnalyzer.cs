@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     Descriptor, isExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     SpecializedCollections.EmptyCollection<Location>(),
-                    ImmutableDictionary<string, string?>.Empty));
+                    []));
         }
 
         public static (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(

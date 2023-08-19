@@ -5917,7 +5917,7 @@ class A                                                               \
             Assert.Equal(nameGuid, assemblyName.Name);
             Assert.Equal("0.0.0.0", assemblyName.Version.ToString());
             Assert.Equal(string.Empty, assemblyName.CultureName);
-            Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
+            Assert.Equal([], assemblyName.GetPublicKeyToken());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
@@ -9387,7 +9387,7 @@ public class C { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var analyzers = skipAnalyzers
-                ? Array.Empty<DiagnosticAnalyzer>()
+                ? []
                 : new DiagnosticAnalyzer[] { new HiddenDiagnosticAnalyzer(), new WarningDiagnosticAnalyzer() };
             var csc = CreateCSharpCompiler(
                 responseFile: null,
@@ -9916,7 +9916,7 @@ public class Program
             string fileName = Path.GetFileName(filePath);
 
             string[] expectedWarningsAll = new[] { fileName + "(4,27): warning CS8603: Possible null reference return." };
-            string[] expectedWarningsNone = Array.Empty<string>();
+            string[] expectedWarningsNone = [];
 
             AssertEx.Equal(expectedWarningsAll, compileAndRun(featureOpt: null));
             AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis"));

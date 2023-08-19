@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (unmanagedCallersOnlyData is null)
                     {
                         actualCallKind = member.CallingConvention;
-                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                        actualUnmanagedCallingConventionTypes = [];
                     }
                     else
                     {
@@ -514,26 +514,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case 0:
                                 actualCallKind = Cci.CallingConvention.Unmanaged;
-                                actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                actualUnmanagedCallingConventionTypes = [];
                                 break;
                             case 1:
                                 switch (unmanagedCallingConventionTypes.Single().Name)
                                 {
                                     case "CallConvCdecl":
                                         actualCallKind = Cci.CallingConvention.CDecl;
-                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = [];
                                         break;
                                     case "CallConvStdcall":
                                         actualCallKind = Cci.CallingConvention.Standard;
-                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = [];
                                         break;
                                     case "CallConvThiscall":
                                         actualCallKind = Cci.CallingConvention.ThisCall;
-                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = [];
                                         break;
                                     case "CallConvFastcall":
                                         actualCallKind = Cci.CallingConvention.FastCall;
-                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = [];
                                         break;
                                     default:
                                         goto outerDefault;

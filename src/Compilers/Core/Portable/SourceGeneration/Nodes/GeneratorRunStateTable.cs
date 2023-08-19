@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder is null)
                 {
-                    return ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty;
+                    return [];
                 }
 
                 ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Builder resultBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<IncrementalGeneratorRunStep>>();

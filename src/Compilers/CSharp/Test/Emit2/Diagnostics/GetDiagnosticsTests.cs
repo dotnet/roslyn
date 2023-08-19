@@ -490,7 +490,7 @@ class C
 
             // Verify CS0168 reported from 'CSharpCompilerDiagnosticAnalyzer', i.e. the diagnostic analyzer used in the IDE layer to report live compiler diagnostics.
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions([]));
             var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
             verifyDiagnostics(analyzerDiagnostics);
 
@@ -499,7 +499,7 @@ class C
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
                 DictionaryAnalyzerConfigOptions.Empty);
-            var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+            var analyzerOptions = new AnalyzerOptions([], analyzerConfigOptionsProvider);
             compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions);
             analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
             verifyDiagnostics(analyzerDiagnostics);
@@ -545,7 +545,7 @@ class C
                     var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                         ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
                         DictionaryAnalyzerConfigOptions.Empty);
-                    analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+                    analyzerOptions = new AnalyzerOptions([], analyzerConfigOptionsProvider);
                 }
                 else
                 {
@@ -602,7 +602,7 @@ class C3
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
                 new CompilationWithAnalyzersOptions(
-                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    new AnalyzerOptions([]),
                     onAnalyzerException: null,
                     concurrentAnalysis: true,
                     logAnalyzerExecutionTime: false));
@@ -655,7 +655,7 @@ class C3
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclaration));
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
                 new CompilationWithAnalyzersOptions(
-                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    new AnalyzerOptions([]),
                     onAnalyzerException: null,
                     concurrentAnalysis: true,
                     logAnalyzerExecutionTime: false));
@@ -684,7 +684,7 @@ class C3
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
                 new CompilationWithAnalyzersOptions(
-                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    new AnalyzerOptions([]),
                     onAnalyzerException: null,
                     concurrentAnalysis: concurrent,
                     logAnalyzerExecutionTime: false));

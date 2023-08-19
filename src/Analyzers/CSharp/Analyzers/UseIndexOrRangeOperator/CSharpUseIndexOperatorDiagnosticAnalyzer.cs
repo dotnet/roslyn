@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     binaryExpression.GetLocation(),
                     option.Notification.Severity,
                     ImmutableArray<Location>.Empty,
-                    ImmutableDictionary<string, string?>.Empty));
+                    []));
         }
 
         private static IPropertySymbol? TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol? targetMethod)

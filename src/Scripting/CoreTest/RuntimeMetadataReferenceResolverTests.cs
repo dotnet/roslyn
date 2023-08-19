@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                     new RelativePathResolver(ImmutableArray.Create(directory.Path), directory.Path),
                     packageResolver: new PackageResolver(ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("nuget:N/1.0", ImmutableArray.Create(assembly1.Path, assembly2.Path))),
                     gacFileResolver: null,
-                    trustedPlatformAssemblies: ImmutableDictionary<string, string>.Empty);
+                    trustedPlatformAssemblies: []);
 
                 // Recognized NuGet reference.
                 var actualReferences = resolver.ResolveReference("nuget:N/1.0", baseFilePath: null, properties: MetadataReferenceProperties.Assembly);

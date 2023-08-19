@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpan = sourceSpan;
             SymbolUsageInfo = symbolUsageInfo;
             IsWrittenTo = isWrittenTo;
-            AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+            AdditionalProperties = additionalProperties ?? [];
         }
 
         // Used by F#
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         // Used by TypeScript
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
+            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: [])
         {
         }
 

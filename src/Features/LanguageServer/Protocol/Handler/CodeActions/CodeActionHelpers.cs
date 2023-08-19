@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
-                return Array.Empty<LSP.CodeAction>();
+                return [];
 
             using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
             // VS-LSP support nested code action, but standard LSP doesn't.
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
                 {
-                    return Array.Empty<VSInternalCodeAction>();
+                    return [];
                 }
 
                 using var _ = ArrayBuilder<VSInternalCodeAction>.GetInstance(out var nestedActions);

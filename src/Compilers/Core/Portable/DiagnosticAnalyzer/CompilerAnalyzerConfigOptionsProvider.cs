@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static CompilerAnalyzerConfigOptionsProvider Empty { get; }
             = new CompilerAnalyzerConfigOptionsProvider(
-                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                [],
                 DictionaryAnalyzerConfigOptions.Empty);
 
         internal CompilerAnalyzerConfigOptionsProvider(

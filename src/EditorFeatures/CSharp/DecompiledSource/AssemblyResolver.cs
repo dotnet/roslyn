@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             IAssemblySymbol highestVersion = null;
             IAssemblySymbol exactMatch = null;
 
-            var publicKeyTokenOfName = name.PublicKeyToken ?? Array.Empty<byte>();
+            var publicKeyTokenOfName = name.PublicKeyToken ?? [];
 
             foreach (var assembly in assemblies)
             {

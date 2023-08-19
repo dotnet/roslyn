@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Construct a list with no sequence points.
         private SequencePointList()
         {
-            _points = Array.Empty<OffsetAndSpan>();
+            _points = [];
         }
 
         // Construct a list with sequence points from exactly one syntax tree.

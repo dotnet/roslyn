@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
                         Debug.Assert(GetAliasesAndUsingsForAsserts(declarationSyntax).GetUsingAliasesMap(this, declarationSyntax, basesBeingResolved).IsEmpty);
 #endif
-                        return ImmutableDictionary<string, AliasAndUsingDirective>.Empty;
+                        return [];
                     }
                     break;
 
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Interlocked.CompareExchange(ref _lazyMergedGlobalAliasesAndUsings,
                             new MergedGlobalAliasesAndUsings()
                             {
-                                UsingAliasesMap = mergedAliases ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+                                UsingAliasesMap = mergedAliases ?? [],
                                 UsingNamespacesOrTypes = mergedNamespacesOrTypes.ToImmutableAndFree(),
                                 Diagnostics = diagnostics.ToReadOnlyAndFree()
                             },
@@ -519,12 +519,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal ImmutableDictionary<string, AliasAndUsingDirective> GetUsingAliasesMap(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, ConsList<TypeSymbol>? basesBeingResolved)
             {
-                return GetUsingsAndDiagnostics(declaringSymbol, declarationSyntax, basesBeingResolved).UsingAliasesMap ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty;
+                return GetUsingsAndDiagnostics(declaringSymbol, declarationSyntax, basesBeingResolved).UsingAliasesMap ?? [];
             }
 
             internal ImmutableDictionary<string, AliasAndUsingDirective> GetGlobalUsingAliasesMap(SourceNamespaceSymbol declaringSymbol, SyntaxReference declarationSyntax, ConsList<TypeSymbol>? basesBeingResolved)
             {
-                return (_lazyGlobalUsings ?? GetGlobalUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(), basesBeingResolved)).UsingAliasesMap ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty;
+                return (_lazyGlobalUsings ?? GetGlobalUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(), basesBeingResolved)).UsingAliasesMap ?? [];
             }
 
             internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GetUsingNamespacesOrTypes(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, ConsList<TypeSymbol>? basesBeingResolved)
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
                             var calculated = buildUsings(usingDirectives, declaringSymbol, declarationSyntax, applyIsGlobalFilter, basesBeingResolved);
                             Debug.Assert(calculated.UsingAliases.SequenceEqual(result.UsingAliases));
-                            Debug.Assert((calculated.UsingAliasesMap ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty).SetEquals(result.UsingAliasesMap ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty));
+                            Debug.Assert((calculated.UsingAliasesMap ?? []).SetEquals(result.UsingAliasesMap ?? []));
                             Debug.Assert(calculated.UsingNamespacesOrTypes.SequenceEqual(result.UsingNamespacesOrTypes));
                             Debug.Assert(calculated.Diagnostics?.IsEmptyWithoutResolution ?? true);
 #endif
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public static readonly MergedGlobalAliasesAndUsings Empty =
                 new MergedGlobalAliasesAndUsings()
                 {
-                    UsingAliasesMap = ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+                    UsingAliasesMap = [],
                     UsingNamespacesOrTypes = ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                     Diagnostics = ImmutableArray<Diagnostic>.Empty,
                     _lazyImports = Imports.Empty
@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (_lazyImports is null)
                     {
                         Interlocked.CompareExchange(ref _lazyImports,
-                                                    Imports.Create(UsingAliasesMap ?? ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+                                                    Imports.Create(UsingAliasesMap ?? [],
                                                                    UsingNamespacesOrTypes,
                                                                    ImmutableArray<AliasAndExternAliasDirective>.Empty),
                                                     null);

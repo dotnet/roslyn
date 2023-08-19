@@ -121,12 +121,12 @@ using F = System.IO;
                  externAlias1.ExternAliasDirective, skipInLookup: false);
 
             var imports1 = Imports.Create(
-                ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+                [],
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias1));
 
             var imports2 = Imports.Create(
-                ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+                [],
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias2));
 

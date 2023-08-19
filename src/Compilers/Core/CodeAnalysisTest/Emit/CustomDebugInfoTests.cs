@@ -155,13 +155,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         {
             using (new EnsureEnglishUICulture())
             {
-                var e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff }), ImmutableArray<byte>.Empty));
+                var e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff }), []));
                 Assert.Equal("Invalid data at offset 3: 01-68-FF*", e.Message);
 
-                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff, 0xff, 0xff, 0xff }), ImmutableArray<byte>.Empty));
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff, 0xff, 0xff, 0xff }), []));
                 Assert.Equal("Invalid data at offset 3: 01-68-FF*FF-FF-FF", e.Message);
 
-                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0xff, 0xff, 0xff, 0xff }), ImmutableArray<byte>.Empty));
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0xff, 0xff, 0xff, 0xff }), []));
                 Assert.Equal("Invalid data at offset 1: FF*FF-FF-FF", e.Message);
 
                 byte[] largeData = new byte[10000];
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 largeData[404] = 0xff;
                 largeData[405] = 0xff;
 
-                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(largeData), ImmutableArray<byte>.Empty));
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(largeData), []));
                 Assert.Equal(
                     "Invalid data at offset 401: 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
                     "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct DirectiveStack
     {
-        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
+        public static readonly DirectiveStack Empty = new DirectiveStack([]);
 
         private readonly ConsList<Directive>? _directives;
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     RoslynDebug.AssertNotNull(_directives); // If 'prevRegion' isn't null, then '_directives' wasn't null.
                     return new DirectiveStack(CompleteRegion(_directives)); // remove region directives from stack but leave everything else
                 default:
-                    return new DirectiveStack(new ConsList<Directive>(directive, _directives ?? ConsList<Directive>.Empty));
+                    return new DirectiveStack(new ConsList<Directive>(directive, _directives ?? []));
             }
         }
 

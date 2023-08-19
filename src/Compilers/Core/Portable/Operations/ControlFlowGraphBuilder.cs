@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
-                                        anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
+                                        anonymousFunctionsMapOpt?.ToImmutable() ?? []);
         }
 
         private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blockBuilders)

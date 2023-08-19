@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 if (badRegion)
                 {
-                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
-                    usedLocalFunctions = Enumerable.Empty<MethodSymbol>();
+                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = [];
+                    usedLocalFunctions = [];
                 }
                 else
                 {

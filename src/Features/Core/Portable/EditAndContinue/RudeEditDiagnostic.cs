@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, SyntaxNode? node = null, string?[]? arguments = null)
-            : this(kind, span, (ushort)(node != null ? node.RawKind : 0), arguments ?? Array.Empty<string>())
+            : this(kind, span, (ushort)(node != null ? node.RawKind : 0), arguments ?? [])
         {
         }
 

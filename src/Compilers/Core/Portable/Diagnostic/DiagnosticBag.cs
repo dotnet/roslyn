@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        return Array.Empty<object>();
+                        return [];
                     }
                 }
             }

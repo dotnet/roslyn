@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var modifiersToSearch = RefKind != RefKind.None ? RefCustomModifiers : ReturnTypeWithAnnotations.CustomModifiers;
                 if (modifiersToSearch.IsEmpty || CallingConvention != CallingConvention.Unmanaged)
                 {
-                    _lazyCallingConventionModifiers = ImmutableHashSet<CustomModifier>.Empty;
+                    _lazyCallingConventionModifiers = [];
                 }
                 else
                 {
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (builder.Count == 0)
                     {
-                        _lazyCallingConventionModifiers = ImmutableHashSet<CustomModifier>.Empty;
+                        _lazyCallingConventionModifiers = [];
                     }
                     else
                     {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class Imports
     {
         internal static readonly Imports Empty = new Imports(
-            ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
+            [],
             ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
             ImmutableArray<AliasAndExternAliasDirective>.Empty);
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<TExtension, ExtensionInfo?> s_extensionInfoMap = new();
 
         private AnalyzerReference Reference { get; init; } = null!;
-        private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
+        private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = [];
 
         protected abstract ImmutableArray<string> GetLanguages(TExportAttribute exportAttribute);
         protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);

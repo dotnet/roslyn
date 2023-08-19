@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                     root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                 severity,
                 ImmutableArray<Location>.Empty,
-                ImmutableDictionary<string, string?>.Empty));
+                []));
         }
     }
 }

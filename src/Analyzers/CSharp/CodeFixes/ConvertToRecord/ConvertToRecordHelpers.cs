@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             // where the statement is a simple assignment from the parameter's property to the property
             if (body == null)
             {
-                return ImmutableDictionary<ISymbol, T>.Empty;
+                return [];
             }
 
             foreach (var operation in body.Operations)
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         if (dictionaryBuilder.ContainsKey(symbol))
                         {
                             // don't allow assignment to the same property more than once
-                            return ImmutableDictionary<ISymbol, T>.Empty;
+                            return [];
                         }
 
                         dictionaryBuilder.Add(symbol, captured);
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             IEnumerable<IOperation>? additionalConditions = null)
         {
             boundVariable = null;
-            additionalConditions ??= Enumerable.Empty<IOperation>();
+            additionalConditions ??= [];
             return (successRequirement, condition) switch
             {
                 (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not, Operand: IOperation newCondition })
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             // this will be changed if we successfully match the pattern
             successRequirement = default;
             // this could be empty even if we match, if there is no else block
-            remainingStatements = Enumerable.Empty<IOperation>();
+            remainingStatements = [];
 
             // all the operations that would happen after the condition is true or false
             // branches can either be block bodies or single statements

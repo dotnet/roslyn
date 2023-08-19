@@ -51,7 +51,7 @@ namespace Roslyn.Utilities
         {
             if (source is null)
             {
-                return ImmutableDictionary<TKey, TValue>.Empty;
+                return [];
             }
 
             return source.ToImmutableDictionary(keySelector, elementSelector);

@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // As such, we don't know when we're seeing a reference if it's to something
                 // that exists or not.
                 var tree1 = new RegexParser(text, options,
-                    ImmutableDictionary<string, TextSpan>.Empty,
-                    ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
+                    [],
+                    []).ParseTree();
 
                 var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(text, tree1.Root, options);
 

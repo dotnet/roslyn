@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         // accumulated cache for exports
         private ImmutableDictionary<ExportKey, IEnumerable> _exportsMap
-            = ImmutableDictionary<ExportKey, IEnumerable>.Empty;
+            = [];
 
         private VisualStudioMefHostServices(ExportProvider exportProvider)
         {

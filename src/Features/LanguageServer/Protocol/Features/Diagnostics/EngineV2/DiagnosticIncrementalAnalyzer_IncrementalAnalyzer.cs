@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (analyzedStateSetsBuilder.Count > 0)
                 {
-                    var oldResult = result.OldResult ?? ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+                    var oldResult = result.OldResult ?? [];
                     RaiseProjectDiagnosticsIfNeeded(project, analyzedStateSetsBuilder.ToImmutable(), oldResult, result.Result);
                 }
             }
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             IEnumerable<StateSet> stateSets,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
-            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, result);
+            RaiseProjectDiagnosticsIfNeeded(project, stateSets, [], result);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return lspProvider.TriggerCharacters;
             }
 
-            return ImmutableHashSet<char>.Empty;
+            return [];
         }
     }
 }

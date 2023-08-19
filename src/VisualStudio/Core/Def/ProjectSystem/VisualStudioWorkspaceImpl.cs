@@ -81,8 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
-        private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
-        private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
+        private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = [];
+        private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = [];
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// sync with the Workspace if there is active batching happening.
         /// </summary>
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
-        private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
+        private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = [];
 
         private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = new();
 

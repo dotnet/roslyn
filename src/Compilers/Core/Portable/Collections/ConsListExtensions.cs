@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static ConsList<T> Prepend<T>(this ConsList<T>? list, T head)
         {
-            return new ConsList<T>(head, list ?? ConsList<T>.Empty);
+            return new ConsList<T>(head, list ?? []);
         }
 
         public static bool ContainsReference<T>(this ConsList<T> list, T element)

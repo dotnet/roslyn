@@ -265,7 +265,7 @@ class A {
 
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId).ConfigureAwait(false);
 
-            Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results.Single().Diagnostics);
+            Assert.Equal(useVSDiagnostics ? null : [], results.Single().Diagnostics);
             Assert.Null(results.Single().ResultId);
         }
 
@@ -1179,7 +1179,7 @@ class A {
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
-                markups: Array.Empty<string>(), mutatingLspWorkspace,
+                markups: [], mutatingLspWorkspace,
                 GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -1218,7 +1218,7 @@ class A {
 
             // First doc should show up as removed.
             Assert.Equal(3, results2.Length);
-            Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+            Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
             Assert.Null(results2[0].ResultId);
 
             // Second and third doc should be changed as the project has changed.

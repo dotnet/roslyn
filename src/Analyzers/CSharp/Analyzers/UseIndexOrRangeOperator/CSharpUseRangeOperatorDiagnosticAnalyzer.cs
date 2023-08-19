@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 location,
                 severity,
                 additionalLocations,
-                ImmutableDictionary<string, string?>.Empty,
+                [],
                 result.SliceLikeMethod.Name);
         }
 

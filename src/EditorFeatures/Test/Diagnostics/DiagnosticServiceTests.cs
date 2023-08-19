@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 isEnabledByDefault: false,
                 warningLevel: 1,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: [],
                 projectId,
                 location: new DiagnosticDataLocation(new("originalFile1", new(10, 10), new(20, 20)), documentId));
         }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public TestDiagnosticUpdateSource(bool support, DiagnosticData[] diagnosticData)
             {
                 _support = support;
-                _diagnosticData = (diagnosticData ?? Array.Empty<DiagnosticData>()).ToImmutableArray();
+                _diagnosticData = (diagnosticData ?? []).ToImmutableArray();
             }
 
             public bool SupportGetDiagnostics { get { return _support; } }

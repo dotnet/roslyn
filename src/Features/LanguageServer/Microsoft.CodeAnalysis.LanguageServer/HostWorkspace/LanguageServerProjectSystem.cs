@@ -164,7 +164,7 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty);
+        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: []);
 
         projectBuildManager.StartBatchBuild();
 

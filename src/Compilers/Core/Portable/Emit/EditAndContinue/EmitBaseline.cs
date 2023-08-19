@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousTypeMap: null, // Unset for initial metadata
                 anonymousDelegates: null, // Unset for initial metadata
                 anonymousDelegatesWithIndexedNames: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
-                deletedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                synthesizedMembers: [],
+                deletedMembers: [],
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,

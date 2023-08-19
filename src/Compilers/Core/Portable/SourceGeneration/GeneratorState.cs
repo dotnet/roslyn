@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
                                                                          ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<Diagnostic>.Empty,
-                                                                         ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                                                                         ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                                                                         [],
+                                                                         [],
                                                                          ImmutableArray<(string, string)>.Empty,
                                                                          exception: null,
                                                                          elapsedTime: TimeSpan.Zero);
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis
                    outputNodes,
                    ImmutableArray<GeneratedSyntaxTree>.Empty,
                    ImmutableArray<Diagnostic>.Empty,
-                   ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                   ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                   [],
+                   [],
                    ImmutableArray<(string, string)>.Empty,
                    exception: null,
                    elapsedTime: TimeSpan.Zero)
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis
                                       this.OutputNodes,
                                       ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray.Create(error),
-                                      ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                                      ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                                      [],
+                                      [],
                                       ImmutableArray<(string, string)>.Empty,
                                       exception,
                                       elapsedTime);

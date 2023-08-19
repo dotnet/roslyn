@@ -431,7 +431,7 @@ class C
             var hostDocument = workspace.DocumentWithCursor;
             var document = workspace.CurrentSolution.GetRequiredDocument(hostDocument.Id);
             var service = GetCompletionService(document.Project);
-            var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty).Single());
+            var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders([]).Single());
             provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
             {
                 // asserts that we aren't be asked speculate on nodes inside documentation trivia.

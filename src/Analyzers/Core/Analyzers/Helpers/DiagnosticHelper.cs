@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, [], messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 effectiveSeverity,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
-                ImmutableDictionary<string, string?>.Empty,
+                [],
                 messageArgs);
         }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());
             Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
-            properties ??= ImmutableDictionary<string, string?>.Empty;
+            properties ??= [];
             properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var length = reader.ReadInt32();
                 if (length == 0)
                 {
-                    _formatArguments = Array.Empty<string>();
+                    _formatArguments = [];
                 }
                 else
                 {

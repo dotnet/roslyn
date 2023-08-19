@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassificationSpan>();
+            return [];
         }
 
         public async Task InvokeQuickInfoAsync(CancellationToken cancellationToken)

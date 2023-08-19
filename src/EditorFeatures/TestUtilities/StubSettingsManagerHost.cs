@@ -85,7 +85,7 @@ internal sealed class StubSettingsManagerHost : ISettingsManagerHost5
 
     private sealed class StringStorage : IStringStorage, IAsyncStringStorage
     {
-        private ImmutableDictionary<string, VersionedString> _values = ImmutableDictionary<string, VersionedString>.Empty;
+        private ImmutableDictionary<string, VersionedString> _values = [];
         private PropertyChangedEventHandler? _propertyChanged;
         private PropertyChangedAsyncEventHandler? _propertyChangedAsync;
 

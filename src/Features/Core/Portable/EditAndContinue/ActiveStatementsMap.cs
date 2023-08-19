@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentPathMap = documentPathMap;
             InstructionMap = instructionMap;
 
-            _lazyOldDocumentActiveStatements = ImmutableDictionary<SyntaxTree, ImmutableArray<UnmappedActiveStatement>>.Empty;
+            _lazyOldDocumentActiveStatements = [];
         }
 
         public static ActiveStatementsMap Create(

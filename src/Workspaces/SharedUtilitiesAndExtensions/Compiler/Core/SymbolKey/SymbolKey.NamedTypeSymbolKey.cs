@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfTrue(typeArguments.IsDefault);
 
                 var typeArgumentsArray = typeArguments.Count == 0
-                    ? Array.Empty<ITypeSymbol>()
+                    ? []
                     : typeArguments.Builder.ToArray();
 
                 var normalResolution = ResolveNormalNamedType(

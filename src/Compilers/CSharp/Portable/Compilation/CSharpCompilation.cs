@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The set of trees for which enough analysis was performed in order to record usage of using directives.
         /// Once all trees are processed the value is set to null.
         /// </summary>
-        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = [];
 
         /// <summary>
         /// Optional data collected during testing only.
@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
                         var info = new CSDiagnosticInfo(
                              ErrorCode.ERR_MultipleEntryPoints,
-                             args: Array.Empty<object>(),
+                             args: [],
                              symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
                              additionalLocations: viableEntryPoints.Select(m => m.GetFirstLocation()).OfType<Location>().AsImmutable());
 
@@ -3130,7 +3130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _needsGeneratedAttributes_IsFrozen = true;
             }
 
-            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
+            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? [];
 
             if (locationFilterOpt != null)
             {

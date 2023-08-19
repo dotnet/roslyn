@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             if (paths.IsEmpty)
             {
-                return ImmutableDictionary<string, string>.Empty;
+                return [];
             }
 
             var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);

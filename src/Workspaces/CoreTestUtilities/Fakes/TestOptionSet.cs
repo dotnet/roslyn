@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal class TestOptionSet : OptionSet
     {
-        public static new readonly TestOptionSet Empty = new(ImmutableDictionary<OptionKey, object?>.Empty);
+        public static new readonly TestOptionSet Empty = new([]);
 
         private readonly ImmutableDictionary<OptionKey, object?> _values;
 

@@ -1580,7 +1580,7 @@ testHost, composition, @"class C
         public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
         {
             using var workspace = TestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[]
                 {
                     @"

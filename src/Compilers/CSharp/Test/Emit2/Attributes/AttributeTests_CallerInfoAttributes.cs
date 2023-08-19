@@ -4255,7 +4255,7 @@ partial class A { static void Main5() { Log(); } }
                     SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs", encoding: Encoding.UTF8),
                 },
                 new[] { SystemRef },
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver([], baseDirectory: @"C:\A\B")));
 
             // On CoreClr the '*' is a legal path character
             // https://github.com/dotnet/docs/issues/4483

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return ConsList<FieldSymbol>.Empty;
+                return [];
             }
         }
 

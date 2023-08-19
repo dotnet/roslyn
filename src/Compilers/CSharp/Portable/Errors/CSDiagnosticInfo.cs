@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly IReadOnlyList<Location> _additionalLocations;
 
         internal CSDiagnosticInfo(ErrorCode code)
-            : this(code, Array.Empty<object>(), ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
+            : this(code, [], ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
         {
         }
 

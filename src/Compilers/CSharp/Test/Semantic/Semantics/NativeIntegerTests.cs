@@ -6517,7 +6517,7 @@ class Program
     }}
 }}";
                 var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
+                comp.VerifyDiagnostics(expectedError is null ? [] : new[] { expectedError });
                 if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
                 {
                     CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -9445,7 +9445,7 @@ $@"{{
                     value = $"({destType})value";
                 }
                 var expectedDiagnostics = expectedErrorCode == 0 ?
-                    Array.Empty<DiagnosticDescription>() :
+                    [] :
                     new[] { Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType) };
                 if (useChecked)
                 {
@@ -9510,7 +9510,7 @@ enum E {{ }}
                     diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
                 }
 
-                unaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>());
+                unaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : []);
             }
 
             unaryOp("+", "nint", "nint nint.op_UnaryPlus(nint value)", "3", "3",
@@ -9730,7 +9730,7 @@ $@"class Program
                     {
                         diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, isPrefix ? op + "operand" : "operand" + op).WithArguments(op, opType);
                     }
-                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                    return diagnostic != null ? new[] { diagnostic } : [];
                 }
             }
 
@@ -10105,7 +10105,7 @@ class Program
                     {
                         diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, op + "operand").WithArguments(op, opType);
                     }
-                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                    return diagnostic != null ? new[] { diagnostic } : [];
                 }
             }
 
@@ -10484,7 +10484,7 @@ $@"class MyInt
                 {
                     diagnostics = getBadBinaryOpsDiagnostics(op, leftType, rightType);
                 }
-                binaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
+                binaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? []);
             }
 
             static DiagnosticDescription[] getBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
@@ -13156,7 +13156,7 @@ class Program
                 expr = $"{op}({opType})({operand})";
                 constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
                 constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
-                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, []);
             }
 
             void unaryOperatorNotConstant(string opType, string op, string operand, string expectedResult)
@@ -13168,9 +13168,9 @@ class Program
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
                 expr = $"{op}({opType})({operand})";
-                constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
-                constantExpression(opType, $"checked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
-                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, expr, expectedResult, []);
+                constantExpression(opType, $"checked({expr})", expectedResult, []);
+                constantExpression(opType, $"unchecked({expr})", expectedResult, []);
             }
 
             void binaryOperator(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult, Func<string, string, string, DiagnosticDescription[]> getDiagnostics = null)
@@ -13210,7 +13210,7 @@ class Program
                 expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
                 constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
                 constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
-                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, []);
             }
 
             void binaryOperatorNotConstant(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
@@ -13222,9 +13222,9 @@ class Program
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
                 expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
-                constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
-                constantExpression(opType, $"checked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
-                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, expr, expectedResult, []);
+                constantExpression(opType, $"checked({expr})", expectedResult, []);
+                constantExpression(opType, $"unchecked({expr})", expectedResult, []);
             }
 
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)

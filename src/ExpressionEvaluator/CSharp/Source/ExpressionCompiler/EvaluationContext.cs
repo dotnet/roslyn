@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 currentFrame,
                 currentSourceMethod: null,
                 locals: default,
-                inScopeHoistedLocalSlots: ImmutableSortedSet<int>.Empty,
+                inScopeHoistedLocalSlots: [],
                 methodDebugInfo: MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
         }
 

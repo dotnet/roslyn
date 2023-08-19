@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        GetFieldType(ConsList<FieldSymbol>.Empty);
+                        GetFieldType([]);
                         break;
 
                     case CompletionPart.FixedSize:
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override RefKind RefKind => GetTypeAndRefKind(ConsList<FieldSymbol>.Empty).RefKind;
+        public sealed override RefKind RefKind => GetTypeAndRefKind([]).RefKind;
 
         internal override bool HasPointerType
         {
