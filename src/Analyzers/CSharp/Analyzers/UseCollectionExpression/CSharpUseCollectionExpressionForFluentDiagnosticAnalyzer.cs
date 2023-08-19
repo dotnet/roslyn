@@ -141,6 +141,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matchesInReverse, cancellationToken))
             return false;
 
+        // We don't want to offer this feature on top of some builder-type.  They will commonly end with something like
+        // `builder.ToImmutable()`.  We want that case to be handled by the 'ForBuilder' analyzer instead.
+        var expressionType = state.SemanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
+        if (expressionType is null || expressionType.Name.EndsWith("Builder", StringComparison.Ordinal))
+            return false;
+
         var semanticModel = state.SemanticModel;
         var compilation = semanticModel.Compilation;
 

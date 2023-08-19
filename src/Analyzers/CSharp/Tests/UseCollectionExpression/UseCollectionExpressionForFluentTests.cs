@@ -1257,6 +1257,31 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact]
+    public async Task TestNotOnBuilder()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var builder = ImmutableArray.CreateBuilder<int>();
+                        builder.Add(0);
+                        ImmutableArray<int> result = builder.ToImmutable();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestEndsWithAdd1()
     {
         await new VerifyCS.Test
