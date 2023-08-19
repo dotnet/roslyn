@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var ch = CurrentChar;
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
+                var ctor = TryScanStringToken(".ctor", StackFrameKind.ConstructorToken);
+                if (ctor.HasValue)
+                {
+                    return ctor.Value;
+                }
+
                 // If we scan only trivia but don't get an identifier, we want to make sure
                 // to reset back to this original position to let the trivia be consumed
                 // in some other fashion if necessary 
@@ -454,6 +460,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 Position += valueToLookFor.Length;
 
                 return CreateTrivia(triviaKind, GetSubSequenceToCurrentPos(start));
+            }
+
+            return null;
+        }
+
+        private StackFrameToken? TryScanStringToken(string valueToLookFor, StackFrameKind tokenKind)
+        {
+            if (IsStringAtPosition(valueToLookFor))
+            {
+                var start = Position;
+                Position += valueToLookFor.Length;
+
+                return CreateToken(tokenKind, GetSubSequenceToCurrentPos(start));
             }
 
             return null;
