@@ -4908,14 +4908,14 @@ void M(out int x) => throw null;
             }
         }
 
-        #region Ref switch statements
+        #region Ref switch expressions
 
         [Theory]
         [InlineData("North")]
         [InlineData("South")]
         [InlineData("East")]
         [InlineData("West")]
-        public void RefSwitchStatement_DirectReturnMethod(string direction)
+        public void RefSwitchExpression_DirectReturnMethod(string direction)
         {
             string source =
                 $$"""
@@ -4952,7 +4952,7 @@ void M(out int x) => throw null;
                         }
                     }
                 }
-                
+
                 public enum Direction
                 {
                     North,
@@ -5081,7 +5081,7 @@ void M(out int x) => throw null;
         [InlineData("South")]
         [InlineData("East")]
         [InlineData("West")]
-        public void RefSwitchStatement_LocalRefVariable(string direction)
+        public void RefSwitchExpression_LocalRefVariable(string direction)
         {
             string source =
                 $$"""
@@ -5091,7 +5091,7 @@ void M(out int x) => throw null;
                     public int SouthField;
                     public int EastField;
                     public int WestField;
-                
+
                     public ref int GetDirectionField(Direction direction)
                     {
                         ref int directionVar = ref direction switch
@@ -5106,7 +5106,7 @@ void M(out int x) => throw null;
                         return ref directionVar;
                     }
                 }
-                
+
                 public enum Direction
                 {
                     North,
@@ -5192,7 +5192,7 @@ void M(out int x) => throw null;
         [InlineData("South")]
         [InlineData("East")]
         [InlineData("West")]
-        public void RefSwitchStatement_DirectAssignment(string direction)
+        public void RefSwitchExpression_DirectAssignment(string direction)
         {
             string source =
                 $$"""
@@ -5215,7 +5215,7 @@ void M(out int x) => throw null;
                         } = value;
                     }
                 }
-                
+
                 public enum Direction
                 {
                     North,
@@ -5294,7 +5294,7 @@ void M(out int x) => throw null;
         [InlineData("South")]
         [InlineData("East")]
         [InlineData("West")]
-        public void RefSwitchStatement_DirectCompoundAssignment(string direction)
+        public void RefSwitchExpression_DirectCompoundAssignment(string direction)
         {
             string source =
                 $$"""
@@ -5317,7 +5317,7 @@ void M(out int x) => throw null;
                         } += value;
                     }
                 }
-                
+
                 public enum Direction
                 {
                     North,
@@ -5400,10 +5400,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_RefEscapeWithStackalloc()
+        public void RefSwitchExpression_RefEscapeWithStackalloc()
         {
-            string source =
-                $$"""
+            const string source = """
                 using System;
 
                 public class C
@@ -5413,7 +5412,7 @@ void M(out int x) => throw null;
                         const int size = 5;
                         Span<int> x = stackalloc int[size];
                         Span<int> y = stackalloc int[size];
-                
+
                         return ref axis switch
                         {
                             Axis.X => ref x[index],
@@ -5444,10 +5443,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_RefOverScopedVariables()
+        public void RefSwitchExpression_RefOverScopedVariables()
         {
-            string source =
-                $$"""
+            const string source = """
                 public class C
                 {
                     public int NorthField;
@@ -5465,7 +5463,7 @@ void M(out int x) => throw null;
                             Direction.West => ref WestField,
                             _ => throw null!,
                         };
-                
+
                         int outer = 10;
                         input = ref outer;
                         {
@@ -5498,10 +5496,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_Readonly01()
+        public void RefSwitchExpression_Readonly01()
         {
-            string source =
-                $$"""
+            const string source = """
                 public class C
                 {
                     public int NorthField;
@@ -5521,7 +5518,7 @@ void M(out int x) => throw null;
                             Direction.West => ref west,
                             _ => throw null!,
                         };
-                
+
                         ref int xx = ref direction switch
                         {
                             Direction.North => ref NorthField,
@@ -5530,7 +5527,7 @@ void M(out int x) => throw null;
                             Direction.West => ref west,
                             _ => throw null!,
                         };
-                
+
                         ref readonly int y = ref direction switch
                         {
                             Direction.North => ref NorthField,
@@ -5577,10 +5574,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_UnusedRef()
+        public void RefSwitchExpression_UnusedRef()
         {
-            string source =
-                $$"""
+            const string source = """
                 public class C
                 {
                     public int NorthField;
@@ -5597,7 +5593,7 @@ void M(out int x) => throw null;
                             Direction.East => ref EastField,
                             Direction.West => ref WestField,
                         };
-                
+
                         // Method invocation
                         A(direction switch
                         {
@@ -5652,10 +5648,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_MissingRefInArms()
+        public void RefSwitchExpression_MissingRefInArms()
         {
-            string source =
-                $$"""
+            const string source = """
                 public class C
                 {
                     public int NorthField;
@@ -5673,7 +5668,7 @@ void M(out int x) => throw null;
                             Direction.West => WestField,
                             _ => throw null!,
                         };
-                
+
                         return x;
                     }
                 }
@@ -5699,10 +5694,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_RefInNonRefSwitch()
+        public void RefSwitchExpression_RefInNonRefSwitch()
         {
-            string source =
-                $$"""
+            const string source = """
                 public class C
                 {
                     public int NorthField;
@@ -5720,7 +5714,7 @@ void M(out int x) => throw null;
                             Direction.West => WestField,
                             _ => throw null!,
                         };
-                
+
                         return x;
                     }
                 }
@@ -5743,10 +5737,9 @@ void M(out int x) => throw null;
         }
 
         [Fact]
-        public void RefSwitchStatement_UnavailableFeature()
+        public void RefSwitchExpression_UnavailableFeature()
         {
-            string source =
-                $$"""
+            const string source = """
                 class C
                 {
                     public void M(int input)
