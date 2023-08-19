@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 {
                     if (!_cache.TryGetValue(reference.Identity.Name, out var list))
                     {
-                        list = new List<IAssemblySymbol>();
+                        list = [];
                         _cache.Add(reference.Identity.Name, list);
                     }
 

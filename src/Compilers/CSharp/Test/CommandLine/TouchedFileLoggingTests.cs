@@ -218,8 +218,10 @@ public class C { }").Path;
                 expectedReads.Add(file.Path);
             }
 
-            var writes = new List<string>();
-            writes.Add(outputPath);
+            var writes = new List<string>
+            {
+                outputPath
+            };
 
             expectedWrites = writes;
         }

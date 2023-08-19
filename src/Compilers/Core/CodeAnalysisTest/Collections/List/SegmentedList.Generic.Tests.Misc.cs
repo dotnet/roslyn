@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void Exists_VerifyExceptions(T[] items)
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 Predicate<T> predicate = (T item) => { return true; };
 
                 for (int i = 0; i < items.Length; ++i)
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             private void Exists_VerifyVanilla(T[] items)
             {
                 T? expectedItem = default(T);
-                SegmentedList<T?> list = new SegmentedList<T?>();
+                SegmentedList<T?> list = [];
                 Predicate<T?> expectedItemDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             private void Exists_VerifyDuplicates(T[] items)
             {
                 T? expectedItem = default(T);
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 Predicate<T> expectedItemDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
                 if (0 < items.Length)
@@ -468,8 +468,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     throw new ArgumentException("invalid argument passed to testcase");
                 }
 
-                SegmentedList<T?> list = new SegmentedList<T?>(items);
-                list.Add(value);
+                SegmentedList<T?> list = new SegmentedList<T?>(items)
+                {
+                    value
+                };
                 Assert.True(list.Contains(value)); //"Should contain item."
             }
 
@@ -552,7 +554,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListContainsTestParams()
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 IList _ilist = list;
 
                 Assert.False(_ilist.Contains(new LinkedListNode<string>("rah")),
@@ -565,14 +567,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void ClearEmptyList()
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 Assert.Equal(0, list.Count); //"Should be equal to 0"
                 list.Clear();
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
             }
             public void ClearMultipleTimesEmptyList(int times)
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 for (int i = 0; i < times; i++)
                 {
@@ -599,7 +601,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListClearEmptyList()
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 IList _ilist = list;
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 _ilist.Clear();
@@ -607,7 +609,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             public void NonGenericIListClearMultipleTimesEmptyList(int times)
             {
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 IList _ilist = list;
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 for (int i = 0; i < times; i++)
@@ -642,7 +644,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void TrueForAll_VerifyVanilla(T[] items)
             {
                 T? expectedItem = default(T);
-                SegmentedList<T> list = new SegmentedList<T>();
+                SegmentedList<T> list = [];
                 Predicate<T> expectedItemDelegate = delegate (T item) { return expectedItem == null ? item != null : !expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 

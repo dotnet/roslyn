@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
 
                     if (!methodCallSites.TryGetValue(refLocation.Document, out var list))
                     {
-                        list = new List<SyntaxNode>();
+                        list = [];
                         methodCallSites.Add(refLocation.Document, list);
                     }
 

@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (info.Context.GenerateMembers && info.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
-                var names = new List<string>();
-                names.Add(@namespace.Name);
+                var names = new List<string>
+                {
+                    @namespace.Name
+                };
 
                 innermostNamespace = @namespace;
                 while (true)

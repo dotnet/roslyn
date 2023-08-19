@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal IEnumerable<string> GetReferencedManagedModulesOrThrow()
         {
-            HashSet<EntityHandle> nameTokens = new HashSet<EntityHandle>();
+            HashSet<EntityHandle> nameTokens = [];
             foreach (var handle in MetadataReader.TypeReferences)
             {
                 TypeReference typeRef = MetadataReader.GetTypeReference(handle);
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis
             // merged, even if they are equal according to the provided comparer.  This improves the error
             // experience because types retain their exact namespaces.
 
-            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>>();
+            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces = [];
 
             GetTypeNamespaceNamesOrThrow(namespaces);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
@@ -2370,7 +2370,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (result == null)
                         {
-                            result = new List<AttributeInfo>();
+                            result = [];
                         }
 
                         // We found a match

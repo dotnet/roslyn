@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodGroup()
         {
-            this.Methods = new ArrayBuilder<MethodSymbol>();
-            this.TypeArguments = new ArrayBuilder<TypeWithAnnotations>();
+            this.Methods = [];
+            this.TypeArguments = [];
         }
 
         internal void PopulateWithSingleMethod(

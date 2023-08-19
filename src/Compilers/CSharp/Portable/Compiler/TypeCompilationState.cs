@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_wrappers == null)
             {
-                _wrappers = new Dictionary<MethodSymbol, MethodSymbol>();
+                _wrappers = [];
             }
 
             _wrappers.Add(method, wrapper);
@@ -214,8 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_constructorInitializers == null)
             {
-                _constructorInitializers = new SmallDictionary<MethodSymbol, MethodSymbol>();
-                _constructorInitializers.Add(method1, method2);
+                _constructorInitializers = new SmallDictionary<MethodSymbol, MethodSymbol>
+                {
+                    { method1, method2 }
+                };
                 return;
             }
 

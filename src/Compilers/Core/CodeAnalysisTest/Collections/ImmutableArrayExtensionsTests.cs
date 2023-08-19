@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ReadOnlyArraysBroken()
         {
-            var b = new ArrayBuilder<String>();
-            b.Add("hello");
-            b.Add("world");
+            var b = new ArrayBuilder<String>
+            {
+                "hello",
+                "world"
+            };
             Assert.Equal("hello", b[0]);
             var a = b.AsImmutable();
             Assert.Equal("hello", a[0]);

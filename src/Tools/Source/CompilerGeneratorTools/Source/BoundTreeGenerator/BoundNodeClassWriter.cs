@@ -46,7 +46,7 @@ namespace BoundTreeGenerator
 
         private void InitializeValueTypes()
         {
-            _valueTypes = new HashSet<string>();
+            _valueTypes = [];
             foreach (ValueType t in _tree.Types.Where(t => t is ValueType))
                 _valueTypes.Add(t.Name);
 

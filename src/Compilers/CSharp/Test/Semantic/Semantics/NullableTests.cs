@@ -1263,8 +1263,8 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-            List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
-            {
+            List<Tuple<string, string[,]>> items =
+            [
                 Tuple.Create("*", numerics1),
                 Tuple.Create("/", numerics2),
                 Tuple.Create("%", numerics3),
@@ -1280,7 +1280,7 @@ class C
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
                 Tuple.Create("^", logical3)
-            };
+            ];
 
             int m = 0;
 

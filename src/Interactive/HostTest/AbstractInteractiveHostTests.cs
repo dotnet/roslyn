@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
-            var expectedOutput = new List<string>();
-            expectedOutput.Add(string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider))));
+            var expectedOutput = new List<string>
+            {
+                string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)))
+            };
 
             if (UseDefaultInitializationFile)
             {

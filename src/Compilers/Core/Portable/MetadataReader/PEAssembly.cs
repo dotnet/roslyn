@@ -140,8 +140,7 @@ namespace Microsoft.CodeAnalysis
                         keys.Add(identity.PublicKey);
                     else
                     {
-                        keys = new List<ImmutableArray<byte>>();
-                        keys.Add(identity.PublicKey);
+                        keys = [identity.PublicKey];
                         ivtMap[identity.Name] = keys;
                     }
                 }

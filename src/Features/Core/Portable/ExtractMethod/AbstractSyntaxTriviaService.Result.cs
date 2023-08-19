@@ -215,30 +215,31 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
                 Dictionary<TriviaLocation, SyntaxToken> tokens)
             {
-                var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>();
-
-                tokenPairs[TriviaLocation.BeforeBeginningOfSpan] = new PreviousNextTokenPair
+                var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>
                 {
-                    PreviousToken = tokens[TriviaLocation.BeforeBeginningOfSpan],
-                    NextToken = tokens[TriviaLocation.BeforeBeginningOfSpan].GetNextToken(includeZeroWidth: true)
-                };
+                    [TriviaLocation.BeforeBeginningOfSpan] = new PreviousNextTokenPair
+                    {
+                        PreviousToken = tokens[TriviaLocation.BeforeBeginningOfSpan],
+                        NextToken = tokens[TriviaLocation.BeforeBeginningOfSpan].GetNextToken(includeZeroWidth: true)
+                    },
 
-                tokenPairs[TriviaLocation.AfterBeginningOfSpan] = new PreviousNextTokenPair
-                {
-                    PreviousToken = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true),
-                    NextToken = tokens[TriviaLocation.AfterBeginningOfSpan]
-                };
+                    [TriviaLocation.AfterBeginningOfSpan] = new PreviousNextTokenPair
+                    {
+                        PreviousToken = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true),
+                        NextToken = tokens[TriviaLocation.AfterBeginningOfSpan]
+                    },
 
-                tokenPairs[TriviaLocation.BeforeEndOfSpan] = new PreviousNextTokenPair
-                {
-                    PreviousToken = tokens[TriviaLocation.BeforeEndOfSpan],
-                    NextToken = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true)
-                };
+                    [TriviaLocation.BeforeEndOfSpan] = new PreviousNextTokenPair
+                    {
+                        PreviousToken = tokens[TriviaLocation.BeforeEndOfSpan],
+                        NextToken = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true)
+                    },
 
-                tokenPairs[TriviaLocation.AfterEndOfSpan] = new PreviousNextTokenPair
-                {
-                    PreviousToken = tokens[TriviaLocation.AfterEndOfSpan].GetPreviousToken(includeZeroWidth: true),
-                    NextToken = tokens[TriviaLocation.AfterEndOfSpan]
+                    [TriviaLocation.AfterEndOfSpan] = new PreviousNextTokenPair
+                    {
+                        PreviousToken = tokens[TriviaLocation.AfterEndOfSpan].GetPreviousToken(includeZeroWidth: true),
+                        NextToken = tokens[TriviaLocation.AfterEndOfSpan]
+                    }
                 };
 
                 return tokenPairs;

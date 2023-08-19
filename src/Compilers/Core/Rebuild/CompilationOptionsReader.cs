@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             // Compiler flag bytes are UTF-8 null-terminated key-value pairs
             string? key = null;
-            List<(string, string)> options = new List<(string, string)>();
+            List<(string, string)> options = [];
             for (; ; )
             {
                 var nullIndex = blobReader.IndexOf(0);

@@ -848,7 +848,7 @@ ExitDecodeTypeName:
                                         lastChildNamespaceName, typesInLastChildNamespace));
                             }
 
-                            typesInLastChildNamespace = new List<IGrouping<string, TypeDefinitionHandle>>();
+                            typesInLastChildNamespace = [];
                             lastChildNamespaceName = childNamespaceName;
                             Debug.Assert((object)lastChildNamespaceName != null);
 

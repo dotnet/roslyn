@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(enclosing)
         {
             this.lambdaSymbol = lambdaSymbol;
-            this.parameterMap = new MultiDictionary<string, ParameterSymbol>();
+            this.parameterMap = [];
 
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                _definitionMap = new SmallDictionary<string, ParameterSymbol>();
+                _definitionMap = [];
                 foreach (var parameter in parameters)
                 {
                     if (!parameter.IsDiscard)

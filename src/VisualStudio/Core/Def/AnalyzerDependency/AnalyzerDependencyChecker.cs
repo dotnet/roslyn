@@ -37,8 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            var allIgnorableAssemblyLists = new List<IIgnorableAssemblyList>(ignorableAssemblyLists);
-            allIgnorableAssemblyLists.Add(new IgnorableAssemblyIdentityList(analyzerInfos.Select(info => info.Identity)));
+            var allIgnorableAssemblyLists = new List<IIgnorableAssemblyList>(ignorableAssemblyLists)
+            {
+                new IgnorableAssemblyIdentityList(analyzerInfos.Select(info => info.Identity))
+            };
 
             // First check for analyzers with the same identity but different
             // contents (that is, different MVIDs).

@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis
 
         public TouchedFileLogger()
         {
-            _readFiles = new ConcurrentSet<string>();
-            _writtenFiles = new ConcurrentSet<string>();
+            _readFiles = [];
+            _writtenFiles = [];
         }
 
         /// <summary>

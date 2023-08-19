@@ -83,10 +83,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
 
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
-            var requestArgs = new List<Argument>(requestLength);
-
-            requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
-            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
+            var requestArgs = new List<Argument>(requestLength)
+            {
+                new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory),
+                new Argument(ArgumentId.TempDirectory, 0, tempDirectory)
+            };
 
             if (keepAlive != null)
             {

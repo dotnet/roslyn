@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
 
             if (lazyAliasMap == null)
             {
-                lazyAliasMap = new Dictionary<MetadataReference, MergedAliases>();
+                lazyAliasMap = [];
             }
 
             MergedAliases? mergedAliases;

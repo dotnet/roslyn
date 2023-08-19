@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal NullableAnalysisData(int maxRecursionDepth = -1)
             {
                 MaxRecursionDepth = maxRecursionDepth;
-                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
+                Data = [];
             }
         }
 

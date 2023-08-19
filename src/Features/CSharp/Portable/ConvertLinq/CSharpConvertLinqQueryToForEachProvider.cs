@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     Stack = new Stack<CSharpSyntaxNode>();
                     Stack.Push(fromClause);
-                    IdentifierNames = new HashSet<string> { fromClause.Identifier.ValueText };
+                    IdentifierNames = [fromClause.Identifier.ValueText];
                 }
 
                 public bool TryAdd(CSharpSyntaxNode node, SyntaxToken identifier)

@@ -182,11 +182,12 @@ End Module")
             Encoding redirectEncoding = null,
             bool shouldRunOnServer = true)
         {
-            var arguments = new List<string>(argumentsSingle.Split(' '));
-
-            // This is validating that localization to a specific locale works no matter what the locale of the 
-            // machine running the tests are. 
-            arguments.Add("/preferreduilang:en");
+            var arguments = new List<string>(argumentsSingle.Split(' '))
+            {
+                // This is validating that localization to a specific locale works no matter what the locale of the 
+                // machine running the tests are. 
+                "/preferreduilang:en"
+            };
 
             ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);
             CheckForBadShared(arguments);

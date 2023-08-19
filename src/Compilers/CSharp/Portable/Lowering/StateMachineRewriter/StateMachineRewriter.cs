@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields for the initial values of all the parameters of the method
             if (PreserveInitialParameterValuesAndThreadId)
             {
-                initialParameters = new Dictionary<Symbol, CapturedSymbolReplacement>();
+                initialParameters = [];
             }
 
             // fields for the captured variables of the method

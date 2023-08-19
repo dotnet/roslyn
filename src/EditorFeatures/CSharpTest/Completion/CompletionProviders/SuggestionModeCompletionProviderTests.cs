@@ -1407,10 +1407,12 @@ class P
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
-            var triggerInfos = new List<CompletionTrigger>();
-            triggerInfos.Add(CompletionTrigger.CreateInsertionTrigger('a'));
-            triggerInfos.Add(CompletionTrigger.Invoke);
-            triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
+            var triggerInfos = new List<CompletionTrigger>
+            {
+                CompletionTrigger.CreateInsertionTrigger('a'),
+                CompletionTrigger.Invoke,
+                CompletionTrigger.CreateDeletionTrigger('z')
+            };
 
             var service = GetCompletionService(document.Project);
             var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty));

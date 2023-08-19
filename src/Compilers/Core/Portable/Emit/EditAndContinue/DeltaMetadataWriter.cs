@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var sizes = previousGeneration.TableSizes;
 
-            _changedTypeDefs = new List<ITypeDefinition>();
+            _changedTypeDefs = [];
             _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
             _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Emit
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
 
-            _customAttributeParentCounts = new Dictionary<EntityHandle, int>();
-            _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
+            _customAttributeParentCounts = [];
+            _customAttributesAdded = [];
 
-            _firstParamRowMap = new Dictionary<MethodDefinitionHandle, int>();
+            _firstParamRowMap = [];
             _existingParameterDefs = new Dictionary<IParameterDefinition, int>(ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private void PopulateEncLogTableParameters(out List<int> paramEncMapRows)
         {
-            paramEncMapRows = new List<int>();
+            paramEncMapRows = [];
 
             var parameterFirstId = _parameterDefs.FirstRowId;
             int i = 0;
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private void PopulateEncLogTableCustomAttributes(out List<int> customAttributeEncMapRows)
         {
-            customAttributeEncMapRows = new List<int>();
+            customAttributeEncMapRows = [];
 
             // List of attributes that need to be emitted to delete a previously emitted attribute
             var deletedAttributeRows = new List<(int parentRowId, HandleKind kind)>();
@@ -1351,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public DefinitionIndexBase(int lastRowId, IEqualityComparer<T>? comparer = null)
             {
                 this.added = new Dictionary<T, int>(comparer);
-                this.rows = new List<T>();
+                this.rows = [];
                 _firstRowId = lastRowId + 1;
             }
 
@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 : base(lastRowId, ReferenceEqualityComparer.Instance)
             {
                 _tryGetExistingIndex = tryGetExistingIndex;
-                _map = new Dictionary<int, T>();
+                _map = [];
             }
 
             public override bool TryGetRowId(T item, out int index)

@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // First time through, we need to collect emitted names of all top level types.
             if (_namesOfTopLevelTypes == null)
             {
-                names = new HashSet<string>();
+                names = [];
             }
             else
             {

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
 
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
+            List<Diagnostic> diagnostics = [];
             var flattenedArgs = ArrayBuilder<string>.GetInstance();
             List<string>? scriptArgs = IsScriptCommandLineParser ? new List<string>() : null;
             List<string>? responsePaths = IsScriptCommandLineParser ? new List<string>() : null;
@@ -97,23 +97,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? delaySignSetting = null;
             string? keyFileSetting = null;
             string? keyContainerSetting = null;
-            List<ResourceDescription> managedResources = new List<ResourceDescription>();
-            List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
-            List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            List<ResourceDescription> managedResources = [];
+            List<CommandLineSourceFile> sourceFiles = [];
+            List<CommandLineSourceFile> additionalFiles = [];
             var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
-            List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
+            List<CommandLineSourceFile> embeddedFiles = [];
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding? codepage = null;
             var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
-            List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
-            List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
-            List<string> libPaths = new List<string>();
-            List<string> sourcePaths = new List<string>();
-            List<string> keyFileSearchPaths = new List<string>();
-            List<string> usings = new List<string>();
+            List<CommandLineReference> metadataReferences = [];
+            List<CommandLineAnalyzerReference> analyzers = [];
+            List<string> libPaths = [];
+            List<string> sourcePaths = [];
+            List<string> keyFileSearchPaths = [];
+            List<string> usings = [];
             var generalDiagnosticOption = ReportDiagnostic.Default;
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
             string? moduleName = null;
-            List<string> features = new List<string>();
+            List<string> features = [];
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;

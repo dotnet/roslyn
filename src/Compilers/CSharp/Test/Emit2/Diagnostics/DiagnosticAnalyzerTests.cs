@@ -312,10 +312,12 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
             // Escalate all diagnostics to error.
-            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Error);
-            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Error);
-            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Error);
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { noneDiagDescriptor.Id, ReportDiagnostic.Error },
+                { infoDiagDescriptor.Id, ReportDiagnostic.Error },
+                { warningDiagDescriptor.Id, ReportDiagnostic.Error }
+            };
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
             var comp = CreateCompilationWithMscorlib45("", options: options);
@@ -327,11 +329,13 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             }
 
             // Suppress all diagnostics.
-            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Suppress);
-            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Suppress);
-            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Suppress);
-            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Suppress);
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { noneDiagDescriptor.Id, ReportDiagnostic.Suppress },
+                { infoDiagDescriptor.Id, ReportDiagnostic.Suppress },
+                { warningDiagDescriptor.Id, ReportDiagnostic.Suppress },
+                { errorDiagDescriptor.Id, ReportDiagnostic.Suppress }
+            };
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
             comp = CreateCompilationWithMscorlib45("", options: options);
@@ -339,11 +343,13 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.Equal(0, effectiveDiags.Length);
 
             // Shuffle diagnostic severity.
-            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Info);
-            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Hidden);
-            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Error);
-            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Warn);
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { noneDiagDescriptor.Id, ReportDiagnostic.Info },
+                { infoDiagDescriptor.Id, ReportDiagnostic.Hidden },
+                { warningDiagDescriptor.Id, ReportDiagnostic.Error },
+                { errorDiagDescriptor.Id, ReportDiagnostic.Warn }
+            };
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
             comp = CreateCompilationWithMscorlib45("", options: options);
@@ -454,9 +460,11 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.Contains(enabledDiag, effectiveDiags);
 
             // If the disabled diag was enabled through options, then it should show up.
-            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(disabledDiagDescriptor.Id, ReportDiagnostic.Warn);
-            specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress);
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { disabledDiagDescriptor.Id, ReportDiagnostic.Warn },
+                { enabledDiagDescriptor.Id, ReportDiagnostic.Suppress }
+            };
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             comp = CreateCompilationWithMscorlib45("", options: options);
@@ -526,17 +534,21 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.False(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
 
-            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn);
-            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress);
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn },
+                { PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress }
+            };
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
 
             // Verify not configurable disabled diagnostic cannot be enabled, and hence cannot affect IsDiagnosticAnalyzerSuppressed computation.
-            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn);
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn }
+            };
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
@@ -1136,8 +1148,10 @@ SyntaxTree: ")}
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
 
             // Verify not configurable enabled diagnostic cannot be suppressed.
-            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
-            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress);
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>
+            {
+                { NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress }
+            };
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
             CreateCompilationWithMscorlib45(source, options: options)

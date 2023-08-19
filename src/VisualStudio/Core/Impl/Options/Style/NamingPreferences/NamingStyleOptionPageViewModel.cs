@@ -204,8 +204,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             public NamingRuleViewModel()
             {
-                Specifications = new ObservableCollection<SymbolSpecification>();
-                NamingStyles = new ObservableCollection<MutableNamingStyle>();
+                Specifications = [];
+                NamingStyles = [];
                 NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 

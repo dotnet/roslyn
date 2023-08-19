@@ -65,12 +65,13 @@ namespace Roslyn.Compilers.Extension
         private async Task WriteMSBuildFilesAsync(string packagePath, string hiveName, CancellationToken cancellationToken)
         {
             // A map of the file name to the content we need to ensure exists in the file
-            var filesToWrite = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            // The props we want to be included as early as possible since we want our tasks to be used and
-            // to ensure our setting of targets path happens early enough
-            filesToWrite.Add(await GetMSBuildRelativePathAsync($@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props", cancellationToken).ConfigureAwait(true),
-                $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            var filesToWrite = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                // The props we want to be included as early as possible since we want our tasks to be used and
+                // to ensure our setting of targets path happens early enough
+                {
+                    await GetMSBuildRelativePathAsync($@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props", cancellationToken).ConfigureAwait(true),
+                    $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}'"">
     <CSharpCoreTargetsPath>{packagePath}\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
@@ -79,7 +80,9 @@ namespace Roslyn.Compilers.Extension
 
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
-</Project>");
+</Project>"
+                }
+            };
 
             // This targets content we want to be included later since the project file might touch UseSharedCompilation
             var targetsContent =

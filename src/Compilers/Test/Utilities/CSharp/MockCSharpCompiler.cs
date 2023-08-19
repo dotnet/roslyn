@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
         {
-            diagnostics = new List<DiagnosticInfo>();
+            diagnostics = [];
             ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, TestOptions.DebugDll, skipAnalyzers, out analyzers, out generators);
         }
 

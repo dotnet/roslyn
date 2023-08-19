@@ -4057,7 +4057,7 @@ public class C
 
         private BoundTreeSequencer()
         {
-            _list = new List<BoundNode>();
+            _list = [];
         }
 
         public override BoundNode Visit(BoundNode node)

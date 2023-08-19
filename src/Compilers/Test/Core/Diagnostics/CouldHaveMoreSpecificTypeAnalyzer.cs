@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterCompilationStartAction(
                 (compilationContext) =>
                 {
-                    Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes = new Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>>();
+                    Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes = [];
 
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
                             if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
-                                Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
+                                Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = [];
 
                                 // Track explicit assignments.
                                 operationBlockContext.RegisterOperationAction(
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (!sourceTypes.TryGetValue(target, out var symbolSourceTypes))
                     {
-                        symbolSourceTypes = new HashSet<INamedTypeSymbol>();
+                        symbolSourceTypes = [];
                         sourceTypes[target] = symbolSourceTypes;
                     }
 

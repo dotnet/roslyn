@@ -38,8 +38,10 @@ class Derived : BaseClass
     { }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass()", string.Empty, null, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass()", string.Empty, null, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -60,8 +62,10 @@ class Derived : BaseClass
     { }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -81,8 +85,10 @@ class Derived : BaseClass
     { }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -105,8 +111,10 @@ class Derived : BaseClass
     { }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -129,8 +137,10 @@ class Derived : BaseClass
     public Derived() [|: base(2, $$3|])
     { }
 }";
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -153,8 +163,10 @@ class Derived : BaseClass
     { }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -408,8 +420,10 @@ public class BaseClass
     public BaseClass(int x)
     { }
 }";
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -435,8 +449,10 @@ public class BaseClass
     public BaseClass(int x)
     { }
 }";
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -462,8 +478,10 @@ public class BaseClass
     public BaseClass(int x)
     { }
 }";
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -502,12 +520,16 @@ public class BaseClass
     public BaseClass(int x, int y)
     { }
 }";
-            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
-            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0));
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -629,8 +651,10 @@ class C : D
     |]{}
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -645,8 +669,10 @@ class C : D
     public C() [|: base((1,$$) |]{}
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -662,8 +688,10 @@ class C : D
     |]{}
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -678,8 +706,10 @@ class C : D
     public C() [|: base((1, (2,$$) |]{}
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            };
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

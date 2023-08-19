@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                 lock (_elementsGate)
                 {
                     localElements = _elements;
-                    _elements = new List<Element>();
+                    _elements = [];
                 }
 
                 _underlyingWriter.WriteAll(localElements);

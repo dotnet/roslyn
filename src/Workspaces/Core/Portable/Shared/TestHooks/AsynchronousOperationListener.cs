@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-                    _diagnosticTokenList = new List<DiagnosticAsyncToken>();
+                    _diagnosticTokenList = [];
                 }
             }
         }

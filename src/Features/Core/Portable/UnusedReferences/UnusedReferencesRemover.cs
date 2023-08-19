@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             var projects = solution.Projects
                 .Where(project => projectFilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
 
-            HashSet<string> usedAssemblyFilePaths = new();
-            HashSet<string> usedProjectFileNames = new();
+            HashSet<string> usedAssemblyFilePaths = [];
+            HashSet<string> usedProjectFileNames = [];
 
             foreach (var project in projects)
             {

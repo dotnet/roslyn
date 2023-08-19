@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 {
                     if (!s_map.TryGetValue(buffer, out var set))
                     {
-                        set = new HashSet<ITextView>();
+                        set = [];
                         s_map.Add(buffer, set);
                     }
 

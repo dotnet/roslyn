@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (recordingExecutedSteps)
                 {
-                    _namedSteps = new Dictionary<string, HashSet<IncrementalGeneratorRunStep>>();
-                    _outputSteps = new Dictionary<string, HashSet<IncrementalGeneratorRunStep>>();
+                    _namedSteps = [];
+                    _outputSteps = [];
                 }
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(step.Name is not null);
                     if (!stepCollectionBuilder.TryGetValue(step.Name, out var stepsByName))
                     {
-                        stepsByName = new HashSet<IncrementalGeneratorRunStep>();
+                        stepsByName = [];
                         stepCollectionBuilder.Add(step.Name, stepsByName);
                     }
                     stepsByName.Add(step);

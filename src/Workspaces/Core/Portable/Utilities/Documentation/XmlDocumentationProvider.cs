@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     catch (Exception)
                     {
-                        _docComments = new Dictionary<string, string>();
+                        _docComments = [];
                     }
                 }
             }

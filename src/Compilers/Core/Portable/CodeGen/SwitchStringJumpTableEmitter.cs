@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 HashBucket? bucket;
                 if (!stringHashMap.TryGetValue(hash, out bucket))
                 {
-                    bucket = new HashBucket();
+                    bucket = [];
                     stringHashMap.Add(hash, bucket);
                 }
 

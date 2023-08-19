@@ -682,7 +682,7 @@ outerDefault:
 
         private static Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> PartitionMembersByContainingType<TMember>(ArrayBuilder<TMember> members) where TMember : Symbol
         {
-            Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMap = new Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>>();
+            Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMap = [];
             for (int i = 0; i < members.Count; i++)
             {
                 TMember member = members[i];

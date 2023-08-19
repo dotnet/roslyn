@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocator != null)
             {
-                _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
+                _lazyAllLocals = [];
                 slotAllocator.AddPreviousLocals(_lazyAllLocals);
             }
         }

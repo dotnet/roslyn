@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (directives == null)
                     {
-                        directives = new List<TDirective>();
+                        directives = [];
                     }
 
                     directives.Add(directive);

@@ -154,21 +154,21 @@ End Class
                                               out List<string> expectedReads,
                                               out List<string> expectedWrites)
         {
-            expectedReads = new List<string>();
-            expectedReads.AddRange(cmd.Arguments.MetadataReferences.Select(r => r.Reference));
-
-            if (cmd.Arguments is VisualBasicCommandLineArguments { DefaultCoreLibraryReference: { } reference })
-            {
-                expectedReads.Add(reference.Reference);
-            }
+            expectedReads =
+            [
+                .. cmd.Arguments.MetadataReferences.Select(r => r.Reference),
+                .. cmd.Arguments is VisualBasicCommandLineArguments { DefaultCoreLibraryReference: { } reference } ? [reference.Reference] : [],
+            ];
 
             foreach (var file in cmd.Arguments.SourceFiles)
             {
                 expectedReads.Add(file.Path);
             }
 
-            var writes = new List<string>();
-            writes.Add(outputPath);
+            var writes = new List<string>
+            {
+                outputPath
+            };
 
             expectedWrites = writes;
         }

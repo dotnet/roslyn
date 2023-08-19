@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
             _declarationDiagnostics = new DiagnosticBag();
-            _declarationDependencies = new HashSet<AssemblySymbol>();
+            _declarationDependencies = [];
         }
 
         public MessageID MessageID { get { return _messageID; } }

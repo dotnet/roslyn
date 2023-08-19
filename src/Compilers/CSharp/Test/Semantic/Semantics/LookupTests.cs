@@ -143,8 +143,8 @@ class Test
     }
 }
 ";
-            List<string> expected_lookupNames = new List<string>
-            {
+            List<string> expected_lookupNames =
+            [
                 "Equals",
                 "Finalize",
                 "GetHashCode",
@@ -156,10 +156,10 @@ class Test
                 "System",
                 "Test",
                 "ToString"
-            };
+            ];
 
-            List<string> expected_lookupSymbols = new List<string>
-            {
+            List<string> expected_lookupSymbols =
+            [
                 "Microsoft",
                 "System",
                 "System.Boolean System.Object.Equals(System.Object obj)",
@@ -173,7 +173,7 @@ class Test
                 "void Test.Finalize()",
                 "void Test.Main()",
                 "Test"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -200,17 +200,17 @@ class Test
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "j",
                 "k"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "j",
                 "k"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -303,17 +303,17 @@ namespace T1
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "T1",
                 "T2"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "T1",
                 "T2"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -354,20 +354,20 @@ namespace T2
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "T1",
                 "T2",
                 "Test"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "T1",
                 "T2",
                 "T1.Test",
                 //"T2.Test" this is hidden by T1.Test
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -399,8 +399,8 @@ class Test
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "TestMeth",
                 "i",
                 "j",
@@ -408,10 +408,10 @@ class Test
                 "System",
                 "Microsoft",
                 "Test"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "void Test.TestMeth(System.Int32 i, System.Int32 j)",
                 "System.Int32 i",
                 "System.Int32 j",
@@ -419,7 +419,7 @@ class Test
                 "System",
                 "Microsoft",
                 "Test"
-            };
+            ];
 
             var comp = CreateCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
@@ -500,22 +500,22 @@ class Test
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "F"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "void Test.F(System.Int32 i)",
                 "void Test.F(System.Int32 i, System.Int32 j)"
-            };
+            ];
 
-            List<string> not_expected_in_lookupSymbols = new List<string>
-            {
+            List<string> not_expected_in_lookupSymbols =
+            [
                 "void Test.F<T>(T i)",
                 "void Test.F<T, U>(T i, U j)"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -563,18 +563,18 @@ class Test
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "F"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "void Test.F(System.Int32 i)",
                 "void Test.F(System.Int32 i, System.Int32 j)",
                 "void Test.F<T>(T i)",
                 "void Test.F<T, U>(T i, U j)"
-            };
+            ];
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var comp = CreateCompilation(testSrc);
@@ -621,11 +621,11 @@ class Test
             var tree = srcTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
-            List<string> not_expected_in_lookup = new List<string>
-            {
+            List<string> not_expected_in_lookup =
+            [
                 "<CrtImplementationDetails>",
                 "<CppImplementationDetails>"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = model.LookupNames(GetPositionForBinding(tree), null).ToList();
@@ -709,19 +709,19 @@ class B : A
           int num=10;
        } 
 ";
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "Main",
                 "start",
                 "num"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "void start.Main()",
                 "start",
                 "System.Int32 num"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -752,27 +752,27 @@ class B : A
           int num=10;
 /*pos*/} 
 ";
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "Main",
                 "start"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "void start.Main()",
                 "start"
-            };
+            ];
 
-            List<string> not_expected_in_lookupNames = new List<string>
-            {
+            List<string> not_expected_in_lookupNames =
+            [
                 "num"
-            };
+            ];
 
-            List<string> not_expected_in_lookupSymbols = new List<string>
-            {
+            List<string> not_expected_in_lookupSymbols =
+            [
                 "System.Int32 num"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -811,19 +811,19 @@ class MyClass
     }
 }
 ";
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "j",
                 "k",
                 "lambdaParam"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "System.Int32 j",
                 "System.Int32 k",
                 "System.Int32 lambdaParam"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -856,15 +856,15 @@ class MyClass
     }
 }
 ";
-            List<string> not_expected_in_lookupNames = new List<string>
-            {
+            List<string> not_expected_in_lookupNames =
+            [
                 "forVar"
-            };
+            ];
 
-            List<string> not_expected_in_lookupSymbols = new List<string>
-            {
+            List<string> not_expected_in_lookupSymbols =
+            [
                 "System.Int32 forVar",
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -895,15 +895,15 @@ class MyClass
     }
 }
 ";
-            List<string> not_expected_in_lookupNames = new List<string>
-            {
+            List<string> not_expected_in_lookupNames =
+            [
                 "number"
-            };
+            ];
 
-            List<string> not_expected_in_lookupSymbols = new List<string>
-            {
+            List<string> not_expected_in_lookupSymbols =
+            [
                 "System.Int32 number",
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -930,17 +930,17 @@ class MyClass
 
     public MyClass(int j, int k) :this(/*pos*/k)
 ";
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "j",
                 "k"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "System.Int32 j",
                 "System.Int32 k",
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -972,15 +972,15 @@ class C
             }/*pos*/
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "C"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "C"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1012,15 +1012,15 @@ class Program
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "x"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "? x"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1138,15 +1138,15 @@ class Program
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "i"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "? i"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1176,15 +1176,15 @@ class Program
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "s"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "? s"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1211,15 +1211,15 @@ class Program
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "x"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "x"
-            };
+            ];
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1335,15 +1335,15 @@ class Program
 }
 ";
 
-            List<string> expected_in_lookupNames = new List<string>
-            {
+            List<string> expected_in_lookupNames =
+            [
                 "p2"
-            };
+            ];
 
-            List<string> expected_in_lookupSymbols = new List<string>
-            {
+            List<string> expected_in_lookupSymbols =
+            [
                 "p2"
-            };
+            ];
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
             var actual_lookupNames = GetLookupNames(testSrc);

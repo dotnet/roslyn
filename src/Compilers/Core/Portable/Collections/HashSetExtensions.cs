@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (hashSet is null)
             {
-                hashSet = new HashSet<T>();
+                hashSet = [];
             }
 
             return hashSet.Add(item);

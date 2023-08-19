@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal DiagnosticAnalyzerInfoCache()
         {
-            _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
-            _suppressionsInfo = new ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo>();
-            _idToDescriptorsMap = new ConcurrentDictionary<string, DiagnosticDescriptor?>();
+            _descriptorsInfo = [];
+            _suppressionsInfo = [];
+            _idToDescriptorsMap = [];
         }
 
         /// <summary>

@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
-                    diagnosticsPerDocument = new List<DiagnosticData>();
+                    diagnosticsPerDocument = [];
                     builder[diagnosticData.DocumentId] = diagnosticsPerDocument;
                 }
 
@@ -610,7 +610,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
-                    diagnosticsPerProject = new List<DiagnosticData>();
+                    diagnosticsPerProject = [];
                     builder[diagnosticData.ProjectId] = diagnosticsPerProject;
                 }
 

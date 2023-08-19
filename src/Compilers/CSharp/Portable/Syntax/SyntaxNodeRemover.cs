@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     if (_directivesToKeep == null)
                     {
-                        _directivesToKeep = new HashSet<SyntaxNode>();
+                        _directivesToKeep = [];
                     }
                     else
                     {

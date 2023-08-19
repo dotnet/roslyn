@@ -228,7 +228,7 @@ namespace Roslyn.Utilities
 
         public MultiDictionary()
         {
-            _dictionary = new Dictionary<K, ValueSet>();
+            _dictionary = [];
         }
 
         public MultiDictionary(IEqualityComparer<K> comparer)

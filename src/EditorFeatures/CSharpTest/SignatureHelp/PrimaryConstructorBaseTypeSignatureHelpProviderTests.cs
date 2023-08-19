@@ -31,9 +31,11 @@ record Base(int Identifier)
 record Derived(int Other) : [|Base($$1|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
+                new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -49,8 +51,10 @@ class Base(int Identifier)
 class Derived(int Other) : [|Base($$1|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -66,10 +70,12 @@ record Base(int Identifier1, int Identifier2)
 record Derived(int Other) : [|Base(1, $$2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -85,9 +91,11 @@ class Base(int Identifier1, int Identifier2)
 class Derived(int Other) : [|Base(1, $$2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -104,10 +112,12 @@ record Base(int Identifier1, int Identifier2)
 record Derived(int Other) : [|Base(1, $$2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -124,9 +134,11 @@ class Base(int Identifier1, int Identifier2)
 class Derived(int Other) : [|Base(1, $$2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -144,10 +156,12 @@ record Base(int Identifier1, int Identifier2)
 record Derived(int Other) : [|Base($$1, 2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
+                new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -165,9 +179,11 @@ class Base(int Identifier1, int Identifier2)
 class Derived(int Other) : [|Base($$1, 2|]);
 ";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0));
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
+                new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }

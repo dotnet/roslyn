@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ExitPointsWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
-            _labelsInside = new ArrayBuilder<LabelSymbol>();
+            _labelsInside = [];
             _branchesOutOf = ArrayBuilder<StatementSyntax>.GetInstance();
         }
 

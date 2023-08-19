@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _currentIndent = new string(' ', initialIndent);
             _pendingIndent = true;
 
-            _explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
-            _labelIdMap = new Dictionary<ILabelSymbol, uint>();
+            _explicitNodeMap = [];
+            _labelIdMap = [];
         }
 
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)

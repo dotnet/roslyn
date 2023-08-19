@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _analyzer = analyzer;
                 _topLevelMethod = topLevelMethod;
-                _localsInScope = new HashSet<Symbol>();
+                _localsInScope = [];
                 _parent = parent;
             }
 

@@ -125,7 +125,7 @@ namespace Microsoft.Cci
             {
                 this.Name = name;
                 this.ID = id;
-                this.Entries = new List<object>();
+                this.Entries = [];
             }
         }
 

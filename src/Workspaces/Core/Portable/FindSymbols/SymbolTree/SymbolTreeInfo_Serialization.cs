@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                    receiverTypeNameToExtensionMethodMap = [];
 
                     for (var i = 0; i < keyCount; i++)
                     {

@@ -48,8 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         public CleanableWeakComHandleTable(IThreadingContext threadingContext, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
             : base(threadingContext)
         {
-            _table = new Dictionary<TKey, WeakComHandle<TValue, TValue>>();
-            _deadKeySet = new HashSet<TKey>();
+            _table = [];
+            _deadKeySet = [];
 
             CleanUpThreshold = cleanUpThreshold ?? DefaultCleanUpThreshold;
             CleanUpTimeSlice = cleanUpTimeSlice ?? s_defaultCleanUpTimeSlice;

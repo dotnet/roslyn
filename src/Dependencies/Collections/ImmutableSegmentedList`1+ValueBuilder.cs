@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     if (_mutableList is null)
                     {
-                        _mutableList = new SegmentedList<T>();
+                        _mutableList = [];
                         _list = default;
                     }
                     else

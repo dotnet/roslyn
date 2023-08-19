@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             currentDirectory = null;
             libDirectory = null;
             tempDirectory = null;
-            List<string> commandLineArguments = new List<string>();
+            List<string> commandLineArguments = [];
 
             foreach (BuildRequest.Argument arg in req.Arguments)
             {

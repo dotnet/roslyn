@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
 
             _declarationDiagnostics = new DiagnosticBag();
-            _declarationDependencies = new HashSet<AssemblySymbol>();
+            _declarationDependencies = [];
 
             _declarationModifiers =
                 DeclarationModifiers.Private |

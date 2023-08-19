@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxNode node, List<ExpressionSyntax> exprSynList)
         {
             if (exprSynList == null)
-                exprSynList = new List<ExpressionSyntax>();
+                exprSynList = [];
 
             if (node is ExpressionSyntax)
             {

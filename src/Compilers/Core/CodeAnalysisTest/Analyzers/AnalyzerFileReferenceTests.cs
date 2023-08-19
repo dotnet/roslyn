@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Path.Combine(TempRoot.Root, "random.dll"));
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.FaultyAnalyzer);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithFakeCompilerDependency);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithLaterFakeCompilerDependency);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            List<AnalyzerLoadFailureEventArgs> errors = [];
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -491,7 +491,7 @@ public class Generator : ISourceGenerator
                 Assert.True(result.Success);
 
                 AnalyzerFileReference reference = CreateAnalyzerFileReference(generatorPath);
-                List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+                List<AnalyzerLoadFailureEventArgs> errors = [];
                 void errorHandler(object? o, AnalyzerLoadFailureEventArgs e) => errors.Add(e);
                 reference.AnalyzerLoadFailed += errorHandler;
                 var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();

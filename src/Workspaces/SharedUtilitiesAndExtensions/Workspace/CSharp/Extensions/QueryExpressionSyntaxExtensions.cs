@@ -12,8 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static IList<SyntaxNode> GetAllClauses(this QueryExpressionSyntax query)
         {
-            var result = new List<SyntaxNode>();
-            result.Add(query.FromClause);
+            var result = new List<SyntaxNode>
+            {
+                query.FromClause
+            };
             result.AddRange(query.Body.Clauses);
             result.Add(query.Body.SelectOrGroup);
             return result;

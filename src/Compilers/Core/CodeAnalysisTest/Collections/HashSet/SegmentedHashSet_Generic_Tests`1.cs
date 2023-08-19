@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void HashSet_Generic_Constructor()
         {
-            SegmentedHashSet<T> set = new SegmentedHashSet<T>();
+            SegmentedHashSet<T> set = [];
             Assert.Empty(set);
         }
 
@@ -160,9 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             object[] array = new object[2];
             object obj = new();
-            SegmentedHashSet<object> set = new SegmentedHashSet<object>();
-
-            set.Add(obj);
+            SegmentedHashSet<object> set = [obj];
             set.Remove(obj);
             foreach (object o in set) { }
             set.CopyTo(array, 0, 2);
@@ -289,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void SetComparer_SetEqualsTests()
         {
-            List<T> objects = new List<T>() { CreateT(1), CreateT(2), CreateT(3), CreateT(4), CreateT(5), CreateT(6) };
+            List<T> objects = [CreateT(1), CreateT(2), CreateT(3), CreateT(4), CreateT(5), CreateT(6)];
 
             var set = new SegmentedHashSet<SegmentedHashSet<T>>()
             {
@@ -323,7 +321,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void SetComparer_SequenceEqualTests()
         {
-            List<T> objects = new List<T>() { CreateT(1), CreateT(2), CreateT(3), CreateT(4), CreateT(5), CreateT(6) };
+            List<T> objects = [CreateT(1), CreateT(2), CreateT(3), CreateT(4), CreateT(5), CreateT(6)];
 
             var set = new SegmentedHashSet<SegmentedHashSet<T>>()
             {
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void CanBeCastedToISet()
         {
-            SegmentedHashSet<T> set = new SegmentedHashSet<T>();
+            SegmentedHashSet<T> set = [];
             ISet<T> iset = (set as ISet<T>);
             Assert.NotNull(iset);
         }
@@ -439,7 +437,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_TryGetValue_Contains()
         {
             T value = CreateT(1);
-            SegmentedHashSet<T> set = new SegmentedHashSet<T> { value };
+            SegmentedHashSet<T> set = [value];
             T equalValue = CreateT(1);
             Assert.True(set.TryGetValue(equalValue, out T? actualValue));
             Assert.Equal(value, actualValue);
@@ -453,7 +451,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_TryGetValue_Contains_OverwriteOutputParam()
         {
             T value = CreateT(1);
-            SegmentedHashSet<T> set = new SegmentedHashSet<T> { value };
+            SegmentedHashSet<T> set = [value];
             T equalValue = CreateT(1);
 #pragma warning disable IDE0059 // Unnecessary assignment of a value (intentional for the test)
             T? actualValue = CreateT(2);
@@ -470,7 +468,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_TryGetValue_NotContains()
         {
             T value = CreateT(1);
-            SegmentedHashSet<T> set = new SegmentedHashSet<T> { value };
+            SegmentedHashSet<T> set = [value];
             T equalValue = CreateT(2);
             Assert.False(set.TryGetValue(equalValue, out T? actualValue));
             Assert.Equal(default(T), actualValue);
@@ -480,7 +478,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void HashSet_Generic_TryGetValue_NotContains_OverwriteOutputParam()
         {
             T value = CreateT(1);
-            SegmentedHashSet<T> set = new SegmentedHashSet<T> { value };
+            SegmentedHashSet<T> set = [value];
             T equalValue = CreateT(2);
 #pragma warning disable IDE0059 // Unnecessary assignment of a value (intentional for the test)
             T? actualValue = equalValue;
@@ -616,10 +614,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var set = new SegmentedHashSet<T>();
             Assert.Equal(17, set.EnsureCapacity(17));
 
-            set = new SegmentedHashSet<T>();
+            set = [];
             Assert.Equal(17, set.EnsureCapacity(15));
 
-            set = new SegmentedHashSet<T>();
+            set = [];
             Assert.Equal(17, set.EnsureCapacity(13));
         }
 

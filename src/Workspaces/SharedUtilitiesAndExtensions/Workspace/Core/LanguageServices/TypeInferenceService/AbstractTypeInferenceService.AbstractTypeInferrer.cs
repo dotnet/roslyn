@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
 
             protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
-                var result = new List<ITypeSymbol>();
-                result.Add(parameterSymbol.Type);
+                var result = new List<ITypeSymbol>
+                {
+                    parameterSymbol.Type
+                };
 
                 if (parameterSymbol.IsParams)
                 {

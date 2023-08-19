@@ -186,11 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public ClosureEnvironment(IEnumerable<Symbol> capturedVariables, bool isStruct)
                 {
-                    CapturedVariables = new SetWithInsertionOrder<Symbol>();
-                    foreach (var item in capturedVariables)
-                    {
-                        CapturedVariables.Add(item);
-                    }
+                    CapturedVariables = [.. capturedVariables];
                     IsStruct = isStruct;
                 }
             }

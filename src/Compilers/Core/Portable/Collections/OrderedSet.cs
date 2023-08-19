@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public OrderedSet()
         {
-            _set = new HashSet<T>();
-            _list = new ArrayBuilder<T>();
+            _set = [];
+            _list = [];
         }
 
         public OrderedSet(IEnumerable<T> items)

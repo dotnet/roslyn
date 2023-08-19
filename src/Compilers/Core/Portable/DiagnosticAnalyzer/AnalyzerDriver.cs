@@ -414,11 +414,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
                     _lazyDoNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap, TreatAllCodeAsNonGeneratedCode);
-                    _lazyGeneratedCodeFilesMap = new ConcurrentDictionary<SyntaxTree, bool>();
-                    _lazyGeneratedCodeSymbolsForTreeMap = new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
-                    _lazyIsGeneratedCodeSymbolMap = new ConcurrentDictionary<ISymbol, bool>();
-                    _lazyTreesWithHiddenRegionsMap = new ConcurrentDictionary<SyntaxTree, bool>();
-                    _lazySuppressedAnalyzersForTreeMap = new ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>>();
+                    _lazyGeneratedCodeFilesMap = [];
+                    _lazyGeneratedCodeSymbolsForTreeMap = [];
+                    _lazyIsGeneratedCodeSymbolMap = [];
+                    _lazyTreesWithHiddenRegionsMap = [];
+                    _lazySuppressedAnalyzersForTreeMap = [];
                     _lazyGeneratedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _lazySymbolActionsByKind = MakeSymbolActionsByKind(in AnalyzerActions);
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (this.AnalyzerActions.SymbolStartActionsCount > 0)
                     {
-                        _lazyPerSymbolAnalyzerActionsCache = new ConcurrentDictionary<(INamespaceOrTypeSymbol, DiagnosticAnalyzer), IGroupedAnalyzerActions>();
+                        _lazyPerSymbolAnalyzerActionsCache = [];
                     }
 
                 }, cancellationToken);

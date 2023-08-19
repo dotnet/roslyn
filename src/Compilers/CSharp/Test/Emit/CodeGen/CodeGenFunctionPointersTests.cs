@@ -10551,66 +10551,42 @@ public unsafe class C
 }}
 ");
 
-            List<DiagnosticDescription> diagnostics = new()
-            {
+            List<DiagnosticDescription> diagnostics =
+            [
                 // (10,39): error CS8786: Calling convention of 'C.M()' is not compatible with 'Default'.
                 //         delegate*<void> ptrManaged = &M;
-                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Default").WithLocation(10, 39)
-            };
-
-            if (diagnosticToSkip != 1)
-            {
-                diagnostics.Add(
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Default").WithLocation(10, 39),
+                .. diagnosticToSkip != 1 ? [
                     // (11,25): error CS8786: Calling convention of 'C.M()' is not compatible with 'Unmanaged'.
                     //         ptrUnmanaged = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Unmanaged").WithLocation(11, 51)
-                    );
-            }
-
-            if (diagnosticToSkip != 2)
-            {
-                diagnostics.Add(
+] : [],
+                .. diagnosticToSkip != 2 ? [
                     // (12,54): error CS8786: Calling convention of 'C.M()' is not compatible with 'CDecl'.
                     //         delegate* unmanaged[Cdecl]<void> ptrCdecl = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "CDecl").WithLocation(12, 54)
-                    );
-            }
-
-            if (diagnosticToSkip != 3)
-            {
-                diagnostics.Add(
+] : [],
+                .. diagnosticToSkip != 3 ? [
                     // (13,60): error CS8786: Calling convention of 'C.M()' is not compatible with 'ThisCall'.
                     //         delegate* unmanaged[Thiscall]<void> ptrThiscall = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "ThisCall").WithLocation(13, 60)
-                    );
-            }
-
-            if (diagnosticToSkip != 4)
-            {
-                diagnostics.Add(
+] : [],
+                .. diagnosticToSkip != 4 ? [
                     // (14,58): error CS8786: Calling convention of 'C.M()' is not compatible with 'Standard'.
                     //         delegate* unmanaged[Stdcall]<void> ptrStdcall = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Standard").WithLocation(14, 58)
-                    );
-            }
-
-            if (diagnosticToSkip != 5)
-            {
-                diagnostics.Add(
+] : [],
+                .. diagnosticToSkip != 5 ? [
                     // (15,60): error CS8786: Calling convention of 'C.M()' is not compatible with 'FastCall'.
                     //         delegate* unmanaged[Fastcall]<void> ptrFastcall = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "FastCall").WithLocation(15, 60)
-                    );
-            }
-
-            if (diagnosticToSkip != 6)
-            {
-                diagnostics.Add(
+] : [],
+                .. diagnosticToSkip != 6 ? [
                     // (16,72): error CS8786: Calling convention of 'C.M()' is not compatible with 'Unmanaged'.
                     //         delegate* unmanaged[Cdecl, Thiscall]<void> ptrCdeclThiscall = &M;
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Unmanaged").WithLocation(16, 72)
-                    );
-            }
+] : [],
+            ];
 
             comp.VerifyDiagnostics(diagnostics.ToArray());
         }

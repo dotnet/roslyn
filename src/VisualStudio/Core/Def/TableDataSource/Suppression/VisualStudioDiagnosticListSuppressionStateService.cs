@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         if (projectNameToProjectMap == null)
                         {
-                            projectNameToProjectMap = new Dictionary<string, Project>();
+                            projectNameToProjectMap = [];
                             foreach (var p in _workspace.CurrentSolution.Projects)
                             {
                                 projectNameToProjectMap[p.Name] = p;

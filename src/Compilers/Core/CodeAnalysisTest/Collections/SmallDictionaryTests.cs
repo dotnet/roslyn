@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void SmallDictionaryAlwaysBalanced()
         {
-            var sd = new SmallDictionary<int, string>();
-
-            sd.Add(1, "1");
+            var sd = new SmallDictionary<int, string>
+            {
+                { 1, "1" }
+            };
             sd.AssertBalanced();
 
             sd.Add(10, "1");

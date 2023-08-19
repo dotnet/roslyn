@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             // on implementation). 
             var textSeq = VirtualCharSequence.Create(0, originalText);
             var index = 0;
-            List<VirtualChar> enumeratedParsedCharacters = new();
+            List<VirtualChar> enumeratedParsedCharacters = [];
 
             foreach (var charSeq in StackFrameUtils.Enumerate(tree.Root))
             {

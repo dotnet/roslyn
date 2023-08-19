@@ -77,7 +77,7 @@ namespace BuildBoss
 
         private bool CheckDuplicate(TextWriter textWriter, out Dictionary<ProjectKey, SolutionProjectData> map)
         {
-            map = new Dictionary<ProjectKey, SolutionProjectData>();
+            map = [];
             var allGood = true;
             foreach (var projectEntry in SolutionUtil.ParseProjects(SolutionFilePath))
             {

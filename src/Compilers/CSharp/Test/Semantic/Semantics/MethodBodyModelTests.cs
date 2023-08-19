@@ -123,7 +123,7 @@ class Program
             var comp = CreateCompilation(tree);
 
             int[] count = new int[4];
-            Dictionary<int, int> errors = new Dictionary<int, int>();
+            Dictionary<int, int> errors = [];
             foreach (var e in comp.GetDiagnostics())
             {
                 count[(int)e.Severity]++;

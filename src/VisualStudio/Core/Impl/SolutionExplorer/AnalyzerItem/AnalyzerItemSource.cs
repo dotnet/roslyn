@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (_analyzerItems == null)
                 {
-                    _analyzerItems = new BulkObservableCollection<AnalyzerItem>();
+                    _analyzerItems = [];
 
                     var project = _analyzersFolder.Workspace
                                                 .CurrentSolution

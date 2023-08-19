@@ -485,12 +485,7 @@ namespace Microsoft.Cci
 
         private void CreateUserStringIndices()
         {
-            _pseudoStringTokenToStringMap = new List<string>();
-
-            foreach (string str in this.module.GetStrings())
-            {
-                _pseudoStringTokenToStringMap.Add(str);
-            }
+            _pseudoStringTokenToStringMap = [.. this.module.GetStrings()];
 
             _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Count];
         }
@@ -560,7 +555,7 @@ namespace Microsoft.Cci
                 ushort index = 0;
                 if (result == null)
                 {
-                    result = new List<IGenericTypeParameter>();
+                    result = [];
                 }
                 else
                 {
@@ -4155,7 +4150,7 @@ namespace Microsoft.Cci
             protected HeapOrReferenceIndexBase(MetadataWriter writer, int lastRowId)
             {
                 _writer = writer;
-                _rows = new List<T>();
+                _rows = [];
                 _firstRowId = lastRowId + 1;
             }
 

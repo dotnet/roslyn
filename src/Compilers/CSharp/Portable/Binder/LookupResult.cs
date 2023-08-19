@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _pool = pool;
             _kind = LookupResultKind.Empty;
-            _symbolList = new ArrayBuilder<Symbol>();
+            _symbolList = [];
             _error = null;
         }
 

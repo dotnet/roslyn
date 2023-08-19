@@ -1132,14 +1132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (documentedParameters == null)
                 {
-                    documentedParameters = new HashSet<ParameterSymbol>();
+                    documentedParameters = [];
                 }
             }
             else if (elementKind == XmlNameAttributeElementKind.TypeParameter)
             {
                 if (documentedTypeParameters == null)
                 {
-                    documentedTypeParameters = new HashSet<TypeParameterSymbol>();
+                    documentedTypeParameters = [];
                 }
             }
 

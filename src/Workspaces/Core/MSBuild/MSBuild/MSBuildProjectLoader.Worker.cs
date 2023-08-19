@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
-                _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
+                _projectIdToFileInfoMap = [];
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
-                _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
+                _projectIdToProjectReferencesMap = [];
             }
 
             private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)

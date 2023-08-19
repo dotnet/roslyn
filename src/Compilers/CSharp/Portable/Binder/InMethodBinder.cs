@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (map == null)
             {
-                map = new SmallDictionary<string, Symbol>();
+                map = [];
                 RecordDefinition(map, parameters);
                 RecordDefinition(map, typeParameters);
 

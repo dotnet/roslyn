@@ -71,16 +71,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_SortedList()
         {
-            SortedList obj = new SortedList();
-            obj.Add(3, 4);
-            obj.Add(1, 5);
-            obj.Add(2, 6);
+            SortedList obj = new SortedList
+            {
+                { 3, 4 },
+                { 1, 5 },
+                { 2, 6 }
+            };
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedList(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
-            obj = new SortedList();
-            obj.Add(new[] { 3 }, new int[] { 4 });
+            obj = new SortedList
+            {
+                { new[] { 3 }, new int[] { 4 } }
+            };
 
             str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedList(1) { { int[1] { 3 }, int[1] { 4 } } }", str);

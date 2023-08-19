@@ -41,8 +41,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var allInterfaces = type.AllInterfaces;
             if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
-                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
-                result.Add(namedType);
+                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1)
+                {
+                    namedType
+                };
                 result.AddRange(allInterfaces);
                 return result;
             }

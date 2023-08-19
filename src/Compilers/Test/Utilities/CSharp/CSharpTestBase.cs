@@ -1494,7 +1494,7 @@ namespace System.Diagnostics.CodeAnalysis
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
             if (synList == null)
-                synList = new List<SyntaxNode>();
+                synList = [];
 
             synList.Add(node);
 

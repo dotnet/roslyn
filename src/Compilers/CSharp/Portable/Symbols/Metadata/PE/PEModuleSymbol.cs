@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                 {
                                     if (moduleAssemblyAttributesBuilder == null)
                                     {
-                                        moduleAssemblyAttributesBuilder = new ArrayBuilder<CSharpAttributeData>();
+                                        moduleAssemblyAttributesBuilder = [];
                                     }
                                     moduleAssemblyAttributesBuilder.Add(new PEAttributeData(this, customAttributeHandle));
                                 }

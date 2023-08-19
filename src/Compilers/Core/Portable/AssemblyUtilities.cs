@@ -140,7 +140,7 @@ namespace Roslyn.Utilities
             RoslynDebug.Assert(PathUtilities.IsAbsolute(assemblyPath));
             RoslynDebug.Assert(dependencyFilePaths != null);
 
-            HashSet<AssemblyIdentity> assemblyDefinitions = new HashSet<AssemblyIdentity>();
+            HashSet<AssemblyIdentity> assemblyDefinitions = [];
             foreach (var potentialDependency in dependencyFilePaths)
             {
                 using (var reader = new PEReader(FileUtilities.OpenRead(potentialDependency)))
@@ -152,7 +152,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            HashSet<AssemblyIdentity> assemblyReferences = new HashSet<AssemblyIdentity>();
+            HashSet<AssemblyIdentity> assemblyReferences = [];
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
             {
                 var metadataReader = reader.GetMetadataReader();

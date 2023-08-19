@@ -32,7 +32,7 @@ namespace Microsoft.DiaSymReader
 
             _pdbStream = pdbStream;
             _symWriter = symWriter;
-            _documentWriters = new List<ISymUnmanagedDocumentWriter>();
+            _documentWriters = [];
             _symWriterModuleName = symWriterModuleName;
         }
 

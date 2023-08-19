@@ -70,9 +70,9 @@ namespace Roslyn.Test.Utilities.Desktop
         public RuntimeAssemblyManager()
         {
             _fullNameToAssemblyDataMap = new Dictionary<string, AssemblyData>(StringComparer.OrdinalIgnoreCase);
-            _mvidToAssemblyDataMap = new Dictionary<Guid, AssemblyData>();
-            _loadedAssemblies = new HashSet<Assembly>();
-            _mainMvids = new List<Guid>();
+            _mvidToAssemblyDataMap = [];
+            _loadedAssemblies = [];
+            _mainMvids = [];
 
             var currentDomain = AppDomain.CurrentDomain;
             currentDomain.AssemblyResolve += AssemblyResolve;
@@ -420,7 +420,7 @@ namespace Roslyn.Test.Utilities.Desktop
             // For Windows RT (ARM) THE CLRHelper.Peverify appears to not work and will exclude this 
             // for ARM testing at present.
             StringBuilder errors = new StringBuilder();
-            List<string> allOutput = new List<string>();
+            List<string> allOutput = [];
 
             foreach (var name in modulesToVerify)
             {

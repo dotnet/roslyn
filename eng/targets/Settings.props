@@ -218,7 +218,7 @@
     <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
   </PropertyGroup>
 
-  <!-- Language-specific analyzer packages -->
+  <!-- Language-specific analyzer packages --><!--
   <Choose>
     <When Condition="'$(Language)' == 'VB'">
       <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
@@ -231,7 +231,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
-  </Choose>
+  </Choose>-->
 
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->

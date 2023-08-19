@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Constructor_Default()
         {
-            SegmentedList<T> list = new SegmentedList<T>();
+            SegmentedList<T> list = [];
             Assert.Equal(0, list.Capacity); //"Expected capacity of list to be the same as given."
             Assert.Equal(0, list.Count); //"Do not expect anything to be in the list."
             Assert.False(((IList<T>)list).IsReadOnly); //"List should not be readonly"

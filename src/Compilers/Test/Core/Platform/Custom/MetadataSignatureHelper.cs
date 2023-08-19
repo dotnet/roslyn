@@ -153,14 +153,12 @@ namespace Roslyn.Test.Utilities
 
         public static bool AppendParameterAttributes(StringBuilder sb, ParameterAttributes attributes, bool all = true)
         {
-            List<string> list = new List<string>();
-
-            if ((attributes & ParameterAttributes.Optional) != 0)
-                list.Add("[opt]");
-            if ((attributes & ParameterAttributes.In) != 0)
-                list.Add("[in]");
-            if ((attributes & ParameterAttributes.Out) != 0)
-                list.Add("[out]");
+            List<string> list =
+            [
+                .. (attributes & ParameterAttributes.Optional) != 0 ? ["[opt]"] : [],
+                .. (attributes & ParameterAttributes.In) != 0 ? ["[in]"] : [],
+                .. (attributes & ParameterAttributes.Out) != 0 ? ["[out]"] : [],
+            ];
 
             if (all)
             {
@@ -176,12 +174,11 @@ namespace Roslyn.Test.Utilities
 
         public static bool AppendPropertyAttributes(StringBuilder sb, PropertyAttributes attributes, bool all = true)
         {
-            List<string> list = new List<string>();
-
-            if ((attributes & PropertyAttributes.SpecialName) != 0)
-                list.Add("specialname");
-            if ((attributes & PropertyAttributes.RTSpecialName) != 0)
-                list.Add("rtspecialname");
+            List<string> list =
+            [
+                .. (attributes & PropertyAttributes.SpecialName) != 0 ? ["specialname"] : [],
+                .. (attributes & PropertyAttributes.RTSpecialName) != 0 ? ["rtspecialname"] : [],
+            ];
 
             if (all)
             {
@@ -195,12 +192,11 @@ namespace Roslyn.Test.Utilities
 
         public static bool AppendEventAttributes(StringBuilder sb, EventAttributes attributes)
         {
-            List<string> list = new List<string>();
-
-            if ((attributes & EventAttributes.SpecialName) != 0)
-                list.Add("specialname");
-            if ((attributes & EventAttributes.RTSpecialName) != 0)
-                list.Add("rtspecialname");
+            List<string> list =
+            [
+                .. (attributes & EventAttributes.SpecialName) != 0 ? ["specialname"] : [],
+                .. (attributes & EventAttributes.RTSpecialName) != 0 ? ["rtspecialname"] : [],
+            ];
 
             sb.Append(list.Join(" "));
             return list.Count > 0;

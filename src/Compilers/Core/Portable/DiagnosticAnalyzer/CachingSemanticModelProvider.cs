@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public CachingSemanticModelProvider()
         {
-            _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
+            _providerCache = [];
         }
 
         public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)

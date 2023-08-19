@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lock (_gate)
                 {
                     foreach (var definition in group.Symbols)
-                        _symbolToLocations[definition] = new List<ReferenceLocation>();
+                        _symbolToLocations[definition] = [];
                 }
 
                 return underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);

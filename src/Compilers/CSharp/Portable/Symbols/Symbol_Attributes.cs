@@ -599,8 +599,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (syntaxBuilder == null)
                             {
-                                syntaxBuilder = new ArrayBuilder<AttributeSyntax>();
-                                bindersBuilder = new ArrayBuilder<Binder>();
+                                syntaxBuilder = [];
+                                bindersBuilder = [];
                             }
 
                             var attributesToBind = attributeDeclarationSyntax.Attributes;
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(attributeSyntaxList.Length == boundAttributes.Length);
 
             int totalAttributesCount = boundAttributes.Length;
-            HashSet<NamedTypeSymbol> uniqueAttributeTypes = new HashSet<NamedTypeSymbol>();
+            HashSet<NamedTypeSymbol> uniqueAttributeTypes = [];
             var arguments = new DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation>();
             arguments.Diagnostics = diagnostics;
             arguments.AttributesCount = totalAttributesCount;

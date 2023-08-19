@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             _shadowCopyProvider = shadowCopyProvider;
 
-            _assembliesLoadedFromLocationByFullPath = new Dictionary<string, AssemblyAndLocation>();
-            _assembliesLoadedFromLocation = new Dictionary<Assembly, LoadedAssembly>();
+            _assembliesLoadedFromLocationByFullPath = [];
+            _assembliesLoadedFromLocation = [];
             _loadedAssembliesBySimpleName = new Dictionary<string, List<LoadedAssemblyInfo>>(AssemblyIdentityComparer.SimpleNameComparer);
-            _dependenciesWithLocationBySimpleName = new Dictionary<string, List<AssemblyIdentityAndLocation>>();
+            _dependenciesWithLocationBySimpleName = [];
 
             _runtimeAssemblyLoader = AssemblyLoaderImpl.Create(this);
         }

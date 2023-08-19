@@ -144,8 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDateTime);
 
-            var arguments = new ArrayBuilder<BoundExpression>();
-            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
+            var arguments = new ArrayBuilder<BoundExpression>
+            {
+                new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64))
+            };
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
             Debug.Assert((object)ctor != null);

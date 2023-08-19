@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
 
-            _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+            _placeholderMap = [];
         }
 
 #nullable disable

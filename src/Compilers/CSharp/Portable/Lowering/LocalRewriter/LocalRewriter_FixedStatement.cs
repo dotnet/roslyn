@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_lazyUnmatchedLabelCache == null)
             {
-                _lazyUnmatchedLabelCache = new Dictionary<BoundNode, HashSet<LabelSymbol>>();
+                _lazyUnmatchedLabelCache = [];
             }
 
             HashSet<LabelSymbol> unmatched = UnmatchedGotoFinder.Find(node, _lazyUnmatchedLabelCache, RecursionDepth);

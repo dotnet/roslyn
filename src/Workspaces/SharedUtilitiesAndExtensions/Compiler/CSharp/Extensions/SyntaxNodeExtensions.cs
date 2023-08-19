@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // add whatever group we've built up to now. And reset the 
                     // next group to empty.
                     result.Add(currentGroup);
-                    currentGroup = new List<TSyntaxNode>();
+                    currentGroup = [];
 
                     result.Add(new List<TSyntaxNode> { node });
                 }
@@ -713,9 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // add whatever group we've built up to now. And reset the 
                     // next group to empty.
                     result.Add(currentGroup);
-                    currentGroup = new List<TSyntaxNode>();
-
-                    currentGroup.Add(node);
+                    currentGroup = [node];
                 }
                 else
                 {

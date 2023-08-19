@@ -25,8 +25,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the starting symbol.
             Debug.Assert(_options.UnidirectionalHierarchyCascade);
 
-            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
-            unifiedSymbols.Add(originalSymbol);
+            var unifiedSymbols = new MetadataUnifyingSymbolHashSet
+            {
+                originalSymbol
+            };
 
             // As we hit symbols, we may have to compute if they have an inheritance relationship to the symbols we're
             // searching for.  Cache those results so we don't have to continually perform them.

@@ -23,8 +23,8 @@ namespace Roslyn.Utilities
         {
             if (_set == null)
             {
-                _set = new HashSet<T>();
-                _elements = new ArrayBuilder<T>();
+                _set = [];
+                _elements = [];
             }
 
             if (!_set.Add(value))

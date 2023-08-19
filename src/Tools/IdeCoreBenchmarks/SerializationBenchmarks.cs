@@ -30,7 +30,7 @@ namespace IdeCoreBenchmarks
             var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Parser");
 
             var files = Directory.GetFiles(csFilePath);
-            _rootList = new List<CompilationUnitSyntax>();
+            _rootList = [];
 
             foreach (var file in files)
             {

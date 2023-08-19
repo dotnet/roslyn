@@ -2624,8 +2624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(ReferenceEquals(this, this.OriginalDefinition));
             if (AllTypeArgumentCount() == 0) return;
-            var instanceMap = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(ReferenceEqualityComparer.Instance);
-            instanceMap.Add(this, this);
+            var instanceMap = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(ReferenceEqualityComparer.Instance)
+            {
+                { this, this }
+            };
             foreach (var m in this.GetMembersUnordered())
             {
                 var f = m as FieldSymbol;

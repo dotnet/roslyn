@@ -79,7 +79,7 @@ internal class TestHistoryManager
 
         var totalTests = runForThisStage.TotalTests;
 
-        Dictionary<string, TimeSpan> testInfos = new();
+        Dictionary<string, TimeSpan> testInfos = [];
         var duplicateCount = 0;
 
         // Get runtimes for all tests.

@@ -164,8 +164,10 @@ namespace Roslyn.Test.Utilities
             }
 
             fileSystem ??= TestableFileSystem.CreateForMap();
-            var args = new List<string>();
-            args.Add("-nostdlib");
+            var args = new List<string>
+            {
+                "-nostdlib"
+            };
 
             switch (basicRuntimeOption)
             {

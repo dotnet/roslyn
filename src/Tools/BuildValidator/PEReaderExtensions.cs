@@ -22,7 +22,7 @@ namespace BuildValidator
             Debug.Assert(peReader.PEHeaders is object);
             Debug.Assert(peReader.PEHeaders.PEHeader is object);
 
-            _namedExportRva = new Dictionary<string, int>();
+            _namedExportRva = [];
 
             DirectoryEntry exportTable = peReader.PEHeaders.PEHeader.ExportTableDirectory;
             if ((exportTable.Size == 0) || (exportTable.RelativeVirtualAddress == 0))

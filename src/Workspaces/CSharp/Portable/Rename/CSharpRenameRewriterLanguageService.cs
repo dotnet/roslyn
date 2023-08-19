@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
             {
                 _isProcessingComplexifiedSpans = true;
-                _modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
+                _modifiedSubSpans = [];
 
                 var annotation = new SyntaxAnnotation();
                 newNode = newNode.WithAdditionalAnnotations(annotation);

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public CustomResourceManager(Dictionary<string, Dictionary<string, string>> resourceSetMap)
             {
-                _resourceSetMap = new Dictionary<string, CustomResourceSet>();
+                _resourceSetMap = [];
 
                 foreach (var kvp in resourceSetMap)
                 {

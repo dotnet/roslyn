@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (containingTypes == null)
                     {
-                        containingTypes = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>();
+                        containingTypes = [];
                     }
 
                     sawProtected = sawProtected || containingType.DeclaredAccessibility.HasProtected();

@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterCompilationStartAction(
                  (compilationContext) =>
                  {
-                     HashSet<IFieldSymbol> assignedToFields = new HashSet<IFieldSymbol>();
-                     HashSet<IFieldSymbol> mightBecomeReadOnlyFields = new HashSet<IFieldSymbol>();
+                     HashSet<IFieldSymbol> assignedToFields = [];
+                     HashSet<IFieldSymbol> mightBecomeReadOnlyFields = [];
 
                      compilationContext.RegisterOperationBlockStartAction(
                          (operationBlockContext) =>

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 var hashSet = _uniqueSymbolOrArities as HashSet<int>;
                 if (hashSet == null)
                 {
-                    hashSet = new HashSet<int>();
+                    hashSet = [];
                     _uniqueSymbolOrArities = hashSet;
                 }
 

@@ -122,9 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             internal override TreeDumperNode DumpCore()
             {
-                var sub = new List<TreeDumperNode>();
-                sub.Add(new TreeDumperNode($"nestedOperators[{Operators.Length}]", null,
-                    Operators.SelectAsArray(c => c.DumpCore())));
+                var sub = new List<TreeDumperNode>
+                {
+                    new TreeDumperNode($"nestedOperators[{Operators.Length}]", null,
+                    Operators.SelectAsArray(c => c.DumpCore()))
+                };
 
                 return new TreeDumperNode("nested", null, sub);
             }

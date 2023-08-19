@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var identifier = syntaxToken.ValueText;
                     if (!_map.TryGetValue(identifier, out var list))
                     {
-                        list = new List<SyntaxToken>();
+                        list = [];
                         _map.Add(identifier, list);
                     }
 

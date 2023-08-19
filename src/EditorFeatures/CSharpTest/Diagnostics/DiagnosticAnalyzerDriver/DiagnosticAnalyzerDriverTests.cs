@@ -42,17 +42,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var source = TestResource.AllInOneCSharpCode;
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
-            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
+            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>
+            {
+                SymbolKind.Property,
+                SymbolKind.NamedType
+            };
 
-            var missingSyntaxNodes = new HashSet<SyntaxKind>();
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
-            missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxNodes.Add(SyntaxKind.CollectionExpression);
-            missingSyntaxNodes.Add(SyntaxKind.ExpressionElement);
-            missingSyntaxNodes.Add(SyntaxKind.SpreadElement);
+            var missingSyntaxNodes = new HashSet<SyntaxKind>
+            {
+                // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
+                SyntaxKind.WithExpression,
+                SyntaxKind.RecordDeclaration,
+                SyntaxKind.CollectionExpression,
+                SyntaxKind.ExpressionElement,
+                SyntaxKind.SpreadElement
+            };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);

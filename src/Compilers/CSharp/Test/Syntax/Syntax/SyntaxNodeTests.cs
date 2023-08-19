@@ -1056,7 +1056,7 @@ using goo.bar;
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
-            List<SyntaxToken> list = new List<SyntaxToken>();
+            List<SyntaxToken> list = [];
             SyntaxToken token = syntaxTree.GetRoot().GetFirstToken();
             while (token.RawKind != 0)
             {
@@ -1161,7 +1161,7 @@ using goo.bar;
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
-            List<SyntaxToken> list = new List<SyntaxToken>();
+            List<SyntaxToken> list = [];
             var token = syntaxTree.GetRoot().GetLastToken(includeZeroWidth: false); // skip EOF
 
             while (token.RawKind != 0)
@@ -1206,7 +1206,7 @@ using goo.bar;
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
-            List<SyntaxToken> list = new List<SyntaxToken>();
+            List<SyntaxToken> list = [];
             SyntaxToken token = syntaxTree.GetRoot().GetFirstToken(includeZeroWidth: true);
             while (token.RawKind != 0)
             {
@@ -1251,7 +1251,7 @@ using goo.bar;
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
-            List<SyntaxToken> list = new List<SyntaxToken>();
+            List<SyntaxToken> list = [];
             SyntaxToken token = ((SyntaxToken)((SyntaxTree)syntaxTree).GetCompilationUnitRoot().EndOfFileToken).GetPreviousToken(includeZeroWidth: true);
             while (token.RawKind != 0)
             {

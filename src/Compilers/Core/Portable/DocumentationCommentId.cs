@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis
                         // type arguments
                         if (PeekNextChar(id, index) == '{')
                         {
-                            typeArguments = new List<ITypeSymbol>();
+                            typeArguments = [];
                             if (!ParseTypeArguments(id, ref index, compilation, typeParameterContext, typeArguments))
                             {
                                 // if no type arguments are found then the type cannot be identified

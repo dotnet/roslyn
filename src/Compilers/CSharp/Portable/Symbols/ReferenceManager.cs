@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (unifiedAssemblies == null)
                     {
-                        unifiedAssemblies = new ArrayBuilder<UnifiedAssembly<AssemblySymbol>>();
+                        unifiedAssemblies = [];
                     }
 
                     unifiedAssemblies.Add(new UnifiedAssembly<AssemblySymbol>(assembly, referenceBinding.ReferenceIdentity));
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (missingAssemblies == null)
                 {
-                    missingAssemblies = new Dictionary<AssemblyIdentity, MissingAssemblySymbol>();
+                    missingAssemblies = [];
                 }
                 else if (missingAssemblies.TryGetValue(assemblyIdentity, out missingAssembly))
                 {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (_assemblies == null)
                         {
-                            _assemblies = new List<AssemblySymbol>();
+                            _assemblies = [];
 
                             // This should be done lazy because while we creating
                             // instances of this type, creation of new SourceAssembly symbols

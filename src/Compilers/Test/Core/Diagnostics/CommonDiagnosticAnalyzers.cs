@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis
                 _symbolKind = symbolKind;
                 _operationKind = operationKindOpt;
                 _analyzerId = $"Analyzer{(analyzerId.HasValue ? analyzerId.Value : 1)}";
-                SymbolsStarted = new ConcurrentSet<ISymbol>();
+                SymbolsStarted = [];
             }
 
             internal ConcurrentSet<ISymbol> SymbolsStarted { get; }
@@ -2331,7 +2331,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _analysisKind = analysisKind;
                 _analysisFlags = analysisFlags;
-                _symbolCallbacks = new ConcurrentSet<ISymbol>();
+                _symbolCallbacks = [];
 
                 var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
                 _rule = new DiagnosticDescriptor(
@@ -2819,7 +2819,7 @@ namespace Microsoft.CodeAnalysis
             public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
             {
                 _actionKind = actionKind;
-                CanceledCompilations = new ConcurrentSet<Compilation>();
+                CanceledCompilations = [];
             }
 
             public CancellationToken CancellationToken => _cancellationTokenSource.Token;

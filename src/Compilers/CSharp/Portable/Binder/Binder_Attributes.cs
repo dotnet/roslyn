@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (boundNamedArgumentsBuilder == null)
                         {
                             boundNamedArgumentsBuilder = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
-                            boundNamedArgumentsSet = new HashSet<string>();
+                            boundNamedArgumentsSet = [];
                         }
                         else if (boundNamedArgumentsSet!.Contains(argumentName))
                         {

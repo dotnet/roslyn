@@ -666,7 +666,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_editCount == 1)
                 {
                     _batchMode = true;
-                    _batchElements = new List<AbstractKeyedCodeElement>();
+                    _batchElements = [];
                 }
 
                 return VSConstants.S_OK;

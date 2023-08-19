@@ -4739,8 +4739,10 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>();
-            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>
+            {
+                { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress }
+            };
             useCompilation = useCompilation.WithOptions(useCompilation.Options.WithSpecificDiagnosticOptions(warnings));
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }

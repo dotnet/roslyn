@@ -245,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>> constraints,
                 out Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>> evaluations)
             {
-                constraints = new Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>>();
-                evaluations = new Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>>();
+                constraints = [];
+                evaluations = [];
                 for (int i = 0, n = pathToNode.Length; i < n; i++)
                 {
                     BoundDecisionDagNode node = pathToNode[i];

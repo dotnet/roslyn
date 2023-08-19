@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             public void Clear()
             {
                 this.eventsQueue.CompleteAdding();
-                this.eventsQueue = new BlockingCollection<TelemetryEvent>();
+                this.eventsQueue = [];
             }
 
             /// <summary>

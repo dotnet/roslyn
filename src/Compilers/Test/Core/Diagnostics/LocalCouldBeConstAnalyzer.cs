@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                     {
-                        HashSet<ILocalSymbol> mightBecomeConstLocals = new HashSet<ILocalSymbol>();
-                        HashSet<ILocalSymbol> assignedToLocals = new HashSet<ILocalSymbol>();
+                        HashSet<ILocalSymbol> mightBecomeConstLocals = [];
+                        HashSet<ILocalSymbol> assignedToLocals = [];
 
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>

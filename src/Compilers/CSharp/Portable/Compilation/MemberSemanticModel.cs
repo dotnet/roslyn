@@ -1403,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_lazyGuardedSynthesizedStatementsMap == null)
             {
-                _lazyGuardedSynthesizedStatementsMap = new Dictionary<SyntaxNode, BoundStatement>();
+                _lazyGuardedSynthesizedStatementsMap = [];
             }
 
             _lazyGuardedSynthesizedStatementsMap.Add(node, statement);

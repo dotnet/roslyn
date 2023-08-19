@@ -53,7 +53,7 @@ internal sealed class RazorWorkspaceListenerInitializer
 
             projectsToInitialize = _projectIdWithDynamicFiles;
             // May as well clear out the collection, it will never get used again anyway.
-            _projectIdWithDynamicFiles = new();
+            _projectIdWithDynamicFiles = [];
         }
 
         foreach (var projectId in projectsToInitialize)

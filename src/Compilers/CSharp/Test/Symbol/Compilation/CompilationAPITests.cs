@@ -931,9 +931,11 @@ class D
             SyntaxTree t2 = SyntaxFactory.ParseSyntaxTree(s2);
             SyntaxTree t3 = SyntaxFactory.ParseSyntaxTree(s3);
 
-            var listSyntaxTree = new List<SyntaxTree>();
-            listSyntaxTree.Add(t1);
-            listSyntaxTree.Add(t2);
+            var listSyntaxTree = new List<SyntaxTree>
+            {
+                t1,
+                t2
+            };
 
             // Remove second SyntaxTree
             CSharpCompilation comp = CSharpCompilation.Create(options: TestOptions.ReleaseDll, assemblyName: "Compilation", references: null, syntaxTrees: null);
@@ -964,9 +966,11 @@ class D
             // Create compilation with args is disordered
             CSharpCompilation comp1 = CSharpCompilation.Create(assemblyName: "Compilation", syntaxTrees: null, options: TestOptions.ReleaseDll, references: null);
             var ref1 = Net451.mscorlib;
-            var listRef = new List<MetadataReference>();
-            listRef.Add(ref1);
-            listRef.Add(ref1);
+            var listRef = new List<MetadataReference>
+            {
+                ref1,
+                ref1
+            };
 
             // Remove with no args
             comp1 = comp1.AddReferences(listRef).AddSyntaxTrees(t1).RemoveReferences().RemoveSyntaxTrees();

@@ -380,7 +380,7 @@ class Program
             var comp = CreateCompilation(program);
 
             int[] count = new int[4];
-            Dictionary<int, int> warnings = new Dictionary<int, int>();
+            Dictionary<int, int> warnings = [];
             foreach (var e in this.FlowDiagnostics(comp))
             {
                 count[(int)e.Severity]++;

@@ -674,8 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public Collector()
                 : base(SyntaxWalkerDepth.StructuredTrivia)
             {
-                this.NodeOrTokens = new List<SyntaxNodeOrToken>();
-                this.Trivia = new List<SyntaxTrivia>();
+                this.NodeOrTokens = [];
+                this.Trivia = [];
             }
 
             public override void Visit(SyntaxNode node)

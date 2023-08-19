@@ -79,7 +79,7 @@ namespace BuildValidator
                 {
                     if (!nameToLocationsMap.TryGetValue(fileInfo.Name, out var locations))
                     {
-                        locations = new();
+                        locations = [];
                         nameToLocationsMap[fileInfo.Name] = locations;
                     }
 

@@ -154,7 +154,7 @@ namespace Roslyn.Test.Utilities.PDB
 
             // Compiler flag bytes are UTF-8 null-terminated key-value pairs
             string key = null;
-            Dictionary<string, string> kvp = new Dictionary<string, string>();
+            Dictionary<string, string> kvp = [];
             for (; ; )
             {
                 var nullIndex = blobReader.IndexOf(0);

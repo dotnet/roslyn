@@ -369,7 +369,7 @@ End Namespace
 
                 if (!noSnippets)
                 {
-                    _snippetExpectations = new List<string>();
+                    _snippetExpectations = [];
                 }
             }
 

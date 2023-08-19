@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_inProgressIncludeElementNodes == null)
                 {
-                    _inProgressIncludeElementNodes = new HashSet<Location>();
+                    _inProgressIncludeElementNodes = [];
                 }
 
                 return _inProgressIncludeElementNodes.Add(location);

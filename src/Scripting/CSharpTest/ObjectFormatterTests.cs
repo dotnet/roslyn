@@ -625,16 +625,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_SortedList()
         {
-            var obj = new SortedList<int, int>();
-            obj.Add(3, 4);
-            obj.Add(1, 5);
-            obj.Add(2, 6);
+            var obj = new SortedList<int, int>
+            {
+                { 3, 4 },
+                { 1, 5 },
+                { 2, 6 }
+            };
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedList<int, int>(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
-            var obj2 = new SortedList<int[], int[]>();
-            obj2.Add(new[] { 3 }, new int[] { 4 });
+            var obj2 = new SortedList<int[], int[]>
+            {
+                { new[] { 3 }, new int[] { 4 } }
+            };
 
             str = s_formatter.FormatObject(obj2, SingleLineOptions);
             Assert.Equal("SortedList<int[], int[]>(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
@@ -643,10 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_SortedDictionary()
         {
-            var obj = new SortedDictionary<int, int>();
-            obj.Add(1, 0x1a);
-            obj.Add(3, 0x3c);
-            obj.Add(2, 0x2b);
+            var obj = new SortedDictionary<int, int>
+            {
+                { 1, 0x1a },
+                { 3, 0x3c },
+                { 2, 0x2b }
+            };
 
             var str = s_formatter.
                 FormatObject(obj, new PrintOptions { NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal });
@@ -657,9 +663,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_HashSet()
         {
-            var obj = new HashSet<int>();
-            obj.Add(1);
-            obj.Add(2);
+            var obj = new HashSet<int>
+            {
+                1,
+                2
+            };
 
             // HashSet doesn't implement ICollection (it only implements ICollection<T>) so we don't call Count, 
             // instead a DebuggerDisplay.Value is used.
@@ -670,9 +678,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_SortedSet()
         {
-            var obj = new SortedSet<int>();
-            obj.Add(1);
-            obj.Add(2);
+            var obj = new SortedSet<int>
+            {
+                1,
+                2
+            };
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedSet<int>(2) { 1, 2 }", str);
@@ -716,9 +726,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_BlockingCollection()
         {
-            var obj = new BlockingCollection<int>();
-            obj.Add(1);
-            obj.Add(2, new CancellationToken());
+            var obj = new BlockingCollection<int>
+            {
+                1,
+                { 2, new CancellationToken() }
+            };
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("BlockingCollection<int>(2) { 1, 2 }", str);

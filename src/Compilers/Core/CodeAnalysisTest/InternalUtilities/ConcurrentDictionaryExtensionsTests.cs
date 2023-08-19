@@ -14,8 +14,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void TestAdd()
         {
-            var dictionary = new ConcurrentDictionary<int, int>();
-            dictionary.Add(0, 0);
+            var dictionary = new ConcurrentDictionary<int, int>
+            {
+                { 0, 0 }
+            };
             Assert.Equal(0, dictionary[0]);
 
             Assert.Throws<ArgumentException>(() => dictionary.Add(0, 0));

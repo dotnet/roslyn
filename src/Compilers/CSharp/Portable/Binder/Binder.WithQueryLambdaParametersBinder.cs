@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(lambdaSymbol, next)
             {
                 _rangeVariableMap = rangeVariableMap;
-                _parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
+                _parameterMap = [];
                 foreach (var qv in rangeVariableMap.Keys)
                 {
                     _parameterMap.Add(qv.Name, qv);

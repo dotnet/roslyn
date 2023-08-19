@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             : base(stream, culture)
         {
             _descriptors = new DiagnosticDescriptorSet();
-            _diagnosticIdsWithAnySourceSuppressions = new HashSet<string>();
+            _diagnosticIdsWithAnySourceSuppressions = [];
 
             _toolName = toolName;
             _toolFileVersion = toolFileVersion;

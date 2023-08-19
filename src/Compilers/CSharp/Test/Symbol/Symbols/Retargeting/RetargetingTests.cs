@@ -62,13 +62,13 @@ static class S2
                 CheckMethods(sourceMethods[i], retargetingMethods[i]);
             }
 
-            sourceMethods = new ArrayBuilder<MethodSymbol>();
+            sourceMethods = [];
             sourceNamespace.GetExtensionMethods(sourceMethods, "E", 2, LookupOptions.Default);
             Utils.CheckSymbols(sourceMethods.ToImmutable(),
                 "void S2.E<T, U>(T t, U u)");
             var sourceMethod = sourceMethods[0];
 
-            retargetingMethods = new ArrayBuilder<MethodSymbol>();
+            retargetingMethods = [];
             retargetingNamespace.GetExtensionMethods(retargetingMethods, "E", 2, LookupOptions.Default);
             Utils.CheckSymbols(retargetingMethods.ToImmutable(),
                 "void S2.E<T, U>(T t, U u)");

@@ -1023,10 +1023,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.pendingCaughtException = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Object)), SynthesizedLocalKind.TryAwaitPendingCaughtException, tryStatementSyntax);
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
 
-                this.handlers = new List<BoundBlock>();
+                this.handlers = [];
                 this._parentOpt = parentOpt;
-                _hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
-                _orderedHoistedLocals = new List<LocalSymbol>();
+                _hoistedLocals = [];
+                _orderedHoistedLocals = [];
             }
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)

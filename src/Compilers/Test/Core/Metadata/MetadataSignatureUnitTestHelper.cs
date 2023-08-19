@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.False(string.IsNullOrWhiteSpace(memberName), "'memberName' can't be null or empty");
 
             var retVal = true;
-            actualSignatures = new List<string>();
+            actualSignatures = [];
             var signatures = appDomainHost.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
             var signatureAssertText = "Signature(\"" + fullyQualifiedTypeName + "\", \"" + memberName + "\", \"{0}\"),";
 

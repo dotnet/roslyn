@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.slotAllocatorOpt = slotAllocatorOpt;
-            this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+            this._placeholderMap = [];
         }
 
         public override BoundNode DefaultVisit(BoundNode node)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected TestAttributesVisitor(StringBuilder builder)
         {
             _builder = builder;
-            _reported = new HashSet<Symbol>();
+            _reported = [];
         }
 
         public override void DefaultVisit(Symbol symbol)

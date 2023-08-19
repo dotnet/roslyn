@@ -178,8 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new Dictionary<string, ReportDiagnostic>();
-            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            var warnings = new Dictionary<string, ReportDiagnostic>
+            {
+                { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress }
+            };
             other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
             other.VerifyEmitDiagnostics();
         }
@@ -210,8 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new Dictionary<string, ReportDiagnostic>();
-            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            var warnings = new Dictionary<string, ReportDiagnostic>
+            {
+                { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress }
+            };
             other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
             other.VerifyEmitDiagnostics();
         }
@@ -426,8 +430,10 @@ public class en_US
                 );
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_RefCultureMismatch
-            var warnings = new Dictionary<string, ReportDiagnostic>();
-            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            var warnings = new Dictionary<string, ReportDiagnostic>
+            {
+                { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress }
+            };
             compilation = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(warnings));
             compilation.VerifyEmitDiagnostics();
 

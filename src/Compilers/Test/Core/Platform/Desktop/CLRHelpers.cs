@@ -139,7 +139,7 @@ namespace Roslyn.Test.Utilities.Desktop
             public ValidationErrorHandler(ICLRValidator validator)
             {
                 _validator = validator;
-                _output = new List<string>();
+                _output = [];
             }
 
             public void SetReporterFtn(long lFnPtr)

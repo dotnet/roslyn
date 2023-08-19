@@ -46,7 +46,7 @@ namespace Microsoft.Cci
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             _hashAlgorithmNameOpt = hashAlgorithmNameOpt;
-            _documentIndex = new Dictionary<DebugSourceDocument, int>();
+            _documentIndex = [];
             _qualifiedNameCache = new Dictionary<object, string>(ReferenceEqualityComparer.Instance);
         }
 

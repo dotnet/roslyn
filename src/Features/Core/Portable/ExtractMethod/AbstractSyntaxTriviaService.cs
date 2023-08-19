@@ -109,8 +109,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private static Dictionary<TriviaLocation, SyntaxToken> GetTokensAtEdges(SyntaxNode root, TextSpan textSpan)
         {
-            var tokens = new Dictionary<TriviaLocation, SyntaxToken>();
-            tokens[TriviaLocation.AfterBeginningOfSpan] = root.FindTokenOnRightOfPosition(textSpan.Start, includeSkipped: false);
+            var tokens = new Dictionary<TriviaLocation, SyntaxToken>
+            {
+                [TriviaLocation.AfterBeginningOfSpan] = root.FindTokenOnRightOfPosition(textSpan.Start, includeSkipped: false)
+            };
             tokens[TriviaLocation.BeforeBeginningOfSpan] = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true);
             tokens[TriviaLocation.BeforeEndOfSpan] = root.FindTokenOnLeftOfPosition(textSpan.End, includeSkipped: false);
             tokens[TriviaLocation.AfterEndOfSpan] = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true);

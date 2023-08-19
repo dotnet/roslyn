@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                         List<SyntaxNode>? list;
                         if (!map.TryGetValue(id, out list))
                         {
-                            list = new List<SyntaxNode>();
+                            list = [];
                             map.Add(id, list);
                         }
 

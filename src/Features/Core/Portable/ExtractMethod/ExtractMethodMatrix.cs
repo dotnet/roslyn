@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         static ExtractMethodMatrix()
         {
-            s_matrix = new Dictionary<Key, VariableStyle>();
+            s_matrix = [];
             BuildMatrix();
         }
 

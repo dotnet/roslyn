@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(
             Compilation compilation, ImmutableArray<IMethodSymbol> extentsionMethodSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
         {
-            Dictionary<ITypeSymbol, bool> typeConvertibilityCache = new();
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache = [];
             using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
             using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount, bool includeInTargetTypedCompletion)>
                 .GetInstance(out var overloadMap);

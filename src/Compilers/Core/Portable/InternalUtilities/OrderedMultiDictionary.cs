@@ -31,8 +31,8 @@ namespace Roslyn.Utilities
 
         public OrderedMultiDictionary()
         {
-            _dictionary = new Dictionary<K, SetWithInsertionOrder<V>>();
-            _keys = new List<K>();
+            _dictionary = [];
+            _keys = [];
         }
 
         public void Add(K k, V v)
@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
             if (!_dictionary.TryGetValue(k, out set))
             {
                 _keys.Add(k);
-                set = new SetWithInsertionOrder<V>();
+                set = [];
             }
             set.Add(v);
             _dictionary[k] = set;

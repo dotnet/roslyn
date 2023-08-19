@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal SuppressMessageAttributeState(Compilation compilation)
         {
             _compilation = compilation;
-            _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
+            _localSuppressionsBySymbol = [];
         }
 
         public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic)

@@ -262,8 +262,8 @@ namespace N1
         private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> completedCompilationUnits)
         {
             compilationStartedFired = false;
-            declaredSymbolNames = new HashSet<string>();
-            completedCompilationUnits = new HashSet<string>();
+            declaredSymbolNames = [];
+            completedCompilationUnits = [];
             if (eventQueue.Count == 0)
             {
                 return false;

@@ -275,10 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(2, list1.SeparatorCount);
             Assert.Equal("a,b,c", list1.ToString());
 
-            var builder = new System.Collections.Generic.List<ArgumentSyntax>();
-            builder.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("x")));
-            builder.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("y")));
-            builder.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("z")));
+            var builder = new System.Collections.Generic.List<ArgumentSyntax>
+            {
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("x")),
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("y")),
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("z"))
+            };
 
             var list2 = SyntaxFactory.SeparatedList<ArgumentSyntax>(builder);
 

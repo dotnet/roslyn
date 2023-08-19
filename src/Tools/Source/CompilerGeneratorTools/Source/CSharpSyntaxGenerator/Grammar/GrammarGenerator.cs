@@ -53,8 +53,8 @@ namespace CSharpSyntaxGenerator.Grammar
                             var originalLastFieldKinds = lastField.Kinds.ToList();
                             for (int i = 0; i < originalFirstFieldKinds.Count; i++)
                             {
-                                firstField.Kinds = new List<Kind> { originalFirstFieldKinds[i] };
-                                lastField.Kinds = new List<Kind> { originalLastFieldKinds[i] };
+                                firstField.Kinds = [originalFirstFieldKinds[i]];
+                                lastField.Kinds = [originalLastFieldKinds[i]];
                                 rules[type.Name].Add(HandleChildren(type.Children));
                             }
                         }
@@ -62,7 +62,7 @@ namespace CSharpSyntaxGenerator.Grammar
                         {
                             for (int i = 0; i < originalFirstFieldKinds.Count; i++)
                             {
-                                firstField.Kinds = new List<Kind> { originalFirstFieldKinds[i] };
+                                firstField.Kinds = [originalFirstFieldKinds[i]];
                                 rules[type.Name].Add(HandleChildren(type.Children));
                             }
                         }
@@ -78,7 +78,7 @@ namespace CSharpSyntaxGenerator.Grammar
             var lexicalRules = rules.Values.SelectMany(ps => ps).SelectMany(p => p.ReferencedRules)
                 .Where(r => !rules.TryGetValue(r, out var productions) || productions.Count == 0).ToArray();
             foreach (var name in lexicalRules)
-                rules[name] = new List<Production> { new Production("/* see lexical specification */") };
+                rules[name] = [new Production("/* see lexical specification */")];
 
             var seen = new HashSet<string>();
 

@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
-            _completedAnalyzersForCompilation = new HashSet<DiagnosticAnalyzer>();
-            _completedSyntaxAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
-            _completedSemanticAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
-            _completedSyntaxAnalyzersByAdditionalFile = new Dictionary<AdditionalText, HashSet<DiagnosticAnalyzer>>();
+            _completedAnalyzersForCompilation = [];
+            _completedSyntaxAnalyzersByTree = [];
+            _completedSemanticAnalyzersByTree = [];
+            _completedSyntaxAnalyzersByAdditionalFile = [];
             _analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
             _pathToAdditionalTextMap = CreatePathToAdditionalTextMap(additionalFiles);
         }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? allDiagnostics;
                 if (!lazyLocalDiagnostics.TryGetValue(key, out allDiagnostics))
                 {
-                    allDiagnostics = new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
+                    allDiagnostics = [];
                     lazyLocalDiagnostics[key] = allDiagnostics;
                 }
 

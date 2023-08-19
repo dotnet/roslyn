@@ -1947,7 +1947,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<Compilation> compilationsCalledFor = new List<Compilation>();
+            List<Compilation> compilationsCalledFor = [];
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
@@ -1983,7 +1983,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<AdditionalText> texts = new List<AdditionalText>() { new InMemoryAdditionalText("abc", "") };
+            List<AdditionalText> texts = [new InMemoryAdditionalText("abc", "")];
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
@@ -2245,7 +2245,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<Compilation> compilationsCalledFor = new List<Compilation>();
+            List<Compilation> compilationsCalledFor = [];
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
@@ -3194,7 +3194,7 @@ class C { }
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
-            List<string?> referenceList = new List<string?>();
+            List<string?> referenceList = [];
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {

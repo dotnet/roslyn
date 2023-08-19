@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
         {
-            diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+            diagnosticOptions = [];
             if (rulesetFileFullPath == null)
             {
                 return ReportDiagnostic.Default;

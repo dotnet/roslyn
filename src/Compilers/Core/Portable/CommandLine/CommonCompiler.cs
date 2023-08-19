@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
         {
             var commandLineReferenceResolver = GetCommandLineMetadataReferenceResolver(touchedFiles);
 
-            List<MetadataReference> resolved = new List<MetadataReference>();
+            List<MetadataReference> resolved = [];
             Arguments.ResolveMetadataReferences(commandLineReferenceResolver, diagnostics, this.MessageProvider, resolved);
 
             if (Arguments.IsScriptRunner)

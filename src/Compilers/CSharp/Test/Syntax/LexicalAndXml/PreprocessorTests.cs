@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return;
             }
 
-            List<SyntaxKind> actual = new List<SyntaxKind>();
+            List<SyntaxKind> actual = [];
             foreach (var dt in directives)
             {
                 actual.Add(dt.Kind());
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(expected.Length, directives.Count);
 
-            List<SyntaxKind> actual = new List<SyntaxKind>();
+            List<SyntaxKind> actual = [];
             foreach (var dt in directives)
             {
                 actual.Add(dt.Kind());

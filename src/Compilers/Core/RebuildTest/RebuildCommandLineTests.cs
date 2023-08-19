@@ -336,9 +336,11 @@ namespace Nested
         {
             TestOutputHelper.WriteLine($"Command Line: {commandLine}");
             AddCSharpSourceFiles();
-            var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-            args.Add("/nostdlib");
-            args.Add("/deterministic");
+            var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                "/nostdlib",
+                "/deterministic"
+            };
 
             AddOutputFile(ref peFilePath!);
             args.Add($"/out:{peFilePath}");
@@ -501,9 +503,11 @@ End Namespace
         {
             TestOutputHelper.WriteLine($"Command Line: {commandLine}");
             AddVisualBasicSourceFiles();
-            var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-            args.Add("/nostdlib");
-            args.Add("/deterministic");
+            var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                "/nostdlib",
+                "/deterministic"
+            };
             AddOutputFile(ref peFilePath!);
             args.Add($"/out:{peFilePath}");
             AddOutputFile(ref pdbFilePath);

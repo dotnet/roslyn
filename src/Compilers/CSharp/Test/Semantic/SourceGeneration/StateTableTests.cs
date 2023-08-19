@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
 
-            List<IncrementalGeneratorRunStep> steps = new();
+            List<IncrementalGeneratorRunStep> steps = [];
 
             _ = dstBuilder.GetLatestStateTableForNode(addOneNode);
 

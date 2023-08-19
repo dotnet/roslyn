@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_allowedMap == null)
                     {
-                        _allowedMap = new Dictionary<GenericNameSyntax, bool>();
+                        _allowedMap = [];
                     }
                     _allowedMap[node] = !_seenConstructed;
                 }

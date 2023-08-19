@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_gotos == null)
             {
-                _gotos = new HashSet<LabelSymbol>();
+                _gotos = [];
             }
 
             _gotos.Add(label);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_targets == null)
             {
-                _targets = new HashSet<LabelSymbol>();
+                _targets = [];
             }
 
             _targets.Add(label);

@@ -107,9 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolKind.Event or
                     SymbolKind.Method)
             {
-                var finders = new List<AbstractCallFinder>();
-
-                finders.Add(new MethodCallFinder(symbol, project.Id, AsyncListener, this));
+                var finders = new List<AbstractCallFinder>
+                {
+                    new MethodCallFinder(symbol, project.Id, AsyncListener, this)
+                };
 
                 if (symbol.IsVirtual || symbol.IsAbstract)
                 {

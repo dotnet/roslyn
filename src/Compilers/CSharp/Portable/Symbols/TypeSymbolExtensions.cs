@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (checkedTypes == null)
             {
-                checkedTypes = new HashSet<TypeSymbol>();
+                checkedTypes = [];
             }
 
             return checkedTypes.Add(type);

@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                         // Insert the pragmas in reverse order for easier processing later.
                         if (!idToPragmasMap.TryGetValue(id, out var pragmasForIdInReverseOrder))
                         {
-                            pragmasForIdInReverseOrder = new List<(SyntaxTrivia pragma, bool isDisable)>();
+                            pragmasForIdInReverseOrder = [];
                             idToPragmasMap.Add(id, pragmasForIdInReverseOrder);
                         }
 
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
                                 if (!idToSuppressMessageAttributesMap.TryGetValue(id, out var nodesForId))
                                 {
-                                    nodesForId = new List<SyntaxNode>();
+                                    nodesForId = [];
                                     idToSuppressMessageAttributesMap.Add(id, nodesForId);
                                 }
 

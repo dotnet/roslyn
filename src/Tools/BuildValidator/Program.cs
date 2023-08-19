@@ -104,9 +104,11 @@ namespace BuildValidator
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
             referencesPath ??= Array.Empty<string>();
 
-            var excludes = new List<string>(exclude ?? Array.Empty<string>());
-            excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
-            excludes.Add(@".resources.dll");
+            var excludes = new List<string>(exclude ?? Array.Empty<string>())
+            {
+                Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar,
+                @".resources.dll"
+            };
 
             var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
 

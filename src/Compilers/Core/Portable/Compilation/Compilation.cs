@@ -3661,7 +3661,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyMakeMemberMissingMap == null)
             {
-                _lazyMakeMemberMissingMap = new SmallDictionary<int, bool>();
+                _lazyMakeMemberMissingMap = [];
             }
 
             _lazyMakeMemberMissingMap[member] = true;
@@ -3686,7 +3686,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyMakeWellKnownTypeMissingMap == null)
             {
-                _lazyMakeWellKnownTypeMissingMap = new SmallDictionary<int, bool>();
+                _lazyMakeWellKnownTypeMissingMap = [];
             }
 
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;

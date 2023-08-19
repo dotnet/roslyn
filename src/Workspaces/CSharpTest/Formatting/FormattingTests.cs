@@ -5281,8 +5281,10 @@ _ = this is  C(  ){}  ; }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp);
-            changingOptions.Add(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
+            };
             var code = @"class C
 {
     void M()

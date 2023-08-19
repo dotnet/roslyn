@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             public MethodInfo(int MaxCaptures)
             {
-                LocalFuncs = new List<IList<string>>();
+                LocalFuncs = [];
                 CaptureContext = new CaptureContext(MaxCaptures);
             }
 

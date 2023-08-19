@@ -2059,8 +2059,8 @@ tryAgain:
                 EnqueueTypeDefInterfacesAndBaseTypeOrThrow(typeDefsToSearch, typeSymbolsToSearch, searchTypeDef);
 
                 //catch both cycles and duplicate interfaces
-                HashSet<TypeDefinitionHandle> visitedTypeDefTokens = new HashSet<TypeDefinitionHandle>();
-                HashSet<TypeSymbol> visitedTypeSymbols = new HashSet<TypeSymbol>();
+                HashSet<TypeDefinitionHandle> visitedTypeDefTokens = [];
+                HashSet<TypeSymbol> visitedTypeSymbols = [];
 
                 bool hasMoreTypeDefs;
                 while ((hasMoreTypeDefs = (typeDefsToSearch.Count > 0)) || typeSymbolsToSearch.Count > 0)

@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_placeholderReplacementMapDoNotUseDirectly is null)
             {
-                _placeholderReplacementMapDoNotUseDirectly = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+                _placeholderReplacementMapDoNotUseDirectly = [];
             }
 
             _placeholderReplacementMapDoNotUseDirectly.Add(placeholder, value);

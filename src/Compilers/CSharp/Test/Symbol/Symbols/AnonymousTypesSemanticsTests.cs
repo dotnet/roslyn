@@ -2090,7 +2090,7 @@ unsafe class C
             const string startTag = "[#";
             const string endTag = "#]";
 
-            List<TextSpan> intervals = new List<TextSpan>();
+            List<TextSpan> intervals = [];
 
             var all = (from s in FindAll(source, startTag)
                        select new { start = true, offset = s }).Union(

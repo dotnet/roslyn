@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_previousSubmissionFieldMap == null)
             {
-                _previousSubmissionFieldMap = new Dictionary<ImplicitNamedTypeSymbol, FieldSymbol>();
+                _previousSubmissionFieldMap = [];
             }
 
             FieldSymbol previousSubmissionField;

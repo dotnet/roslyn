@@ -11027,8 +11027,10 @@ class Test
             //Dev11 used to give 'The {1} '{0}' is not a generic method. If you intended an expression list, use parentheses around the &lt; expression.'
             //Roslyn will be satisfied with something less helpful.
 
-            var noWarns = new Dictionary<string, ReportDiagnostic>();
-            noWarns.Add(MessageProvider.Instance.GetIdForErrorCode(219), ReportDiagnostic.Suppress);
+            var noWarns = new Dictionary<string, ReportDiagnostic>
+            {
+                { MessageProvider.Instance.GetIdForErrorCode(219), ReportDiagnostic.Suppress }
+            };
 
             CreateCompilation(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(noWarns)).VerifyDiagnostics(
                 // (8,13): error CS0118: 'b' is a variable but is used like a type

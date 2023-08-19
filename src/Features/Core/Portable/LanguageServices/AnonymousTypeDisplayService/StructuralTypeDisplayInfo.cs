@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             out List<SymbolDisplayPart> newParts)
         {
             var changed = false;
-            newParts = new List<SymbolDisplayPart>();
+            newParts = [];
 
             foreach (var part in parts)
             {

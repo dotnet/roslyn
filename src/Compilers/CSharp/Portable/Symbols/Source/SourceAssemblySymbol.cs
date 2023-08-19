@@ -126,9 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _compilation = compilation;
             _assemblySimpleName = assemblySimpleName;
 
-            ArrayBuilder<ModuleSymbol> moduleBuilder = new ArrayBuilder<ModuleSymbol>(1 + netModules.Length);
-
-            moduleBuilder.Add(new SourceModuleSymbol(this, compilation.Declarations, moduleName));
+            ArrayBuilder<ModuleSymbol> moduleBuilder = new ArrayBuilder<ModuleSymbol>(1 + netModules.Length)
+            {
+                new SourceModuleSymbol(this, compilation.Declarations, moduleName)
+            };
 
             var importOptions = (compilation.Options.MetadataImportOptions == MetadataImportOptions.All) ?
                 MetadataImportOptions.All : MetadataImportOptions.Internal;
@@ -1394,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             forwardedTypes = ((CommonAssemblyWellKnownAttributeData)wellKnownData).ForwardedTypes;
                             if (forwardedTypes == null)
                             {
-                                forwardedTypes = new HashSet<NamedTypeSymbol>();
+                                forwardedTypes = [];
                                 ((CommonAssemblyWellKnownAttributeData)wellKnownData).ForwardedTypes = forwardedTypes;
                             }
                         }
@@ -2235,7 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<NamedTypeSymbol> forwardedTypes = assemblyData.ForwardedTypes;
             if (forwardedTypes == null)
             {
-                forwardedTypes = new HashSet<NamedTypeSymbol>() { (NamedTypeSymbol)forwardedType };
+                forwardedTypes = [(NamedTypeSymbol)forwardedType];
                 assemblyData.ForwardedTypes = forwardedTypes;
             }
             else if (!forwardedTypes.Add((NamedTypeSymbol)forwardedType))
@@ -2313,7 +2314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                keys = new ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, String>>();
+                keys = [];
                 keys.TryAdd(identity.PublicKey, locationAndValue);
                 lazyInternalsVisibleToMap.TryAdd(identity.Name, keys);
             }
@@ -2688,7 +2689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (handledUnreadFields == null)
                         {
-                            handledUnreadFields = new HashSet<FieldSymbol>();
+                            handledUnreadFields = [];
                         }
                         handledUnreadFields.Add(field);
                     }

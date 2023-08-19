@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private List<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
-            List<Symbol> result = new List<Symbol>();
+            List<Symbol> result = [];
             Debug.Assert(!IsInside);
             if (_endOfRegionState.Reachable)
             {

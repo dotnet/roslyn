@@ -943,7 +943,7 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxFilterVisited = new();
+            List<string> syntaxFilterVisited = [];
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) =>
@@ -1226,7 +1226,7 @@ class E
             Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> fieldsCalledFor = new List<string>();
+            List<string> fieldsCalledFor = [];
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
@@ -1309,7 +1309,7 @@ class E
             Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> fieldsCalledFor = new List<string>();
+            List<string> fieldsCalledFor = [];
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
@@ -1382,7 +1382,7 @@ class E
             Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxFieldsCalledFor = new List<string>();
+            List<string> syntaxFieldsCalledFor = [];
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -1570,7 +1570,7 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxCalledFor = new List<string>();
+            List<string> syntaxCalledFor = [];
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -1619,9 +1619,9 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxCalledFor = new List<string>();
-            List<string> noCompareCalledFor = new List<string>();
-            List<string> compareCalledFor = new List<string>();
+            List<string> syntaxCalledFor = [];
+            List<string> noCompareCalledFor = [];
+            List<string> compareCalledFor = [];
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
