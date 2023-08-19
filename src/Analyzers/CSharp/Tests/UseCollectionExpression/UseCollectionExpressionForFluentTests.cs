@@ -2019,7 +2019,30 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int y)
                     {
-                        ImmutableArray<int> list = x.[|Add|](y);
+                        ImmutableArray<int> list = x.Add(y);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReifyExistingCollection3_B()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(ImmutableArray<int> x, int y)
+                    {
+                        List<int> list = x.Add(y).[|ToList|]();
                     }
                 }
                 """,
@@ -2032,7 +2055,7 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int y)
                     {
-                        ImmutableArray<int> list = [.. x, y];
+                        List<int> list = [.. x, y];
                     }
                 }
                 """,
@@ -2055,7 +2078,30 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int[] y)
                     {
-                        ImmutableArray<int> list = x.[|AddRange|](y);
+                        ImmutableArray<int> list = x.AddRange(y);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReifyExistingCollection4_B()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(ImmutableArray<int> x, int[] y)
+                    {
+                        List<int> list = x.AddRange(y).[|ToList|]();
                     }
                 }
                 """,
@@ -2068,7 +2114,7 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int[] y)
                     {
-                        ImmutableArray<int> list = [.. x, .. y];
+                        List<int> list = [.. x, .. y];
                     }
                 }
                 """,
@@ -2091,7 +2137,30 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int y, int z)
                     {
-                        ImmutableArray<int> list = x.[|AddRange|](y, z);
+                        ImmutableArray<int> list = x.AddRange(y, z);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReifyExistingCollection5_B()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(ImmutableArray<int> x, int y, int z)
+                    {
+                        List<int> list = x.AddRange(y, z).[|ToList|]();
                     }
                 }
                 """,
@@ -2104,7 +2173,7 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(ImmutableArray<int> x, int y, int z)
                     {
-                        ImmutableArray<int> list = [.. x, y, z];
+                        List<int> list = [.. x, y, z];
                     }
                 }
                 """,

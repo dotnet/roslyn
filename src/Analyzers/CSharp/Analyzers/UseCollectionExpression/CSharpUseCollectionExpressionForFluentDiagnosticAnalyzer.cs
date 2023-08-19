@@ -82,7 +82,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // We want to analyze and report on the highest applicable invocation in an invocation chain.
         // So bail out if our parent is a match.
         if (invocation.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax parentInvocation } parentMemberAccess &&
-            IsSyntacticMatch(state, parentMemberAccess, parentInvocation, allowLinq: true, matchesInReverse: null, cancellationToken))
+            IsSyntacticMatch(state, parentMemberAccess, parentInvocation, allowLinq: true, matchesInReverse: null, out _, cancellationToken))
         {
             return;
         }
@@ -138,7 +138,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Topmost invocation must be a syntactic match for one of our collection manipulation forms.  At the top level
         // we don't want to end with a linq method as that would be lazy, and a collection expression will eagerly
         // realize the collection.
-        if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matchesInReverse, cancellationToken))
+        if (!IsSyntacticMatch(state, memberAccess, invocation, allowLinq: false, matchesInReverse, out var isAdditionMatch, cancellationToken))
             return false;
 
         // We don't want to offer this feature on top of some builder-type.  They will commonly end with something like
@@ -162,7 +162,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
             // calls as the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, cancellationToken))
+                IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, out _, cancellationToken))
             {
                 stack.Push(currentMemberAccess.Expression);
                 continue;
@@ -231,8 +231,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             }
 
             // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
-            // can be iterated, we can convert this to `[.. x, .. y]`.
-            if (IsIterable(current))
+            // can be iterated, we can convert this to `[.. x, .. y]`.  Note: we only want to do this if ending with one
+            // of the ToXXX Methods.  If we just have `x.AddRange(y)` it's preference to keep that, versus `[.. x, ..y]`
+            if (!isAdditionMatch && IsIterable(current))
             {
                 matchesInReverse?.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(current), UseSpread: true));
                 return true;
@@ -322,8 +323,10 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         InvocationExpressionSyntax invocation,
         bool allowLinq,
         ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
+        out bool isAdditionMatch,
         CancellationToken cancellationToken)
     {
+        isAdditionMatch = false;
         if (memberAccess.Kind() != SyntaxKind.SimpleMemberAccessExpression)
             return false;
 
@@ -337,6 +340,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
             }
 
+            isAdditionMatch = true;
             return true;
         }
 
