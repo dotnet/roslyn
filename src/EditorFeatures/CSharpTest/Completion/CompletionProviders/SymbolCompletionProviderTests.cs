@@ -12390,6 +12390,36 @@ public static class Extension
             await VerifyItemExistsAsync(source, "C");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TypeBeingInstantiatedHaveNestedType(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    class Nested { }
+
+    void Bar()
+    {
+        var x = new $$
+    }
+}
+";
+            var expectedMark = @$"
+class Program
+{{
+    class Nested {{ }}
+
+    void Bar()
+    {{
+        var x = new Program{(commitChar == '.' ? "" : "()")}{commitChar}
+    }}
+}}
+";
+            await VerifyProviderCommitAsync(markup, "Program", expectedMark, commitChar: commitChar);
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

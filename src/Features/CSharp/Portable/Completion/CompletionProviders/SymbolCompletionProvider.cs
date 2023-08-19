@@ -224,20 +224,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
-            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            else if (ShouldProvideParenthesisCompletion(symbol, out var includeDotCommitCharacter))
             {
                 // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
                 // and the type is used as constructor
+                // We add a flag to disallow automatic parenthesis if the type has a nested type AND the trigger character is '.', in which case the user may want
+                // to access the nested type. See https://github.com/dotnet/roslyn/issues/51629
                 if (context.IsObjectCreationTypeContext)
-                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, includeDotCommitCharacter);
             }
 
             return item;
+
+            static bool ShouldProvideParenthesisCompletion(ISymbol? symbol, out bool includeDotCommitCharacter)
+            {
+                ITypeSymbol? typeSymbol;
+                if (symbol is INamedTypeSymbol namedType)
+                {
+                    typeSymbol = namedType;
+                }
+                else if (symbol is IAliasSymbol { Target: ITypeSymbol target })
+                {
+                    typeSymbol = target;
+                }
+                else
+                {
+                    includeDotCommitCharacter = false;
+                    return false;
+                }
+
+                includeDotCommitCharacter = typeSymbol.GetTypeMembers().IsEmpty;
+                return true;
+            }
         }
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            var shouldAddParenthesis = ch switch
+            {
+                ';' => SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item, out _),
+                '.' => SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item, out var includeDotCommitCharacter) && includeDotCommitCharacter,
+                _ => false,
+            };
+
+            if (shouldAddParenthesis)
             {
                 CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
                 return SymbolCompletionItem.GetInsertionText(item) + "()";

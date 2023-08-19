@@ -84,16 +84,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
-            => item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString());
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool includeDotCommitCharacter = true)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", includeDotCommitCharacter.ToString());
 
-        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item, out bool includeDotCommitCharacter)
         {
-            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out _))
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out var value))
             {
+                bool.TryParse(value, out includeDotCommitCharacter);
                 return true;
             }
 
+            includeDotCommitCharacter = false;
             return false;
         }
 
