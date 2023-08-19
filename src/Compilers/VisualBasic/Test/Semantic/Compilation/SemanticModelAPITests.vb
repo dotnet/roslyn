@@ -4627,5 +4627,100 @@ BC30002: Type 'P.F' is not defined.
 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub TestGetDeclaredSymbol_SingleLineFunctionLambdaExpression()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        Dim lambda As Func(Of Integer) = Function() 0
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = compilation.SyntaxTrees.Single()
+            Dim lambdaSyntax = tree.GetRoot().DescendantNodes().OfType(Of SingleLineLambdaExpressionSyntax)().Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbol = semanticModel.GetDeclaredSymbol(lambdaSyntax)
+            Assert.Equal("Function () As System.Int32", symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TestGetDeclaredSymbol_SingleLineSubLambdaExpression()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        Dim lambda As Action = Sub() Console.WriteLine()
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = compilation.SyntaxTrees.Single()
+            Dim lambdaSyntax = tree.GetRoot().DescendantNodes().OfType(Of SingleLineLambdaExpressionSyntax)().Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbol = semanticModel.GetDeclaredSymbol(lambdaSyntax)
+            Assert.Equal("Sub ()", symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TestGetDeclaredSymbol_MultiLineFunctionLambdaExpression()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        Dim lambda As Func(Of Integer) = Function()
+                                             Return 0
+                                         End Function
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = compilation.SyntaxTrees.Single()
+            Dim lambdaSyntax = tree.GetRoot().DescendantNodes().OfType(Of MultiLineLambdaExpressionSyntax)().Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbol = semanticModel.GetDeclaredSymbol(lambdaSyntax)
+            Assert.Equal("Function () As System.Int32", symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TestGetDeclaredSymbol_MultiLineSubLambdaExpression()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        Dim lambda As Action = Sub()
+                                   Console.WriteLine()
+                               End Sub
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = compilation.SyntaxTrees.Single()
+            Dim lambdaSyntax = tree.GetRoot().DescendantNodes().OfType(Of MultiLineLambdaExpressionSyntax)().Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbol = semanticModel.GetDeclaredSymbol(lambdaSyntax)
+            Assert.Equal("Sub ()", symbol.ToTestDisplayString())
+        End Sub
     End Class
 End Namespace

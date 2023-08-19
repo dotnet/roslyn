@@ -152,6 +152,14 @@ public class C2
                 diagnostics: new[] { diagnosticC, diagnosticC1, diagnosticC2 });
         }
 
+        [Fact, WorkItem(59746, "https://github.com/dotnet/roslyn/issues/59746")]
+        public async Task SuppressMessageAttributeOnLambda()
+        {
+            await VerifyCSharpAsync(@"using System.Diagnostics.CodeAnalysis;
+
+var lambda = [SuppressMessage("""", ""Comment"")] () => /**/Object.ReferenceEquals(1, 2);", new[] { new WarningOnCommentAnalyzer() });
+        }
+
         [Fact]
         public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
         {

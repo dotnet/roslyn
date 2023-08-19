@@ -4632,6 +4632,55 @@ public partial class C
             Assert.True(alias1.Equals(alias2));
         }
 
+        [Fact]
+        public void TestGetDeclaredSymbolParenthesizedLambda()
+        {
+            var text = @"
+var lambda = () => 0;
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(node);
+
+            Assert.Equal("lambda expression", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestGetDeclaredSymbolSimpleLambda()
+        {
+            var text = @"
+using System;
+
+Func<int> lambda = a => 0;
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(node);
+
+            Assert.Equal("lambda expression", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestGetDeclaredSymbolAnonymousMethod()
+        {
+            var text = @"
+using System;
+
+Func<int> lambda = delegate { return 0; };
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(node);
+
+            Assert.Equal("lambda expression", symbol.ToTestDisplayString());
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

@@ -3338,6 +3338,10 @@ _Default:
 
                 Case SyntaxKind.AnonymousObjectCreationExpression
                     Return Me.GetDeclaredSymbol(DirectCast(node, AnonymousObjectCreationExpressionSyntax), cancellationToken)
+
+                Case SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression
+                    Return GetSymbolInfo(node, cancellationToken).Symbol
             End Select
 
             Dim td = TryCast(node, TypeStatementSyntax)

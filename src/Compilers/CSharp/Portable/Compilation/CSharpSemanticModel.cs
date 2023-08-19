@@ -5138,6 +5138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((QueryContinuationSyntax)node, cancellationToken);
                 case SyntaxKind.CompilationUnit:
                     return this.GetDeclaredSymbol((CompilationUnitSyntax)node, cancellationToken);
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return GetSymbolInfo(node, cancellationToken).Symbol;
             }
 
             return null;
