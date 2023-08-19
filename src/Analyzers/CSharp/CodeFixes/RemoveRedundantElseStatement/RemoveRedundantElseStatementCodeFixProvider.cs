@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var ifStatements = diagnostics.Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
+            var ifStatements = diagnostics
+                .Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken))
+                .ToSet();
+
             var nodesToUpdate = ifStatements.Select(statement => statement.Parent!);
 
             var root = editor.OriginalRoot;
@@ -74,9 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             var memberToUpdate = (GlobalStatementSyntax)original.Members[memberToUpdateIndex];
 
             var elseClause = GetLastElse((IfStatementSyntax)memberToUpdate.Statement);
-            var ifWithoutElse = memberToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+            var ifWithoutElse = memberToUpdate
+                .RemoveNode(elseClause, SyntaxRemoveOptions.KeepExteriorTrivia)
+                !.WithAppendedTrailingTrivia(CarriageReturnLineFeed);
 
-            var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse!);
+            var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse);
             var newStatements = Expand(elseClause).Select(GlobalStatement);
 
             var updatedMembers = updatedCompilationUnit.Members

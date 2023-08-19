@@ -699,6 +699,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                     {
                         return;
                     }
+
                     Console.WriteLine("Success");
 
                     """,
