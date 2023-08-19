@@ -953,7 +953,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        int[][] c = [new[] { 1, 2, 3 }];
+                        int[][] c = [[1, 2, 3]];
                     }
                 }
                 """,
@@ -2550,17 +2550,6 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r = [new[] { 1 }, new int[] { 2 }];
-                    }
-                }
-                """,
-            BatchFixedCode = """
-                using System;
                 
                 class C
                 {
@@ -2595,22 +2584,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            // Leading
-                            new[] { 1 }, // Trailing
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C
@@ -2654,25 +2627,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            new[]
-                            {
-                                // Leading
-                                1 // Trailing
-                            },
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C

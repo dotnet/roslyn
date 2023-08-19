@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return objectCreation;
 
                 case ConversionKind.CollectionExpression:
-                    // Skip through target-typed collection expressions
-                    Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
-                    return VisitExpression(node.Operand)!;
+                    return RewriteCollectionExpressionConversion(node.Conversion, (BoundCollectionExpression)node.Operand);
             }
 
             var rewrittenType = VisitType(node.Type);
