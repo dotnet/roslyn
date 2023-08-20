@@ -7802,6 +7802,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_MismatchedRefEscapeInSwitchExpression" xml:space="preserve">
     <value>The branches of the ref switch expression refer to variables with incompatible declaration scopes</value>
   </data>
+  <data name="WRN_MismatchedRefEscapeInSwitchExpression_Title" xml:space="preserve">
+    <value>The branches of the ref switch expression refer to variables with incompatible declaration scopes</value>
+  </data>
   <data name="ERR_RequiresRefReturningSwitchExpression" xml:space="preserve">
     <value>The switch expression in the left side of a compound assignment must return a by-ref expression</value>
   </data>

@@ -521,36 +521,10 @@ class Program
 }";
             var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (6,21): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                // (6,21): error CS9305: The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?
                 //         return ref (b switch { true => x, false => y });
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b switch { true => x, false => y }").WithLocation(6, 21));
-        }
-
-        [Fact]
-        public void NoRefSwitch_02()
-        {
-            var source = @"
-class Program
-{
-    ref int M(bool b, ref int x, ref int y)
-    {
-        return ref (b switch { true => ref x, false => ref y });
-    }
-}";
-            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics(
-                // (6,40): error CS1525: Invalid expression term 'ref'
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(6, 40),
-                // (6,40): error CS1073: Unexpected token 'ref'
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 40),
-                // (6,56): error CS1525: Invalid expression term 'ref'
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(6, 56),
-                // (6,56): error CS1073: Unexpected token 'ref'
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 56));
+                Diagnostic(ErrorCode.ERR_RefOnNonRefSwitchExpression, "b switch").WithLocation(6, 21)
+                );
         }
 
         [Fact]
