@@ -26,13 +26,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Composition;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.CodeAnalysis.Options;
 
 using System.Diagnostics;
 using System.IO;
@@ -915,22 +913,21 @@ Consider using the title as the equivalence key instead of 'null'";
             await TestActionCountAsync(input, outputs.Length, parameters);
         }
 
-        protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
-            TestWorkspace workspace,
-            out Document document,
-            out TextSpan span,
-            out string annotation)
+        protected static async Task<DocumentAndSelectSpanOrAnnotation> GetDocumentAndSelectSpanOrAnnotatedSpanAsync(TestWorkspace workspace)
         {
-            annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            var documentAndSelectSpan = await TryGetDocumentAndSelectSpanAsync(workspace);
+            if (documentAndSelectSpan.HasValue)
             {
-                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+                return documentAndSelectSpan.Value;
             }
+
+            return await GetDocumentAndAnnotatedSpanAsync(workspace);
         }
 
-        private static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
+        private static async Task<DocumentAndSelectSpanOrAnnotation?> TryGetDocumentAndSelectSpanAsync(TestWorkspace workspace)
         {
             var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
+            TextSpan span = default;
             if (hostDocument == null)
             {
                 // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
@@ -938,29 +935,29 @@ Consider using the title as the equivalence key instead of 'null'";
                 hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
                 if (hostDocument == null)
                 {
-                    document = null;
-                    span = default;
-                    return false;
+                    return null;
                 }
 
                 span = new TextSpan(hostDocument.CursorPosition.Value, 0);
-                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                return true;
+            }
+            else
+            {
+                span = hostDocument.SelectedSpans.Single();
             }
 
-            span = hostDocument.SelectedSpans.Single();
-            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            return true;
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return new(document, span, null);
         }
 
-        private static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
+        private static async Task<DocumentAndSelectSpanOrAnnotation> GetDocumentAndAnnotatedSpanAsync(TestWorkspace workspace)
         {
             var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
             var hostDocument = annotatedDocuments.Single();
             var annotatedSpan = hostDocument.AnnotatedSpans.Single();
-            annotation = annotatedSpan.Key;
-            span = annotatedSpan.Value.Single();
-            return workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var annotation = annotatedSpan.Key;
+            var span = annotatedSpan.Value.Single();
+            var document = await workspace.CurrentSolution.GetDocumentAsync(hostDocument.Id, includeSourceGenerated: true);
+            return new(document, span, annotation);
         }
 
         protected static FixAllScope? GetFixAllScope(string annotation)
@@ -980,6 +977,13 @@ Consider using the title as the equivalence key instead of 'null'";
                 "FixAllInSelection" => FixAllScope.Custom,
                 _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
             };
+        }
+
+        public readonly struct DocumentAndSelectSpanOrAnnotation(Document document, TextSpan span, string annotation)
+        {
+            public Document Document { get; } = document;
+            public TextSpan Span { get; } = span;
+            public string Annotation { get; } = annotation;
         }
     }
 }

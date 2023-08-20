@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -6367,6 +6367,27 @@ class Program
             await TestMissingAsync(initialWorkspace, new TestParameters(
                 globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
                 testHost: testHost));
+        }
+
+        [Theory, CombinatorialData, WorkItem("")]
+        public async Task Test(TestHost testHost)
+        {
+            var docText = @"
+namespace TestNamespace
+{
+    public class TestClass
+    {
+        public [|Task|] TestMethod() => null;
+    }
+}";
+            var workspaceElement = $@"<Workspace>
+  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
+    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(docText)}</DocumentFromSourceGenerator>
+  </Project>
+</Workspace>";
+
+            // We don't provide code actions for source generated documents, but we shouldn't crash either.
+            await TestMissingAsync(workspaceElement, new TestParameters(testHost: testHost));
         }
     }
 }

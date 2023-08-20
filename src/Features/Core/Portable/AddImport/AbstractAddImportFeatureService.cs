@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
+            if (document is SourceGeneratedDocument)
+                return ImmutableArray<AddImportFixData>.Empty;
+
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -503,6 +506,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
+            if (document is SourceGeneratedDocument)
+                return ImmutableArray<AddImportFixData>.Empty;
+
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
