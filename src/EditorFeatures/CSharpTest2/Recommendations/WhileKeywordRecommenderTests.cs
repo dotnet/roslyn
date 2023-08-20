@@ -27,9 +27,9 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public async Task TestAfterGlobalStatement()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(
 @"System.Console.WriteLine();
 $$");
         }
