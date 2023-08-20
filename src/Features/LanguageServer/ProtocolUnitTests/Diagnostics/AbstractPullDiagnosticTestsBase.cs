@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -222,9 +223,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             string? previousResultId = null,
             bool useProgress = false,
-            string? category = null)
+            string? category = null,
+            bool testNonLocalDiagnostics = false)
         {
-            return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress, category);
+            return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress, category, testNonLocalDiagnostics);
         }
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
@@ -233,12 +235,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             string? previousResultId = null,
             bool useProgress = false,
-            string? category = null)
+            string? category = null,
+            bool testNonLocalDiagnostics = false)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
             {
+                Assert.False(testNonLocalDiagnostics, "NonLocalDiagnostics are only supported for public DocumentPullHandler");
                 BufferedProgress<VSInternalDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                     VSInternalMethods.DocumentPullDiagnosticName,
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                     Methods.TextDocumentDiagnosticName,
-                    CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
+                    CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress, testNonLocalDiagnostics),
                     CancellationToken.None).ConfigureAwait(false);
                 if (useProgress)
                 {
@@ -285,12 +289,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
                 VSTextDocumentIdentifier vsTextDocumentIdentifier,
-                string? previousResultId = null,
-                IProgress<DocumentDiagnosticPartialReport>? progress = null)
+                string? previousResultId,
+                IProgress<DocumentDiagnosticPartialReport>? progress,
+                bool testNonLocalDiagnostics)
             {
                 return new DocumentDiagnosticParams
                 {
-                    Identifier = null,
+                    Identifier = testNonLocalDiagnostics ? DocumentPullDiagnosticHandler.DocumentNonLocalDiagnosticIdentifier.ToString() : null,
                     PreviousResultId = previousResultId,
                     PartialResultToken = progress,
                     TextDocument = vsTextDocumentIdentifier,
