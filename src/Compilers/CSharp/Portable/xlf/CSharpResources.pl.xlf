@@ -2687,6 +2687,11 @@
         <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInSwitchExpression_Title">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MismatchedRefEscapeInTernary">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Gałęzie operatora warunkowego ref nie mogą przywoływać zmiennych z niezgodnymi zakresami deklaracji</target>
