@@ -3854,9 +3854,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        return HasLocalScope((BoundCollectionExpression)conversion.Operand)
-                            ? scopeOfTheContainingExpression
-                            : CallingMethodScope;
+                        return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
+                            CurrentMethodScope :
+                            CallingMethodScope;
                     }
 
                     if (conversion.Conversion.IsInlineArray)
@@ -4425,7 +4425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && escapeTo < _localScopeDepth)
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && escapeTo < CurrentMethodScope)
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;

@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _inExpressionLambda;
 
         /// <summary>
-        /// Additional locals that will be added to the containing block.
-        /// This is used for inline array temporaries where the scope of the
-        /// temporary must match the scope of references to that temporary.
+        /// Additional locals that will be added to the outermost block of the current method, lambda,
+        /// or local function. This is used for inline array temporaries where the scope of the
+        /// temporary must be at least as wide as the scope of references to that temporary.
         /// </summary>
         private ArrayBuilder<LocalSymbol>? _additionalLocals;
 
@@ -312,9 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
                 _currentLambdaBody = node.Body;
+                _additionalLocals = null;
 
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
@@ -329,6 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -375,9 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
             var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
                 _currentLambdaBody = node.Body;
+                _additionalLocals = null;
                 _factory.CurrentFunction = localFunction;
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
@@ -401,6 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
                 _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -628,7 +634,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement? RewriteFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var previousLocals = _additionalLocals;
-            _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            if (previousLocals is null)
+            {
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            }
 
             try
             {
@@ -638,12 +647,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                     Debug.Assert(statement is { });
-                    return block.Update(block.Locals.AddRange(_additionalLocals), block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement));
+                    var locals = block.Locals;
+                    if (previousLocals is null)
+                    {
+                        locals = locals.AddRange(_additionalLocals!);
+                    }
+                    return block.Update(locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement));
                 }
                 else
                 {
                     var statement = RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true);
-                    if (statement is null || _additionalLocals.Count == 0)
+                    if (statement is null || previousLocals is { } || _additionalLocals!.Count == 0)
                     {
                         return statement;
                     }
@@ -655,8 +669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                _additionalLocals.Free();
-                _additionalLocals = previousLocals;
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
             }
         }
 

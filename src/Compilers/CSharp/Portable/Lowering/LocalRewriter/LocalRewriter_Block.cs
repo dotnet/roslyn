@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
             var previousLocals = _additionalLocals;
-            _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            if (previousLocals is null)
+            {
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            }
 
             try
             {
@@ -43,12 +46,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return new BoundBlock(node.Syntax, node.Locals.AddRange(_additionalLocals).AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+                var locals = node.Locals;
+                if (previousLocals is null)
+                {
+                    locals = locals.AddRange(_additionalLocals!);
+                }
+                locals = locals.AddRange(additionalLocals);
+                return new BoundBlock(node.Syntax, locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
             }
             finally
             {
-                _additionalLocals.Free();
-                _additionalLocals = previousLocals;
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
             }
         }
 
