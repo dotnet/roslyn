@@ -162,7 +162,7 @@ internal sealed class LanguageServerProjectSystem
                 if (msbuildInstance != null)
                 {
                     MSBuildLocator.RegisterInstance(msbuildInstance);
-                    _logger.LogInformation($"Loaded MSBuild at {msbuildInstance.MSBuildPath}");
+                    _logger.LogInformation($"Loaded MSBuild in-process from {msbuildInstance.MSBuildPath}");
                     _msbuildLoaded = true;
 
                     return true;
@@ -183,9 +183,7 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty, msbuildLogger: CreateMSBuildLogger());
-
-        projectBuildManager.StartBatchBuild();
+        using var buildHostProcessManager = new BuildHostProcessManager();
 
         var displayedToast = 0;
 
@@ -197,7 +195,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, projectBuildManager, cancellationToken);
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -215,12 +213,11 @@ internal sealed class LanguageServerProjectSystem
         }
         finally
         {
-            projectBuildManager.EndBatchBuild();
-
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
         }
     }
 
+    // TODO: reconnect this to the out-of-proc build host
     private Build.Framework.ILogger? CreateMSBuildLogger()
     {
         if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
@@ -234,14 +231,16 @@ internal sealed class LanguageServerProjectSystem
         return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
     }
 
-    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         try
         {
             var projectPath = projectToLoad.Path;
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(cancellationToken);
+
+            if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {
-                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, cancellationToken);
+                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
                 var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
@@ -278,15 +277,16 @@ internal sealed class LanguageServerProjectSystem
 
                 await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
 
-                if (loadedFile.Log.Any())
+                var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+                if (diagnosticLogItems.Any())
                 {
-                    foreach (var logItem in loadedFile.Log)
+                    foreach (var logItem in diagnosticLogItems)
                     {
                         var projectName = Path.GetFileName(projectPath);
                         _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
                     }
 
-                    return loadedFile.Log.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+                    return diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
                 }
                 else
                 {
