@@ -3202,18 +3202,18 @@ unsafe class C
                 // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr3 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object, void>").WithLocation(15, 40),
-                // (16,44): error CS8757: No overload for 'M2' matches function pointer 'delegate*<ref object, void>'
+                // (16,45): error CS8759: Cannot create a function pointer for 'C.M2(in object)' because it is not a static method
                 //         delegate*<ref object, void> ptr4 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<ref object, void>").WithLocation(16, 44),
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M2").WithArguments("C.M2(in object)").WithLocation(16, 45),
                 // (17,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr5 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<ref object, void>").WithLocation(17, 44),
                 // (18,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr6 = &M4;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<ref object, void>").WithLocation(18, 44),
-                // (19,43): error CS8757: No overload for 'M1' matches function pointer 'delegate*<in object, void>'
+                // (19,44): error CS8759: Cannot create a function pointer for 'C.M1(ref object)' because it is not a static method
                 //         delegate*<in object, void> ptr7 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<in object, void>").WithLocation(19, 43),
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M1").WithArguments("C.M1(ref object)").WithLocation(19, 44),
                 // (20,43): error CS8757: No overload for 'M3' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr8 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<in object, void>").WithLocation(20, 43),
@@ -6080,11 +6080,10 @@ Ref");
 ");
         }
 
-        [Theory]
-        [InlineData("ref", "out")]
-        [InlineData("ref", "in")]
-        [InlineData("out", "in")]
-        public void Overloading_InvalidParameterRefness(string refKind1, string refKind2)
+        [Theory, CombinatorialData]
+        public void Overloading_InvalidParameterRefness(
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind1,
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind2)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C<T>
@@ -6094,6 +6093,13 @@ unsafe class C<T>
 
     static void M2(C<delegate*<{refKind1} object, void>[]> c) => throw null;
     static void M2(C<delegate*<{refKind2} object, void>[]> c) => throw null;
+}}
+
+namespace System.Runtime.CompilerServices
+{{
+    class RequiresLocationAttribute : System.Attribute
+    {{
+    }}
 }}
 ");
 
@@ -7355,9 +7361,9 @@ unsafe class Test
                 // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param2(out var l);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
-                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (17,20): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //         param2(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("1").WithLocation(17, 20),
                 // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),
@@ -7392,10 +7398,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                // (6,17): error CS1593: Delegate 'Func<string>' does not take 1 arguments
                 //         param(a => a);
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
-            );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<string>", "1").WithLocation(6, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
             Public Overrides Sub VisitEnumStatement(node As EnumStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
+                MyBase.VisitEnumStatement(node)
             End Sub
 
             Public Overrides Sub VisitPropertyStatement(node As PropertyStatementSyntax)
@@ -74,6 +75,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             Public Overrides Sub VisitModuleStatement(node As ModuleStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitModuleStatement(node)
+            End Sub
+
+            Public Overrides Sub VisitDelegateStatement(node As DelegateStatementSyntax)
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
+            End Sub
+
+            Public Overrides Sub VisitEnumMemberDeclaration(node As EnumMemberDeclarationSyntax)
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
+            End Sub
+
+            Public Overrides Sub VisitFieldDeclaration(node As FieldDeclarationSyntax)
+                For Each variable In node.Declarators
+                    For Each name In variable.Names
+                        _memberBuilder.Add(New CodeLensMember(name, name.Identifier.Span))
+                    Next
+                Next
+            End Sub
+
+            Public Overrides Sub VisitEventStatement(node As EventStatementSyntax)
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
             End Sub
         End Class
     End Class

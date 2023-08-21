@@ -309,9 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsInvalidTokenKind(SyntaxToken token)
         {
             // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
+            return token.Kind()
+                    is SyntaxKind.None
+                    or SyntaxKind.EndOfDirectiveToken
+                    or SyntaxKind.EndOfFileToken;
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)

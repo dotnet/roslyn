@@ -1557,6 +1557,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeRequiresLocationAttribute(ParameterSymbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeRequiresLocationAttribute();
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1763,6 +1774,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1794,6 +1811,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureIsReadOnlyAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
+        }
+
+        internal void EnsureRequiresLocationAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
         }
 
         internal void EnsureIsUnmanagedAttributeExists()
@@ -1946,6 +1968,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       },
                                                       (spanType, intType),
                                                       diagnostics);
+        }
+
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+            Debug.Assert(arrayLength > 0);
+
+            string typeName = $"<>{(char)GeneratedNameKind.InlineArrayType}__InlineArray{arrayLength}";
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+
+            if (typeAdapter is null)
+            {
+                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                Debug.Assert(attributeConstructor is { });
+
+                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+            }
+
+            Debug.Assert(typeAdapter.Name == typeName);
+            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
         }
 
         internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     [DataContract]
-    internal readonly struct HighlightSpan
+    internal readonly record struct HighlightSpan
     {
         [DataMember(Order = 0)]
         public TextSpan TextSpan { get; }
