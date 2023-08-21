@@ -19,13 +19,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
 {
     [ExportLanguageService(typeof(IDecompilationService), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeDecompilerDecompilationService : IDecompilationService
+    internal class CSharpDecompilationService : IDecompilationService
     {
         private static readonly FileVersionInfo s_decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeDecompilerDecompilationService()
+        public CSharpDecompilationService()
         {
         }
 
