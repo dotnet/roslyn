@@ -1129,8 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
                 {
                     // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
-                    var code = ErrorCode.ERR_MisplacedUnchecked;
-                    var misplacedToken = this.AddError(this.EatToken(), ErrorCode.WRN_ErrorOverride, new SyntaxDiagnosticInfo(code), (int)code);
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_MisplacedUnchecked);
                     operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
                     return null;
                 }
