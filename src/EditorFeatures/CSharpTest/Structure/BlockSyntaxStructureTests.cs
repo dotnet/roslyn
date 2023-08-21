@@ -436,14 +436,14 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52493")]
         public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
         {
             const string code = @"
-Foo();
+Goo();
 Bar();
 
-{|hint:static void Foo(){|textspan:
+{|hint:static void Goo(){|textspan:
 {$$
    // ...
 }|}|}
@@ -451,6 +451,48 @@ Bar();
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
+        public async Task LocalFunctionInBodyRespectOption1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:static void Goo(){|textspan:
+        {$$
+           // ...
+        }|}|}
+    }
+}
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
+        public async Task LocalFunctionInBodyRespectOption2()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:static void Goo(){|textspan:
+        {$$
+           // ...
+        }|}|}
+    }
+}
+";
+
+            await VerifyBlockSpansAsync(code, GetDefaultOptions() with
+            {
+                CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
+            }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

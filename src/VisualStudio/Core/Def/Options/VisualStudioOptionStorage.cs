@@ -119,6 +119,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_regions_when_collapsing_to_definitions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenCollapsingToDefinitions")},
+        {"dotnet_collapse_local_functions_when_collapsing_to_definitions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseLocalFunctionsWhenCollapsingToDefinitions")},
         {"dotnet_collapse_regions_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenFirstOpened")},
         {"dotnet_maximum_block_banner_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.MaximumBannerLength")},
         {"dotnet_show_block_structure_guides_for_code_level_constructs", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowBlockStructureGuidesForCodeLevelConstructs")},

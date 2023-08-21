@@ -62,6 +62,9 @@ internal static class BlockStructureOptionsStorage
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
         "dotnet_collapse_regions_when_collapsing_to_definitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions);
 
+    public static readonly PerLanguageOption2<bool> CollapseLocalFunctionsWhenCollapsingToDefinitions = new(
+        "dotnet_collapse_local_functions_when_collapsing_to_definitions", BlockStructureOptions.Default.CollapseLocalFunctionsWhenCollapsingToDefinitions);
+
     public static readonly PerLanguageOption2<int> MaximumBannerLength = new(
         "dotnet_maximum_block_banner_length", BlockStructureOptions.Default.MaximumBannerLength);
 }
