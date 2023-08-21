@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -297,27 +298,89 @@ internal partial class CSharpRecommendationService
                 ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
                 : _context.SemanticModel.LookupSymbols(_context.LeftToken.SpanStart);
 
-            // filter our top level locals if we're inside a type declaration.
-            if (_context.ContainingTypeDeclaration != null)
-                symbols = symbols.WhereAsArray(s => s.ContainingSymbol.Name != WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
-
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
             var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
-            symbols = symbols.WhereAsArray(symbol =>
-                !symbol.IsExtensionMethod() ||
-                Equals(contextEnclosingNamedType, symbol.ContainingType) ||
-                contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
+            return symbols.WhereAsArray(
+                static (symbol, args) => !IsUndesirable(args._context, args.contextEnclosingNamedType, args.contextOuterTypes, args.filterOutOfScopeLocals, symbol, args._cancellationToken),
+                (_context, contextOuterTypes, contextEnclosingNamedType, filterOutOfScopeLocals, _cancellationToken));
 
-            // The symbols may include local variables that are declared later in the method and
-            // should not be included in the completion list, so remove those. Filter them away,
-            // unless we're in the debugger, where we show all locals in scope.
-            if (filterOutOfScopeLocals)
-                symbols = symbols.WhereAsArray(symbol => !symbol.IsInaccessibleLocal(_context.Position));
+            static bool IsUndesirable(
+                CSharpSyntaxContext context,
+                INamedTypeSymbol? enclosingNamedType,
+                ISet<INamedTypeSymbol> outerTypes,
+                bool filterOutOfScopeLocals,
+                ISymbol symbol,
+                CancellationToken cancellationToken)
+            {
+                // filter our top level locals if we're inside a type declaration.
+                if (context.ContainingTypeDeclaration != null && symbol.ContainingSymbol.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)
+                    return true;
 
-            return symbols;
+                if (symbol.IsExtensionMethod() &&
+                    !Equals(enclosingNamedType, symbol.ContainingType) &&
+                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                {
+                    return true;
+                }
+
+                // The symbols may include local variables that are declared later in the method and should not be
+                // included in the completion list, so remove those. Filter them away, unless we're in the debugger,
+                // where we show all locals in scope.
+                if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
+                    return true;
+
+                if (IsCapturedPrimaryConstructorParameter(enclosingNamedType, symbol, cancellationToken))
+                    return true;
+
+                return false;
+            }
+
+            static bool IsCapturedPrimaryConstructorParameter(
+                INamedTypeSymbol? enclosingNamedType,
+                ISymbol symbol,
+                CancellationToken cancellationToken)
+            {
+                if (enclosingNamedType is null)
+                    return false;
+
+                if (symbol is not IParameterSymbol parameterSymbol)
+                    return false;
+
+                if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
+                    return false;
+
+                var parameterName = parameterSymbol.Name;
+                foreach (var reference in enclosingNamedType.DeclaringSyntaxReferences)
+                {
+                    if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
+                        continue;
+
+                    foreach (var member in typeDeclaration.Members)
+                    {
+                        if (member is FieldDeclarationSyntax fieldDeclaration)
+                        {
+                            foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
+                            {
+                                if (variableDeclarator.Initializer?.Value is IdentifierNameSyntax { Identifier: var fieldInitializerIdentifier } &&
+                                    fieldInitializerIdentifier.ValueText == parameterName)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        else if (member is PropertyDeclarationSyntax { Initializer.Value: IdentifierNameSyntax { Identifier: var propertyInitializerIdentifier } } &&
+                                 propertyInitializerIdentifier.ValueText == parameterName)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         private RecommendedSymbols GetSymbolsOffOfName(NameSyntax name)
