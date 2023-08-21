@@ -11808,6 +11808,7 @@ public class C(int x)
                 <Document><![CDATA[
 public class Base
 {
+    protected int X;
 }
 
 public class C(int x) : Base
@@ -11822,7 +11823,7 @@ public class C(int x) : Base
                 languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContainAll("x", "X")
             End Using
         End Function
 
@@ -11832,8 +11833,11 @@ public class C(int x) : Base
                 <Document><![CDATA[
 public class Base
 {
+    protected int X;
+
     public Base(int x)
     {
+        X = x;
     }
 }
 
@@ -11849,7 +11853,7 @@ public class C(int x) : Base(x + 1)
                 languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContainAll("x", "X")
             End Using
         End Function
 
@@ -11859,8 +11863,11 @@ public class C(int x) : Base(x + 1)
                 <Document><![CDATA[
 public class Base
 {
+    protected int X;
+
     public Base(int x)
     {
+        X = x;
     }
 }
 
@@ -11877,6 +11884,7 @@ public class C(int x) : Base(x)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsDoNotContainAny("x")
+                Await state.AssertCompletionItemsContainAll("X")
             End Using
         End Function
     End Class
