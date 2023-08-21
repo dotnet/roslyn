@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var ch = CurrentChar;
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
-                var ctor = TryScanStringToken(".ctor", StackFrameKind.ConstructorToken);
+                var ctor = TryScanConstructor();
                 if (ctor.HasValue)
                 {
                     return ctor.Value;
@@ -493,6 +493,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             return CreateTrivia(StackFrameKind.WhitespaceTrivia, GetSubSequenceToCurrentPos(startPosition));
+        }
+
+        /// <summary>
+        /// Scans for .ctor or .cctor as a ConstructorToken
+        /// </summary>
+        private StackFrameToken? TryScanConstructor()
+        {
+            var ctor = TryScanStringToken(".ctor", StackFrameKind.ConstructorToken);
+            if (ctor.HasValue)
+            {
+                return ctor;
+            }
+
+            return TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
         }
 
         private static StackFrameKind GetKind(VirtualChar ch)

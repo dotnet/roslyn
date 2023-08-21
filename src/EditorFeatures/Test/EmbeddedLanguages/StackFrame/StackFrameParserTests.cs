@@ -34,6 +34,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     argumentList: EmptyParams)
                 );
 
+        [Fact]
+        public void TestStaticCtor()
+            => Verify(
+                @"at ConsoleApp4.MyClass..cctor()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        QualifiedName(
+                            Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
+                            Identifier("MyClass")),
+                        StaticConstructor),
+                    argumentList: EmptyParams)
+                );
+
         [Theory]
         [InlineData("C", 1)]
         [InlineData("C", 100)]
