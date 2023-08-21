@@ -500,13 +500,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameToken? TryScanConstructor()
         {
-            var ctor = TryScanStringToken(".ctor", StackFrameKind.ConstructorToken);
-            if (ctor.HasValue)
-            {
-                return ctor;
-            }
-
-            return TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
+            return TryScanStringToken(".ctor", StackFrameKind.ConstructorToken) ??
+                   TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
         }
 
         private static StackFrameKind GetKind(VirtualChar ch)
