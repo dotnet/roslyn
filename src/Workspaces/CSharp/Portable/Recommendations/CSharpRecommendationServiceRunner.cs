@@ -332,13 +332,14 @@ internal partial class CSharpRecommendationService
                 if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
                     return true;
 
-                if (IsCapturedPrimaryConstructorParameter(enclosingNamedType, symbol, cancellationToken))
+                if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
                     return true;
 
                 return false;
             }
 
             static bool IsCapturedPrimaryConstructorParameter(
+                CSharpSyntaxContext context,
                 INamedTypeSymbol? enclosingNamedType,
                 ISymbol symbol,
                 CancellationToken cancellationToken)
@@ -351,6 +352,20 @@ internal partial class CSharpRecommendationService
 
                 if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
                     return false;
+
+                // Fine to offer primary constructor parameters in field/property initializers 
+                var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+                if (initializer is
+                    {
+                        Parent: PropertyDeclarationSyntax or
+                                VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } }
+                    })
+                {
+                    return false;
+                }
+
+                // We're not in an initializer.  Filter out this primary constructor parameter if it's already been
+                // captured by an existing field or property initializer.
 
                 var parameterName = parameterSymbol.Name;
                 foreach (var reference in enclosingNamedType.DeclaringSyntaxReferences)
