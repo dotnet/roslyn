@@ -593,6 +593,11 @@ internal static class CSharpCollectionExpressionRewriter
 
         bool MakeMultiLineCollectionExpression()
         {
+            // If there's already an initializer, and we're not adding anything to it, then just keep the initializer
+            // as-is.  No need to convert it to be multi-line if it's currently single-line.
+            if (initializer != null && matches.Length == 0)
+                return false;
+
             var totalLength = 0;
             if (initializer != null)
             {

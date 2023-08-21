@@ -1918,6 +1918,57 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestNoMultiLineEvenWhenLongIfAllElementsAlreadyPresent()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        private static readonly string[] s_microsoftCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_editAndContinueCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
+                        private static readonly string[] s_unnecessaryCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_notConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+                
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        private static readonly string[] s_microsoftCustomTags = [WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_editAndContinueCustomTags = [WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag];
+                        private static readonly string[] s_unnecessaryCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_notConfigurableCustomTags = [WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNoInitializer_MultiLine1()
     {
         await new VerifyCS.Test
