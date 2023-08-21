@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
+        private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
+
         // computed on demand
         private int _hashCode;
 
@@ -148,8 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
         }
-
-        private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
 
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
