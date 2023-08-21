@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +16,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
 {
     /// <summary>
-    /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
-    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
+    /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all
+    /// possible IL identifiers, we have to account for the possibility that an item's metadata name could lead to
+    /// unparseable code.
     /// </summary>
     [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 
         internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
         {
-            var outliningService = document.GetLanguageService<BlockStructureService>();
+            var outliningService = document.GetRequiredLanguageService<BlockStructureService>();
             return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
         }
 
