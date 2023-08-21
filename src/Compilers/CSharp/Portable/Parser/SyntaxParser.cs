@@ -40,6 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
         private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[32], 2);
 
+        // Cap array size held in token pool. This should be large enough to prevent most allocations, but
+        //  not so large as to be wasteful when not in use.
+        private const int MaxCachedTokenArraySize = 4096;
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (lexedTokens != null)
             {
                 _lexedTokens = null;
-                if (lexedTokens.Length < 4096)
+                if (lexedTokens.Length < MaxCachedTokenArraySize)
                 {
                     Array.Clear(lexedTokens, 0, lexedTokens.Length);
                     s_lexedTokensPool.Free(lexedTokens);
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void PreLex()
         {
             // NOTE: Do not cancel in this method. It is called from the constructor.
-            var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
+            var size = Math.Min(MaxCachedTokenArraySize, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
             var lexer = this.lexer;
             var mode = _mode;
 
