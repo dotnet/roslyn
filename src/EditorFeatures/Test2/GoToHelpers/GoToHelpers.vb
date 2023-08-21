@@ -54,13 +54,13 @@ Friend Class GoToHelpers
                                 $"Expected: ({expected}) but got: ({actual})")
                 Next
 
-                Dim actualDefintionsWithoutSpans = context.GetDefinitions() _
-                    .Where(Function(d) d.SourceSpans.IsDefaultOrEmpty) _
-                    .Select(Function(di)
-                                Return String.Format("{0}:{1}",
-                                                     String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
-                                                     String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
-                            End Function).ToList()
+                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
+                    Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
+                    Select(Function(di)
+                               Return String.Format("{0}:{1}",
+                                                    String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                    String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
+                           End Function).ToList()
 
                 actualDefintionsWithoutSpans.Sort()
 
