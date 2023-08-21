@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnum1()
         {
-            const string code = @"
-{|hint:$$enum E{|textspan:
-{
-}|}|}";
+            const string code = """
+                {|hint:$$enum E{|textspan:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -72,12 +73,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnumWithLeadingComments()
         {
-            const string code = @"
-{|span1:// Goo
-// Bar|}
-{|hint2:$$enum E{|textspan2:
-{
-}|}|}";
+            const string code = """
+                {|span1:// Goo
+                // Bar|}
+                {|hint2:$$enum E{|textspan2:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -87,12 +89,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnumWithNestedComments()
         {
-            const string code = @"
-{|hint1:$$enum E{|textspan1:
-{
-    {|span2:// Goo
-    // Bar|}
-}|}|}";
+            const string code = """
+                {|hint1:$$enum E{|textspan1:
+                {
+                    {|span2:// Goo
+                    // Bar|}
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),

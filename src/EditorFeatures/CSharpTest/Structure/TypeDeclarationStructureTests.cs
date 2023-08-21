@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClass1()
         {
-            const string code = @"
-{|hint:$$class C{|textspan:
-{
-}|}|}";
+            const string code = """
+                {|hint:$$class C{|textspan:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -78,12 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClassWithLeadingComments()
         {
-            const string code = @"
-{|span1:// Goo
-// Bar|}
-{|hint2:$$class C{|textspan2:
-{
-}|}|}";
+            const string code = """
+                {|span1:// Goo
+                // Bar|}
+                {|hint2:$$class C{|textspan2:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -93,12 +95,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClassWithNestedComments()
         {
-            const string code = @"
-{|hint1:$$class C{|textspan1:
-{
-    {|span2:// Goo
-    // Bar|}
-}|}|}";
+            const string code = """
+                {|hint1:$$class C{|textspan1:
+                {
+                    {|span2:// Goo
+                    // Bar|}
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
@@ -108,10 +111,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterface1()
         {
-            const string code = @"
-{|hint:$$interface I{|textspan:
-{
-}|}|}";
+            const string code = """
+                {|hint:$$interface I{|textspan:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -165,12 +169,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterfaceWithLeadingComments()
         {
-            const string code = @"
-{|span1:// Goo
-// Bar|}
-{|hint2:$$interface I{|textspan2:
-{
-}|}|}";
+            const string code = """
+                {|span1:// Goo
+                // Bar|}
+                {|hint2:$$interface I{|textspan2:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -180,12 +185,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterfaceWithNestedComments()
         {
-            const string code = @"
-{|hint1:$$interface I{|textspan1:
-{
-    {|span2:// Goo
-    // Bar|}
-}|}|}";
+            const string code = """
+                {|hint1:$$interface I{|textspan1:
+                {
+                    {|span2:// Goo
+                    // Bar|}
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
@@ -195,10 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStruct1()
         {
-            const string code = @"
-{|hint:$$struct S{|textspan:
-{
-}|}|}";
+            const string code = """
+                {|hint:$$struct S{|textspan:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -252,12 +259,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStructWithLeadingComments()
         {
-            const string code = @"
-{|span1:// Goo
-// Bar|}
-{|hint2:$$struct S{|textspan2:
-{
-}|}|}";
+            const string code = """
+                {|span1:// Goo
+                // Bar|}
+                {|hint2:$$struct S{|textspan2:
+                {
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -267,12 +275,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStructWithNestedComments()
         {
-            const string code = @"
-{|hint1:$$struct S{|textspan1:
-{
-    {|span2:// Goo
-    // Bar|}
-}|}|}";
+            const string code = """
+                {|hint1:$$struct S{|textspan1:
+                {
+                    {|span2:// Goo
+                    // Bar|}
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),

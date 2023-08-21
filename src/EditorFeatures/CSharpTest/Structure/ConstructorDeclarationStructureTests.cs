@@ -22,13 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestConstructor1()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -37,13 +38,14 @@ class C
         [Fact]
         public async Task TestConstructor2()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }                 |}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }                 |}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -52,13 +54,14 @@ class C
         [Fact]
         public async Task TestConstructor3()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -67,13 +70,14 @@ class C
         [Fact]
         public async Task TestConstructor4()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }|}|} /* .ctor */
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }|}|} /* .ctor */
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -82,13 +86,14 @@ class C
         [Fact]
         public async Task TestConstructor5()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C() // .ctor{|textspan:
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C() // .ctor{|textspan:
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -97,13 +102,14 @@ class C
         [Fact]
         public async Task TestConstructor6()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C() /* .ctor */{|textspan:
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C() /* .ctor */{|textspan:
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -112,14 +118,15 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestConstructor7()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    // .ctor
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    // .ctor
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -128,14 +135,15 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestConstructor8()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    /* .ctor */
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    /* .ctor */
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -144,16 +152,17 @@ class C
         [Fact]
         public async Task TestConstructor9()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }|}|}
-    public C()
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }|}|}
+                    public C()
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -162,17 +171,18 @@ class C
         [Fact]
         public async Task TestConstructor10()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public C(){|textspan:
-    {
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$public C(){|textspan:
+                    {
+                    }|}|}
 
-    public C(int x)
-    {
-    }
-}";
+                    public C(int x)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -181,15 +191,16 @@ class C
         [Fact]
         public async Task TestConstructorWithComments()
         {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$public C(){|textspan2:
-    {
-    }|}|} // .ctor
-}";
+            const string code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$public C(){|textspan2:
+                    {
+                    }|}|} // .ctor
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -201,11 +212,12 @@ class C
         {
             // Expected behavior is that the class should be outlined, but the constructor should not.
 
-            const string code = @"
-class C
-{
-    $$C(
-}";
+            const string code = """
+                class C
+                {
+                    $$C(
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }

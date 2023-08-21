@@ -20,21 +20,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEnabledIfDisabledElifDisabledElse()
         {
-            const string code = @"
-#$$if true
-{|span:class C
-{
-}|}
-#elif false
-class D
-{
-}
-#else
-class E
-{
-}
-#endif
-";
+            const string code = """
+                #$$if true
+                {|span:class C
+                {
+                }|}
+                #elif false
+                class D
+                {
+                }
+                #else
+                class E
+                {
+                }
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -43,21 +43,21 @@ class E
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfEnabledElifDisabledElse()
         {
-            const string code = @"
-#$$if false
-class C
-{
-}
-#elif true
-{|span:class D
-{
-}|}
-#else
-class E
-{
-}
-#endif
-";
+            const string code = """
+                #$$if false
+                class C
+                {
+                }
+                #elif true
+                {|span:class D
+                {
+                }|}
+                #else
+                class E
+                {
+                }
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -66,21 +66,21 @@ class E
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfDisabledElifEnabledElse()
         {
-            const string code = @"
-#$$if false
-class C
-{
-}
-#elif false
-class D
-{
-}
-#else
-{|span:class E
-{
-}|}
-#endif
-";
+            const string code = """
+                #$$if false
+                class C
+                {
+                }
+                #elif false
+                class D
+                {
+                }
+                #else
+                {|span:class E
+                {
+                }|}
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -89,18 +89,18 @@ class D
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEmptyEnabledRegion()
         {
-            const string code = @"
-#$$if true
-#elif false
-class D
-{
-}
-#else
-class E
-{
-}
-#endif
-";
+            const string code = """
+                #$$if true
+                #elif false
+                class D
+                {
+                }
+                #else
+                class E
+                {
+                }
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code);
         }
@@ -108,12 +108,12 @@ class E
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif1()
         {
-            const string code = @"
-#$$if true
-class C
-{
-}
-";
+            const string code = """
+                #$$if true
+                class C
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code);
         }
@@ -121,20 +121,20 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif2()
         {
-            const string code = @"
-#$$if true
-{|span:class C
-{
-}|}
-#elif false
-class D
-{
-}
-#else
-class E
-{
-}
-";
+            const string code = """
+                #$$if true
+                {|span:class C
+                {
+                }|}
+                #elif false
+                class D
+                {
+                }
+                #else
+                class E
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -143,20 +143,20 @@ class E
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif3()
         {
-            const string code = @"
-#$$if false
-class C
-{
-}
-#elif false
-class D
-{
-}
-#else
-class E
-{
-}
-";
+            const string code = """
+                #$$if false
+                class C
+                {
+                }
+                #elif false
+                class D
+                {
+                }
+                #else
+                class E
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code);
         }

@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task BrokenRegion()
         {
-            const string code = @"
-$$#region Goo";
+            const string code = """
+                $$#region Goo
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -31,9 +32,10 @@ $$#region Goo";
         [Fact]
         public async Task SimpleRegion()
         {
-            const string code = @"
-{|span:$$#region Goo
-#endregion|}";
+            const string code = """
+                {|span:$$#region Goo
+                #endregion|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
@@ -42,33 +44,34 @@ $$#region Goo";
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
         public async Task RegressionFor5284()
         {
-            const string code = @"
-namespace BasicGenerateFromUsage
-{
-    class BasicGenerateFromUsage
-    {
-        {|span:#reg$$ion TaoRegion
+            const string code = """
+                namespace BasicGenerateFromUsage
+                {
+                    class BasicGenerateFromUsage
+                    {
+                        {|span:#reg$$ion TaoRegion
 
-        static void Main(string[] args)
-        {
-            /*Marker1*/
-            CustomStack s = new CustomStack(); //Generate new class
+                        static void Main(string[] args)
+                        {
+                            /*Marker1*/
+                            CustomStack s = new CustomStack(); //Generate new class
 
-            //Generate constructor
-            Classic cc = new Classic(5, 6, 7);/*Marker2*/
+                            //Generate constructor
+                            Classic cc = new Classic(5, 6, 7);/*Marker2*/
 
-            Classic cc = new Classic();
-            //generate property
-            cc.NewProperty = 5; /*Marker3*/
+                            Classic cc = new Classic();
+                            //generate property
+                            cc.NewProperty = 5; /*Marker3*/
 
-        }
-        #endregion TaoRegion|}
-    }
+                        }
+                        #endregion TaoRegion|}
+                    }
 
-    class Classic
-    {
-    }
-}";
+                    class Classic
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
@@ -77,15 +80,16 @@ namespace BasicGenerateFromUsage
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
         public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
         {
-            const string code = @"
-class C
-{
-    {|span:#region Re$$gion
-    static void Main(string[] args)
-    {
-    }
-    #endregion|}
-}";
+            const string code = """
+                class C
+                {
+                    {|span:#region Re$$gion
+                    static void Main(string[] args)
+                    {
+                    }
+                    #endregion|}
+                }
+                """;
 
             var options = GetDefaultOptions() with
             {
@@ -99,15 +103,16 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4105")]
         public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
-            const string code = @"
-class C
-{
-{|span:#  region R$$egion
-    static void Main(string[] args)
-    {
-    }
-#  endregion|}
-}";
+            const string code = """
+                class C
+                {
+                {|span:#  region R$$egion
+                    static void Main(string[] args)
+                    {
+                    }
+                #  endregion|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));

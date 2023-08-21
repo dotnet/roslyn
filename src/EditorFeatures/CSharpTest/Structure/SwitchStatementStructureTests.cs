@@ -18,16 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement1()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        {|hint:$$switch (expr){|textspan:
-        {
-        }|}|}
-    }
-}";
+            const string code = """
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:$$switch (expr){|textspan:
+                        {
+                        }|}|}
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -36,26 +37,27 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement2()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        {|hint1:$$switch (expr){|textspan1:
-        {
-            {|hint2:case 0:{|textspan2:
-                if (true)
+            const string code = """
+                class C
                 {
+                    void M()
+                    {
+                        {|hint1:$$switch (expr){|textspan1:
+                        {
+                            {|hint2:case 0:{|textspan2:
+                                if (true)
+                                {
+                                }
+                                break;|}|}
+                            {|hint3:default:{|textspan3:
+                                if (false)
+                                {
+                                }
+                                break;|}|}
+                        }|}|}
+                    }
                 }
-                break;|}|}
-            {|hint3:default:{|textspan3:
-                if (false)
-                {
-                }
-                break;|}|}
-        }|}|}
-    }
-}";
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),

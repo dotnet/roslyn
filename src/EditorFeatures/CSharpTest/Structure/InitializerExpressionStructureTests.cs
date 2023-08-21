@@ -23,18 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestOuterInitializer()
         {
             await VerifyBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = {|hint:new Dictionary<int, int>{|textspan: $${
-            { 1, 2 },
-            { 1, 2 },
-        }|}|};
-    }
-}
-",
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = {|hint:new Dictionary<int, int>{|textspan: $${
+                            { 1, 2 },
+                            { 1, 2 },
+                        }|}|};
+                    }
+                }
+                """,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
@@ -42,20 +42,20 @@ class C
         public async Task TestInnerInitializer()
         {
             await VerifyBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = new Dictionary<int, int>{
-            {|hint:{|textspan:$${
-                1, 2
-            },|}|}
-            { 1, 2 },
-        };
-    }
-}
-",
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = new Dictionary<int, int>{
+                            {|hint:{|textspan:$${
+                                1, 2
+                            },|}|}
+                            { 1, 2 },
+                        };
+                    }
+                }
+                """,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }

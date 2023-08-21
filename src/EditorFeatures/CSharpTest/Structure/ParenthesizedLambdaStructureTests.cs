@@ -21,16 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestLambda()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        {|hint:$$() => {|textspan:{
-            x();
-        };|}|}
-    }
-}";
+            const string code = """
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:$$() => {|textspan:{
+                            x();
+                        };|}|}
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -39,14 +40,15 @@ class C
         [Fact]
         public async Task TestLambdaInForLoop()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        for (Action a = $$() => { }; true; a()) { }
-    }
-}";
+            const string code = """
+                class C
+                {
+                    void M()
+                    {
+                        for (Action a = $$() => { }; true; a()) { }
+                    }
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -54,16 +56,17 @@ class C
         [Fact]
         public async Task TestLambdaInMethodCall1()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
-            return x + y + z;
-        }|}|}, ""other arguments"");
-    }
-}";
+            const string code = """
+                class C
+                {
+                    void M()
+                    {
+                        someMethod(42, "test", false, {|hint:$$(x, y, z) => {|textspan:{
+                            return x + y + z;
+                        }|}|}, "other arguments");
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -72,16 +75,17 @@ class C
         [Fact]
         public async Task TestLambdaInMethodCall2()
         {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
-            return x + y + z;
-        }|}|});
-    }
-}";
+            const string code = """
+                class C
+                {
+                    void M()
+                    {
+                        someMethod(42, "test", false, {|hint:$$(x, y, z) => {|textspan:{
+                            return x + y + z;
+                        }|}|});
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));

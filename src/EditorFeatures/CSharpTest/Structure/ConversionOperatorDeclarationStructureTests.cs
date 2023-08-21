@@ -21,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperator1()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static explicit operator C(byte i){|textspan:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static explicit operator C(byte i){|textspan:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -36,16 +37,17 @@ class C
         [Fact]
         public async Task TestOperator2()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static explicit operator C(byte i){|textspan:
-    {
-    }|}|}
-    public static explicit operator C(short i)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static explicit operator C(byte i){|textspan:
+                    {
+                    }|}|}
+                    public static explicit operator C(short i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -54,17 +56,18 @@ class C
         [Fact]
         public async Task TestOperator3()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static explicit operator C(byte i){|textspan:
-    {
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static explicit operator C(byte i){|textspan:
+                    {
+                    }|}|}
 
-    public static explicit operator C(short i)
-    {
-    }
-}";
+                    public static explicit operator C(short i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -73,15 +76,16 @@ class C
         [Fact]
         public async Task TestOperatorWithLeadingComments()
         {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$public static explicit operator C(byte i){|textspan2:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$public static explicit operator C(byte i){|textspan2:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),

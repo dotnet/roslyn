@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestSimpleComment1()
         {
-            const string code = @"
-{|span:// Hello
-// $$C#|}
-class C
-{
-}
-";
+            const string code = """
+                {|span:// Hello
+                // $$C#|}
+                class C
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "// Hello ...", autoCollapse: true));
@@ -68,14 +68,14 @@ class C
         [Fact]
         public async Task TestSimpleComment2()
         {
-            const string code = @"
-{|span:// Hello
-//
-// $$C#!|}
-class C
-{
-}
-";
+            const string code = """
+                {|span:// Hello
+                //
+                // $$C#!|}
+                class C
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "// Hello ...", autoCollapse: true));
@@ -84,14 +84,14 @@ class C
         [Fact]
         public async Task TestSimpleComment3()
         {
-            const string code = @"
-{|span:// Hello
+            const string code = """
+                {|span:// Hello
 
-// $$C#!|}
-class C
-{
-}
-";
+                // $$C#!|}
+                class C
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "// Hello ...", autoCollapse: true));
@@ -100,15 +100,15 @@ class C
         [Fact]
         public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
         {
-            const string code = @"
-{|span:// Hello
+            const string code = """
+                {|span:// Hello
 
-// $$C#!|}
-/// <summary></summary>
-class C
-{
-}
-";
+                // $$C#!|}
+                /// <summary></summary>
+                class C
+                {
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "// Hello ...", autoCollapse: true));

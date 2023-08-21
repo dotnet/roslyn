@@ -21,11 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-class C
-{
-    $$C();
-}";
+            const string code = """
+                class C
+                {
+                    $$C();
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -33,12 +34,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
-            const string code = @"
-class C
-{
-    {|hint:{|textspan:[Bar]
-    |}$$C();|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:{|textspan:[Bar]
+                    |}$$C();|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -47,14 +49,15 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-class C
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Bar]
-    |}$$C();|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Bar]
+                    |}$$C();|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -63,14 +66,15 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = @"
-class C
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Bar]
-    |}$$public C();|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Bar]
+                    |}$$public C();|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -79,17 +83,18 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestConstructor10()
         {
-            const string code = @"
-class C
-{
-    $${|#0:public C(){|textspan:
-    {
-    }|#0}
-|}
-    public C(int x)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    $${|#0:public C(){|textspan:
+                    {
+                    }|#0}
+                |}
+                    public C(int x)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

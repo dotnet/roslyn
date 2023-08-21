@@ -23,18 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestAnonymousObjectCreation()
         {
             await VerifyBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = {|hint:new{|textspan: $${
-            Name = ""John"",
-            Age = 19
-        }|}|};
-    }
-}
-",
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = {|hint:new{|textspan: $${
+                            Name = "John",
+                            Age = 19
+                        }|}|};
+                    }
+                }
+                """,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }

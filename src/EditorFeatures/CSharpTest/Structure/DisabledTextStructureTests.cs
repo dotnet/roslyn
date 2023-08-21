@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDisabledIf()
         {
-            const string code = @"
-#if false
-{|span:$$Blah
-Blah
-Blah|}
-#endif
-";
+            const string code = """
+                #if false
+                {|span:$$Blah
+                Blah
+                Blah|}
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -34,14 +34,14 @@ Blah|}
         [Fact]
         public async Task TestDisabledElse()
         {
-            const string code = @"
-#if true
-#else
-{|span:$$Blah
-Blah
-Blah|}
-#endif
-";
+            const string code = """
+                #if true
+                #else
+                {|span:$$Blah
+                Blah
+                Blah|}
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -50,14 +50,14 @@ Blah|}
         [Fact]
         public async Task TestDisabledElIf()
         {
-            const string code = @"
-#if true
-#elif false
-{|span:$$Blah
-Blah
-Blah|}
-#endif
-";
+            const string code = """
+                #if true
+                #elif false
+                {|span:$$Blah
+                Blah
+                Blah|}
+                #endif
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -66,18 +66,18 @@ Blah|}
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
-            const string code = @"
-class P {
-#if false
-{|span:    void $$M()
-    {
-#region ""R""
-       M();
-#endregion
-        }|}
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if false
+                {|span:    void $$M()
+                    {
+                #region "R"
+                       M();
+                #endregion
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -86,18 +86,18 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
-            const string code = @"
-class P {
-#if false
-{|span:    void M()
-    {
-#region ""R""
-       $$M();
-#endregion
-        }|}
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if false
+                {|span:    void M()
+                    {
+                #region "R"
+                       $$M();
+                #endregion
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -105,18 +105,18 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#endif
-        }|}
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #endif
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -125,20 +125,20 @@ class P {
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#else
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #else
 
-#endif
-        }|}
-#endif
-    }
-";
+                #endif
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -147,20 +147,20 @@ class P {
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#elif Baz
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #elif Baz
 
-#endif
-        }|}
-#endif
-    }
-";
+                #endif
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -169,22 +169,22 @@ class P {
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#else
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #else
 
-#elif Baz
+                #elif Baz
 
-#endif
-        }|}
-#endif
-    }
-";
+                #endif
+                        }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -193,19 +193,19 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
-            const string code = @"
-class P {
-#if Goo
-    void M()
-    {
-#if Bar
-{|span:       $$M();
-       M();|}
-#endif
-        }
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if Goo
+                    void M()
+                    {
+                #if Bar
+                {|span:       $$M();
+                       M();|}
+                #endif
+                        }
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -214,18 +214,18 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {|}
-#if Bar
-       M();
-       M();
-        }
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {|}
+                #if Bar
+                       M();
+                       M();
+                        }
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -234,27 +234,27 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#line 10
-        //some more text...
-        //text
-#if Car
-        //random text
-        //text
-#endif
-        // more text
-        // text
-#endif
-    }|}
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #line 10
+                        //some more text...
+                        //text
+                #if Car
+                        //random text
+                        //text
+                #endif
+                        // more text
+                        // text
+                #endif
+                    }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -263,27 +263,27 @@ class P {
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {
-            const string code = @"
-class P {
-#if Goo
-{|span:    void $$M()
-    {
-#if Bar
-       M();
-#line 10
-        //some more text...
-        //text
-#if Car
-        //random text
-        //text
-#endif
-        // more text
-        // text
-#endif
-    }|}
-#endif
-    }
-";
+            const string code = """
+                class P {
+                #if Goo
+                {|span:    void $$M()
+                    {
+                #if Bar
+                       M();
+                #line 10
+                        //some more text...
+                        //text
+                #if Car
+                        //random text
+                        //text
+                #endif
+                        // more text
+                        // text
+                #endif
+                    }|}
+                #endif
+                    }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

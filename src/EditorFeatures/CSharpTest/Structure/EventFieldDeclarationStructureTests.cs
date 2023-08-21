@@ -20,13 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestEventFieldWithComments()
         {
-            const string code = @"
-class C
-{
-    {|span:// Goo
-    // Bar|}
-    $$event EventHandler E;
-}";
+            const string code = """
+                class C
+                {
+                    {|span:// Goo
+                    // Bar|}
+                    $$event EventHandler E;
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "// Goo ...", autoCollapse: true));

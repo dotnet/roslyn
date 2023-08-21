@@ -21,12 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-{|hint:enum $$E{|textspan:
-{
-    A,
-    B
-}|}|}";
+            const string code = """
+                {|hint:enum $$E{|textspan:
+                {
+                    A,
+                    B
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -35,13 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
-            const string code = @"
-{|hint:{|textspan:[Bar]
-|}{|#0:enum $$E|}{|textspan2:
-{
-    A,
-    B
-}|}|#0}";
+            const string code = """
+                {|hint:{|textspan:[Bar]
+                |}{|#0:enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
@@ -51,15 +53,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Bar]
-|}{|#0:enum $$E|}{|textspan2:
-{
-    A,
-    B
-}|}|#0}";
+            const string code = """
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Bar]
+                |}{|#0:enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
@@ -69,15 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Bar]
-|}{|#0:public enum $$E|}{|textspan2:
-{
-    A,
-    B
-}|}|#0}";
+            const string code = """
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Bar]
+                |}{|#0:public enum $$E|}{|textspan2:
+                {
+                    A,
+                    B
+                }|}|#0}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),

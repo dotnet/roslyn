@@ -23,17 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestMultiLineStringLiteral()
         {
             await VerifyBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v =
-{|hint:{|textspan:$$$@""
-{123}
-""|}|};
-    }
-}",
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v =
+                {|hint:{|textspan:$$$@"
+                {123}
+                "|}|};
+                    }
+                }
+                """,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -41,14 +42,15 @@ class C
         public async Task TestMissingOnIncompleteStringLiteral()
         {
             await VerifyNoBlockSpansAsync(
-@"
-class C
-{
-    void M()
-    {
-        var v = $$$"";
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var v = $$$";
+                    }
+                }
+                """);
         }
     }
 }

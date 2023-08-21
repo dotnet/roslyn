@@ -22,20 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task TestPropertyGetter3()
         {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        $${|#0:get{|textspan:
-        {
-        }|#0}
-|}
-        set
-        {
-        }
-    }
-}";
+            const string code = """
+                class C
+                {
+                    public string Text
+                    {
+                        $${|#0:get{|textspan:
+                        {
+                        }|#0}
+                |}
+                        set
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -44,23 +45,23 @@ class C
         [Fact]
         public async Task TestPropertyGetterWithSingleLineComments3()
         {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        {|span1:// My
-        // Getter|}
-        $${|#0:get{|textspan2:
-        {
-        }|#0}
-|}
-        set
-        {
-        }
-    }
-}
-";
+            const string code = """
+                class C
+                {
+                    public string Text
+                    {
+                        {|span1:// My
+                        // Getter|}
+                        $${|#0:get{|textspan2:
+                        {
+                        }|#0}
+                |}
+                        set
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
@@ -70,23 +71,23 @@ class C
         [Fact]
         public async Task TestPropertyGetterWithMultiLineComments3()
         {
-            const string code = @"
-class C
-{
-    public string Text
-    {
-        /* My
-           Getter */
-        $${|#0:get{|textspan1:
-        {
-        }|#0}
-|}
-        set
-        {
-        }
-    }
-}
-";
+            const string code = """
+                class C
+                {
+                    public string Text
+                    {
+                        /* My
+                           Getter */
+                        $${|#0:get{|textspan1:
+                        {
+                        }|#0}
+                |}
+                        set
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

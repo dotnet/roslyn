@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent1()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -38,20 +39,21 @@ class C
         [Fact]
         public async Task TestEvent2()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
-    event EventHandler E2
-    {
-        add { }
-        remove { }
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                    event EventHandler E2
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -60,21 +62,22 @@ class C
         [Fact]
         public async Task TestEvent3()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-    event EventHandler E2
-    {
-        add { }
-        remove { }
-    }
-}";
+                    event EventHandler E2
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -83,21 +86,22 @@ class C
         [Fact]
         public async Task TestEvent4()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-    EventHandler E2
-    {
-        get;
-        set;
-    }
-}";
+                    EventHandler E2
+                    {
+                        get;
+                        set;
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -106,21 +110,22 @@ class C
         [Fact]
         public async Task TestEvent5()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$event EventHandler E{|textspan:
-    {
-        add { }
-        remove { }
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$event EventHandler E{|textspan:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
 
-    EventHandler this[int index]
-    {
-        get => throw null;
-        set => throw null;
-    }
-}";
+                    EventHandler this[int index]
+                    {
+                        get => throw null;
+                        set => throw null;
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -129,17 +134,18 @@ class C
         [Fact]
         public async Task TestEventWithComments()
         {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$event EventHandler E{|textspan2:
-    {
-        add { }
-        remove { }
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$event EventHandler E{|textspan2:
+                    {
+                        add { }
+                        remove { }
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),

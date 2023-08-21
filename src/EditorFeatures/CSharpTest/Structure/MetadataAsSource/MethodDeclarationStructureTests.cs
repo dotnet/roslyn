@@ -21,11 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-class Goo
-{
-    public string $$Bar(int x);
-}";
+            const string code = """
+                class Goo
+                {
+                    public string $$Bar(int x);
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -33,12 +34,13 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:[Goo]
-    |}public string $$Bar(int x);|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:[Goo]
+                    |}public string $$Bar(int x);|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -47,14 +49,15 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Goo]
-    |}string $$Bar(int x);|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Goo]
+                    |}string $$Bar(int x);|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -63,14 +66,15 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Goo]
-    |}public string $$Bar(int x);|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Goo]
+                    |}public string $$Bar(int x);|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -79,17 +83,18 @@ class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMethod3()
         {
-            const string code = @"
-class C
-{
-    $${|#0:public string Goo(){|textspan:
-    {
-    }|#0}
-|}
-    public string Goo2()
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    $${|#0:public string Goo(){|textspan:
+                    {
+                    }|#0}
+                |}
+                    public string Goo2()
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

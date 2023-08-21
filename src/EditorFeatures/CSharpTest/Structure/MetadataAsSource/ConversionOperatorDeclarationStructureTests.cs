@@ -21,11 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-class C
-{
-    public static explicit operator $$Goo(byte b);
-}";
+            const string code = """
+                class C
+                {
+                    public static explicit operator $$Goo(byte b);
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -33,12 +34,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
-            const string code = @"
-class C
-{
-    {|hint:{|textspan:[Blah]
-    |}public static explicit operator $$Goo(byte b);|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:{|textspan:[Blah]
+                    |}public static explicit operator $$Goo(byte b);|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -47,14 +49,15 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-class C
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Blah]
-    |}public static explicit operator $$Goo(byte b);|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Blah]
+                    |}public static explicit operator $$Goo(byte b);|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -63,17 +66,18 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestOperator3()
         {
-            const string code = @"
-class C
-{
-    $${|#0:public static explicit operator C(byte i){|textspan:
-    {
-    }|#0}
-|}
-    public static explicit operator C(short i)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    $${|#0:public static explicit operator C(byte i){|textspan:
+                    {
+                    }|#0}
+                |}
+                    public static explicit operator C(short i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

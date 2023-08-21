@@ -21,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperator1()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static int operator +(int i){|textspan:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static int operator +(int i){|textspan:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -36,16 +37,17 @@ class C
         [Fact]
         public async Task TestOperator2()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static int operator +(int i){|textspan:
-    {
-    }|}|}
-    public static int operator -(int i)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static int operator +(int i){|textspan:
+                    {
+                    }|}|}
+                    public static int operator -(int i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -54,17 +56,18 @@ class C
         [Fact]
         public async Task TestOperator3()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static int operator +(int i){|textspan:
-    {
-    }|}|}
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static int operator +(int i){|textspan:
+                    {
+                    }|}|}
 
-    public static int operator -(int i)
-    {
-    }
-}";
+                    public static int operator -(int i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -73,16 +76,17 @@ class C
         [Fact]
         public async Task TestOperator4()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static int operator +(int i){|textspan:
-    {
-    }|}|}
-    public static explicit operator C(int i)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static int operator +(int i){|textspan:
+                    {
+                    }|}|}
+                    public static explicit operator C(int i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -91,16 +95,17 @@ class C
         [Fact]
         public async Task TestOperator5()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$public static int operator +(int i){|textspan:
-    {
-    }|}|}
-    public static explicit operator C(int i)
-    {
-    }
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$public static int operator +(int i){|textspan:
+                    {
+                    }|}|}
+                    public static explicit operator C(int i)
+                    {
+                    }
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -109,15 +114,16 @@ class C
         [Fact]
         public async Task TestOperatorWithLeadingComments()
         {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$public static int operator +(int i){|textspan2:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$public static int operator +(int i){|textspan2:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),

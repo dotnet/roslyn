@@ -36,11 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task PrependedDollarSign()
         {
-            const string code = @"
-{|hint:$$class C{|textspan:
-{
-    public void $Invoke();
-}|}|}";
+            const string code = """
+                {|hint:$$class C{|textspan:
+                {
+                    public void $Invoke();
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -49,11 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task SymbolsAndPunctuation()
         {
-            const string code = @"
-{|hint:$$class C{|textspan:
-{
-    public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
-}|}|}";
+            const string code = """
+                {|hint:$$class C{|textspan:
+                {
+                    public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
+                }|}|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -62,11 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task IdentifierThatLooksLikeCode()
         {
-            const string code = @"
-{|hint1:$$class C{|textspan1:
-{
-    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
-}|}";
+            const string code = """
+                {|hint1:$$class C{|textspan1:
+                {
+                    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
+                }|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),

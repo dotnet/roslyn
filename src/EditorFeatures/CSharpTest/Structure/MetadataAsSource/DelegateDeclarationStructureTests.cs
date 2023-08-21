@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-public delegate TResult $$Blah<in T, out TResult>(T arg);";
+            const string code = """
+                public delegate TResult $$Blah<in T, out TResult>(T arg);
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -31,9 +32,10 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = @"
-{|hint:{|textspan:[Goo]
-|}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
+            const string code = """
+                {|hint:{|textspan:[Goo]
+                |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -42,11 +44,12 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Goo]
-|}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
+            const string code = """
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Goo]
+                |}delegate TResult $$Blah<in T, out TResult>(T arg);|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -55,11 +58,12 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         [Fact]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = @"
-{|hint:{|textspan:// Summary:
-//     This is a summary.
-[Goo]
-|}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
+            const string code = """
+                {|hint:{|textspan:// Summary:
+                //     This is a summary.
+                [Goo]
+                |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

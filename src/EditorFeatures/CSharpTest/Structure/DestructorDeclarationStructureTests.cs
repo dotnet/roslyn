@@ -21,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDestructor()
         {
-            const string code = @"
-class C
-{
-    {|hint:$$~C(){|textspan:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|hint:$$~C(){|textspan:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -36,15 +37,16 @@ class C
         [Fact]
         public async Task TestDestructorWithComments()
         {
-            const string code = @"
-class C
-{
-    {|span1:// Goo
-    // Bar|}
-    {|hint2:$$~C(){|textspan2:
-    {
-    }|}|}
-}";
+            const string code = """
+                class C
+                {
+                    {|span1:// Goo
+                    // Bar|}
+                    {|hint2:$$~C(){|textspan2:
+                    {
+                    }|}|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Goo ...", autoCollapse: true),
@@ -56,11 +58,12 @@ class C
         {
             // Expected behavior is that the class should be outlined, but the destructor should not.
 
-            const string code = @"
-class C
-{
-    $$~C(
-}";
+            const string code = """
+                class C
+                {
+                    $$~C(
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }

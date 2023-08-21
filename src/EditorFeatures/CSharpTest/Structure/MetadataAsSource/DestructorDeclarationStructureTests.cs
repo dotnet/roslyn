@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-class Goo
-{
-    $$~Goo();
-}";
+            const string code = """
+                class Goo
+                {
+                    $$~Goo();
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -34,12 +35,13 @@ class Goo
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:[Bar]
-    |}$$~Goo();|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:[Bar]
+                    |}$$~Goo();|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -48,14 +50,15 @@ class Goo
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Bar]
-    |}$$~Goo();|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Bar]
+                    |}$$~Goo();|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

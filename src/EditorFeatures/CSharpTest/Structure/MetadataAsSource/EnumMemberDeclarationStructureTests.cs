@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-enum E
-{
-    $$Goo,
-    Bar
-}";
+            const string code = """
+                enum E
+                {
+                    $$Goo,
+                    Bar
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -35,13 +36,14 @@ enum E
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = @"
-enum E
-{
-    {|hint:{|textspan:[Blah]
-    |}$$Goo|},
-    Bar
-}";
+            const string code = """
+                enum E
+                {
+                    {|hint:{|textspan:[Blah]
+                    |}$$Goo|},
+                    Bar
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -50,15 +52,16 @@ enum E
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-enum E
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Blah]
-    |}$$Goo|},
-    Bar
-}";
+            const string code = """
+                enum E
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Blah]
+                    |}$$Goo|},
+                    Bar
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));

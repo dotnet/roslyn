@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = @"
-class Goo
-{
-    public event EventArgs $$goo
-}";
+            const string code = """
+                class Goo
+                {
+                    public event EventArgs $$goo
+                }
+                """;
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -34,12 +35,13 @@ class Goo
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:[Goo]
-    |}event EventArgs $$goo|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:[Goo]
+                    |}event EventArgs $$goo|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -48,14 +50,15 @@ class Goo
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Goo]
-    |}event EventArgs $$goo|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Goo]
+                    |}event EventArgs $$goo|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -64,14 +67,15 @@ class Goo
         [Fact]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = @"
-class Goo
-{
-    {|hint:{|textspan:// Summary:
-    //     This is a summary.
-    [Goo]
-    |}public event EventArgs $$goo|}
-}";
+            const string code = """
+                class Goo
+                {
+                    {|hint:{|textspan:// Summary:
+                    //     This is a summary.
+                    [Goo]
+                    |}public event EventArgs $$goo|}
+                }
+                """;
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
