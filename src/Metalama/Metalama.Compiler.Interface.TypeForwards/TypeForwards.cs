@@ -10,7 +10,6 @@ using Metalama.Compiler;
 [assembly: TypeForwardedTo(typeof(SyntaxTreeTransformationKind))]
 [assembly: TypeForwardedTo(typeof(DiagnosticFilteringRequest))]
 [assembly: TypeForwardedTo(typeof(ManagedResource))]
-[assembly: TypeForwardedTo(typeof(MetalamaPlugInAttribute))]
 [assembly: TypeForwardedTo(typeof(MetalamaCompilerAnnotations))]
 [assembly: TypeForwardedTo(typeof(TransformerOptions))]
 

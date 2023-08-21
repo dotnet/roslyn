@@ -474,18 +474,16 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             // <Metalama>
-            out ImmutableArray<ISourceTransformer> transfomers,
-            out ImmutableArray<object> plugins
+            out ImmutableArray<ISourceTransformer> transfomers
             // </Metalama>
             )
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
-            
+
             // <Metalama>
             var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
             var transformerOrders = new List<ImmutableArray<string?>>();
-            var pluginBuilder = ImmutableArray.CreateBuilder<object>();
             // </Metalama>
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
@@ -571,7 +569,6 @@ namespace Microsoft.CodeAnalysis
                 // <Metalama>
                 resolvedReference.AddTransformers(transformerBuilder, language);
                 resolvedReference.AddTransformerOrder(transformerOrders);
-                resolvedReference.AddCompilerPlugins(pluginBuilder, language);
                 // </Metalama>
 
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
@@ -586,7 +583,6 @@ namespace Microsoft.CodeAnalysis
 
             TransformerDependencyResolver.Sort(ref transformerBuilder, transformerOrders, diagnostics);
 
-            plugins = pluginBuilder.ToImmutable();
             transfomers = transformerBuilder.ToImmutable();
             // </Metalama>
 

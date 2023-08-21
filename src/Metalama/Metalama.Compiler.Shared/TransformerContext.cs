@@ -36,7 +36,6 @@ public sealed class TransformerContext
 
     internal TransformerContext(
         Compilation compilation,
-        ImmutableArray<object> plugins,
         AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
         TransformerOptions options,
         ImmutableArray<ManagedResource> manifestResources,
@@ -45,7 +44,6 @@ public sealed class TransformerContext
         IAnalyzerAssemblyLoader assemblyLoader)
     {
         Compilation = compilation;
-        Plugins = plugins;
         Options = options;
         AnalyzerConfigOptionsProvider = analyzerConfigOptionsProvider;
         Resources = manifestResources;
@@ -134,11 +132,6 @@ public sealed class TransformerContext
     /// Gets or sets the <see cref="Compilation"/>. Transformers typically replace the value of this property. 
     /// </summary>
     public Compilation Compilation { get; }
-
-    /// <summary>
-    /// Gets plugins that were registered by being marked with the <c>Metalama.CompilerPluginAttribute</c> attribute.
-    /// </summary>
-    public ImmutableArray<object> Plugins { get; }
 
     /// <summary>
     /// Gets options of the current <see cref="TransformerContext"/>.

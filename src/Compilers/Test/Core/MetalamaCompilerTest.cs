@@ -32,7 +32,7 @@ namespace Roslyn.Test.Utilities
             var serviceProviderBuilder = new ServiceProviderBuilder();
 
             var transformersResult = CSharpCompiler.RunTransformers(
-                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, null, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
+                compilation, transformers, null, CompilerAnalyzerConfigOptionsProvider.Empty, null, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 
