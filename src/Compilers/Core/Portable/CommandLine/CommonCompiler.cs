@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             // <Metalama>
             out ImmutableArray<ISourceGenerator> generators,
-            out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins
+            out ImmutableArray<ISourceTransformer> transformers
             // </Metalama>
             );
 
@@ -985,7 +984,7 @@ namespace Microsoft.CodeAnalysis
 
         private protected virtual TransformersResult RunTransformers(
             Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
-            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+            AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
         }
@@ -1071,7 +1070,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers, out var plugins);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
@@ -1093,7 +1092,6 @@ namespace Microsoft.CodeAnalysis
                 generators,
                 // <Metalama>
                 transformers,
-                plugins,
                 // </Metalama>
                 additionalTexts,
                 analyzerConfigSet,
@@ -1357,7 +1355,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<ISourceTransformer> transformers,
-            ImmutableArray<object> plugins,
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -1375,7 +1372,7 @@ namespace Microsoft.CodeAnalysis
             {
 
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
-                    plugins, additionalTextFiles,
+                    additionalTextFiles,
                     analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnostics, errorLogger,
                     cancellationToken, out analyzerCts, out analyzerDriver, out generatorTimingInfo, out serviceProvider, out var logger);
             }
@@ -1406,7 +1403,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators,
             // <Metalama>
             ImmutableArray<ISourceTransformer> transformers,
-            ImmutableArray<object> plugins,
             // </Metalama>
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet? analyzerConfigSet,
@@ -1540,7 +1536,6 @@ namespace Microsoft.CodeAnalysis
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
 
-
                 // <Metalama>
 
                 // Attach the debugger if asked.
@@ -1581,17 +1576,18 @@ namespace Microsoft.CodeAnalysis
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,
-                        transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformerOptions,
+                        transformers, sourceOnlyAnalyzerOptions, analyzerConfigProvider, transformerOptions,
                         transformersDiagnostics, cancellationToken);
+
+                    compilation = transformersResult.TransformedCompilation;
 
                     if (HasUnsuppressableErrors(transformersDiagnostics))
                     {
-                        MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilationBeforeTransformation, logger);
+                        MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger);
                         logger.Error?.Log($"RunTransformers reported errors.");
                         return;
                     }
 
-                    compilation = transformersResult.TransformedCompilation;
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
