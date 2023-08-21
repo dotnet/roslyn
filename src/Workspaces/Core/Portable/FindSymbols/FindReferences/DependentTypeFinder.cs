@@ -216,19 +216,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 await AddMatchingTypesAsync(
                                     projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                     tempBuffer,
-                                    predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
+                                    predicate: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_ValueType:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.ValueTypes, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.ValueTypes, tempBuffer, predicate: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_Enum:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.Enums, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.Enums, tempBuffer, predicate: null).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_MulticastDelegate:
                                 await AddMatchingTypesAsync(
-                                    projectIndex.Delegates, tempBuffer, predicateOpt: null).ConfigureAwait(false);
+                                    projectIndex.Delegates, tempBuffer, predicate: null).ConfigureAwait(false);
                                 break;
                         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 async Task AddMatchingTypesAsync(
                     MultiDictionary<DocumentId, DeclaredSymbolInfo> documentToInfos,
                     SymbolSet result,
-                    Func<INamedTypeSymbol, bool>? predicateOpt)
+                    Func<INamedTypeSymbol, bool>? predicate)
                 {
                     foreach (var (documentId, infos) in documentToInfos)
                     {
@@ -260,11 +260,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
                             if (resolvedSymbol is INamedTypeSymbol namedType)
                             {
-                                if (predicateOpt == null ||
-                                    predicateOpt(namedType))
-                                {
+                                if (predicate == null || predicate(namedType))
                                     result.Add(namedType);
-                                }
                             }
                         }
                     }
@@ -424,11 +421,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 // For a source project, find the project that that type was defined in.
-                var sourceProject = solution.GetProject(type.ContainingAssembly, cancellationToken);
+                var sourceProject = solution.GetOriginatingProject(type.ContainingAssembly);
                 if (sourceProject == null)
-                {
                     return SpecializedCollections.EmptySet<ProjectId>();
-                }
 
                 // Now find all the dependent of those projects.
                 var projectsThatCouldReferenceType = GetProjectsThatCouldReferenceType(
