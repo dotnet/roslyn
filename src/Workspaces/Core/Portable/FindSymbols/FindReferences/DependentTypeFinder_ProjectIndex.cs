@@ -52,15 +52,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namedTypes = new MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)>(
                     project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
+                var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
+
                 var regularDocumentStates = project.State.DocumentStates;
                 var sourceGeneratorDocumentStates = await project.Solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-                var regularDocumentStatesEnumerable = regularDocumentStates.States.Select(kvp => (kvp.Key, kvp.Value));
-                var sourceGeneratedDocumentStatesEnumerable = sourceGeneratorDocumentStates.States.Select(kvp => (kvp.Key, (DocumentState)kvp.Value));
-
-                var allStates = regularDocumentStatesEnumerable.Concat(sourceGeneratedDocumentStatesEnumerable);
-
-                var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
+                var allStates =
+                    regularDocumentStates.States.Select(kvp => (kvp.Key, kvp.Value)).Concat(
+                    sourceGeneratorDocumentStates.States.Select(kvp => (kvp.Key, (DocumentState)kvp.Value)));
 
                 // Avoid realizing actual Document instances here.  We don't need them, and it can allocate a lot of
                 // memory as we do background indexing.
