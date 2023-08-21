@@ -9,19 +9,19 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new InitializerExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact]
-        public async Task TestOuterInitializer()
-        {
-            await VerifyBlockSpansAsync(
-                """
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class InitializerExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<InitializerExpressionSyntax>
+{
+    internal override AbstractSyntaxStructureProvider CreateProvider()
+        => new InitializerExpressionStructureProvider();
+
+    [Fact]
+    public async Task TestOuterInitializer()
+    {
+        await VerifyBlockSpansAsync(
+            """
                 class C
                 {
                     void M()
@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                     }
                 }
                 """,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
 
-        [Fact]
-        public async Task TestInnerInitializer()
-        {
-            await VerifyBlockSpansAsync(
-                """
+    [Fact]
+    public async Task TestInnerInitializer()
+    {
+        await VerifyBlockSpansAsync(
+            """
                 class C
                 {
                     void M()
@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                     }
                 }
                 """,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

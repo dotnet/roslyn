@@ -9,30 +9,30 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
-{
-    public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task NoCommentsOrAttributes()
-        {
-            var code = """
+public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
+{
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
+
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public async Task NoCommentsOrAttributes()
+    {
+        var code = """
                 class C
                 {
                     public static explicit operator $$Goo(byte b);
                 }
                 """;
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+        await VerifyNoBlockSpansAsync(code);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithAttributes()
-        {
-            var code = """
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public async Task WithAttributes()
+    {
+        var code = """
                 class C
                 {
                     {|hint:{|textspan:[Blah]
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task WithCommentsAndAttributes()
-        {
-            var code = """
+    [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public async Task WithCommentsAndAttributes()
+    {
+        var code = """
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestOperator3()
-        {
-            var code = """
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public async Task TestOperator3()
+    {
+        var code = """
                 class C
                 {
                     $${|#0:public static explicit operator C(byte i){|textspan:
@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<FieldDeclarationSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestFieldWithComments()
-        {
-            var code = """
+public class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<FieldDeclarationSyntax>
+{
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
+
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public async Task TestFieldWithComments()
+    {
+        var code = """
                 class C
                 {
                     {|span:// Goo
@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Goo ...", autoCollapse: true));
     }
 }

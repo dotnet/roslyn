@@ -9,19 +9,19 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new StringLiteralExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact]
-        public async Task TestMultiLineStringLiteral()
-        {
-            await VerifyBlockSpansAsync(
-                """
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
+{
+    internal override AbstractSyntaxStructureProvider CreateProvider()
+        => new StringLiteralExpressionStructureProvider();
+
+    [Fact]
+    public async Task TestMultiLineStringLiteral()
+    {
+        await VerifyBlockSpansAsync(
+            """
                 class C
                 {
                     void M()
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                     }
                 }
                 """,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMissingOnIncompleteStringLiteral()
-        {
-            await VerifyNoBlockSpansAsync(
-                """
+    [Fact]
+    public async Task TestMissingOnIncompleteStringLiteral()
+    {
+        await VerifyNoBlockSpansAsync(
+            """
                 class C
                 {
                     void M()
@@ -51,6 +51,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                     }
                 }
                 """);
-        }
     }
 }

@@ -9,18 +9,18 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
-{
-    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumMemberDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumMemberDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-        [Fact]
-        public async Task NoCommentsOrAttributes()
-        {
-            var code = """
+[Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+public class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumMemberDeclarationSyntax>
+{
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumMemberDeclarationStructureProvider();
+
+    [Fact]
+    public async Task NoCommentsOrAttributes()
+    {
+        var code = """
                 enum E
                 {
                     $$Goo,
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+        await VerifyNoBlockSpansAsync(code);
+    }
 
-        [Fact]
-        public async Task WithAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithAttributes()
+    {
+        var code = """
                 enum E
                 {
                     {|hint:{|textspan:[Blah]
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task WithCommentsAndAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithCommentsAndAttributes()
+    {
+        var code = """
                 enum E
                 {
                     {|hint:{|textspan:// Summary:
@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

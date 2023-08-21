@@ -9,62 +9,61 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
-{
-    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DelegateDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-        [Fact]
-        public async Task NoCommentsOrAttributes()
-        {
-            var code = """
+[Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+public class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DelegateDeclarationSyntax>
+{
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
+
+    [Fact]
+    public async Task NoCommentsOrAttributes()
+    {
+        var code = """
                 public delegate TResult $$Blah<in T, out TResult>(T arg);
                 """;
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+        await VerifyNoBlockSpansAsync(code);
+    }
 
-        [Fact]
-        public async Task WithAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithAttributes()
+    {
+        var code = """
                 {|hint:{|textspan:[Goo]
                 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task WithCommentsAndAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithCommentsAndAttributes()
+    {
+        var code = """
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]
                 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task WithCommentsAttributesAndModifiers()
-        {
-            var code = """
+    [Fact]
+    public async Task WithCommentsAttributesAndModifiers()
+    {
+        var code = """
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]
                 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

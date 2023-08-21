@@ -10,17 +10,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<MethodDeclarationSyntax>
 {
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<MethodDeclarationSyntax>
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
+
+    [Fact]
+    public async Task TestMethod1()
     {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
-
-        [Fact]
-        public async Task TestMethod1()
-        {
-            var code = """
+        var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethod2()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethod2()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethod3()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethod3()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethod4()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethod4()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
-        public async Task TestMethod5()
-        {
-            var code = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
+    public async Task TestMethod5()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public void Goo(){|textspan:
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
-        public async Task TestMethod6()
-        {
-            var code = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
+    public async Task TestMethod6()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public void Goo(){|textspan:
@@ -120,14 +120,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethodWithTrailingSpaces()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethodWithTrailingSpaces()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public string Goo()    {|textspan:
@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethodWithLeadingComments()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethodWithLeadingComments()
+    {
+        var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -154,15 +154,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMethodWithWithExpressionBodyAndComments()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMethodWithWithExpressionBodyAndComments()
+    {
+        var code = """
                 class C
                 {
                     {|span:// Goo
@@ -171,8 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Goo ...", autoCollapse: true));
     }
 }

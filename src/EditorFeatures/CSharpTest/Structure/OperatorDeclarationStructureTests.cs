@@ -9,17 +9,17 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<OperatorDeclarationSyntax>
 {
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<OperatorDeclarationSyntax>
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new OperatorDeclarationStructureProvider();
+
+    [Fact]
+    public async Task TestOperator1()
     {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new OperatorDeclarationStructureProvider();
-
-        [Fact]
-        public async Task TestOperator1()
-        {
-            var code = """
+        var code = """
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestOperator2()
-        {
-            var code = """
+    [Fact]
+    public async Task TestOperator2()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestOperator3()
-        {
-            var code = """
+    [Fact]
+    public async Task TestOperator3()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestOperator4()
-        {
-            var code = """
+    [Fact]
+    public async Task TestOperator4()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestOperator5()
-        {
-            var code = """
+    [Fact]
+    public async Task TestOperator5()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestOperatorWithLeadingComments()
-        {
-            var code = """
+    [Fact]
+    public async Task TestOperatorWithLeadingComments()
+    {
+        var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

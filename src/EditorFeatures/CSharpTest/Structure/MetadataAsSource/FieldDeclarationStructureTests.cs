@@ -9,31 +9,31 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
-{
-    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<FieldDeclarationSyntax>
-    {
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-        [Fact]
-        public async Task NoCommentsOrAttributes()
-        {
-            var code = """
+[Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+public class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<FieldDeclarationSyntax>
+{
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
+
+    [Fact]
+    public async Task NoCommentsOrAttributes()
+    {
+        var code = """
                 class Goo
                 {
                     public int $$goo
                 }
                 """;
 
-            await VerifyNoBlockSpansAsync(code);
-        }
+        await VerifyNoBlockSpansAsync(code);
+    }
 
-        [Fact]
-        public async Task WithAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithAttributes()
+    {
+        var code = """
                 class Goo
                 {
                     {|hint:{|textspan:[Goo]
@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task WithCommentsAndAttributes()
-        {
-            var code = """
+    [Fact]
+    public async Task WithCommentsAndAttributes()
+    {
+        var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task WithCommentsAttributesAndModifiers()
-        {
-            var code = """
+    [Fact]
+    public async Task WithCommentsAttributesAndModifiers()
+    {
+        var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

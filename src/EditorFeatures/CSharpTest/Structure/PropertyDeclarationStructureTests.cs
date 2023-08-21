@@ -9,17 +9,17 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
 {
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();
+
+    [Fact]
+    public async Task TestProperty1()
     {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();
-
-        [Fact]
-        public async Task TestProperty1()
-        {
-            var code = """
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestProperty2()
-        {
-            var code = """
+    [Fact]
+    public async Task TestProperty2()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestProperty3()
-        {
-            var code = """
+    [Fact]
+    public async Task TestProperty3()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestProperty4()
-        {
-            var code = """
+    [Fact]
+    public async Task TestProperty4()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestProperty5()
-        {
-            var code = """
+    [Fact]
+    public async Task TestProperty5()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestProperty6()
-        {
-            var code = """
+    [Fact]
+    public async Task TestProperty6()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestPropertyWithLeadingComments()
-        {
-            var code = """
+    [Fact]
+    public async Task TestPropertyWithLeadingComments()
+    {
+        var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -165,15 +165,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span1", "// Goo ...", autoCollapse: true),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span1", "// Goo ...", autoCollapse: true),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestPropertyWithWithExpressionBodyAndComments()
-        {
-            var code = """
+    [Fact]
+    public async Task TestPropertyWithWithExpressionBodyAndComments()
+    {
+        var code = """
                 class C
                 {
                     {|span:// Goo
@@ -182,14 +182,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Goo ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Goo ...", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestPropertyWithSpaceAfterIdentifier()
-        {
-            var code = """
+    [Fact]
+    public async Task TestPropertyWithSpaceAfterIdentifier()
+    {
+        var code = """
                 class C
                 {
                     {|hint:$$public int Goo    {|textspan:
@@ -200,8 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

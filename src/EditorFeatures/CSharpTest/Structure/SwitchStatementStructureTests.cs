@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSwitchStatement1()
-        {
-            var code = """
+public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
+{
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
+
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public async Task TestSwitchStatement1()
+    {
+        var code = """
                 class C
                 {
                     void M()
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSwitchStatement2()
-        {
-            var code = """
+    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public async Task TestSwitchStatement2()
+    {
+        var code = """
                 class C
                 {
                     void M()
@@ -59,10 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

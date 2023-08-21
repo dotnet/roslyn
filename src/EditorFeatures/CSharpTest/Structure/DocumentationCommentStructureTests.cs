@@ -10,17 +10,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class DocumentationCommentStructureTests : AbstractCSharpSyntaxNodeStructureTests<DocumentationCommentTriviaSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new DocumentationCommentStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact]
-        public async Task TestDocumentationCommentWithoutSummaryTag1()
-        {
-            var code = """
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class DocumentationCommentStructureTests : AbstractCSharpSyntaxNodeStructureTests<DocumentationCommentTriviaSyntax>
+{
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new DocumentationCommentStructureProvider();
+
+    [Fact]
+    public async Task TestDocumentationCommentWithoutSummaryTag1()
+    {
+        var code = """
                 {|span:/// $$XML doc comment
                 /// some description
                 /// of
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// XML doc comment ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// XML doc comment ...", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestDocumentationCommentWithoutSummaryTag2()
-        {
-            var code = """
+    [Fact]
+    public async Task TestDocumentationCommentWithoutSummaryTag2()
+    {
+        var code = """
                 {|span:/** $$Block comment
                 * some description
                 * of
@@ -48,28 +48,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/** Block comment ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/** Block comment ...", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestDocumentationCommentWithoutSummaryTag3()
-        {
-            var code = """
+    [Fact]
+    public async Task TestDocumentationCommentWithoutSummaryTag3()
+    {
+        var code = """
                 {|span:/// $$<param name="tree"></param>|}
                 class Class3
                 {
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <param name=\"tree\"></param> ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <param name=\"tree\"></param> ...", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestDocumentationComment()
-        {
-            var code = """
+    [Fact]
+    public async Task TestDocumentationComment()
+    {
+        var code = """
                 {|span:/// <summary>
                 /// $$Hello C#!
                 /// </summary>|}
@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestDocumentationCommentWithLongBannerText()
-        {
-            var code = """
+    [Fact]
+    public async Task TestDocumentationCommentWithLongBannerText()
+    {
+        var code = """
                 {|span:/// $$<summary>
                 ///
                 """ + new string('x', 240) + """
@@ -95,14 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> " + new string('x', 106) + " ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> " + new string('x', 106) + " ...", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMultilineDocumentationComment()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMultilineDocumentationComment()
+    {
+        var code = """
                 {|span:/** <summary>
                 $$Hello C#!
                 </summary> */|}
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/** <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestIndentedDocumentationComment()
-        {
-            var code = """
+    [Fact]
+    public async Task TestIndentedDocumentationComment()
+    {
+        var code = """
                 {|span:/// <summary>
                 /// $$Hello C#!
                 /// </summary>|}
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestIndentedMultilineDocumentationComment()
-        {
-            var code = """
+    [Fact]
+    public async Task TestIndentedMultilineDocumentationComment()
+    {
+        var code = """
                 {|span:/** <summary>
                 $$Hello C#!
                 </summary> */|}
@@ -143,70 +143,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/** <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestDocumentationCommentOnASingleLine()
-        {
-            var code = """
+    [Fact]
+    public async Task TestDocumentationCommentOnASingleLine()
+    {
+        var code = """
                 {|span:/// <summary>$$Hello C#!</summary>|}
                 class Class3
                 {
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary>Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary>Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMultilineDocumentationCommentOnASingleLine()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMultilineDocumentationCommentOnASingleLine()
+    {
+        var code = """
                 {|span:/** <summary>$$Hello C#!</summary> */|}
                 class Class3
                 {
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary>Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/** <summary>Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestIndentedDocumentationCommentOnASingleLine()
-        {
-            var code = """
+    [Fact]
+    public async Task TestIndentedDocumentationCommentOnASingleLine()
+    {
+        var code = """
                 {|span:/// <summary>$$Hello C#!</summary>|}
                 class Class3
                 {
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary>Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary>Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestIndentedMultilineDocumentationCommentOnASingleLine()
-        {
-            var code = """
+    [Fact]
+    public async Task TestIndentedMultilineDocumentationCommentOnASingleLine()
+    {
+        var code = """
                 {|span:/** <summary>$$Hello C#!</summary> */|}
                 class Class3
                 {
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary>Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/** <summary>Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMultilineSummaryInDocumentationComment1()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMultilineSummaryInDocumentationComment1()
+    {
+        var code = """
                 {|span:/// <summary>
                 /// $$Hello
                 /// C#!
@@ -216,14 +216,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact]
-        public async Task TestMultilineSummaryInDocumentationComment2()
-        {
-            var code = """
+    [Fact]
+    public async Task TestMultilineSummaryInDocumentationComment2()
+    {
+        var code = """
                 {|span:/// <summary>
                 /// $$Hello
                 /// 
@@ -234,14 +234,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2129")]
-        public async Task CrefInSummary()
-        {
-            var code = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2129")]
+    public async Task CrefInSummary()
+    {
+        var code = """
                 class C
                 {
                     {|span:/// $$<summary>
@@ -252,14 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
+    }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
-        public async Task TestSummaryWithPunctuation()
-        {
-            var code = """
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
+    public async Task TestSummaryWithPunctuation()
+    {
+        var code = """
                 class C
                 {
                     {|span:/// $$<summary>
@@ -272,14 +272,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20679")]
-        public async Task TestSummaryWithAdditionalTags()
-        {
-            var code = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20679")]
+    public async Task TestSummaryWithAdditionalTags()
+    {
+        var code = """
                 public class Class1
                 {
                     {|span:/// $$<summary>
@@ -292,8 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 }
                 """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Initializes a new instance of the Class1 class.", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "/// <summary> Initializes a new instance of the Class1 class.", autoCollapse: true));
     }
 }
