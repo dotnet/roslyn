@@ -973,11 +973,10 @@ namespace Microsoft.CodeAnalysis
                     if (!compilationWithGenerators.GetParseDiagnostics(cancellationToken).HasAnyErrors())
                     {
                         var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
-                        var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
 
                         var loader = this.ProjectState.LanguageServices.SolutionServices.GetRequiredService<IAnalyzerService>().GetLoader();
 
-                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
+                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
                         if (runTransformers != null)
                             (compilationWithGenerators, transformerDiagnostics) = runTransformers(compilationWithGenerators);
                     }

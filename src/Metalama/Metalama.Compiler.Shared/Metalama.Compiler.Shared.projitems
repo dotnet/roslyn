@@ -16,7 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilteringRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MetalamaPlugInAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFileMapping.cs" />

@@ -261,10 +261,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             transformerOrder As ImmutableArray(Of String),
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator),
-            ByRef transformers As ImmutableArray(Of ISourceTransformer),
-            ByRef plugins As ImmutableArray(Of Object))
+            ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, analyzers, generators, transformers, plugins)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, analyzers, generators, transformers)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

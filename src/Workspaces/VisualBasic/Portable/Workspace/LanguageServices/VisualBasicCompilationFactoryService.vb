@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' <Metalama> This code is used by Try.Metalama.
-        Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), plugins As ImmutableArray(Of Object), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
+        Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
             Return Nothing
         End Function
         ' </Metalama>

@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Metalama> This code is used by Try.Metalama.
-        public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
+        public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            return compilation => 
-                CSharpTransformerDriver.RunTransformers(compilation, transformers, plugins, analyzerConfigProvider, ImmutableArray<ResourceDescription>.Empty, assemblyLoader);
+            return compilation =>
+                CSharpTransformerDriver.RunTransformers(compilation, transformers, analyzerConfigProvider, ImmutableArray<ResourceDescription>.Empty, assemblyLoader);
         }
         // </Metalama>
     }
