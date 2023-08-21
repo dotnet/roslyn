@@ -247,6 +247,11 @@
         <target state="translated">コード分析が、ソリューションでの完了前に終了しました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">ファイルを開くときにメタデータ署名ファイルを定義に折りたたむ</target>
