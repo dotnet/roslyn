@@ -51,19 +51,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null)
+        internal MockCSharpCompiler CreateCSharpCompiler(string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
         {
             // <Metalama>
-            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader, driverCache);
+            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader, driverCache, additionalReferences);
             // </Metalama>
         }
 
         // <Metalama /> Method signature modified.
-        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, ISourceTransformer[]? transformers = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, bool bypassLicensing = true)
+        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, ISourceTransformer[]? transformers = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null, bool bypassLicensing = true)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
             // <Metalama>
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), transformers.AsImmutableOrEmpty(), loader, driverCache, bypassLicensing);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), transformers.AsImmutableOrEmpty(), loader, driverCache, additionalReferences.AsImmutableOrEmpty(), bypassLicensing);
             // </Metalama>
         }
     }

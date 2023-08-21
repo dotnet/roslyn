@@ -258,7 +258,7 @@ class Class1
         }
 
         [Fact]
-        public async Task DontFilterYet()
+        public async Task DoNotFilterYet()
         {
             var markup = @"
 class Class1

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "VB"
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2211")>
-        Public Async Function TestVisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -170,7 +170,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4490")>
-        Public Async Function TestVisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsLessThan() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsLessThan() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -201,7 +201,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4490")>
-        Public Async Function TestVisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsGreaterThan() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsGreaterThan() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -232,7 +232,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4490")>
-        Public Async Function TestVisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsLessThan() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveParenthesesAroundXmlElementWhenPreviousTokenIsLessThan() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -263,7 +263,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4490")>
-        Public Async Function TestVisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsGreaterThan() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveParenthesesAroundXmlElementWhenPreviousTokenIsGreaterThan() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -452,7 +452,7 @@ End Class
 #Region "VB Array Literal tests"
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemoveInJaggedArrayLiteral() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveInJaggedArrayLiteral() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -480,7 +480,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemoveInCollectionInitializer() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveInCollectionInitializer() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -667,7 +667,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
-        Public Async Function TestVisualBasic_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1287,7 +1287,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2211")>
-        Public Async Function TestCSharp_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
+        Public Async Function TestCSharp_DoNotRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1555,7 +1555,7 @@ class Program
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
-        Public Async Function TestCSharp_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
+        Public Async Function TestCSharp_DoNotSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1652,7 +1652,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11958")>
-        Public Async Function TestCSharp_DontSimplifyIfItWouldChangeStringConcatenation() As Task
+        Public Async Function TestCSharp_DoNotSimplifyIfItWouldChangeStringConcatenation() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1683,7 +1683,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11958")>
-        Public Async Function TestCSharp_DontSimplifyIfOperatorOverloadsWouldNoLongerByCalled() As Task
+        Public Async Function TestCSharp_DoNotSimplifyIfOperatorOverloadsWouldNoLongerByCalled() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);

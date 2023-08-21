@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
                 var oldTextDocument = fileChange.GetOldDocument();
                 var updatedTextDocument = fileChange.GetUpdatedDocument();
-                var updatedDocumentTextOpt = updatedTextDocument?.GetTextAsync().Result;
+                var updatedDocumentTextOpt = updatedTextDocument?.GetTextSynchronously(CancellationToken.None);
 
                 // Apply file change to document.
                 ApplyFileChangesCore(oldTextDocument, updatedTextDocument?.Id, updatedDocumentTextOpt,
@@ -148,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     // If unchecked, then add back this removed document to new solution.
                     if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
-                        var oldText = oldDocument.GetTextAsync().Result.ToString();
+                        var oldText = oldDocument.GetTextSynchronously(CancellationToken.None).ToString();
 
                         switch (changedDocumentKind)
                         {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(LongRunningNonMutatingRequestHandler));
 
         [Theory, CombinatorialData]
-        public async Task MutatingRequestsDontOverlap(bool mutatingLspWorkspace)
+        public async Task MutatingRequestsDoNotOverlap(bool mutatingLspWorkspace)
         {
             var requests = new[] {
                 new TestRequest(MutatingRequestHandler.MethodName),

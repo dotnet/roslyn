@@ -903,6 +903,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(result IsNot Nothing, result.Keys, SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))())
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            EnsureAttributesAreBound()
+
+            If _lazyInternalsVisibleToMap Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of String)()
+            End If
+
+            Return _lazyInternalsVisibleToMap.Keys
+        End Function
+
         Friend ReadOnly Property DeclaresTheObjectClass As Boolean
             Get
                 If Me.CorLibrary IsNot Me Then

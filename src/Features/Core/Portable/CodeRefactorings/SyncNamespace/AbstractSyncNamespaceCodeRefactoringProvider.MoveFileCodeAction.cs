@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 solution = solution.RemoveDocument(document.Id);
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
                 return ImmutableArray.Create<CodeActionOperation>(

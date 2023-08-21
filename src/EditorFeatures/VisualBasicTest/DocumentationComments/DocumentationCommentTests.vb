@@ -565,7 +565,7 @@ End Class
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact>
-        Public Sub TestPressingEnter_DontInsertApostrophes1()
+        Public Sub TestPressingEnter_DoNotInsertApostrophes1()
             Const code = "
 ''' <summary></summary>
 ''' $$

@@ -34,7 +34,7 @@ internal sealed class RemoteOptionsProviderCache<TOptions>
 
     public async ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
     {
-        var lazyOptions = ImmutableInterlocked.GetOrAdd(ref _cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
+        var lazyOptions = ImmutableInterlocked.GetOrAdd(ref _cache, languageServices.Language, _ => AsyncLazy.Create(GetRemoteOptions));
         return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)

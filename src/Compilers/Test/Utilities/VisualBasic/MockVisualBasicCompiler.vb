@@ -14,6 +14,7 @@ Friend Class MockVisualBasicCompiler
 
     Private ReadOnly _analyzers As ImmutableArray(Of DiagnosticAnalyzer)
     Private ReadOnly _generators As ImmutableArray(Of ISourceGenerator)
+    Private ReadOnly _additionalReferences As ImmutableArray(Of MetadataReference)
     Public Compilation As Compilation
     Public AnalyzerOptions As AnalyzerOptions
 
@@ -29,15 +30,16 @@ Friend Class MockVisualBasicCompiler
         MyClass.New(responseFile, buildPaths, args, If(analyzer Is Nothing, Nothing, {analyzer}))
     End Sub
 
-    Public Sub New(responseFile As String, workingDirectory As String, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing)
-        MyClass.New(responseFile, CreateBuildPaths(workingDirectory, Path.GetTempPath()), args, analyzers, generators)
+    Public Sub New(responseFile As String, workingDirectory As String, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing, Optional additionalReferences As MetadataReference() = Nothing)
+        MyClass.New(responseFile, CreateBuildPaths(workingDirectory, Path.GetTempPath()), args, analyzers, generators, additionalReferences)
     End Sub
 
-    Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing)
+    Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing, Optional additionalReferences As MetadataReference() = Nothing)
         MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New DefaultAnalyzerAssemblyLoader())
 
         _analyzers = analyzers.AsImmutableOrEmpty()
         _generators = generators.AsImmutableOrEmpty()
+        _additionalReferences = additionalReferences.AsImmutableOrEmpty()
     End Sub
 
     Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
@@ -47,6 +49,7 @@ Friend Class MockVisualBasicCompiler
     Protected Overrides Sub ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
         messageProvider As CommonMessageProvider,
+        compilationOptions As CompilationOptions,
         skipAnalyzers As Boolean,
         transformerOrder As ImmutableArray(Of String),
         ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
@@ -54,7 +57,7 @@ Friend Class MockVisualBasicCompiler
         ByRef transformers As ImmutableArray(Of ISourceTransformer),
         ByRef plugins As ImmutableArray(Of Object))
 
-        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, analyzers, generators, transformers, plugins)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, analyzers, generators, transformers, plugins)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
@@ -70,6 +73,11 @@ Friend Class MockVisualBasicCompiler
 
     Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult), globalConfigOptions As AnalyzerConfigOptionsResult) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, globalConfigOptions)
+
+        If Not _additionalReferences.IsEmpty Then
+            Compilation = Compilation.AddReferences(_additionalReferences)
+        End If
+
         Return Compilation
     End Function
 

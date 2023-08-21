@@ -13,26 +13,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// data that will be used in an interval tree related to Anchor.
         /// </summary>
-        private class AnchorData
+        private class AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
         {
-            private readonly AnchorIndentationOperation _operation;
+            public TextSpan TextSpan => operation.TextSpan;
 
-            public AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
-            {
-                _operation = operation;
-                this.AnchorToken = anchorToken;
-                this.OriginalColumn = originalColumn;
-            }
+            public SyntaxToken StartToken => operation.StartToken;
 
-            public TextSpan TextSpan => _operation.TextSpan;
+            public SyntaxToken EndToken => operation.EndToken;
 
-            public SyntaxToken StartToken => _operation.StartToken;
+            public SyntaxToken AnchorToken { get; } = anchorToken;
 
-            public SyntaxToken EndToken => _operation.EndToken;
-
-            public SyntaxToken AnchorToken { get; }
-
-            public int OriginalColumn { get; }
+            public int OriginalColumn { get; } = originalColumn;
         }
 
         private readonly struct FormattingContextIntervalIntrospector

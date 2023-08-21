@@ -312,9 +312,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolution(
                     _ => newSolution,
-                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
-                        ? WorkspaceChangeKind.SolutionAdded
-                        : WorkspaceChangeKind.SolutionChanged,
+                    changeKind: static (oldSolution, newSolution) =>
+                        (IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))

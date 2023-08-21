@@ -191,11 +191,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
                 _solution, _trackedItem, cancellationToken).ConfigureAwait(false);
 
-            return await valueTrackedItems.SelectAsArrayAsync((item, cancellationToken) =>
+            return await valueTrackedItems.SelectAsArrayAsync(static (item, self, cancellationToken) =>
                 CreateAsync(
-                    _solution, item, children: ImmutableArray<TreeItemViewModel>.Empty,
-                    TreeViewModel, _glyphService, _valueTrackingService, _globalOptions,
-                    ThreadingContext, _listener, _threadOperationExecutor, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    self._solution, item, children: ImmutableArray<TreeItemViewModel>.Empty,
+                    self.TreeViewModel, self._glyphService, self._valueTrackingService, self._globalOptions,
+                    self.ThreadingContext, self._listener, self._threadOperationExecutor, cancellationToken), this, cancellationToken).ConfigureAwait(false);
         }
     }
 }

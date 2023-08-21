@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.GetFirstLocation().SourceTree!.FilePath);
             return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 
@@ -369,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             // <Metalama>
             ImmutableArray<string?> transformerOrder,
@@ -382,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             )
         {
             // <Metalama>
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
             // </Metalama>
         }
 
@@ -697,5 +698,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
         }
         // </Metalama>
+
+        private protected override void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)
+        {
+            DiagnosticBag newDiagnostics = DiagnosticBag.GetInstance();
+            foreach (var diag in diagnostics)
+            {
+                var symbol = diag switch
+                {
+                    { Code: (int)ErrorCode.ERR_BadAccess, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleGetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleSetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, Arguments: [_, Symbol s, _] } => s,
+                    _ => null
+                };
+
+                if (symbol is null || ReferenceEquals(compilation.Assembly, symbol.ContainingAssembly))
+                {
+                    // Can't be IVT related
+                    continue;
+                }
+
+                // '{0}' is defined in assembly '{1}'.
+                newDiagnostics.Add(new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly),
+                    diag.Location));
+            }
+
+            ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation);
+        }
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -163,12 +164,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-                return new CodeActionOperation[]
+
+                using var operations = TemporaryArray<CodeActionOperation>.Empty;
+
+                operations.Add(codeAction);
+                var factory = _startingSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                if (factory is not null)
                 {
-                    codeAction,
-                    factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                };
+                    operations.Add(factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution));
+                }
+
+                return operations.ToImmutableAndClear();
 #endif
             }
 

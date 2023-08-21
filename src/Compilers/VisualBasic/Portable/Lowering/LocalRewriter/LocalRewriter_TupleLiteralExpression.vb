@@ -62,12 +62,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim smallestConstructor As MethodSymbol = smallestCtor.AsMember(smallestType)
                 Dim currentCreation As BoundObjectCreationExpression = New BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments, initializerOpt:=Nothing, type:=smallestType)
 
+                Binder.CheckRequiredMembersInObjectInitializer(smallestConstructor, smallestType, initializers:=ImmutableArray(Of BoundExpression).Empty, syntax, _diagnostics)
+
                 If underlyingTupleTypeChain.Count > 0 Then
                     Dim tuple8Type As NamedTypeSymbol = underlyingTupleTypeChain.Peek()
                     Dim tuple8Ctor As MethodSymbol = DirectCast(TupleTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
                                                                                             TupleTypeSymbol.GetTupleCtor(TupleTypeSymbol.RestPosition),
                                                                                             _diagnostics,
                                                                                             syntax), MethodSymbol)
+
                     If tuple8Ctor Is Nothing Then
                         Return New BoundBadExpression(
                                     syntax,
@@ -77,6 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     type,
                                     hasErrors:=True)
                     End If
+
+                    Binder.CheckRequiredMembersInObjectInitializer(tuple8Ctor, tuple8Ctor.ContainingType, initializers:=ImmutableArray(Of BoundExpression).Empty, syntax, _diagnostics)
 
                     ' make successively larger creation expressions containing the previous one
                     Do

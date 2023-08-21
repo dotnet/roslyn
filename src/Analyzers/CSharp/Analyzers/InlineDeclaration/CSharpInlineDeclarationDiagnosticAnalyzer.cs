@@ -152,6 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
+            // Bail out early if the localDeclaration is outside the context's analysis span.
+            if (!context.ShouldAnalyzeSpan(localDeclaration.Span))
+                return;
+
             if (localDeclarator.SpanStart >= argumentNode.SpanStart)
             {
                 // We have an error situation where the local was declared after the out-var.  

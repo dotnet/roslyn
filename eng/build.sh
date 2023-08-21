@@ -68,6 +68,7 @@ binary_log=false
 ci=false
 helix=false
 helix_queue_name=""
+helix_api_access_token=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -137,6 +138,11 @@ while [[ $# > 0 ]]; do
       ;;
     --helixqueuename)
       helix_queue_name=$2
+      args="$args $1"
+      shift
+      ;;
+    --helixapiaccesstoken)
+      helix_api_access_token=$2
       args="$args $1"
       shift
       ;;
@@ -318,6 +324,10 @@ if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
   if [[ -n "$helix_queue_name" ]]; then
     runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ -n "$helix_api_access_token" ]]; then
+    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
   fi
 
   if [[ "$helix" == true ]]; then

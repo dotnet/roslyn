@@ -18818,10 +18818,10 @@ public class Cls
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[constructorDeclaration];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Initializer).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Body).IsDefaultOrEmpty);
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.ExpressionBody).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Initializer).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Body).IsEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.ExpressionBody).IsEmpty);
 
                 var x1Decl = GetOutVarDeclaration(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1").ToArray();

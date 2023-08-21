@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public override void Connect()
             {
-                _globalOptions.OptionChanged += OnGlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
             public override void Disconnect()
             {
-                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
             private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)

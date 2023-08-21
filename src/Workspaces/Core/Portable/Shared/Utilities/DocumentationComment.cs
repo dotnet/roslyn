@@ -328,6 +328,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return text;
         }
 
+        public DocumentationComment? GetParameter(string parameterName)
+        {
+            if (!_parameterTexts.TryGetValue(parameterName, out var text))
+                return null;
+
+            return new DocumentationComment(text) { SummaryText = text };
+        }
+
         /// <summary>
         /// Returns the text for a given type parameter, or null if no documentation was given for the type parameter.
         /// </summary>
@@ -335,6 +343,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             _typeParameterTexts.TryGetValue(typeParameterName, out var text);
             return text;
+        }
+
+        public DocumentationComment? GetTypeParameter(string parameterName)
+        {
+            if (!_typeParameterTexts.TryGetValue(parameterName, out var text))
+                return null;
+
+            return new DocumentationComment(text) { SummaryText = text };
         }
 
         /// <summary>

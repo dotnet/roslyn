@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 // <Metalama>
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             // <Metalama>
             ImmutableArray<string?> transformerOrder,
@@ -629,6 +631,68 @@ namespace Microsoft.CodeAnalysis
             => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt, compilation);
 
         /// <summary>
+        /// Reports all IVT information for the given compilation and references, to aid in troubleshooting otherwise inexplicable IVT failures.
+        /// </summary>
+        private void ReportIVTInfos(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)
+        {
+            // Annotate any bad accesses with what assemblies they came from, if they are from a foreign assembly
+            DiagnoseBadAccesses(consoleOutput, errorLogger, compilation, diagnostics);
+
+            consoleOutput.WriteLine();
+
+            // Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.
+            consoleOutput.WriteLine(CodeAnalysisResources.InternalsVisibleToHeaderSummary);
+
+            var currentAssembly = compilation.Assembly;
+            var currentAssemblyInternal = compilation.GetSymbolInternal<IAssemblySymbolInternal>(currentAssembly);
+
+            // Current assembly: '{0}'
+            consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToCurrentAssembly, currentAssembly.Identity.GetDisplayName(fullKey: true)));
+
+            consoleOutput.WriteLine();
+
+            // Now, go through each of the referenced assemblies and print their IVT information.
+            foreach (var assembly in currentAssembly.Modules.First().ReferencedAssemblySymbols.OrderBy(a => a.Name))
+            {
+                // Assembly reference: '{0}'
+                //   Grants IVT to current assembly: {1}
+                //   Grants IVTs to:
+
+                var assemblyInternal = compilation.GetSymbolInternal<IAssemblySymbolInternal>(assembly);
+                bool grantsIvt = currentAssemblyInternal.AreInternalsVisibleToThisAssembly(assemblyInternal);
+
+                consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssembly, assembly.Identity.GetDisplayName(fullKey: true), grantsIvt));
+
+                var enumerable = assemblyInternal.GetInternalsVisibleToAssemblyNames();
+
+                if (enumerable.Any())
+                {
+                    foreach (var simpleName in enumerable.OrderBy<string, string>(n => n))
+                    {
+                        //     Assembly name: '{0}'
+                        //     Public Keys:
+                        consoleOutput.WriteLine(string.Format(CodeAnalysisResources.InternalsVisibleToReferencedAssemblyDetails, simpleName));
+                        foreach (var key in assemblyInternal.GetInternalsVisibleToPublicKeys(simpleName).Select(k => AssemblyIdentity.PublicKeyToString(k)).OrderBy(k => k))
+                        {
+                            consoleOutput.Write("      ");
+                            consoleOutput.WriteLine(key);
+                        }
+                    }
+                }
+                else
+                {
+                    // Nothing
+                    consoleOutput.Write("    ");
+                    consoleOutput.WriteLine(CodeAnalysisResources.Nothing);
+                }
+
+                consoleOutput.WriteLine();
+            }
+        }
+
+        private protected abstract void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics);
+
+        /// <summary>
         /// Returns true if there are any error diagnostics in the bag which cannot be suppressed and
         /// are guaranteed to break the build.
         /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
@@ -1071,7 +1135,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers, out var plugins);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, compilation.Options, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers, out var plugins);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
@@ -1129,11 +1193,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            diagnostics.Free();
             if (Arguments.ReportAnalyzer)
             {
                 ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
             }
+
+            if (Arguments.ReportInternalsVisibleToAttributes)
+            {
+                ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
+            }
+
+            diagnostics.Free();
 
             return exitCode;
         }
@@ -1315,7 +1385,7 @@ namespace Microsoft.CodeAnalysis
                 _ = compilationWithSourceOnlyAnalyzers.GetDiagnostics(cancellationToken);
 
                 var sourceOnlyAnalyzerDiagnostics = sourceOnlyAnalyzerDriver
-                    .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers).Result;
+                    .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers, cancellationToken).Result;
 
                 logger.Trace?.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
 
@@ -1336,7 +1406,7 @@ namespace Microsoft.CodeAnalysis
                     // Apply diagnostic suppressors for analyzer and/or compiler diagnostics from diagnostic suppressors.
                     var countBefore = diagnostics.Count;
                     sourceOnlyAnalyzerDriver.ApplyProgrammaticSuppressions(diagnostics,
-                        compilationWithSourceOnlyAnalyzers);
+                        compilationWithSourceOnlyAnalyzers, cancellationToken);
 
                     logger.Trace?.Log($"Suppressors suppressed {diagnostics.Count - countBefore} diagnostics.");
                 }
@@ -1348,7 +1418,7 @@ namespace Microsoft.CodeAnalysis
                 return compilation;
             }
         }
-
+        // </Metalama>
 
         // <Metalama>
         private void CompileAndEmit(
@@ -1868,7 +1938,7 @@ namespace Microsoft.CodeAnalysis
                         // generated in presence of diagnostics that break the build.
                         if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
                         {
-                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                         }
 
                         if (HasUnsuppressedErrors(diagnostics))
@@ -1961,7 +2031,7 @@ namespace Microsoft.CodeAnalysis
                             // GetDiagnosticsAsync is called after ReportUnusedImports
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
-                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation, cancellationToken).Result;
                             unmappedDiagnostics.AddRange(hostDiagnostics);
 
                             // <Metalama>
@@ -1971,12 +2041,12 @@ namespace Microsoft.CodeAnalysis
                             if (!diagnostics.IsEmptyWithoutResolution)
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                             }
 
                             if (errorLogger != null)
                             {
-                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors());
+                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors(cancellationToken));
                             }
                         }
                     }

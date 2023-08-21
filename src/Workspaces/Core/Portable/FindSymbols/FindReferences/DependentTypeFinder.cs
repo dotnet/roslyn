@@ -240,15 +240,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 async Task AddMatchingTypesAsync(
-                    MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
+                    MultiDictionary<DocumentId, DeclaredSymbolInfo> documentToInfos,
                     SymbolSet result,
                     Func<INamedTypeSymbol, bool>? predicateOpt)
                 {
-                    foreach (var (document, infos) in documentToInfos)
+                    foreach (var (documentId, infos) in documentToInfos)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         Debug.Assert(infos.Count > 0);
+                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         cachedModels.Add(semanticModel);
 
@@ -271,10 +272,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 async Task AddSourceTypesThatDeriveFromNameAsync(SymbolSet result, string name)
                 {
-                    foreach (var (document, info) in projectIndex.NamedTypes[name])
+                    foreach (var (documentId, info) in projectIndex.NamedTypes[name])
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
+                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         cachedModels.Add(semanticModel);
 

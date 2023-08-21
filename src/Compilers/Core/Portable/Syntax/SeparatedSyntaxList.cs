@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -600,7 +601,14 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SeparatedSyntaxList<TNode> op_Implicit(SeparatedSyntaxList<SyntaxNode> nodes)
+        {
+            return new SeparatedSyntaxList<TNode>(nodes._list);
+        }
+
+        public static explicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
         {
             return new SeparatedSyntaxList<TNode>(nodes._list);
         }

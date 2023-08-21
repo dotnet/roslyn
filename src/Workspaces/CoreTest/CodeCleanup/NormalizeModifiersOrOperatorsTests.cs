@@ -791,7 +791,7 @@ End Class";
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-        public async Task DontRemoveByVal()
+        public async Task DoNotRemoveByVal()
         {
             var code = @"[|Module Program
     Sub Main(
