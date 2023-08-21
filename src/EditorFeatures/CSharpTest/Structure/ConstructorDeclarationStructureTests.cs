@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -108,14 +109,14 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestConstructor7()
         {
             const string code = @"
 class C
 {
-    {|hint:$$public C()
-    // .ctor{|textspan:
+    {|hint:$$public C(){|textspan:
+    // .ctor
     {
     }|}|} // .ctor
 }";
@@ -124,14 +125,14 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestConstructor8()
         {
             const string code = @"
 class C
 {
-    {|hint:$$public C()
-    /* .ctor */{|textspan:
+    {|hint:$$public C(){|textspan:
+    /* .ctor */
     {
     }|}|} // .ctor
 }";

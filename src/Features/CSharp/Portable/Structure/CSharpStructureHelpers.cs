@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,36 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public const string Ellipsis = "...";
         public const string MultiLineCommentSuffix = "*/";
         public const int MaxXmlDocCommentBannerLength = 120;
-        private static readonly char[] s_newLineCharacters = new char[] { '\r', '\n' };
+        private static readonly char[] s_newLineCharacters = ['\r', '\n'];
 
         private static int GetCollapsibleStart(SyntaxToken firstToken)
         {
-            // If the *next* token has any leading comments, we use the end of the last one.
-            // If not, we check *this* token to see if it has any trailing comments and use the last one;
-            // otherwise, we use the end of this token.
+            // Check *this* token to see if it has any trailing comments and use the last one; otherwise, we use the end
+            // of this token.
 
-            var start = firstToken.Span.End;
-
-            var nextToken = firstToken.GetNextToken();
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.HasLeadingTrivia)
-            {
-                var lastLeadingCommentTrivia = nextToken.LeadingTrivia.GetLastComment();
-                if (lastLeadingCommentTrivia != null)
-                {
-                    start = lastLeadingCommentTrivia.Value.Span.End;
-                }
-            }
-
-            if (firstToken.HasTrailingTrivia)
-            {
-                var lastTrailingCommentOrWhitespaceTrivia = firstToken.TrailingTrivia.GetLastCommentOrWhitespace();
-                if (lastTrailingCommentOrWhitespaceTrivia != null)
-                {
-                    start = lastTrailingCommentOrWhitespaceTrivia.Value.Span.End;
-                }
-            }
-
-            return start;
+            var lastTrailingCommentOrWhitespaceTrivia = firstToken.TrailingTrivia.GetLastCommentOrWhitespace();
+            return lastTrailingCommentOrWhitespaceTrivia?.Span.End ?? firstToken.Span.End;
         }
 
         private static (int spanEnd, int hintEnd) GetCollapsibleEnd(SyntaxToken lastToken, bool compressEmptyLines)
