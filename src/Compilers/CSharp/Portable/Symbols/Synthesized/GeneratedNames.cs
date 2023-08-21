@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((char)GeneratedNameKind.InlineArrayType == 'y');
             var name = "<>y__InlineArray" + arrayLength;
 
-            // Synthesized inline arrays need to have unique name accross generations because they are not reused.
+            // Synthesized inline arrays need to have unique name across generations because they are not reused.
             return (generation > 0) ? name + GenerationSeparator + generation : name;
         }
 

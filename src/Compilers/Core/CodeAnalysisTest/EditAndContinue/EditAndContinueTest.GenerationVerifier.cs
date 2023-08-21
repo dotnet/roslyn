@@ -114,13 +114,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             public void VerifySynthesizedMembers(params string[] expected)
             {
-                var actual = _generationInfo.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                var actual = _generationInfo.Baseline.SynthesizedMembers
+                    .Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+
                 AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
             }
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
             {
-                var actual = _generationInfo.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
+                var actual = _generationInfo.Baseline.SynthesizedMembers
+                    .Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field)
+                    .Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
+
                 AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
             }
 

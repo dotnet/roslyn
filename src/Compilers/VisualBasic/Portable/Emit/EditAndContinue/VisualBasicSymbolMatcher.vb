@@ -518,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If member.ContainingType Is Nothing Then
                     ' ContainingType is null for synthesized PrivateImplementationDetails helpers.
                     ' For simplicity, these helpers are not reused across generations.
-                    ' Instead New ones are regenerated as needed.
+                    ' Instead new ones are regenerated as needed.
                     Debug.Assert(TypeOf member Is ISynthesizedGlobalMethodSymbol)
 
                     Return Nothing

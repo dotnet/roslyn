@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
-            
+
             var baseline = EmitBaseline.CreateInitialBaseline(md, verifier.CreateSymReader().GetEncMethodDebugInfo);
 
             _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator));
