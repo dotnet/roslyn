@@ -4646,14 +4646,16 @@ int[M(out var x)] i = null;
             Assert.Null(model.GetAliasInfo(identifier));
         }
 
-        [Fact]
-        public void OutVarInRankSpecifier_LocalFunctionParameter()
+        [Theory]
+        [InlineData("out")]
+        [InlineData("ref")]
+        public void OutVarInRankSpecifier_LocalFunctionParameter(string modifier)
         {
-            var text = @"
-void M(out Type[M2(out object y)])
+            var text = $$"""
+void M({{modifier}} Type[M2(out object y)])
 {
 }
-";
+""";
             var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
