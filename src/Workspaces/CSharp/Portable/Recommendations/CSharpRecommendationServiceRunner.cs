@@ -373,6 +373,26 @@ internal partial class CSharpRecommendationService
                     if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
                         continue;
 
+                    // See if the parameter was captured into a base-type constructor through the base list.
+                    if (typeDeclaration.BaseList != null)
+                    {
+                        foreach (var baseType in typeDeclaration.BaseList.Types)
+                        {
+                            if (baseType is PrimaryConstructorBaseTypeSyntax primaryConstructorBase)
+                            {
+                                foreach (var argument in primaryConstructorBase.ArgumentList.Arguments)
+                                {
+                                    if (argument.Expression is IdentifierNameSyntax { Identifier: var argumentIdentifier } &&
+                                        argumentIdentifier.ValueText == parameterName)
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Next, see if any field or property in the type captures the primary constructor parameter in its initializer.
                     foreach (var member in typeDeclaration.Members)
                     {
                         if (member is FieldDeclarationSyntax fieldDeclaration)
