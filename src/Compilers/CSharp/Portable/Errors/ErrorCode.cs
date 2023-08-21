@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
-        WRN_Experimental = 8305,
+        WRN_WindowsExperimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
         ERR_TypelessTupleInAs = 8307,
 
@@ -2268,6 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationRefField = 9201,
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
+        WRN_Experimental = 9203,
 
         #endregion
 
