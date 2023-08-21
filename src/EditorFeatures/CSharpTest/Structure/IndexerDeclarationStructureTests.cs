@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndexer1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndexer2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndexer3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndexerWithComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndexerWithWithExpressionBodyAndComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:// Goo

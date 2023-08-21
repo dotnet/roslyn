@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnum1()
         {
-            const string code = """
+            var code = """
                 {|hint:$$enum E{|textspan:
                 {
                 }|}|}
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnumWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$enum E{|textspan2:
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEnumWithNestedComments()
         {
-            const string code = """
+            var code = """
                 {|hint1:$$enum E{|textspan1:
                 {
                     {|span2:// Goo

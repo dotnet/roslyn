@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDestructor()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$~C(){|textspan:
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDestructorWithComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         {
             // Expected behavior is that the class should be outlined, but the destructor should not.
 
-            const string code = """
+            var code = """
                 class C
                 {
                     $$~C(

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestAnonymousMethod()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void Main()
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestAnonymousMethodInForLoop()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void Main()
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestAnonymousMethodInMethodCall1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void Main()
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestAnonymousMethodInMethodCall2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void Main()

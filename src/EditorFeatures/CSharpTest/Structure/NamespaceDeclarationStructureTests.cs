@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestNamespace()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$namespace N{|textspan:
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestNamespaceWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestNamespaceWithNestedUsings()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestNamespaceWithNestedComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:

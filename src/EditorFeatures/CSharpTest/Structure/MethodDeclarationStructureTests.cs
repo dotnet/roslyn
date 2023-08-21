@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethod1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethod2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethod3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethod4()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string Goo(){|textspan:
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestMethod5()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public void Goo(){|textspan:
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
         public async Task TestMethod6()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public void Goo(){|textspan:
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethodWithTrailingSpaces()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public string Goo()    {|textspan:
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethodWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMethodWithWithExpressionBodyAndComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:// Goo

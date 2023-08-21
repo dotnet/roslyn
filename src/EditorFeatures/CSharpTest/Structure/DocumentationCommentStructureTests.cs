@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag1()
         {
-            const string code = """
+            var code = """
                 {|span:/// $$XML doc comment
                 /// some description
                 /// of
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag2()
         {
-            const string code = """
+            var code = """
                 {|span:/** $$Block comment
                 * some description
                 * of
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag3()
         {
-            const string code = """
+            var code = """
                 {|span:/// $$<param name="tree"></param>|}
                 class Class3
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDocumentationComment()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>
                 /// $$Hello C#!
                 /// </summary>|}
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMultilineDocumentationComment()
         {
-            const string code = """
+            var code = """
                 {|span:/** <summary>
                 $$Hello C#!
                 </summary> */|}
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndentedDocumentationComment()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>
                 /// $$Hello C#!
                 /// </summary>|}
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndentedMultilineDocumentationComment()
         {
-            const string code = """
+            var code = """
                 {|span:/** <summary>
                 $$Hello C#!
                 </summary> */|}
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDocumentationCommentOnASingleLine()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>$$Hello C#!</summary>|}
                 class Class3
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMultilineDocumentationCommentOnASingleLine()
         {
-            const string code = """
+            var code = """
                 {|span:/** <summary>$$Hello C#!</summary> */|}
                 class Class3
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndentedDocumentationCommentOnASingleLine()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>$$Hello C#!</summary>|}
                 class Class3
                 {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestIndentedMultilineDocumentationCommentOnASingleLine()
         {
-            const string code = """
+            var code = """
                 {|span:/** <summary>$$Hello C#!</summary> */|}
                 class Class3
                 {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMultilineSummaryInDocumentationComment1()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>
                 /// $$Hello
                 /// C#!
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestMultilineSummaryInDocumentationComment2()
         {
-            const string code = """
+            var code = """
                 {|span:/// <summary>
                 /// $$Hello
                 /// 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2129")]
         public async Task CrefInSummary()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:/// $$<summary>
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
         public async Task TestSummaryWithPunctuation()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:/// $$<summary>
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20679")]
         public async Task TestSummaryWithAdditionalTags()
         {
-            const string code = """
+            var code = """
                 public class Class1
                 {
                     {|span:/// $$<summary>

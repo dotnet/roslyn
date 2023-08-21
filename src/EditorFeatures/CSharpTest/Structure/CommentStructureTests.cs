@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestSimpleComment1()
         {
-            const string code = """
+            var code = """
                 {|span:// Hello
                 // $$C#|}
                 class C
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestSimpleComment2()
         {
-            const string code = """
+            var code = """
                 {|span:// Hello
                 //
                 // $$C#!|}
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestSimpleComment3()
         {
-            const string code = """
+            var code = """
                 {|span:// Hello
 
                 // $$C#!|}
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
         {
-            const string code = """
+            var code = """
                 {|span:// Hello
 
                 // $$C#!|}

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task PrependedDollarSign()
         {
-            const string code = """
+            var code = """
                 {|hint:$$class C{|textspan:
                 {
                     public void $Invoke();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task SymbolsAndPunctuation()
         {
-            const string code = """
+            var code = """
                 {|hint:$$class C{|textspan:
                 {
                     public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         public async Task IdentifierThatLooksLikeCode()
         {
-            const string code = """
+            var code = """
                 {|hint1:$$class C{|textspan1:
                 {
                     public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();

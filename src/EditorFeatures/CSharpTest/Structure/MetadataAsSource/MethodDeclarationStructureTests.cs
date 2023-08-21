@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     public string $$Bar(int x);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:[Goo]
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMethod3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     $${|#0:public string Goo(){|textspan:

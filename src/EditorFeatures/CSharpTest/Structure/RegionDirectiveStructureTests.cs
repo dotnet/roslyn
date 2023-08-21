@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task BrokenRegion()
         {
-            const string code = """
+            var code = """
                 $$#region Goo
                 """;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task SimpleRegion()
         {
-            const string code = """
+            var code = """
                 {|span:$$#region Goo
                 #endregion|}
                 """;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
         public async Task RegressionFor5284()
         {
-            const string code = """
+            var code = """
                 namespace BasicGenerateFromUsage
                 {
                     class BasicGenerateFromUsage
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
         public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:#region Re$$gion
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4105")]
         public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                 {|span:#  region R$$egion

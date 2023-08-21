@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent4()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEvent5()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestEventWithComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo

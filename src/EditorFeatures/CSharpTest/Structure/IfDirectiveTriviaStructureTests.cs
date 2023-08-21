@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEnabledIfDisabledElifDisabledElse()
         {
-            const string code = """
+            var code = """
                 #$$if true
                 {|span:class C
                 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfEnabledElifDisabledElse()
         {
-            const string code = """
+            var code = """
                 #$$if false
                 class C
                 {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestDisabledIfDisabledElifEnabledElse()
         {
-            const string code = """
+            var code = """
                 #$$if false
                 class C
                 {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestEmptyEnabledRegion()
         {
-            const string code = """
+            var code = """
                 #$$if true
                 #elif false
                 class D
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif1()
         {
-            const string code = """
+            var code = """
                 #$$if true
                 class C
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif2()
         {
-            const string code = """
+            var code = """
                 #$$if true
                 {|span:class C
                 {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
         public async Task TestMissingEndif3()
         {
-            const string code = """
+            var code = """
                 #$$if false
                 class C
                 {

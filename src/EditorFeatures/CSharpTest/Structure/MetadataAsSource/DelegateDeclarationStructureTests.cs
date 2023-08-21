@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = """
+            var code = """
                 public delegate TResult $$Blah<in T, out TResult>(T arg);
                 """;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = """
+            var code = """
                 {|hint:{|textspan:[Goo]
                 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = """
+            var code = """
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = """
+            var code = """
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]

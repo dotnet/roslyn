@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task NoCommentsOrAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     public event EventArgs $$goo
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:[Goo]
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithCommentsAndAttributes()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task WithCommentsAttributesAndModifiers()
         {
-            const string code = """
+            var code = """
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:

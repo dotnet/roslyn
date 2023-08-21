@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetter1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetterWithSingleLineComments1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetter2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetterWithSingleLineComments2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetter3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyGetterWithSingleLineComments3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetter1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetterWithSingleLineComments1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetter2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetterWithSingleLineComments2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetter3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertySetterWithSingleLineComments3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text

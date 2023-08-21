@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task TestPropertyGetter3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task TestPropertyGetterWithSingleLineComments3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         [Fact]
         public async Task TestPropertyGetterWithMultiLineComments3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     public string Text

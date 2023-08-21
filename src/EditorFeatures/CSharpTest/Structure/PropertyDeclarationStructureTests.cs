@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty4()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty5()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestProperty6()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyWithWithExpressionBodyAndComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span:// Goo
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestPropertyWithSpaceAfterIdentifier()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public int Goo    {|textspan:

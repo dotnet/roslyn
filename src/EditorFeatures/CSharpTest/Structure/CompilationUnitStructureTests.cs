@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestUsings()
         {
-            const string code = """
+            var code = """
                 $${|hint:using {|textspan:System;
                 using System.Core;|}|}
                 """;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestUsingAliases()
         {
-            const string code = """
+            var code = """
                 $${|hint:using {|textspan:System;
                 using System.Core;
                 using text = System.Text;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestExternAliases()
         {
-            const string code = """
+            var code = """
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;|}|}
                 """;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestExternAliasesAndUsings()
         {
-            const string code = """
+            var code = """
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;
                 using System;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
         {
-            const string code = """
+            var code = """
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestUsingsWithComments()
         {
-            const string code = """
+            var code = """
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:using {|textspan2:System;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestExternAliasesWithComments()
         {
-            const string code = """
+            var code = """
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestWithComments()
         {
-            const string code = """
+            var code = """
                 $${|span1:// Goo
                 // Bar|}
                 """;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestWithCommentsAtEnd()
         {
-            const string code = """
+            var code = """
                 $${|hint1:using {|textspan1:System;|}|}
                 {|span2:// Goo
                 // Bar|}
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
         public async Task TestUsingKeywordWithSpace()
         {
-            const string code = """
+            var code = """
                 $${|hint:using|} {|textspan:|}
                 """;
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, CombinatorialData]
         public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
         {
-            const string code = """
+            var code = """
                 $${|hint:using {|textspan:System;
                 using System.Core;|}|}
                 """;

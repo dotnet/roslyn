@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClass1()
         {
-            const string code = """
+            var code = """
                 {|hint:$$class C{|textspan:
                 {
                 }|}|}
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClassWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$class C{|textspan2:
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestClassWithNestedComments()
         {
-            const string code = """
+            var code = """
                 {|hint1:$$class C{|textspan1:
                 {
                     {|span2:// Goo
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterface1()
         {
-            const string code = """
+            var code = """
                 {|hint:$$interface I{|textspan:
                 {
                 }|}|}
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterfaceWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$interface I{|textspan2:
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestInterfaceWithNestedComments()
         {
-            const string code = """
+            var code = """
                 {|hint1:$$interface I{|textspan1:
                 {
                     {|span2:// Goo
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStruct1()
         {
-            const string code = """
+            var code = """
                 {|hint:$$struct S{|textspan:
                 {
                 }|}|}
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStructWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$struct S{|textspan2:
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestStructWithNestedComments()
         {
-            const string code = """
+            var code = """
                 {|hint1:$$struct S{|textspan1:
                 {
                     {|span2:// Goo

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDelegateWithComments()
         {
-            const string code = """
+            var code = """
                 {|span:// Goo
                 // Bar|}
                 $$public delegate void C();

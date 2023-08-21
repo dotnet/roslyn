@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDisabledIf()
         {
-            const string code = """
+            var code = """
                 #if false
                 {|span:$$Blah
                 Blah
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDisabledElse()
         {
-            const string code = """
+            var code = """
                 #if true
                 #else
                 {|span:$$Blah
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestDisabledElIf()
         {
-            const string code = """
+            var code = """
                 #if true
                 #elif false
                 {|span:$$Blah
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if false
                 {|span:    void $$M()
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if false
                 {|span:    void M()
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                     void M()
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {
-            const string code = """
+            var code = """
                 class P {
                 #if Goo
                 {|span:    void $$M()

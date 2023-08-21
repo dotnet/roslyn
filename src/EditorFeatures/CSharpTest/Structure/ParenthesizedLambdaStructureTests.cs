@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestLambda()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestLambdaInForLoop()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestLambdaInMethodCall1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestLambdaInMethodCall2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()

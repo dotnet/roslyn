@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     void M()

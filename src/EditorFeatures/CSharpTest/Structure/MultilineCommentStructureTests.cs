@@ -25,7 +25,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestMultilineComment1()
     {
-        const string code = """
+        var code = """
             {|span:/* Hello
             $$C# */|}
             class C
@@ -40,7 +40,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestMultilineCommentOnOneLine()
     {
-        const string code = """
+        var code = """
             {|span:/* Hello $$C# */|}
             class C
             {
@@ -55,7 +55,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
     public async Task TestIncompleteMultilineCommentZeroSpace()
     {
-        const string code = """
+        var code = """
             {|span:$$/*|}
             """;
 
@@ -67,7 +67,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
     public async Task TestIncompleteMultilineCommentSingleSpace()
     {
-        const string code = """
+        var code = """
             {|span:$$/* |}
             """;
 
@@ -78,7 +78,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertyGetterWithMultiLineComments1()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -99,7 +99,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertyGetterWithMultiLineComments2()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -123,7 +123,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertyGetterWithMultiLineComments3()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -148,7 +148,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertySetterWithMultiLineComments1()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -169,7 +169,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertySetterWithMultiLineComments2()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -193,7 +193,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestPropertySetterWithMultiLineComments3()
     {
-        const string code = """
+        var code = """
             class C
             {
                 public string Text
@@ -218,7 +218,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestMultilineCommentInFile()
     {
-        const string code = """
+        var code = """
             $${|span1:/* Comment in file
              */|}
             namespace M
@@ -233,7 +233,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestMultilineCommentInNamespace()
     {
-        const string code = """
+        var code = """
             namespace M
             {
                 $${|span1:/* Comment in namespace
@@ -248,7 +248,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact]
     public async Task TestMultilineCommentInClass()
     {
-        const string code = """
+        var code = """
             namespace M
             {
                 class C
@@ -267,7 +267,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInMethod()
     {
-        const string code = """
+        var code = """
             namespace M
             {
                 class C
@@ -289,7 +289,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInLocalFunction()
     {
-        const string code = """
+        var code = """
             namespace M
             {
                 class C
@@ -314,7 +314,7 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInConstructor()
     {
-        const string code = """
+        var code = """
             namespace M
             {
                 class C

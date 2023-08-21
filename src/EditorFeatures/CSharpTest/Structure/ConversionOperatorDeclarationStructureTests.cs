@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperator1()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperator2()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperator3()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Fact]
         public async Task TestOperatorWithLeadingComments()
         {
-            const string code = """
+            var code = """
                 class C
                 {
                     {|span1:// Goo
