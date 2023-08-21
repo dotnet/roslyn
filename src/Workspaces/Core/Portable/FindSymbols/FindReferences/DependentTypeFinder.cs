@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 await AddMatchingTypesAsync(
                                     projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                     tempBuffer,
-                                    predicate: n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
+                                    predicate: static n => n.BaseType?.SpecialType == SpecialType.System_Object).ConfigureAwait(false);
                                 break;
                             case SpecialType.System_ValueType:
                                 await AddMatchingTypesAsync(
@@ -239,6 +239,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
                 }
 
+                async ValueTask<SemanticModel> GetRequiredSemanticModelAsync(DocumentId documentId)
+                {
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    cachedModels.Add(semanticModel);
+
+                    return semanticModel;
+                }
+
                 async Task AddMatchingTypesAsync(
                     MultiDictionary<DocumentId, DeclaredSymbolInfo> documentToInfos,
                     SymbolSet result,
@@ -247,21 +256,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (documentId, infos) in documentToInfos)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
                         Debug.Assert(infos.Count > 0);
-                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        cachedModels.Add(semanticModel);
 
+                        var semanticModel = await GetRequiredSemanticModelAsync(documentId).ConfigureAwait(false);
                         foreach (var info in infos)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
-                            if (resolvedSymbol is INamedTypeSymbol namedType)
+                            if (info.TryResolve(semanticModel, cancellationToken) is INamedTypeSymbol namedType &&
+                                predicate?.Invoke(namedType) != false)
                             {
-                                if (predicate == null || predicate(namedType))
-                                    result.Add(namedType);
+                                result.Add(namedType);
                             }
                         }
                     }
@@ -273,12 +278,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        cachedModels.Add(semanticModel);
-
-                        var resolvedType = info.TryResolve(semanticModel, cancellationToken);
-                        if (resolvedType is INamedTypeSymbol namedType &&
+                        var semanticModel = await GetRequiredSemanticModelAsync(documentId).ConfigureAwait(false);
+                        if (info.TryResolve(semanticModel, cancellationToken) is INamedTypeSymbol namedType &&
                             typeMatches(namedType, typesToSearchFor))
                         {
                             result.Add(namedType);
