@@ -346,7 +346,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
-                var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
+                var markupCode = (bool?)sourceGeneratedDocumentElement.Attribute(NormalizeAttributeName) is false
+                    ? sourceGeneratedDocumentElement.Value
+                    : sourceGeneratedDocumentElement.NormalizedValue();
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
