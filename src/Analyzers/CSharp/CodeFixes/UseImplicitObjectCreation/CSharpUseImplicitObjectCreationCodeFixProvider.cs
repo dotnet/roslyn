@@ -61,6 +61,10 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
         var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif
 
+        // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix
+        // from being valid.  For example: `new List<C> { new C() }`.  If we apply the fix to the outer `List<C>`, we
+        // should not apply it to the inner `new C()` as the inner creation will no longer be apparent once the outer
+        // type goes away.
         await editor.ApplyExpressionLevelSemanticEditsAsync(
             document,
             nodes,
