@@ -63,15 +63,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageCl
         foreach (var span in markdownSpans)
             context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
-        // Next, get all the embedded language classifications for the test file.  Combine these with the markdown
-        // components. Note: markdown components may be in between individual language components.  For example
-        // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
-        // `$$` classification.
-        var testFileClassifiedSpans = GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
-        foreach (var testClassifiedSpan in testFileClassifiedSpans)
-            AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
-
-        // Finally, fill in everything with the "TestCode" classification.  This will ensure it gets the right
+        // Next, fill in everything with the "TestCode" classification.  This will ensure it gets the right
         // background highlighting.  For raw strings we don't want to classify the full lines with this background
         // color.  Only the parts to the right of the "start column" designation for that raw string.
 
@@ -106,6 +98,14 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageCl
                     virtualCharsWithoutMarkup.First().Span.Start,
                     virtualCharsWithoutMarkup.Last().Span.End));
         }
+
+        // Next, get all the embedded language classifications for the test file.  Combine these with the markdown
+        // components. Note: markdown components may be in between individual language components.  For example
+        // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
+        // `$$` classification.
+        var testFileClassifiedSpans = GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+        foreach (var testClassifiedSpan in testFileClassifiedSpans)
+            AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
     }
 
     private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
