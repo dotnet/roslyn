@@ -108,12 +108,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public bool IsSdkStyle { get; }
 
-        /// <summary>
-        /// The error message produced when a failure occurred attempting to get the info. 
-        /// If a failure occurred some or all of the information may be inaccurate or incomplete.
-        /// </summary>
-        public DiagnosticLog Log { get; }
-
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
@@ -136,8 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle,
-            DiagnosticLog log)
+            bool isSdkStyle)
         {
             RoslynDebug.Assert(filePath != null);
 
@@ -158,7 +151,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
             this.IsSdkStyle = isSdkStyle;
-            this.Log = log;
         }
 
         public static ProjectFileInfo Create(
@@ -177,8 +169,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle,
-            DiagnosticLog log)
+            bool isSdkStyle)
             => new(
                 isEmpty: false,
                 language,
@@ -196,10 +187,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 projectCapabilities,
                 contentFilePaths,
-                isSdkStyle,
-                log);
+                isSdkStyle);
 
-        public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
+        public static ProjectFileInfo CreateEmpty(string language, string? filePath)
             => new(
                 isEmpty: true,
                 language,
@@ -217,7 +207,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
                 projectCapabilities: ImmutableArray<string>.Empty,
                 contentFilePaths: ImmutableArray<string>.Empty,
-                isSdkStyle: false,
-                log);
+                isSdkStyle: false);
     }
 }
