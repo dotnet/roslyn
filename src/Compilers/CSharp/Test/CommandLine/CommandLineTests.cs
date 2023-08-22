@@ -14701,6 +14701,111 @@ dotnet_diagnostic.CS8034.severity = none
             // suppresssed via global analyzer config
             VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
         }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithEditorConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.DiagID1.severity = none
+""");
+            // Without editorconfig
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            // With editorconfig
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithNoWarn()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""");
+
+            // Without nowarn
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+               "/nologo",
+               "/t:exe",
+               "/preferreduilang:en",
+               src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            // With nowarn
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+               "/nologo",
+               "/t:exe",
+               "/preferreduilang:en",
+               "/nowarn:DiagID1",
+               src.Path });
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

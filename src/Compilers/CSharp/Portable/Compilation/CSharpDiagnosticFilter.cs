@@ -192,13 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     specifiedWarnAsErrorMinus = true;
                 }
             }
-            else if (errorCode == (int)ErrorCode.WRN_Experimental)
-            {
-                // Special handling for [Experimental] warning (treat as error severity by default)
-                severity = DiagnosticSeverity.Error;
-                report = ReportDiagnostic.Error;
-                isSpecified = true;
-            }
 
             // Apply syntax tree options, if applicable.
             if (syntaxTreeOptions != null &&
@@ -224,7 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isSpecified)
             {
-                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+                if (errorCode == (int)ErrorCode.WRN_Experimental)
+                {
+                    // Special handling for [Experimental] warning (treat as error severity by default)
+                    severity = DiagnosticSeverity.Error;
+                    report = ReportDiagnostic.Error;
+                    isSpecified = true;
+                }
+                else
+                {
+                    report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+                }
             }
 
             if (report == ReportDiagnostic.Suppress)
