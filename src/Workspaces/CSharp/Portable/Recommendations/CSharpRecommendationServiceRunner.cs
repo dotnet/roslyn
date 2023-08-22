@@ -563,11 +563,11 @@ internal partial class CSharpRecommendationService
                     return true;
                 }
 
-                if (containerType is ITypeParameterSymbol && excludeInstance)
+                // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
+                // way, so filter them out.
+                if (excludeInstance && containerType is ITypeParameterSymbol && symbol.IsStatic)
                 {
-                    // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
-                    // way, so filter them out.
-                    if (symbol.IsStatic && !(symbol.IsVirtual || symbol.IsAbstract))
+                    if (!(symbol.IsVirtual || symbol.IsAbstract))
                         return true;
                 }
 
