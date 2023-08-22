@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             this.Locals = locals;
         }
 
+        // something
         internal int Length
         {
             get { return this.EndOffset - this.StartOffset + 1; }
