@@ -467,14 +467,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                initialMarkup.NormalizeLineEndings(),
+                initialMarkup,
                 out var initialMarkupWithoutSpans, out IDictionary<string, ImmutableArray<TextSpan>> initialSpanMap);
 
             const string UnnecessaryMarkupKey = "Unnecessary";
             var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
 
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(),
+                expectedMarkup,
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> expectedSpanMap);
 
             var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);

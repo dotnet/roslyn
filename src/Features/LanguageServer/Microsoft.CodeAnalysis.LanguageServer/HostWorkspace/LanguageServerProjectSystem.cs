@@ -8,19 +8,19 @@ using System.Composition;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -34,13 +34,23 @@ internal sealed class LanguageServerProjectSystem
     /// This is just we don't have code simultaneously trying to load and unload solutions at once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
     private bool _msbuildLoaded = false;
+
+    /// <summary>
+    /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
+    /// </summary>
+    private int _binaryLogNumericSuffix;
+
+    /// <summary>
+    /// A GUID put into all binary log file names, so that way one session doesn't accidentally overwrite the logs from a prior session.
+    /// </summary>
+    private readonly Guid _binaryLogGuidSuffix = Guid.NewGuid();
 
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
 
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -56,11 +66,13 @@ internal sealed class LanguageServerProjectSystem
     public LanguageServerProjectSystem(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
+        IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
+        _globalOptionService = globalOptionService;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
@@ -76,8 +88,9 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
-        await OpenSolutionCoreAsync(solutionFilePath);
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
+            await OpenSolutionCoreAsync(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
@@ -98,6 +111,28 @@ internal sealed class LanguageServerProjectSystem
 
                 _projectsToLoadAndReload.AddWork(project.AbsolutePath);
             }
+
+            // Wait for the in progress batch to complete and send a project initialized notification to the client.
+            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        }
+    }
+
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    {
+        if (!projectFilePaths.Any())
+            return;
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
+            await OpenProjectsCoreAsync(projectFilePaths);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            _projectsToLoadAndReload.AddWork(projectFilePaths);
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
@@ -130,6 +165,8 @@ internal sealed class LanguageServerProjectSystem
                 else
                 {
                     _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, LanguageServerResources.There_were_problems_loading_your_projects_See_log_for_details, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
+
                     return false;
                 }
             }
@@ -141,9 +178,11 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty);
+        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty, msbuildLogger: CreateMSBuildLogger());
 
         projectBuildManager.StartBatchBuild();
+
+        var displayedToast = 0;
 
         try
         {
@@ -151,7 +190,20 @@ internal sealed class LanguageServerProjectSystem
 
             foreach (var projectPathToLoadOrReload in projectPathsToLoadOrReload)
             {
-                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken), cancellationToken));
+                tasks.Add(Task.Run(async () =>
+                {
+                    var errorKind = await LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken);
+                    if (errorKind is LSP.MessageType.Error)
+                    {
+                        // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
+                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, value: 1, comparand: 0) == 0;
+                        if (shouldShowToast)
+                        {
+                            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPathToLoadOrReload));
+                            await ShowToastNotification.ShowToastNotificationAsync(errorKind.Value, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                        }
+                    }
+                }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -164,7 +216,20 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
+    private Build.Framework.ILogger? CreateMSBuildLogger()
+    {
+        if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
+            return null;
+
+        var numericSuffix = Interlocked.Increment(ref _binaryLogNumericSuffix);
+        var binaryLogPath = Path.Combine(binaryLogDirectory, $"LanguageServerDesignTimeBuild-{_binaryLogGuidSuffix}-{numericSuffix}.binlog");
+
+        _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
+
+        return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
+    }
+
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
     {
         try
         {
@@ -207,18 +272,25 @@ internal sealed class LanguageServerProjectSystem
                 {
                     foreach (var logItem in loadedFile.Log)
                     {
-                        _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        var projectName = Path.GetFileName(projectPath);
+                        _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
                     }
+
+                    return loadedFile.Log.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
                 }
                 else
                 {
                     _logger.LogInformation($"Successfully completed load of {projectPath}");
+                    return null;
                 }
             }
+
+            return null;
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Exception thrown while loading {projectPath}");
+            return LSP.MessageType.Error;
         }
     }
 }

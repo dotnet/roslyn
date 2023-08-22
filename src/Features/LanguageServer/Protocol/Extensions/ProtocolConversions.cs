@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -32,7 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
-        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
+        private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
+#pragma warning restore
+
+        private static readonly char[] s_dirSeparators = new[] { PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar };
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -151,35 +159,88 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        // If we have a file:///xyz URI, we'll store the actual file path string in the document file path.
-        // Otherwise we have a URI that doesn't point to an actual file. In such a scenario, we'll store the full URI string (including schema).
-        // This will allow correct round-tripping of the URI for features that need it until we support URI as a first class document concept.
-        // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
-        public static string GetDocumentFilePathFromUri(Uri uri) => uri.IsFile ? uri.LocalPath : uri.OriginalString;
+        public static string GetDocumentFilePathFromUri(Uri uri)
+            => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
 
-        public static Uri GetUriFromFilePath(string filePath)
+        /// <summary>
+        /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
+        /// </summary>
+        /// <exception cref="UriFormatException">
+        /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
+        /// For example, UNC paths with invalid characters in server name.
+        /// </exception>
+        public static Uri CreateAbsoluteUri(string absolutePath)
+#pragma warning disable RS0030 // Do not use banned APIs
+            => new(IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath), UriKind.Absolute);
+#pragma warning restore
+
+        // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
+        internal static string GetAbsoluteUriString(string absolutePath)
         {
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
+            if (!PathUtilities.IsAbsolute(absolutePath))
+            {
+                return absolutePath;
+            }
 
-            return new Uri(filePath, UriKind.Absolute);
+            var parts = absolutePath.Split(s_dirSeparators);
+
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                // Unix path: first part is empty, all parts should be escaped
+                return "file://" + string.Join("/", parts.Select(EscapeUriPart));
+            }
+
+            if (parts is ["", "", var serverName, ..])
+            {
+                // UNC path: first non-empty part is server name and shouldn't be escaped
+                return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
+            }
+
+            // Drive-rooted path: first part is "C:" and shouldn't be escaped
+            return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
+
+#pragma warning disable SYSLIB0013 // Type or member is obsolete
+            static string EscapeUriPart(string stringToEscape)
+                => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
+#pragma warning restore
         }
 
-        public static Uri GetUriFromPartialFilePath(string? filePath)
+        public static Uri CreateUriFromSourceGeneratedFilePath(string filePath)
         {
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
+            Debug.Assert(!PathUtilities.IsAbsolute(filePath));
 
-            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
+            // Fast path for common cases:
+            if (IsAscii(filePath))
+            {
+#pragma warning disable RS0030 // Do not use banned APIs
+                return new Uri(s_sourceGeneratedDocumentBaseUri, filePath);
+#pragma warning restore
+            }
+
+            // Workaround for https://github.com/dotnet/runtime/issues/89538:
+
+            var parts = filePath.Split(s_dirSeparators);
+            var url = SourceGeneratedDocumentBaseUri + string.Join("/", parts.Select(Uri.EscapeDataString));
+
+#pragma warning disable RS0030 // Do not use banned APIs
+            return new Uri(url, UriKind.Absolute);
+#pragma warning restore
         }
 
-        public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
-        {
-            if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))
-                return uri;
+        private static bool IsAscii(char c)
+            => (uint)c <= '\x007f';
 
-            context?.TraceInformation($"Could not convert '{filePath}' to uri");
-            return null;
+        private static bool IsAscii(string filePath)
+        {
+            for (var i = 0; i < filePath.Length; i++)
+            {
+                if (!IsAscii(filePath[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
@@ -240,6 +301,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = TextSpanToRange(textChange.Span, oldText)
             };
         }
+
+        public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
+            => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
         public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
             => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
@@ -323,7 +387,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         var textChange = textChanges[i];
                         if (!mappedSpan.IsDefault)
                         {
-                            uriToTextEdits.Add((GetUriFromFilePath(mappedSpan.FilePath), new LSP.TextEdit
+                            uriToTextEdits.Add((CreateAbsoluteUri(mappedSpan.FilePath), new LSP.TextEdit
                             {
                                 Range = MappedSpanResultToRange(mappedSpan),
                                 NewText = textChange.NewText ?? string.Empty
@@ -358,17 +422,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             RequestContext? context,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(document.FilePath != null);
+
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
-            var uri = TryGetUriFromFilePath(mappedSpan.FilePath, context);
+            Uri? uri = null;
+            try
+            {
+                if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
+                    uri = CreateAbsoluteUri(mappedSpan.FilePath);
+            }
+            catch (UriFormatException)
+            {
+            }
+
             if (uri == null)
+            {
+                context?.TraceInformation($"Could not convert '{mappedSpan.FilePath}' to uri");
                 return null;
+            }
 
             return new LSP.Location
             {
@@ -376,16 +454,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> TryConvertTextSpanToLocation(
+            static async Task<LSP.Location?> ConvertTextSpanToLocation(
                 Document document,
                 TextSpan span,
                 bool isStale,
-                RequestContext? context,
                 CancellationToken cancellationToken)
             {
-                var uri = document.TryGetURI(context);
-                if (uri == null)
-                    return null;
+                Debug.Assert(document.FilePath != null);
+                var uri = CreateAbsoluteUri(document.FilePath);
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)

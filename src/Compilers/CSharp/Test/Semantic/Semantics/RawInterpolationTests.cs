@@ -998,9 +998,9 @@ class Program {
 }";
 
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,37): error CS8917: The delegate type could not be inferred.
+            // (5,38): error CS8917: The delegate type could not be inferred.
             //         Console.WriteLine($"""X = { x=>3 }.""");
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 37),
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 38),
             // (6,37): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
             //         Console.WriteLine($"""X = { Program.Main }.""");
             Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 37),

@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Dim root = tree.GetRoot(cancellationToken)
-            Return TryGetEnclosingBreakpointSpan(root, position, minLength:=0, breakpointSpan)
+            Return TryGetClosestBreakpointSpan(root, position, minLength:=0, breakpointSpan)
         End Function
 
         Private Function IsBlank(line As TextLine) As Boolean
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' <paramref name="minLength"/> can be used to disambiguate between them. 
         ''' The inner-most available span whose length is at least <paramref name="minLength"/> is returned.
         ''' </param>
-        Public Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
+        Public Function TryGetClosestBreakpointSpan(root As SyntaxNode, position As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
             Dim node = root.FindToken(position).Parent
 
             Dim candidate As TextSpan? = Nothing

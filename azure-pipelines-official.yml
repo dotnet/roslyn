@@ -390,6 +390,8 @@ stages:
         enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
+          -ArtifactToolsList @("binskim")
+          -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True","SymbolsPath < SRV*https://msdl.microsoft.com/download/symbols")
           -TsaInstanceURL $(_TsaInstanceURL)
           -TsaProjectName $(_TsaProjectName)
           -TsaNotificationEmail $(_TsaNotificationEmail)

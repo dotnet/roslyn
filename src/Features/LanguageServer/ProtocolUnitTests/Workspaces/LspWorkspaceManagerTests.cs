@@ -241,9 +241,11 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Create a new document, but do not update the workspace solution yet.
         var newDocumentId = DocumentId.CreateNewId(testLspServer.TestWorkspace.CurrentSolution.ProjectIds[0]);
-        var newDocumentFilePath = @"C:/NewDoc.cs";
+
+        // Include some Unicode characters to test URL handling.
+        var newDocumentFilePath = "C:\\NewDoc\\\ue25b\ud86d\udeac.cs";
         var newDocumentInfo = DocumentInfo.Create(newDocumentId, "NewDoc.cs", filePath: newDocumentFilePath, loader: new TestTextLoader("New Doc"));
-        var newDocumentUri = ProtocolConversions.GetUriFromFilePath(newDocumentFilePath);
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(newDocumentFilePath);
 
         // Open the document via LSP before the workspace sees it.
         await testLspServer.OpenDocumentAsync(newDocumentUri, "LSP text");
@@ -369,8 +371,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
         Assert.True(IsWorkspaceRegistered(testWorkspaceTwo, testLspServer));
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -424,8 +426,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -542,8 +544,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
             Array.Empty<string>(), mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open the doc
-        var filePath = @"c:\Test1.cs";
-        var documentUri = new Uri("file://" + filePath, UriKind.Absolute);
+        var filePath = "c:\\\ue25b\ud86d\udeac.cs";
+        var documentUri = ProtocolConversions.CreateAbsoluteUri(filePath);
         await testLspServer.OpenDocumentAsync(documentUri, "Text");
 
         // Initially the doc will be in the lsp misc workspace.

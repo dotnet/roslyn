@@ -247,6 +247,11 @@
         <target state="translated">솔루션 완료 전에 코드 분석이 종료되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">파일을 열 때 메타데이터 서명 파일을 정의로 축소</target>
@@ -1092,6 +1097,11 @@
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="new">Prefer collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">복합 대입 선호</target>
@@ -1481,6 +1491,11 @@
         <source>Sync namespaces changes</source>
         <target state="translated">동기화 네임스페이스 변경 내용</target>
         <note />
+      </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="new">'System.Void' is not a valid type for a parameter</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
