@@ -477,7 +477,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
                 {
-                    // For named typed, namespaces, and type parameters (potentially constrainted to interface with statics), we flip things around.
+                    // For named typed, namespaces, and type parameters (potentially constrained to interface with statics), we flip things around.
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
@@ -527,25 +527,52 @@ internal partial class CSharpRecommendationService
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
             var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
 
-            // If we're showing instance members, don't include nested types
-            var namedSymbols = excludeStatic
-                ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : symbols;
-
-            //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
-            //if recomendations are requested not in nameof context,
-            //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
-            if (excludeBaseMethodsForRefStructs && containerType is not null && containerType.IsRefLikeType)
-            {
-                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType);
-            }
+            var namedSymbols = symbols.WhereAsArray(
+                static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
+                (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
             var unnamedSymbols = _context.IsNameOfContext || excludeInstance
                 ? default
                 : GetUnnamedSymbols(originalExpression);
+
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
+
+            static bool IsUndesirable(
+                ISymbol symbol,
+                ITypeSymbol? containerType,
+                bool excludeStatic,
+                bool excludeInstance,
+                bool excludeBaseMethodsForRefStructs)
+            {
+                // If we're showing instance members, don't include nested types
+                if (excludeStatic)
+                {
+                    if (symbol.IsStatic || symbol is ITypeSymbol)
+                        return true;
+                }
+
+                // If container type is "ref struct" then we should exclude methods from object and ValueType that are not
+                // overridden if recommendations are requested not in nameof context, because calling them produces a
+                // compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+                if (excludeBaseMethodsForRefStructs &&
+                    containerType is { IsRefLikeType: true } &&
+                    symbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
+                {
+                    return true;
+                }
+
+                // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
+                // way, so filter them out.
+                if (excludeInstance && containerType is ITypeParameterSymbol && symbol.IsStatic)
+                {
+                    if (!(symbol.IsVirtual || symbol.IsAbstract))
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression)
