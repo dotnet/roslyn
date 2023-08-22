@@ -459,10 +459,10 @@ public class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<
     public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
     {
         var code = """
-                Foo();
+                Goo();
                 Bar();
 
-                {|hint:static void Foo(){|textspan:
+                {|hint:static void Goo(){|textspan:
                 {$$
                    // ...
                 }|}|}
@@ -470,5 +470,47 @@ public class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<
 
         await VerifyBlockSpansAsync(code,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
+    public async Task LocalFunctionInBodyRespectOption1()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    {|hint:static void Goo(){|textspan:
+                    {$$
+                       // ...
+                    }|}|}
+                }
+            }
+            """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
+    public async Task LocalFunctionInBodyRespectOption2()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    {|hint:static void Goo(){|textspan:
+                    {$$
+                       // ...
+                    }|}|}
+                }
+            }
+            """;
+
+        await VerifyBlockSpansAsync(code, GetDefaultOptions() with
+        {
+            CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
+        }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }
