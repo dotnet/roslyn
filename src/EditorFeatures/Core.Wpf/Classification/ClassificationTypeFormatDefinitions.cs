@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public TestCodeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Roslyn_Test_Code;
-                this.BackgroundColor = Color.FromRgb(60, 60, 60);
+                this.BackgroundColor = Color.FromRgb(196, 196, 196);
             }
         }
 
