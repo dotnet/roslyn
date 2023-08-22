@@ -750,24 +750,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TestCodeIdentifier)]
-        [Name(ClassificationTypeNames.TestCodeIdentifier)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [UserVisible(true)]
-        [ExcludeFromCodeCoverage]
-        private class TestCodeIdentifierFormatDefinition : ClassificationFormatDefinition
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestCodeIdentifierFormatDefinition()
-            {
-                this.DisplayName = "test code identifier";
-                this.ForegroundColor = Color.FromRgb(0xff, 0xff, 0xff);
-            }
-        }
-
-        [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TestCodeMarkdown)]
         [Name(ClassificationTypeNames.TestCodeMarkdown)]
         [Order(After = ClassificationTypeNames.StringLiteral)]

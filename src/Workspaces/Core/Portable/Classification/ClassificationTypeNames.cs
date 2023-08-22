@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string TypeParameterName = "type parameter name";
 
         internal const string TestCode = "test code";
-        internal const string TestCodeIdentifier = "test code identifier";
         internal const string TestCodeMarkdown = "test code markdown";
 
         public const string FieldName = "field name";

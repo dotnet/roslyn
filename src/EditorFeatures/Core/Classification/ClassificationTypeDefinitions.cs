@@ -106,10 +106,6 @@ namespace Microsoft.CodeAnalysis.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition TestCodeTypeDefinition;
         [Export]
-        [Name(ClassificationTypeNames.TestCodeIdentifier)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition TestCodeIdentifierTypeDefinition;
-        [Export]
         [Name(ClassificationTypeNames.TestCodeMarkdown)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition TestCodeMarkdownTypeDefinition;
