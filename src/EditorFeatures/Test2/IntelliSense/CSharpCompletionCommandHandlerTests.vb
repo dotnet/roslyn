@@ -11583,11 +11583,11 @@ public class C1
             End Using
         End Function
 
-        <InlineData("""text""")>
-        <InlineData("""""""text""""""")>
+        <InlineData("""text""u8")>
+        <InlineData("""""""text""""""u8")>
         <InlineData("""""""
         text
-        """"""")>
+        """"""u8")>
         <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68704")>
         Public Async Function TriggerCompletionAtEndOfUtf8StringLiteral(stringText As String) As Task
             Dim workspaceDefinition =
@@ -11598,7 +11598,7 @@ public class Class1
 {
     public void M()
     { 
-        var channel = <%= stringText %>u8$$
+        var channel = <%= stringText %>$$
     }
 }
                     </Document>
