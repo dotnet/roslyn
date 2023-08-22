@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
+        internal static string MakePrimaryConstructorParameterFieldName(string parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+            return "<" + parameterName + ">P";
+        }
+
         internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
             Debug.Assert((int)finalizeState < -2);
@@ -317,6 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentThreadIdField == 'l');
             return "<>l__initialThreadId";
+        }
+
+        internal static string MakeStateMachineStateIdFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.StateMachineStateIdField == 'I');
+            return "<>I";
         }
 
         internal static string ThisProxyFieldName()

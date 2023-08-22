@@ -256,11 +256,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
+            compilationOptions As CompilationOptions,
             skipAnalyzers As Boolean,
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, analyzers, generators)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -299,6 +300,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Protected Overrides Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
         End Function
+
+        Private Protected Overrides Sub DiagnoseBadAccesses(consoleOutput As TextWriter, errorLogger As ErrorLogger, compilation As Compilation, diagnostics As ImmutableArray(Of Diagnostic))
+            Dim newDiagnostics = DiagnosticBag.GetInstance()
+
+            For Each diag In diagnostics
+                Dim symbol As Symbol
+                Select Case diag.Code
+                    Case ERRID.ERR_InaccessibleSymbol2,
+                         ERRID.ERR_InaccessibleMember3,
+                         ERRID.ERR_InAccessibleCoClass3,
+                         ERRID.ERR_CannotOverrideInAccessibleMember,
+                         ERRID.ERR_InaccessibleReturnTypeOfMember2
+
+                        Dim symbolDiagnostic = DirectCast(DirectCast(diag, DiagnosticWithInfo).Info, BadSymbolDiagnostic)
+                        symbol = symbolDiagnostic.BadSymbol
+
+                    Case Else
+                        Continue For
+                End Select
+
+                newDiagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly), diag.Location))
+            Next
+
+            ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation)
+        End Sub
 
     End Class
 End Namespace

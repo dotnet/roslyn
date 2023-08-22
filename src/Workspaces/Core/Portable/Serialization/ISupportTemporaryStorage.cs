@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal interface ISupportTemporaryStorage
     {
-        IEnumerable<ITemporaryStreamStorageInternal>? GetStorages();
+        IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages();
     }
 }

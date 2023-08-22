@@ -23,16 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class TypeofBinder : Binder
     {
         private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
-        private readonly bool _isTypeExpressionOpen;
 
         internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
             // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
             : base(next, next.Flags | BinderFlags.UnsafeRegion)
         {
-            OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
+            OpenTypeVisitor.Visit(typeExpression, out _allowedMap);
         }
-
-        internal bool IsTypeExpressionOpen => _isTypeExpressionOpen;
 
         protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
@@ -51,26 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private Dictionary<GenericNameSyntax, bool> _allowedMap;
             private bool _seenConstructed;
-            private bool _seenGeneric;
 
             /// <param name="typeSyntax">The argument to typeof.</param>
             /// <param name="allowedMap">
             /// Keys are GenericNameSyntax nodes representing unbound generic types.
             /// Values are false if the node should result in an error and true otherwise.
             /// </param>
-            /// <param name="isUnboundGenericType">True if no constructed generic type was encountered.</param>
-            public static void Visit(ExpressionSyntax typeSyntax, out Dictionary<GenericNameSyntax, bool> allowedMap, out bool isUnboundGenericType)
+            public static void Visit(ExpressionSyntax typeSyntax, out Dictionary<GenericNameSyntax, bool> allowedMap)
             {
                 OpenTypeVisitor visitor = new OpenTypeVisitor();
                 visitor.Visit(typeSyntax);
                 allowedMap = visitor._allowedMap;
-                isUnboundGenericType = visitor._seenGeneric && !visitor._seenConstructed;
             }
 
             public override void VisitGenericName(GenericNameSyntax node)
             {
-                _seenGeneric = true;
-
                 SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
                 if (node.IsUnboundGenericName)
                 {

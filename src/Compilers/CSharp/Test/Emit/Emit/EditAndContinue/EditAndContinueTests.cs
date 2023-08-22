@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public void Constructor_Delete()
+        public void Constructor_Delete_WithParameterless()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -102,6 +102,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
                         g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Constructor_Delete()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public C(int x)
+                            {
+                            }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        // The default constructor is added and the deleted constructor is updated to throw:
+                        g.VerifyMethodDefNames(".ctor", ".ctor");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param)
+                        });
+
+                        g.VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
+                            }
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  call       0x0A000006
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -592,7 +659,7 @@ class Bad : Bad
         public void ModifyMethod_WithAttributes1()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+                .AddBaseline(
                     source: @"
 class C
 {
@@ -1316,7 +1383,7 @@ class C
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
-            CheckNames(readers, reader1.GetTypeDefNames(), "<>A{00001000,00000001}`33", "<>F{00000004}`3");                              // new synthesized delegate for the new lambda
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>A{00040000,100000000}`33", "<>F{00000008}`3");                              // new synthesized delegate for the new lambda
             CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", ".ctor", "Invoke", "<F>b__0_1#1", "<F>b__0_2#1");
 
             diff1.VerifySynthesizedMembers(
@@ -1744,6 +1811,106 @@ class C
                 "C: {<>c}");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67243")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67243")]
+        public void SynthesizedDelegate_MethodGroup()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
+                .AddBaseline(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(2);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "Program", "C", "<>O");
+
+                        g.VerifyMethodBody("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (<>f__AnonymousDelegate0<bool> V_0) //y
+  // sequence point: Console.WriteLine(1);
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  // sequence point: var      y = C.G      ;
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O.<0>__G""
+  IL_0022:  stloc.0
+  // sequence point: Console.WriteLine(2);
+  IL_0023:  ldc.i4.2
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .AddGeneration(
+                    source: @"
+using System;
+
+Console.WriteLine(1);
+var <N:0>y = C.G</N:0>;
+Console.WriteLine(3);
+
+class C
+{
+   public static void G(bool a = true) { }
+}
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<>O#1");
+
+                        g.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                <>f__AnonymousDelegate0<bool> V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  nop
+  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.G(bool)""
+  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
+  IL_0022:  stloc.1
+  IL_0023:  ldc.i4.3
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  nop
+  IL_002a:  ret
+}
+");
+                    })
+                .Verify();
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
@@ -1804,8 +1971,8 @@ class C
         [Fact]
         public void PartialMethod_WithLambda()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: @"
 partial class C
 {
@@ -2142,8 +2309,8 @@ delegate void D([A]int x);
         [Fact]
         public void TypePropertyField_Attributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: @"
 enum E
 {
@@ -2984,8 +3151,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3114,8 +3281,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_ChangeToAutoProp()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3247,8 +3414,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3372,8 +3539,8 @@ class C
         [Fact]
         public void Property_DeleteAndAdd_OneAccessor()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3489,8 +3656,8 @@ class C
         [Fact]
         public void Property_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3687,8 +3854,8 @@ class C
         [Fact]
         public void Property_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3885,8 +4052,8 @@ class C
         [Fact]
         public void Indexer_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -3956,8 +4123,8 @@ class C
         [Fact]
         public void Indexer_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4245,8 +4412,8 @@ class C
         [Fact]
         public void Event_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4318,8 +4485,8 @@ class C
         [Fact]
         public void Event_Rename()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -4948,6 +5115,91 @@ class C
 
             // Obsolete attribute:
             CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, new byte[] { 0x01, 0x00, 0x00, 0x00 });
+        }
+
+        [Fact]
+        public void ReplaceType_UpdateNestedType()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        using System;
+                        
+                        class C
+                        {
+                            class D
+                            {
+                                void M()
+                                {
+                                    Console.WriteLine("1");
+                                }
+                            }
+
+                            void N()
+                            {
+                                Console.WriteLine("1");
+                            }
+                        }
+                        """ + MetadataUpdateOriginalTypeAttributeSource,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateOriginalTypeAttribute", "D");
+                        g.VerifyMethodDefNames("N", ".ctor", ".ctor", "get_OriginalType", "M", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        using System;
+
+                        class C
+                        {
+                            class D
+                            {
+                                void M()
+                                {
+                                    Console.WriteLine("2");
+                                }
+                            }
+
+                            void N()
+                            {
+                                Console.WriteLine("2");
+                            }
+                        }
+                        """ + MetadataUpdateOriginalTypeAttributeSource,
+                    edits: new[] {
+                        // Note: Nested type edit needs to be seen first to repro the bug. Real world scenario requires the nested
+                        // class to be in a separate file.
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.D.M")),
+                        Edit(SemanticEditKind.Replace, c => null, newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("C#1");
+                        g.VerifyMethodDefNames("M", "N", ".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
+                            Handle(8, TableIndex.MethodDef),
+                            Handle(9, TableIndex.MethodDef),
+                            Handle(8, TableIndex.CustomAttribute)
+                        });
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -11089,8 +11341,8 @@ public interface IB
         [Fact]
         public void Operator_Delete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14583,7 +14835,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb) // note the different parameter name
         {
             return true;
         }
@@ -14720,6 +14972,308 @@ namespace N
                 "Microsoft: {CodeAnalysis}",
                 "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
                 "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+        }
+
+        [Fact]
+        public void Records_AddPrimaryConstructor()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddBaseline(
+                    source: IsExternalInitTypeDefinition + "record R {}",
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            "get_EqualityContract",
+                            "ToString",
+                            "PrintMembers",
+                            "op_Inequality",
+                            "op_Equality",
+                            "GetHashCode",
+                            "Equals",
+                            "Equals",
+                            "<Clone>$",
+                            ".ctor",
+                            ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: IsExternalInitTypeDefinition + "record R(int P) {}",
+                    edits: new[]
+                    {
+                        // The IDE actually also adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode).
+                        // This test demonstrates that the compiler does not emit them automatically given just the constructor insert.
+                        Edit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("R")),
+                        Edit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("R"), c => c.GetMember("R"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            ".ctor", // inserted primary ctor
+                            ".ctor", // updated parameterless ctor
+                            "get_P",
+                            "set_P",
+                            "Deconstruct");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(9, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(18, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(10, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(19, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(11, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(30, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(31, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(32, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(33, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(34, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Records_AddPrimaryConstructorParameter()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetLatest, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: IsExternalInitTypeDefinition + "record R(int P, int U) {}",
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            "get_EqualityContract",
+                            "get_P",
+                            "set_P",
+                            "get_U",
+                            "set_U",
+                            "ToString",
+                            "PrintMembers",
+                            "op_Inequality",
+                            "op_Equality",
+                            "GetHashCode",
+                            "Equals",
+                            "Equals",
+                            "<Clone>$",
+                            ".ctor",
+                            "Deconstruct");
+                    })
+
+                .AddGeneration(
+                    source: IsExternalInitTypeDefinition + "record R(int P, int Q, int U) {}",
+                    edits: new[]
+                    {
+                        // The IDE actually also adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode, copy-constructor) and 
+                        // delete of the old primary constructor.
+                        // This test demonstrates that the compiler does not emit them automatically given just the constructor insert.
+                        // The synthesized auto-properties and Deconstruct method are emitted.
+                        Edit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("R"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            ".ctor",
+                            "get_Q",
+                            "set_Q",
+                            "Deconstruct");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(22, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(23, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(24, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                            Row(4, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(21, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(15, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(21, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(16, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(21, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(17, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(23, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(18, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(24, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(19, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(24, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(20, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(24, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(21, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(39, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(40, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(41, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(42, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(43, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                        });
+
+                        g.VerifyIL("""
+                        {
+                          // Code size       29 (0x1d)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  stfld      0x04000003
+                          IL_0007:  ldarg.0
+                          IL_0008:  ldarg.2
+                          IL_0009:  stfld      0x04000005
+                          IL_000e:  ldarg.0
+                          IL_000f:  ldarg.3
+                          IL_0010:  stfld      0x04000004
+                          IL_0015:  ldarg.0
+                          IL_0016:  call       0x0A000017
+                          IL_001b:  nop
+                          IL_001c:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000005
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  stfld      0x04000005
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       25 (0x19)
+                          .maxstack  8
+                          IL_0000:  ldarg.1
+                          IL_0001:  ldarg.0
+                          IL_0002:  call       0x06000007
+                          IL_0007:  stind.i4
+                          IL_0008:  ldarg.2
+                          IL_0009:  ldarg.0
+                          IL_000a:  call       0x06000016
+                          IL_000f:  stind.i4
+                          IL_0010:  ldarg.3
+                          IL_0011:  ldarg.0
+                          IL_0012:  call       0x06000009
+                          IL_0017:  stind.i4
+                          IL_0018:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Records_AddProperty_NonPrimary()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: IsExternalInitTypeDefinition + "record R(int P) {}",
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            ".ctor",
+                            "get_EqualityContract",
+                            "get_P",
+                            "set_P",
+                            "ToString",
+                            "PrintMembers",
+                            "op_Inequality",
+                            "op_Equality",
+                            "GetHashCode",
+                            "Equals",
+                            "Equals",
+                            "<Clone>$",
+                            ".ctor",
+                            "Deconstruct");
+                    })
+
+                .AddGeneration(
+                    source: IsExternalInitTypeDefinition + "record R(int P) { int Q { get; init; } }",
+                    edits: new[]
+                    {
+                        // The IDE actually adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode, copy-constructor).
+                        // This test demonstrates that the compiler does not emit them automatically given just the property insert.
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("R.Q")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames(
+                            "get_Q",
+                            "set_Q");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                            Row(3, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(20, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(12, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(35, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(36, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(37, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(38, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyIL("""
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  stfld      0x04000004
+                          IL_0007:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -14889,8 +15443,8 @@ class C
         [InlineData("T M1<T>() where T : C { return default; }", 0)]
         public void Method_Delete(string methodDef, int parameterCount)
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -14953,8 +15507,8 @@ class C
         [Fact]
         public void Method_AddThenDelete()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15047,8 +15601,8 @@ class C
         [Fact]
         public void Method_DeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15141,8 +15695,8 @@ class C
         [Fact]
         public void Method_DeleteThenAdd_WithAttributes()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class A : System.Attribute { }
                         class B : System.Attribute { }
@@ -15278,8 +15832,8 @@ class C
         [Fact]
         public void Method_AddThenDeleteThenAdd()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15432,8 +15986,8 @@ class C
         [Fact]
         public void Method_Rename_Multiple()
         {
-            using var test = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var test = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15489,8 +16043,8 @@ class C
         [Fact]
         public void Method_ChangeParameterType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15616,8 +16170,8 @@ class C
         [Fact]
         public void Method_ChangeReturnType()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -15750,8 +16304,8 @@ class C
         [Fact]
         public void Method_InsertAndDeleteParameter()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
-                .AddGeneration(
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -16205,6 +16759,86 @@ file class C
   IL_0007:  nop
   IL_0008:  ret
 }");
+        }
+
+        [Fact]
+        public void StackAlloc()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetCoreApp, verification: Verification.Fails)
+                .AddBaseline(
+                    source: MarkedSource($$"""
+                        using System;
+                        class C
+                        {
+                            void F()
+                            {
+                                Span<bool> <N:0>x = stackalloc bool[64]</N:0>;
+                            }
+                        }
+                        """),
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.F", """
+                        {
+                          // Code size       17 (0x11)
+                          .maxstack  2
+                          .locals init (System.Span<bool> V_0, //x
+                                        System.Span<bool> V_1)
+                          // sequence point: {
+                          IL_0000:  nop
+                          // sequence point: Span<bool>      x = stackalloc bool[64]      ;
+                          IL_0001:  ldc.i4.s   64
+                          IL_0003:  conv.u
+                          IL_0004:  localloc
+                          IL_0006:  ldc.i4.s   64
+                          IL_0008:  newobj     "System.Span<bool>..ctor(void*, int)"
+                          IL_000d:  stloc.1
+                          IL_000e:  ldloc.1
+                          IL_000f:  stloc.0
+                          // sequence point: }
+                          IL_0010:  ret
+                        }
+                        """);
+                    })
+
+                .AddGeneration(
+                    source: MarkedSource("""
+                        using System;
+                        class C
+                        {
+                            void F()
+                            {
+                                /**/Span<bool> <N:0>x = stackalloc bool[64]</N:0>;
+                            }
+                        }
+                        """),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       17 (0x11)
+                          .maxstack  2
+                          .locals init (System.Span<bool> V_0, //x
+                                        [unchanged] V_1,
+                                        System.Span<bool> V_2)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.s   64
+                          IL_0003:  conv.u
+                          IL_0004:  localloc
+                          IL_0006:  ldc.i4.s   64
+                          IL_0008:  newobj     "System.Span<bool>..ctor(void*, int)"
+                          IL_000d:  stloc.2
+                          IL_000e:  ldloc.2
+                          IL_000f:  stloc.0
+                          IL_0010:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
     }
 }

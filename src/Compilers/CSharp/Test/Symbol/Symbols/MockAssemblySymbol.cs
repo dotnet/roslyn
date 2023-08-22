@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
+        internal override TypeConversions TypeConversions
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override ImmutableArray<ModuleSymbol> Modules
         {
             get { return ImmutableArray.Create<ModuleSymbol>(); }
@@ -85,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            throw new NotImplementedException();
+        }
+
         public override ICollection<string> TypeNames
         {
             get
@@ -117,5 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             throw new NotImplementedException();
         }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => null;
     }
 }

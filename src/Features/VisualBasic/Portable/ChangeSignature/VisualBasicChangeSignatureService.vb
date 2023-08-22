@@ -754,21 +754,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(Of TArgumentSyntax As SyntaxNode)(newArguments As SeparatedSyntaxList(Of TArgumentSyntax), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As TArgumentSyntax
             ' A params array cannot be introduced due to the addition of an omitted 
             ' argument in VB because you cannot have a named argument to a params array.
             Throw New InvalidOperationException()
         End Function
 
-        Protected Overrides Function AddNameToArgument(newArgument As SyntaxNode, name As String) As SyntaxNode
+        Protected Overrides Function AddNameToArgument(Of TArgumentSyntax As SyntaxNode)(newArgument As TArgumentSyntax, name As String) As TArgumentSyntax
             Dim simpleArgument = TryCast(newArgument, SimpleArgumentSyntax)
             If simpleArgument IsNot Nothing Then
-                Return simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+                Return CType(CType(simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name))), SyntaxNode), TArgumentSyntax)
             End If
 
             Dim omittedArgument = TryCast(newArgument, OmittedArgumentSyntax)
             If omittedArgument IsNot Nothing Then
-                Return omittedArgument
+                Return CType(CType(omittedArgument, SyntaxNode), TArgumentSyntax)
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())

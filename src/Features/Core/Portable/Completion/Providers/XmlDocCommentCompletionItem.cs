@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -18,12 +17,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Add(BeforeCaretText, beforeCaretText)
                 .Add(AfterCaretText, afterCaretText);
 
+            // Set isComplexTextEdit to be always true for simplicity, even
+            // though we don't always need to make change outside the default
+            // completion list Span.
+            // See AbstractDocCommentCompletionProvider.GetChangeAsync for how
+            // the actual Span is calculated.
             return CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: "",
                 glyph: Glyph.Keyword,
                 properties: props,
-                rules: rules);
+                rules: rules,
+                isComplexTextEdit: true);
         }
 
         public static string GetBeforeCaretText(CompletionItem item)

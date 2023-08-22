@@ -233,9 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // NOTE: If we do not check HasPointerType, we will unconditionally
-        //       bind Type and that may cause infinite recursion.
-        //       HasPointerType can use syntax directly and break recursion.
         internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
             field.HasPointerType ? null : field.Type;
 

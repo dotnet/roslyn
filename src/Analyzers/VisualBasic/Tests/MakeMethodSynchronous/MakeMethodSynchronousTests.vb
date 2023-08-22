@@ -236,7 +236,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller1() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -269,7 +269,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller2() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -302,7 +302,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller3() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -335,7 +335,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller4() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -368,7 +368,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested1() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -401,7 +401,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested2() As Task
             Dim source =
 "Imports System.Threading.Tasks

@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     <Project AssemblyName="ReferencedWithAlias" Language="C#" FilePath="Z:\ReferencedWithAlias.csproj"></Project>
                 </Workspace>)
 
-            Assert.Empty(lsif.Vertices.OfType(Of Range))
+            Assert.Empty(lsif.Vertices.OfType(Of Graph.Range))
         End Function
 
         <Fact>

@@ -29,11 +29,11 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 
-    [Fact]
-    public async Task TestCanRetrieveCSharpOptionsWithOnlyLspLayer()
+    [Theory, CombinatorialData]
+    public async Task TestCanRetrieveCSharpOptionsWithOnlyLspLayer(bool mutatingLspWorkspace)
     {
         var markup = "";
-        await using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
         Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
@@ -43,11 +43,11 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
         Assert.NotNull(globalOptions.GetSimplifierOptions(project));
     }
 
-    [Fact]
-    public async Task TestCanRetrieveVisualBasicOptionsWithOnlyLspLayer()
+    [Theory, CombinatorialData]
+    public async Task TestCanRetrieveVisualBasicOptionsWithOnlyLspLayer(bool mutatingLspWorkspace)
     {
         var markup = "";
-        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup);
+        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
         Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));

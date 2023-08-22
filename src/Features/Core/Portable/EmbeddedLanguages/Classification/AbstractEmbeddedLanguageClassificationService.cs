@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var project = document.Project;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public void AddEmbeddedLanguageClassifications(
-            SolutionServices services, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (project is null)
                 return;
@@ -54,36 +55,24 @@ namespace Microsoft.CodeAnalysis.Classification
             worker.VisitTokens(root);
         }
 
-        private readonly ref struct Worker
+        private readonly ref struct Worker(
+            AbstractEmbeddedLanguageClassificationService service,
+            SolutionServices solutionServices,
+            Project project,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
-            private readonly AbstractEmbeddedLanguageClassificationService _owner;
-            private readonly SolutionServices _solutionServices;
-            private readonly Project _project;
-            private readonly SemanticModel _semanticModel;
-            private readonly TextSpan _textSpan;
-            private readonly ClassificationOptions _options;
-            private readonly ArrayBuilder<ClassifiedSpan> _result;
-            private readonly CancellationToken _cancellationToken;
-
-            public Worker(
-                AbstractEmbeddedLanguageClassificationService owner,
-                SolutionServices solutionServices,
-                Project project,
-                SemanticModel semanticModel,
-                TextSpan textSpan,
-                ClassificationOptions options,
-                ArrayBuilder<ClassifiedSpan> result,
-                CancellationToken cancellationToken)
-            {
-                _owner = owner;
-                _solutionServices = solutionServices;
-                _project = project;
-                _semanticModel = semanticModel;
-                _textSpan = textSpan;
-                _options = options;
-                _result = result;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly AbstractEmbeddedLanguageClassificationService _owner = service;
+            private readonly SolutionServices _solutionServices = solutionServices;
+            private readonly Project _project = project;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly ClassificationOptions _options = options;
+            private readonly SegmentedList<ClassifiedSpan> _result = result;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
 
             public void VisitTokens(SyntaxNode node)
             {

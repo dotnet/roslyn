@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
         public async Task<ImmutableArray<StringIndentationRegion>> GetStringIndentationRegionsAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
 
             while (nodeStack.TryPop(out var node))
             {
-                // Dont' bother recursing into nodes that don't hit the requested span, they can never contribute 
+                // DoNot' bother recursing into nodes that don't hit the requested span, they can never contribute 
                 // regions of interest.
                 if (!node.Span.IntersectsWith(textSpan))
                     continue;
@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
                     }
                     else if (child.IsToken)
                     {
-                        if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
-                            child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
-                        {
+                        if (child.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
                             ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
-                        }
                     }
                 }
             }

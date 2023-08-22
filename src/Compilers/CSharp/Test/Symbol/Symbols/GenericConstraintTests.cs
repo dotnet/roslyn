@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -5787,8 +5788,7 @@ class B : A<S>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
-        [WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
         public void ConstraintGenericForPoint()
         {
             var source = @"
@@ -5810,7 +5810,39 @@ class @c
 ";
             // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_WithUnsafeContext()
+        {
+            var source = @"
+class A
+{
+    public interface I { }
+}
+unsafe class F<T> : A where T : F<object*>.I
+{
+}
+
+unsafe class G<T> : A where T : G<void*>.I
+{
+}
+class @c
+{
+    static void Main() { }
+}
+";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class F<T> : A where T : F<object*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class G<T> : A where T : G<void*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6428,8 +6460,7 @@ public interface IC<T> : IB where T : IB { }";
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("IA", "e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 7));
         }
 
-        [WorkItem(577251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
         public void Bug577251()
         {
             var source =
@@ -6444,7 +6475,17 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T>() where T : IA<C<int>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
+                // (9,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U>() where U : IA<E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E*").WithLocation(9, 37));
+
             source =
 @"interface IA<T> { }
 interface IB
@@ -6457,7 +6498,50 @@ class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T, U>() where T : IA<C<U>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
+                // (9,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U, V>() where U : IA<C<V>.E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<V>.E*").WithLocation(9, 40));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_UnsafeContext()
+        {
+            var source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T>() where T : IA<C<int>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U>() where U : IA<E*[]> { }
+}
+class D : C<int>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+
+            source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T, U>() where T : IA<C<U>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U, V>() where U : IA<C<V>.E*[]> { }
+}
+class D<T> : C<T>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
@@ -6863,8 +6947,7 @@ partial class Class4
                 );
         }
 
-        [Fact]
-        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
         public void IntPointerConstraintIntroducedBySubstitution()
         {
             string source = @"
@@ -6885,12 +6968,58 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int *>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'int*' may not be used as a type argument
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_UnsafeContext()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+unsafe class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R2").WithLocation(6, 14),
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
         }
 
         [Fact]
@@ -7247,6 +7376,52 @@ System.Console.WriteLine(typeof(G).FullName);
             var c = comp.GetTypeByMetadataName("C");
             Assert.Null(c.GetUseSiteDiagnostic());
             Assert.True(c.ContainingModule.HasUnifiedReferences);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_01()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_02()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> where T : new() { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0310: 'N' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ISetup<T>'
+                // interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Base").WithArguments("ISetup<T>", "T", "N").WithLocation(5, 11)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
     }
 }

@@ -4,36 +4,29 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     /// <summary>
     /// Base class for "if" and "while" snippet providers
     /// </summary>
-    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractStatementSnippetProvider
+    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractInlineStatementSnippetProvider
     {
-        protected abstract TextChange GenerateSnippetTextChange(Document document, int position);
         protected abstract SyntaxNode GetCondition(SyntaxNode node);
 
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var snippetTextChange = GenerateSnippetTextChange(document, position);
-            return Task.FromResult(ImmutableArray.Create(snippetTextChange));
-        }
+        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+            => type.SpecialType == SpecialType.System_Boolean;
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            var condition = GetCondition(node);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
+            if (ConstructedFromInlineExpression)
+                return ImmutableArray<SnippetPlaceholder>.Empty;
 
-            return arrayBuilder.ToImmutableArray();
+            var condition = GetCondition(node);
+            var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
+
+            return ImmutableArray.Create(placeholder);
         }
     }
 }

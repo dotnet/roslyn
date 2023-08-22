@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class SearchQuery : IDisposable
+    internal struct SearchQuery : IDisposable
     {
         /// <summary>The name being searched for.  Is null in the case of custom predicate searching..  But 
         /// can be used for faster index based searching when it is available.</summary> 
@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ///<summary>The predicate to fall back on if faster index searching is not possible.</summary>
         private readonly Func<string, bool> _predicate;
 
-        private readonly WordSimilarityChecker? _wordSimilarityChecker;
+        /// <summary>
+        /// Not readonly as this is mutable struct.
+        /// </summary>
+        private WordSimilarityChecker _wordSimilarityChecker;
 
         private SearchQuery(string name, SearchKind kind)
         {
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
                     // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
-                    _wordSimilarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
+                    _wordSimilarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false);
                     _predicate = _wordSimilarityChecker.AreSimilar;
                     break;
                 default:
@@ -54,8 +57,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
-        public void Dispose()
-            => _wordSimilarityChecker?.Free();
+        public readonly void Dispose()
+            => _wordSimilarityChecker.Dispose();
 
         public static SearchQuery Create(string name, SearchKind kind)
             => new(name, kind);
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static SearchQuery CreateCustom(Func<string, bool> predicate)
             => new(predicate);
 
-        public Func<string, bool> GetPredicate()
+        public readonly Func<string, bool> GetPredicate()
             => _predicate;
     }
 }

@@ -546,5 +546,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Yield RetargetingTranslator.Retarget(underlying)
             Next
         End Function
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Debug.Assert(Not _underlyingType.HasAnyDeclaredRequiredMembers)
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace

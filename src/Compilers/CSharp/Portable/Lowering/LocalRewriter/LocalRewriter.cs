@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
+        /// <summary>
+        /// The original body of the current lambda or local function body, or null if not currently lowering a lambda.
+        /// </summary>
+        private BoundBlock? _currentLambdaBody;
+
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
@@ -78,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            bool instrumentForDynamicAnalysis,
-            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
+            MethodInstrumentation instrumentation,
             DebugDocumentProvider debugDocumentProvider,
             BindingDiagnosticBag diagnostics,
+            out ImmutableArray<SourceSpan> codeCoverageSpans,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -98,8 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var instrumenter = Instrumenter.NoOp;
 
+                if (instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) &&
+                    LocalStateTracingInstrumenter.TryCreate(method, statement, factory, diagnostics, instrumenter, out var localStateTracingInstrumenter))
+                {
+                    instrumenter = localStateTracingInstrumenter;
+                }
+
                 CodeCoverageInstrumenter? codeCoverageInstrumenter = null;
-                if (instrumentForDynamicAnalysis &&
+                if (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) &&
                     CodeCoverageInstrumenter.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out codeCoverageInstrumenter))
                 {
                     instrumenter = codeCoverageInstrumenter;
@@ -126,10 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (codeCoverageInstrumenter != null)
-                {
-                    dynamicAnalysisSpans = codeCoverageInstrumenter.DynamicAnalysisSpans;
-                }
+                codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
                 localRewriter.AssertNoPlaceholderReplacements();
@@ -140,12 +148,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ex.Diagnostic);
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
+                codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
 
         internal SyntheticBoundNodeFactory Factory
             => _factory;
+
+        internal BoundBlock? CurrentLambdaBody
+            => _currentLambdaBody;
 
         internal BoundStatement CurrentMethodBody
             => _rootStatement;
@@ -210,6 +222,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
+            if (node is BoundNameOfOperator nameofOperator)
+            {
+                Debug.Assert(!nameofOperator.WasCompilerGenerated);
+                var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
+                }
+            }
+
             ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
@@ -259,6 +281,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DeconstructionAssignmentOperator && !((BoundDeconstructionAssignmentOperator)node).IsUsed;
         }
 
+        public override BoundNode? VisitParameter(BoundParameter node)
+        {
+            if (node.ParameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryCtor &&
+                primaryCtor.GetCapturedParameters().TryGetValue(node.ParameterSymbol, out var field))
+            {
+                Debug.Assert(CanBePassedByReference(node));
+                var result = new BoundFieldAccess(node.Syntax, new BoundThisReference(node.Syntax, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
+                Debug.Assert(CanBePassedByReference(result));
+                return result;
+            }
+
+            return base.VisitParameter(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
@@ -268,8 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
+            var oldLambdaBody = _currentLambdaBody;
             try
             {
+                _currentLambdaBody = node.Body;
+
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
@@ -282,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
+                _currentLambdaBody = oldLambdaBody;
             }
         }
 
@@ -327,8 +367,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
+            var oldLambdaBody = _currentLambdaBody;
             try
             {
+                _currentLambdaBody = node.Body;
                 _factory.CurrentFunction = localFunction;
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
@@ -351,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
+                _currentLambdaBody = oldLambdaBody;
             }
         }
 
@@ -589,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement)));
                     }
                     else
                     {
@@ -938,6 +981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     // That placeholder is always replaced with a temp local
                     return true;
+
+                case BoundKind.InlineArrayAccess:
+                    return ((BoundInlineArrayAccess)expr) is { IsValue: false, GetItemOrSliceHelper: WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item };
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Implicit Index or Range indexers only have by-value parameters:

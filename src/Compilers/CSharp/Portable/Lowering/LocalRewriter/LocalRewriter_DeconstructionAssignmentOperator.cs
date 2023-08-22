@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 symbol = localSymbol;
                                 break;
                             case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                Debug.Assert(!IsCapturedPrimaryConstructorParameter(single));
                                 symbol = parameterSymbol;
                                 break;
                             case BoundDiscardExpression:

@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
                     var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeWorkspacePlaceholderAnalyzers: true);
-                    VerifyUniqueStateNames(analyzerMap.Values);
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }

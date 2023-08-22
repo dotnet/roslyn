@@ -33,8 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
             ' ignoreByRefLikeMarker := False, since VB does not support ref-like types
-            ' https://github.com/dotnet/roslyn/issues/61435: Determine what support will be added for VB
-            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=False)
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=True)
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
         End Function
@@ -47,13 +46,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         ''' hierarchy is Obsolete.
         ''' </returns>
-        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean) As ThreeState
+        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean, getStateFromSymbol As Func(Of Symbol, ThreeState)) As ThreeState
             While symbol IsNot Nothing
                 If forceComplete Then
                     symbol.ForceCompleteObsoleteAttribute()
                 End If
 
-                Dim state = symbol.ObsoleteState
+                Dim state = getStateFromSymbol(symbol)
                 If state <> ThreeState.False Then
                     Return state
                 End If
@@ -75,9 +74,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
+                    Dim moduleObsoleteKind As ObsoleteAttributeKind? = symbol.ContainingModule?.ObsoleteKind
+                    Dim assemblyObsoleteKind As ObsoleteAttributeKind? = symbol.ContainingAssembly?.ObsoleteKind
+
+                    If moduleObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Experimental OrElse
+                       assemblyObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Experimental Then
+
+                        Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
+                    End If
+
+                    If moduleObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Uninitialized OrElse
+                       assemblyObsoleteKind = Global.Microsoft.CodeAnalysis.ObsoleteAttributeKind.Uninitialized Then
+
+                        Return ObsoleteDiagnosticKind.Lazy
+                    End If
+
                     Return ObsoleteDiagnosticKind.NotObsolete
-                Case ObsoleteAttributeKind.Experimental
+                Case ObsoleteAttributeKind.WindowsExperimental
                     Return ObsoleteDiagnosticKind.Diagnostic
+                Case ObsoleteAttributeKind.Experimental
+                    Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ExperimentalState)
                 Case ObsoleteAttributeKind.Uninitialized
                     ' If we haven't cracked attributes on the symbol at all or we haven't
                     ' cracked attribute arguments enough to be able to report diagnostics for
@@ -86,12 +102,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ObsoleteDiagnosticKind.Lazy
             End Select
 
-            Select Case GetObsoleteContextState(context, forceComplete)
+            Return GetDiagnosticKind(context, forceComplete, getStateFromSymbol:=Function(s) s.ObsoleteState)
+        End Function
+
+        Private Shared Function GetDiagnosticKind(containingMember As Symbol, forceComplete As Boolean, getStateFromSymbol As Func(Of Symbol, ThreeState)) As ObsoleteDiagnosticKind
+
+            Select Case GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol)
                 Case ThreeState.False
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ThreeState.True
-                    ' If we are in a context that is already obsolete, there is no point reporting
-                    ' more obsolete diagnostics.
+                    ' If we are in a context that is already experimental/obsolete, there is no point reporting
+                    ' more experimental/obsolete diagnostics.
                     Return ObsoleteDiagnosticKind.Suppressed
                 Case Else
                     ' If the context is unknown, then store the symbol so that we can do this check at a
@@ -105,7 +126,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the ObsoleteAttribute's arguments.
         ''' </summary>
         Friend Shared Function CreateObsoleteDiagnostic(symbol As Symbol) As DiagnosticInfo
-            Dim data = symbol.ObsoleteAttributeData
+            Dim data = If(If(symbol.ObsoleteAttributeData, symbol.ContainingModule.ObsoleteAttributeData), symbol.ContainingAssembly.ObsoleteAttributeData)
+
             Debug.Assert(data IsNot Nothing)
 
             If data Is Nothing Then
@@ -116,11 +138,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' uninitialized.
             Debug.Assert(Not data.IsUninitialized)
 
-            If data.Kind = ObsoleteAttributeKind.Experimental Then
+            If data.Kind = ObsoleteAttributeKind.WindowsExperimental Then
                 Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.
                 Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+            End If
+
+            If data.Kind = ObsoleteAttributeKind.Experimental Then
+                Debug.Assert(data.Message Is Nothing)
+                Debug.Assert(Not data.IsError)
+                ' Provide an explicit format for fully-qualified type names.
+                Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, ERRID.WRN_Experimental,
+                    data, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
             End If
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.

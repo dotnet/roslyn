@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             verifyUndo: false);
         }
 
-        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
         public void TestInEmptyString_LF()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41322")]
         public void TestInEmptyInterpolatedString_LF()
         {
             TestHandled(
@@ -725,7 +725,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote1()
         {
@@ -762,7 +762,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote2()
         {
@@ -799,7 +799,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote3()
         {
@@ -836,7 +836,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote4()
         {
@@ -873,7 +873,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote5()
         {
@@ -910,7 +910,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact]
         public void TestBeforeEndQuote6()
         {
@@ -947,7 +947,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         [WpfFact]
         public void TestMultiCaretSingleLine()
         {
@@ -970,7 +970,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         [WpfFact]
         public void TestMultiCaretMultiLines()
         {
@@ -998,7 +998,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         [WpfFact]
         public void TestMultiCaretInterpolatedString()
         {
@@ -1027,7 +1027,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
         [WpfFact]
         public void TestInStringWithKeepTabsEnabled1()
         {
@@ -1050,7 +1050,7 @@ $""[||]"";
             useTabs: true);
         }
 
-        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
         [WpfFact]
         public void TestInStringWithKeepTabsEnabled2()
         {

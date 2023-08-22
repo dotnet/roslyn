@@ -58,18 +58,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (original.IsConstructorInitializer())
             {
-                switch (original.Syntax.Kind())
+                switch (original.Syntax)
                 {
-                    case SyntaxKind.ConstructorDeclaration:
-                        // This is an implicit constructor initializer.
-                        var decl = (ConstructorDeclarationSyntax)original.Syntax;
-                        return new BoundSequencePointWithSpan(decl, rewritten, CreateSpanForConstructorInitializer(decl));
-                    case SyntaxKind.BaseConstructorInitializer:
-                    case SyntaxKind.ThisConstructorInitializer:
-                        var init = (ConstructorInitializerSyntax)original.Syntax;
-                        Debug.Assert(init.Parent is object);
-                        return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // Implicit constructor initializer:
+                        Debug.Assert(ctorDecl.Initializer == null);
+
+                        TextSpan span;
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
+                        {
+                            Debug.Assert(ctorDecl.Body != null);
+
+                            // [SomeAttribute] static MyCtorName(...) [|{|] ... }
+                            var start = ctorDecl.Body.OpenBraceToken.SpanStart;
+                            var end = ctorDecl.Body.OpenBraceToken.Span.End;
+                            span = TextSpan.FromBounds(start, end);
+                        }
+                        else
+                        {
+                            //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
+                            span = CreateSpan(ctorDecl.Modifiers, ctorDecl.Identifier, ctorDecl.ParameterList.CloseParenToken);
+                        }
+
+                        return new BoundSequencePointWithSpan(ctorDecl, rewritten, span);
+
+                    case ConstructorInitializerSyntax ctorInit:
+                        // Explicit constructor initializer:
+
+                        //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
+                        return new BoundSequencePointWithSpan(ctorInit, rewritten,
+                            TextSpan.FromBounds(ctorInit.ThisOrBaseKeyword.SpanStart, ctorInit.ArgumentList.CloseParenToken.Span.End));
+
+                    case TypeDeclarationSyntax typeDecl:
+                        // Primary constructor with implicit base initializer:
+                        //   class [|C<T>(int X, int Y)|] : B;
+                        Debug.Assert(typeDecl.ParameterList != null);
+                        Debug.Assert(typeDecl.BaseList?.Types.Any(t => t is PrimaryConstructorBaseTypeSyntax { ArgumentList: not null }) != true);
+
+                        return new BoundSequencePointWithSpan(typeDecl, rewritten, TextSpan.FromBounds(typeDecl.Identifier.SpanStart, typeDecl.ParameterList.Span.End));
+
+                    case PrimaryConstructorBaseTypeSyntax baseInit:
+                        // Explicit base initializer:
+                        //   class C<T>(int X, int Y) : [|B(...)|];
+                        return new BoundSequencePointWithSpan(baseInit, rewritten, baseInit.Span);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(original.Syntax.Kind());
                 }
+            }
+            else if (original.Syntax is ParameterSyntax parameterSyntax)
+            {
+                // Record property setter sequence point.
+                return new BoundSequencePointWithSpan(parameterSyntax, rewritten, CreateSpan(parameterSyntax));
             }
 
             return AddSequencePoint(rewritten);
@@ -83,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewritten.Kind == BoundKind.Block)
             {
                 var block = (BoundBlock)rewritten;
-                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
             }
 
             return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
@@ -94,7 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntax.IsKind(SyntaxKind.Parameter))
             {
                 // This is an initialization of a generated property based on record parameter.
-                return AddSequencePoint(rewritten);
+                // Do not add sequence point - the initialization is trivial and there is no value stepping over every backing field assignment.
+                return rewritten;
             }
 
             Debug.Assert(syntax is { Parent: { Parent: { } } });
@@ -142,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(base.InstrumentYieldReturnStatement(original, rewritten));
         }
 
-        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue, out BoundBlockInstrumentation? instrumentation)
         {
-            base.InstrumentBlock(original, rewriter, ref additionalLocals, out var previousPrologue, out var previousEpilogue);
+            base.InstrumentBlock(original, rewriter, ref additionalLocals, out var previousPrologue, out var previousEpilogue, out instrumentation);
 
             prologue = previousPrologue;
             epilogue = previousEpilogue;
@@ -163,13 +204,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (original == rewriter.CurrentMethodBody)
             {
-                if (previousPrologue != null)
+                // Add hidden sequence point at the start of
+                // 1) a prologue added by instrumentation.
+                // 2) a synthesized main entry point for top-level code.
+                // 3) synthesized body of primary and copy constructors of a record type that has at least one parameter.
+                //    This hidden sequence point covers assignments of parameters/original fields to the current instance backing fields.
+                //    These assignments do not have their own sequence points.
+                if (previousPrologue != null ||
+                    rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol ||
+                    original.Syntax is RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 })
                 {
                     prologue = BoundSequencePoint.CreateHidden(previousPrologue);
-                }
-                else if (rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
-                {
-                    prologue = BoundSequencePoint.CreateHidden();
                 }
 
                 if (previousEpilogue != null)
@@ -338,12 +383,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   span);
         }
 
-        public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
+        public override BoundStatement InstrumentUserDefinedLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
             return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
                                         (VariableDeclaratorSyntax)original.Syntax :
                                         ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(),
-                                    base.InstrumentLocalInitialization(original, rewritten));
+                                    base.InstrumentUserDefinedLocalInitialization(original, rewritten));
         }
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
@@ -362,6 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // implicit return added by the compiler
                 return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);
+            }
+
+            if (original.Syntax is ParameterSyntax parameterSyntax)
+            {
+                Debug.Assert(parameterSyntax is { Parent.Parent: RecordDeclarationSyntax });
+
+                // Record property getter sequence point
+                return new BoundSequencePointWithSpan(parameterSyntax, rewritten, CreateSpan(parameterSyntax));
             }
 
             return new BoundSequencePoint(original.Syntax, rewritten);
@@ -398,15 +451,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 
-        public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        public override void InstrumentCatchBlock(
+            BoundCatchBlock original,
+            ref BoundExpression? rewrittenSource,
+            ref BoundStatementList? rewrittenFilterPrologue,
+            ref BoundExpression? rewrittenFilter,
+            ref BoundBlock rewrittenBody,
+            ref TypeSymbol? rewrittenType,
+            SyntheticBoundNodeFactory factory)
         {
-            rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
+            base.InstrumentCatchBlock(
+                original,
+                ref rewrittenSource,
+                ref rewrittenFilterPrologue,
+                ref rewrittenFilter,
+                ref rewrittenBody,
+                ref rewrittenType,
+                factory);
+
+            if (original.WasCompilerGenerated || rewrittenFilter is null)
+            {
+                return;
+            }
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
-            Debug.Assert(filterClause is { });
-            return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
+
+            var filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            Debug.Assert(filterClause is not null);
+
+            rewrittenFilter = AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)

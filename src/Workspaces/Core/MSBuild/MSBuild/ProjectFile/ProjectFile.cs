@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 targetFramework = null;
             }
 
+            var targetFrameworkIdentifier = project.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
+
             var docs = project.GetDocuments()
                 .Where(IsNotTemporaryGeneratedFile)
                 .Select(MakeDocumentFileInfo)
@@ -167,6 +169,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 intermediateOutputFilePath,
                 defaultNamespace,
                 targetFramework,
+                targetFrameworkIdentifier,
                 commandLineArgs,
                 docs,
                 additionalDocs,
@@ -204,7 +207,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
+            var folders = GetRelativeFolders(documentItem);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -214,7 +218,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular);
+            var folders = GetRelativeFolders(documentItem);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+        }
+
+        private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
+        {
+            var linkPath = documentItem.GetMetadata(MetadataNames.Link);
+            if (!RoslynString.IsNullOrEmpty(linkPath))
+            {
+                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+            }
+            else
+            {
+                var filePath = documentItem.ItemSpec;
+                var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
+                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                return folders;
+            }
         }
 
         /// <summary>

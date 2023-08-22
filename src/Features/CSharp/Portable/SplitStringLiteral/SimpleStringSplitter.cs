@@ -14,21 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
     internal abstract partial class StringSplitter
     {
-        private sealed class SimpleStringSplitter : StringSplitter
+        private sealed class SimpleStringSplitter(
+            ParsedDocument document,
+            int position,
+            SyntaxToken token,
+            in IndentationOptions indentationOptions,
+            CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
         {
             private const char QuoteCharacter = '"';
-            private readonly SyntaxToken _token;
-
-            public SimpleStringSplitter(
-                ParsedDocument document,
-                int position,
-                SyntaxToken token,
-                in IndentationOptions indentationOptions,
-                CancellationToken cancellationToken)
-                : base(document, position, indentationOptions, cancellationToken)
-            {
-                _token = token;
-            }
+            private readonly SyntaxToken _token = token;
 
             // Don't split @"" strings.  They already support directly embedding newlines.
             // Don't split UTF-8 strings if the cursor is after the quote.

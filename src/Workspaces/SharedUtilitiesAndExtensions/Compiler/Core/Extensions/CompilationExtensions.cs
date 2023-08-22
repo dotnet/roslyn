@@ -66,5 +66,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return type;
         }
+
+        /// <summary>
+        /// Gets implicit method, that wraps top-level statements.
+        /// </summary>
+        public static IMethodSymbol? GetTopLevelStatementsMethod(this Compilation compilation)
+        {
+            foreach (var candidateTopLevelType in compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, arity: 0))
+            {
+                foreach (var candidateMember in candidateTopLevelType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName))
+                {
+                    if (candidateMember is IMethodSymbol method)
+                        return method;
+                }
+            }
+
+            return null;
+        }
     }
 }

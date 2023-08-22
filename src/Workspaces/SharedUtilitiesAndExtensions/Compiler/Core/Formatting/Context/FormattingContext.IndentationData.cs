@@ -15,12 +15,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// data that will be used in an interval tree related to indentation.
         /// </summary>
-        private abstract class IndentationData
+        private abstract class IndentationData(TextSpan textSpan)
         {
-            public IndentationData(TextSpan textSpan)
-                => this.TextSpan = textSpan;
-
-            public TextSpan TextSpan { get; }
+            public TextSpan TextSpan { get; } = textSpan;
             public abstract int Indentation { get; }
 
             public IndentationData WithTextSpan(TextSpan span)
@@ -29,21 +26,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             protected abstract IndentationData WithTextSpanCore(TextSpan span);
         }
 
-        private sealed class SimpleIndentationData : IndentationData
+        private sealed class SimpleIndentationData(TextSpan textSpan, int indentation) : IndentationData(textSpan)
         {
-            private readonly int _indentation;
-
-            public SimpleIndentationData(TextSpan textSpan, int indentation)
-                : base(textSpan)
-            {
-                _indentation = indentation;
-            }
-
-            public override int Indentation => _indentation;
+            public override int Indentation => indentation;
 
             protected override IndentationData WithTextSpanCore(TextSpan span)
             {
-                return new SimpleIndentationData(span, _indentation);
+                return new SimpleIndentationData(span, indentation);
             }
         }
 
@@ -103,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private int GetOrComputeIndentationDelta()
             {
-                return LazyInitialization.EnsureInitialized(
+                return InterlockedOperations.Initialize(
                     ref _lazyIndentationDelta,
                     UninitializedIndentationDelta,
                     static self => self._indentationDeltaGetter(

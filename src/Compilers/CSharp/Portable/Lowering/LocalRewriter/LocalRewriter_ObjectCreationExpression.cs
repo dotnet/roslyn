@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
             }
 
+            if (Instrument)
+            {
+                rewrittenObjectCreation = Instrumenter.InstrumentObjectCreationExpression(node, rewrittenObjectCreation);
+            }
+
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
             {
                 return rewrittenObjectCreation;
@@ -330,7 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var createInstanceCall = new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),

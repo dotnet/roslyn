@@ -1912,7 +1912,7 @@ class Test
         }
 
         [Fact]
-        public void Record_1()
+        public void LiftedPrimaryParameter_Record()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -1947,9 +1947,9 @@ record D(int X)
           </customDebugInfo>
           <sequencePoints>
             <entry offset=""0x0"" hidden=""true"" document=""1"" />
-            <entry offset=""0xd"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+            <entry offset=""0xd"" hidden=""true"" document=""1"" />
             <entry offset=""0x19"" startLine=""5"" startColumn=""34"" endLine=""5"" endColumn=""74"" document=""1"" />
-            <entry offset=""0x31"" startLine=""3"" startColumn=""1"" endLine=""6"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x31"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0x39"">
             <namespace name=""System"" />
@@ -1976,6 +1976,15 @@ record D(int X)
             <entry offset=""0x0"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""29"" document=""1"" />
           </sequencePoints>
         </method>
+        <method containingType=""D"" name="".ctor"" parameterNames=""original"">
+          <customDebugInfo>
+        <forward declaringType=""D"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""9"" document=""1"" />
+          </sequencePoints>
+        </method>
         <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"" parameterNames=""a"">
           <customDebugInfo>
             <forward declaringType=""D"" methodName="".ctor"" parameterNames=""X"" />
@@ -1989,7 +1998,7 @@ record D(int X)
         }
 
         [Fact]
-        public void Record_2()
+        public void PrimaryBaseInitializer()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -2028,8 +2037,8 @@ record D(int X) : C(F(X, out int z), () => z)
             </using>
           </customDebugInfo>
           <sequencePoints>
-            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
-            <entry offset=""0x7"" startLine=""3"" startColumn=""1"" endLine=""9"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0xf"">
             <namespace name=""System"" />
@@ -2053,6 +2062,15 @@ record D(int X) : C(F(X, out int z), () => z)
             <entry offset=""0x0"" startLine=""6"" startColumn=""11"" endLine=""6"" endColumn=""18"" document=""1"" />
             <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
             <entry offset=""0x9"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""C"" name="".ctor"" parameterNames=""original"">
+          <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""9"" document=""1"" />
           </sequencePoints>
         </method>
         <method containingType=""D"" name="".ctor"" parameterNames=""X"">
@@ -2087,6 +2105,12 @@ record D(int X) : C(F(X, out int z), () => z)
             <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""15"" document=""1"" />
             <entry offset=""0x4"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""22"" document=""1"" />
             <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D"" name="".ctor"" parameterNames=""original"">
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""8"" endLine=""11"" endColumn=""9"" document=""1"" />
           </sequencePoints>
         </method>
         <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"">

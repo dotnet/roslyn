@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -21,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         [Fact]
         public async Task TestNoConvertToFileScopedInCSharp9()
         {
-            var code = @"
-namespace N
-{
-}
-";
+            var code = """
+                namespace N
+                {
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -41,11 +42,11 @@ namespace N
         [Fact]
         public async Task TestNoConvertToFileScopedInCSharp10WithBlockScopedPreference()
         {
-            var code = @"
-namespace N
-{
-}
-";
+            var code = """
+                namespace N
+                {
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -63,14 +64,14 @@ namespace N
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-}
-",
-                FixedCode = @"
-namespace $$N;
-",
+                TestCode = """
+                [|namespace N|]
+                {
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -84,14 +85,14 @@ namespace $$N;
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-namespace [|N|]
-{
-}
-",
-                FixedCode = @"
-namespace $$N;
-",
+                TestCode = """
+                namespace [|N|]
+                {
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -103,15 +104,15 @@ namespace $$N;
         [Fact]
         public async Task TestNoConvertWithMultipleNamespaces()
         {
-            var code = @"
-namespace N
-{
-}
+            var code = """
+                namespace N
+                {
+                }
 
-namespace N2
-{
-}
-";
+                namespace N2
+                {
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -127,14 +128,14 @@ namespace N2
         [Fact]
         public async Task TestNoConvertWithNestedNamespaces1()
         {
-            var code = @"
-namespace N
-{
-    namespace N2
-    {
-    }
-}
-";
+            var code = """
+                namespace N
+                {
+                    namespace N2
+                    {
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -150,13 +151,13 @@ namespace N
         [Fact]
         public async Task TestNoConvertWithTopLevelStatement1()
         {
-            var code = @"
-{|CS8805:int i = 0;|}
+            var code = """
+                {|CS8805:int i = 0;|}
 
-namespace N
-{
-}
-";
+                namespace N
+                {
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -172,13 +173,13 @@ namespace N
         [Fact]
         public async Task TestNoConvertWithTopLevelStatement2()
         {
-            var code = @"
-namespace N
-{
-}
+            var code = """
+                namespace N
+                {
+                }
 
-int i = 0;
-";
+                int i = 0;
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -187,9 +188,9 @@ int i = 0;
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(6,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                    DiagnosticResult.CompilerError("CS8803").WithSpan(6, 1, 6, 11),
+                    DiagnosticResult.CompilerError("CS8803").WithSpan(5, 1, 5, 11),
                     // /0/Test0.cs(6,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(6, 1, 6, 11),
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(5, 1, 5, 11),
                 },
                 Options =
                 {
@@ -203,18 +204,18 @@ int i = 0;
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-[|namespace N|]
-{
-}
-",
-                FixedCode = @"
-using System;
+                [|namespace N|]
+                {
+                }
+                """,
+                FixedCode = """
+                using System;
 
-namespace $$N;
-",
+                namespace $$N;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -228,17 +229,17 @@ namespace $$N;
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    using System;
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    using System;
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-using System;
-",
+                using System;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -252,21 +253,21 @@ using System;
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-}
-",
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -280,23 +281,23 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    /// <summary/>
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    /// <summary/>
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-/// <summary/>
-class C
-{
-}
-",
+                /// <summary/>
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -310,20 +311,22 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    /// <summary/>
-    class C
-    {
-    }{|CS1513:|}",
-                FixedCode = @"
-namespace N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    /// <summary/>
+                    class C
+                    {
+                    }{|CS1513:|}
+                """,
+                FixedCode = """
+                namespace N;
 
-/// <summary/>
-class C
-{
-}",
+                /// <summary/>
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -337,21 +340,21 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{ // comment
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
-// comment
-class C
-{
-}
-",
+                TestCode = """
+                [|namespace N|]
+                { // comment
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
+                // comment
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -365,23 +368,23 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-// copyright
-[|namespace N|]
-{
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-// copyright
-namespace $$N;
+                TestCode = """
+                // copyright
+                [|namespace N|]
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                // copyright
+                namespace $$N;
 
-class C
-{
-}
-",
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -395,23 +398,23 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    /// <summary/>
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    /// <summary/>
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-/// <summary/>
-class C
-{
-}
-",
+                /// <summary/>
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -425,33 +428,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-#if X
-    class C
-    {
-    }
-#else
-    class C
-    {
-    }
-#endif
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                #if X
+                    class C
+                    {
+                    }
+                #else
+                    class C
+                    {
+                    }
+                #endif
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-#if X
-class C
-{
-}
-#else
-class C
-{
-}
-#endif
-",
+                #if X
+                class C
+                {
+                }
+                #else
+                class C
+                {
+                }
+                #endif
+
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -465,27 +469,27 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    /* x
-     * x
-     */
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    /* x
+                     * x
+                     */
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-/* x
- * x
- */
-class C
-{
-}
-",
+                /* x
+                 * x
+                 */
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -499,27 +503,27 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    /* x
-       x
-     */
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    /* x
+                       x
+                     */
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-/* x
-   x
- */
-class C
-{
-}
-",
+                /* x
+                   x
+                 */
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -533,41 +537,41 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-        void M()
-        {
-            System.Console.WriteLine(@""
-    a
-        b
-            c
-                d
-                    e
-                        "");
-        }
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine(@"
+                    a
+                        b
+                            c
+                                d
+                                    e
+                                        ");
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-    void M()
-    {
-        System.Console.WriteLine(@""
-    a
-        b
-            c
-                d
-                    e
-                        "");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine(@"
+                    a
+                        b
+                            c
+                                d
+                                    e
+                                        ");
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -581,41 +585,41 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-        void M()
-        {
-            System.Console.WriteLine($@""
-    a
-        b
-            c{1 + 1}
-                d
-                    e
-                        "");
-        }
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine($@"
+                    a
+                        b
+                            c{1 + 1}
+                                d
+                                    e
+                                        ");
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-    void M()
-    {
-        System.Console.WriteLine($@""
-    a
-        b
-            c{1 + 1}
-                d
-                    e
-                        "");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine($@"
+                    a
+                        b
+                            c{1 + 1}
+                                d
+                                    e
+                                        ");
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -629,43 +633,43 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-        void M()
-        {
-            System.Console.WriteLine($@""
-    a
-        b
-            c{
-                1 + 1
-             }d
-                    e
-                        "");
-        }
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine($@"
+                    a
+                        b
+                            c{
+                                1 + 1
+                             }d
+                                    e
+                                        ");
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-    void M()
-    {
-        System.Console.WriteLine($@""
-    a
-        b
-            c{
-            1 + 1
-         }d
-                    e
-                        "");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine($@"
+                    a
+                        b
+                            c{
+                            1 + 1
+                         }d
+                                    e
+                                        ");
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -679,42 +683,42 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-        void M()
-        {
-            System.Console.WriteLine(""""""
-    a
-        b
-            c
-                d
-                    e
-    """""");
-        }
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """"
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine("""
+                    a
+                        b
+                            c
+                                d
+                                    e
+                    """);
+                        }
+                    }
+                }
+                """",
+                FixedCode = """"
+                namespace $$N;
 
-class C
-{
-    void M()
-    {
-        System.Console.WriteLine(""""""
-    a
-        b
-            c
-                d
-                    e
-    """""");
-    }
-}
-",
-                LanguageVersion = LanguageVersion.Preview,
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("""
+                    a
+                        b
+                            c
+                                d
+                                    e
+                    """);
+                    }
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -727,46 +731,46 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-        void M()
-        {
-            M2(""""""
-    a
-        b
-            c
-                d
-                    e
-    """"""u8);
-        }
+                TestCode = """"
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            M2("""
+                    a
+                        b
+                            c
+                                d
+                                    e
+                    """u8);
+                        }
 
-        void M2(System.ReadOnlySpan<byte> x) {}
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                        void M2(System.ReadOnlySpan<byte> x) {}
+                    }
+                }
+                """",
+                FixedCode = """"
+                namespace $$N;
 
-class C
-{
-    void M()
-    {
-        M2(""""""
-    a
-        b
-            c
-                d
-                    e
-    """"""u8);
-    }
+                class C
+                {
+                    void M()
+                    {
+                        M2("""
+                    a
+                        b
+                            c
+                                d
+                                    e
+                    """u8);
+                    }
 
-    void M2(System.ReadOnlySpan<byte> x) {}
-}
-",
-                LanguageVersion = LanguageVersion.Preview,
+                    void M2(System.ReadOnlySpan<byte> x) {}
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
@@ -780,12 +784,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|] { class C { } }
-",
-                FixedCode = @"
-namespace $$N; class C { } 
-",
+                TestCode = """
+                [|namespace N|] { class C { } }
+                """,
+                FixedCode = """
+                namespace $$N; class C { } 
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -799,14 +803,14 @@ namespace $$N; class C { }
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{ class C { } }
-",
-                FixedCode = @"
-namespace $$N;
-class C { } 
-",
+                TestCode = """
+                [|namespace N|]
+                { class C { } }
+                """,
+                FixedCode = """
+                namespace $$N;
+                class C { } 
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -815,24 +819,26 @@ class C { }
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-    }
-}",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-}",
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -841,17 +847,19 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-}",
-                FixedCode = @"
-namespace $$N;",
+                TestCode = """
+                [|namespace N|]
+                {
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -860,26 +868,26 @@ namespace $$N;",
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
+                TestCode = """
+                [|namespace N|]
+                {
+                    class C
+                    {
+                    }
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
 
-class C
-{
-}
-",
+                class C
+                {
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -888,19 +896,19 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-[|namespace N|]
-{
-}
-",
-                FixedCode = @"
-namespace $$N;
-",
+                TestCode = """
+                [|namespace N|]
+                {
+                }
+                """,
+                FixedCode = """
+                namespace $$N;
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -909,24 +917,28 @@ namespace $$N;
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective1()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"[|namespace Goo|]
-{
-#if true
-    class goobar { }
-#endif
-// There must be no CR, LF, or other character after the brace on the following line!
-}",
-                FixedCode = @"namespace $$Goo;
+                TestCode = """
+                [|namespace Goo|]
+                {
+                #if true
+                    class goobar { }
+                #endif
+                // There must be no CR, LF, or other character after the brace on the following line!
+                }
+                """,
+                FixedCode = """
+                namespace $$Goo;
 
-#if true
-class goobar { }
-#endif
-// There must be no CR, LF, or other character after the brace on the following line!",
+                #if true
+                class goobar { }
+                #endif
+                // There must be no CR, LF, or other character after the brace on the following line!
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -935,26 +947,30 @@ class goobar { }
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective2()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"[|namespace Goo|]
-{
-#if true
-    class goobar { }
-#endif
-// There must be no CR, LF, or other character after the brace on the following line!
-}
-",
-                FixedCode = @"namespace $$Goo;
+                TestCode = """
+                [|namespace Goo|]
+                {
+                #if true
+                    class goobar { }
+                #endif
+                // There must be no CR, LF, or other character after the brace on the following line!
+                }
 
-#if true
-class goobar { }
-#endif
-// There must be no CR, LF, or other character after the brace on the following line!
-",
+                """,
+                FixedCode = """
+                namespace $$Goo;
+
+                #if true
+                class goobar { }
+                #endif
+                // There must be no CR, LF, or other character after the brace on the following line!
+
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -963,23 +979,27 @@ class goobar { }
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective3()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"[|namespace Goo|]
-{
-#if false
-    class goobar { }
-#endif
-}",
-                FixedCode = @"namespace $$Goo;
+                TestCode = """
+                [|namespace Goo|]
+                {
+                #if false
+                    class goobar { }
+                #endif
+                }
+                """,
+                FixedCode = """
+                namespace $$Goo;
 
-#if false
-class goobar { }
-#endif
-",
+                #if false
+                class goobar { }
+                #endif
+
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -988,24 +1008,28 @@ class goobar { }
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective4()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"[|namespace Goo|]
-{
-#if false
-    class goobar { }
-#endif
-}
-",
-                FixedCode = @"namespace $$Goo;
+                TestCode = """
+                [|namespace Goo|]
+                {
+                #if false
+                    class goobar { }
+                #endif
+                }
 
-#if false
-class goobar { }
-#endif
-",
+                """,
+                FixedCode = """
+                namespace $$Goo;
+
+                #if false
+                class goobar { }
+                #endif
+
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {

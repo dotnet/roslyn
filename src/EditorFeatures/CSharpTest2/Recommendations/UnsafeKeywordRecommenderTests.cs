@@ -111,7 +111,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -120,7 +120,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -292,7 +292,7 @@ $$");
 @"private $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -318,20 +318,6 @@ $$");
         {
             await VerifyKeywordAsync(
 @"static $$");
-        }
-
-        [Fact]
-        public async Task TestNotAfterStaticInUsingDirective()
-        {
-            await VerifyAbsenceAsync(
-@"using static $$");
-        }
-
-        [Fact]
-        public async Task TestNotAfterStaticInGlobalUsingDirective()
-        {
-            await VerifyAbsenceAsync(
-@"global using static $$");
         }
 
         [Fact]
@@ -420,6 +406,30 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"public $$ interface IBinaryDocumentMemoryBlock {");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterUsingKeywordInUsingDirective()
+        {
+            await VerifyKeywordAsync("using $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterStaticKeywordInUsingDirective()
+        {
+            await VerifyKeywordAsync("using static $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterUsingKeywordInGlobalUsingDirective()
+        {
+            await VerifyKeywordAsync("global using $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67984")]
+        public async Task TestAfterStaticKeywordInGlobalUsingDirective()
+        {
+            await VerifyKeywordAsync("global using static $$");
         }
     }
 }

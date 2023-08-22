@@ -52,8 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 var compilation = compilationContext.Compilation;
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
-                compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
+
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for Argument nodes, but analyze nodes across the entire code block
+                // and eventually report a diagnostic on the local declaration node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument));
             });
         }
 
@@ -96,8 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var invocationOrCreation = argumentList.Parent;
-            if (!invocationOrCreation.IsKind(SyntaxKind.InvocationExpression) &&
-                !invocationOrCreation.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (invocationOrCreation?.Kind() is not SyntaxKind.InvocationExpression and not SyntaxKind.ObjectCreationExpression)
             {
                 // Out-variables are only legal with invocations and object creations.
                 // If we don't have one of those bail.  Note: we need hte parent to be
@@ -144,6 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
+
+            // Bail out early if the localDeclaration is outside the context's analysis span.
+            if (!context.ShouldAnalyzeSpan(localDeclaration.Span))
+                return;
 
             if (localDeclarator.SpanStart >= argumentNode.SpanStart)
             {

@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
@@ -26,10 +25,9 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            CompletionViewOptions.EnableArgumentCompletionSnippets,
+            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             InheritanceMarginOptionsStorage.ShowInheritanceMargin,
-            SuggestionsOptions.Asynchronous,
             WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
             SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
@@ -70,7 +68,7 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            InlineDiagnosticsOptions.Location,
+            InlineDiagnosticsOptionsStorage.Location,
             WorkspaceConfigurationOptionsStorage.Database,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
@@ -78,9 +76,9 @@ public class OptionSerializerTests
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             CompletionOptionsStorage.EnterKeyBehavior,
             CompletionOptionsStorage.SnippetsBehavior,
-            InternalDiagnosticsOptions.RazorDiagnosticMode,
-            InternalDiagnosticsOptions.LiveShareDiagnosticMode,
-            InternalDiagnosticsOptions.NormalDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
         };
 
         foreach (var option in options)

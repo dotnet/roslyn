@@ -9,9 +9,8 @@ using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -66,24 +65,19 @@ internal readonly record struct CodeAndImportGenerationOptions
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
 
-    private sealed class Provider : CodeAndImportGenerationOptionsProvider
+    private sealed class Provider(CodeAndImportGenerationOptions options) : CodeAndImportGenerationOptionsProvider
     {
-        private readonly CodeAndImportGenerationOptions _options;
-
-        public Provider(CodeAndImportGenerationOptions options)
-            => _options = options;
-
         ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options);
+            => ValueTaskFactory.FromResult(options);
 
         ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.GenerationOptions);
+            => ValueTaskFactory.FromResult(options.GenerationOptions);
 
         ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.GenerationOptions.NamingStyle);
+            => ValueTaskFactory.FromResult(options.GenerationOptions.NamingStyle);
 
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.AddImportOptions);
+            => ValueTaskFactory.FromResult(options.AddImportOptions);
     }
 #endif
 }
@@ -110,6 +104,20 @@ internal static class CodeGenerationOptionsProviders
 #if !CODE_STYLE
     public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
+
+    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeAndImportGenerationOptions? fallbackOptions)
+        => new()
+        {
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions)
+        };
+
+    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CleanCodeGenerationOptions? fallbackOptions)
+        => new()
+        {
+            GenerationOptions = options.GetCodeGenerationOptions(languageServices, fallbackOptions?.GenerationOptions),
+            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.CleanupOptions)
+        };
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {

@@ -16,26 +16,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed class SQLitePersistentStorageService : AbstractPersistentStorageService, IWorkspaceService
+    internal sealed class SQLitePersistentStorageService(
+        SQLiteConnectionPoolService connectionPoolService,
+        IPersistentStorageConfiguration configuration,
+        IAsynchronousOperationListener asyncListener) : AbstractPersistentStorageService(configuration), IWorkspaceService
     {
         [ExportWorkspaceServiceFactory(typeof(SQLitePersistentStorageService)), Shared]
-        internal sealed class ServiceFactory : IWorkspaceServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class ServiceFactory(
+            SQLiteConnectionPoolService connectionPoolService,
+            IAsynchronousOperationListenerProvider asyncOperationListenerProvider) : IWorkspaceServiceFactory
         {
-            private readonly SQLiteConnectionPoolService _connectionPoolService;
-            private readonly IAsynchronousOperationListener _asyncListener;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public ServiceFactory(
-                SQLiteConnectionPoolService connectionPoolService,
-                IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
-            {
-                _connectionPoolService = connectionPoolService;
-                _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
-            }
+            private readonly IAsynchronousOperationListener _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SQLitePersistentStorageService(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
+                => new SQLitePersistentStorageService(connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
         }
 
         private const string StorageExtension = "sqlite3";
@@ -65,19 +61,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return true;
         }
 
-        private readonly SQLiteConnectionPoolService _connectionPoolService;
-        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
-
-        public SQLitePersistentStorageService(
-            SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageConfiguration configuration,
-            IAsynchronousOperationListener asyncListener)
-            : base(configuration)
-        {
-            _connectionPoolService = connectionPoolService;
-            _asyncListener = asyncListener;
-        }
 
         public SQLitePersistentStorageService(
             SQLiteConnectionPoolService connectionPoolService,
@@ -108,11 +92,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
 
             return new(SQLitePersistentStorage.TryCreate(
-                _connectionPoolService,
+                connectionPoolService,
                 solutionKey,
                 workingFolderPath,
                 databaseFilePath,
-                _asyncListener,
+                asyncListener,
                 _faultInjector));
         }
 

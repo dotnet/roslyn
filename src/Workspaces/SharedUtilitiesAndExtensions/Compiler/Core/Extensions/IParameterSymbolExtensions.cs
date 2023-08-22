@@ -52,5 +52,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return null;
         }
+
+        public static bool IsPrimaryConstructor(this IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            if (parameter is
+                {
+                    ContainingSymbol: IMethodSymbol
+                    {
+                        MethodKind: MethodKind.Constructor,
+                        DeclaringSyntaxReferences: [var constructorReference, ..],
+                        ContainingType: { } containingType,
+                    } constructor,
+                })
+            {
+                var constructorSyntax = constructorReference.GetSyntax(cancellationToken);
+                return containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken));
+            }
+
+            return false;
+        }
     }
 }

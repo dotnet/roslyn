@@ -1140,7 +1140,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodInPartialClass()
         {
             var file1 = @"
@@ -1195,7 +1195,7 @@ namespace Baz
         [InlineData(ReferenceType.Project, "public")]
         [InlineData(ReferenceType.Project, "internal")]
         [InlineData(ReferenceType.Metadata, "public")]  // We don't support internal extension method from non-source references.
-        [Theory, WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypes(ReferenceType refType, string accessibility)
         {
             var refDoc = $@"
@@ -1252,7 +1252,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
         {
             var refDoc1 = @"
@@ -1711,7 +1711,7 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAlways(ReferenceType refType)
         {
             var srcDoc = @"
@@ -1755,7 +1755,7 @@ namespace Foo
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableNever(ReferenceType refType)
         {
             var srcDoc = @"
@@ -1811,7 +1811,7 @@ namespace Foo
         [InlineData(ReferenceType.Project, false)]
         [InlineData(ReferenceType.Metadata, true)]
         [InlineData(ReferenceType.Metadata, false)]
-        [Theory, WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced)
         {
             HideAdvancedMembers = hideAdvanced;

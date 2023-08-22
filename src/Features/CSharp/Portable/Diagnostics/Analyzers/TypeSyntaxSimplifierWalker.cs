@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             void AddAliasedName(UsingDirectiveSyntax usingDirective)
             {
                 if (usingDirective.Alias is not null &&
-                    usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
+                    usingDirective.Name?.GetRightmostName() is IdentifierNameSyntax identifierName)
                 {
                     var identifierAlias = identifierName.Identifier.ValueText;
                     if (!string.IsNullOrEmpty(identifierAlias))

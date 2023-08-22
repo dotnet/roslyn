@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -144,8 +145,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             {
                 if (_workspace.CurrentSolution.GetChanges(solution).GetProjectChanges().Any())
                 {
-                    _workspace.TryApplyChanges(solution);
-                    MessageDialog.Show(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Namespaces_have_been_updated, MessageDialogCommandSet.Ok);
+                    var previewChangeService = _workspace.Services.GetRequiredService<IPreviewDialogService>();
+                    var newSolution = previewChangeService.PreviewChanges(
+                        title: EditorFeaturesResources.Preview_Changes,
+                        helpString: "vs.csharp.refactoring.preview",
+                        description: ServicesVSResources.Sync_Namespaces,
+                        topLevelName: ServicesVSResources.Sync_namespaces_changes,
+                        topLevelGlyph: Glyph.OpenFolder,
+                        newSolution: solution,
+                        oldSolution: _workspace.CurrentSolution,
+                        showCheckBoxes: false);
+
+                    // If user clicks cancel, this would be null
+                    if (newSolution != null)
+                    {
+                        _workspace.TryApplyChanges(newSolution);
+                    }
                 }
                 else
                 {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -11,8 +12,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
     public partial class DocumentChangesTests
     {
-        [Fact]
-        public async Task FindReferencesInChangingDocument()
+        [Theory, CombinatorialData]
+        public async Task FindReferencesInChangingDocument(bool mutatingLspWorkspace)
         {
             var source =
 @"class A
@@ -29,13 +30,15 @@ class B
     }
 }";
 
-            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
+            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
 
             await using (testLspServer)
             {
                 Assert.Empty(testLspServer.GetTrackedTexts());
 
                 await DidOpen(testLspServer, locationTyped.Uri);
+
+                var originalDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
                 var findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<VSInternalReferenceItem>(testLspServer, locationTyped);
                 Assert.Single(findResults);
@@ -72,18 +75,18 @@ class B
                 Assert.Equal("M", findResults[1].ContainingMember);
                 Assert.Equal("M2", findResults[3].ContainingMember);
 
-                // NOTE: This is not a real world scenario
-                // By closing the document we revert back to the original state, but in the real world
-                // the original state will have been updated by back channels (text buffer sync, file changed on disk, etc.)
-                // This is validating that the above didn't succeed by any means except the FAR handler being passed
-                // the updated document, so if we regress and get lucky, we still know about it.
+                // NOTE: This is not a real world scenario.
+                //
+                // By closing the document we revert back to the original state, but in the real world the original
+                // state will have been updated by back channels (text buffer sync, file changed on disk, etc.) This
+                // is validating that the above didn't succeed by any means except the FAR handler being passed the
+                // updated document, so if we regress and get lucky, we still know about it.
                 await DidClose(testLspServer, locationTyped.Uri);
 
                 findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<VSInternalReferenceItem>(testLspServer, locationTyped);
                 Assert.Single(findResults);
 
                 Assert.Equal("A", findResults[0].ContainingType);
-
             }
         }
     }

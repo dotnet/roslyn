@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InserForEachSnippetInConstructorTest()
+        public async Task InsertForEachSnippetInConstructorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InserForEachSnippetWithCollectionTest()
+        public async Task InsertForEachSnippetWithCollectionTest()
         {
             var markupBeforeCommit =
 @"using System;
@@ -250,6 +246,348 @@ static void Main(string[] args)
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [WpfTheory]
+        [InlineData("List<int>")]
+        [InlineData("int[]")]
+        [InlineData("IEnumerable<int>")]
+        [InlineData("ArrayList")]
+        [InlineData("IEnumerable")]
+        public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+                using System.Collections;
+
+                class C
+                {
+                    void M({{collectionType}} enumerable)
+                    {
+                        enumerable.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+                using System.Collections;
+                
+                class C
+                {
+                    void M({{collectionType}} enumerable)
+                    {
+                        foreach (var item in enumerable)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineForEachSnippetForIncorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(int arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineForEachSnippetWhenNotDirectlyExpressionStatementTest()
+        {
+            var markupBeforeCommit = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    void M(List<int> list)
+                    {
+                        Console.WriteLine(list.$$);
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        [InlineData("#region test")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                        {{trivia}}
+                        arr.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                        {{trivia}}
+                        foreach (var item in arr)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                {{trivia}}
+                        arr.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                {{trivia}}
+                        foreach (var item in arr)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                (new int[10]).$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{trivia}}
+                foreach (var item in new int[10])
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#region test")]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                (new int[10]).$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+
+                {{trivia}}
+                foreach (var item in new int[10])
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task InsertForEachSnippetAfterSingleAwaitKeywordInMethodBodyTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        await $$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        await foreach (var item in collection)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertForEachSnippetAfterSingleAwaitKeywordInGlobalStatementTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>await $$</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                await foreach (var item in collection)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoForEachStatementAfterAwaitKeywordWhenWontResultInStatementTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>var result = await $$</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task PreferAsyncEnumerableVariableInScopeForAwaitForEachTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        IEnumerable&lt;int&gt; enumerable;
+                        IAsyncEnumerable&lt;int&gt; asyncEnumerable;
+                
+                        await $$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        IEnumerable<int> enumerable;
+                        IAsyncEnumerable<int> asyncEnumerable;
+                
+                        await foreach (var item in asyncEnumerable)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task InsertAwaitForEachSnippetForPostfixAsyncEnumerableTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M(IAsyncEnumerable&lt;int&gt; asyncEnumerable)
+                    {
+                        asyncEnumerable.$$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M(IAsyncEnumerable<int> asyncEnumerable)
+                    {
+                        await foreach (var item in asyncEnumerable)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
 }

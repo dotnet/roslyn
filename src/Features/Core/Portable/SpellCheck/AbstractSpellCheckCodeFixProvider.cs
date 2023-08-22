@@ -135,17 +135,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             var nameText = nameToken.ValueText;
-            var similarityChecker = WordSimilarityChecker.Allocate(nameText, substringsAreSimilar: true);
-            try
-            {
-                await CheckItemsAsync(
-                    context, nameToken, isGeneric,
-                    completionList, similarityChecker).ConfigureAwait(false);
-            }
-            finally
-            {
-                similarityChecker.Free();
-            }
+            using var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true);
+
+            await CheckItemsAsync(
+                context, nameToken, isGeneric,
+                completionList, similarityChecker).ConfigureAwait(false);
         }
 
         private async Task CheckItemsAsync(
@@ -188,11 +182,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
                 context.RegisterCodeFix(
-                    CodeAction.CreateWithPriority(
-                        CodeActionPriority.Low,
+                    CodeAction.Create(
                         string.Format(FeaturesResources.Fix_typo_0, nameText),
                         codeActions,
-                        isInlinable: true),
+                        isInlinable: true,
+                        CodeActionPriority.Low),
                     context.Diagnostics);
             }
             else
@@ -216,11 +210,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
         {
-            return CodeAction.CreateWithPriority(
-                CodeActionPriority.Low,
+            return CodeAction.Create(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => UpdateAsync(document, nameToken, newName, c),
-                equivalenceKey: newName);
+                equivalenceKey: newName,
+                CodeActionPriority.Low);
         }
 
         private async Task<Document> UpdateAsync(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)

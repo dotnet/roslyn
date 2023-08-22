@@ -72,7 +72,7 @@ internal class SemanticTokensRefreshQueue :
         _notificationManager = notificationManager;
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken _)
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken _)
     {
         if (_semanticTokenRefreshQueue is null && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
         {
@@ -131,7 +131,7 @@ internal class SemanticTokensRefreshQueue :
         {
             if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
             {
-                return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+                return notificationManager.SendRequestAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
             }
         }
 

@@ -16,15 +16,10 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
-    internal class CSharpEditorNavigationBarItemService : AbstractEditorNavigationBarItemService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpEditorNavigationBarItemService(IThreadingContext threadingContext) : AbstractEditorNavigationBarItemService(threadingContext)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorNavigationBarItemService(IThreadingContext threadingContext)
-            : base(threadingContext)
-        {
-        }
-
         protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             await NavigateToSymbolItemAsync(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, textVersion, cancellationToken).ConfigureAwait(false);

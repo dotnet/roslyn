@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -225,7 +226,7 @@ $$
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
@@ -254,8 +255,8 @@ $$
             await VerifyItemInLinkedFilesAsync(markup, "for", null);
         }
 
-        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
-        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8228")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FormattingAfterCompletionCommit_AfterGetAccessorInSingleLineIncompleteProperty()
         {
@@ -273,8 +274,8 @@ $$
             await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';');
         }
 
-        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
-        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8228")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FormattingAfterCompletionCommit_AfterBothAccessorsInSingleLineIncompleteProperty()
         {
@@ -292,8 +293,8 @@ $$
             await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';');
         }
 
-        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
-        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/8228")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FormattingAfterCompletionCommit_InSingleLineMethod()
         {
@@ -311,7 +312,7 @@ $$
             await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';');
         }
 
-        [WorkItem(14218, "https://github.com/dotnet/roslyn/issues/14218")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14218")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PredefinedTypeKeywordsShouldBeRecommendedAfterCaseInASwitch()
         {
@@ -372,8 +373,8 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
-        public async Task DontSuggestEventAfterReadonlyInClass()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DoNotSuggestEventAfterReadonlyInClass()
         {
             var markup =
 @"class C {
@@ -384,8 +385,8 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
-        public async Task DontSuggestEventAfterReadonlyInInterface()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DoNotSuggestEventAfterReadonlyInInterface()
         {
             var markup =
 @"interface C {
@@ -396,7 +397,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
         public async Task SuggestEventAfterReadonlyInStruct()
         {
             var markup =
@@ -408,7 +409,7 @@ class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         [InlineData("struct", true)]
         [InlineData("record struct", true)]
         [InlineData("class", false)]
@@ -436,7 +437,7 @@ $@"{declarationType} C {{
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         [InlineData("struct", true)]
         [InlineData("class", false)]
         [InlineData("interface", false)]
@@ -461,7 +462,7 @@ $@"{declarationType} C {{
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         [InlineData("struct", true)]
         [InlineData("class", false)]
         [InlineData("interface", false)]
@@ -486,7 +487,7 @@ $@"{declarationType} C {{
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         [InlineData("struct", true)]
         [InlineData("class", false)]
         [InlineData("interface", false)]
@@ -511,7 +512,7 @@ $@"{declarationType} C {{
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         public async Task SuggestAccessorAfterReadonlyInStruct()
         {
             var markup =
@@ -527,7 +528,7 @@ $@"{declarationType} C {{
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
         public async Task SuggestReadonlyMethodInStruct()
         {
 
@@ -539,7 +540,7 @@ $@"{declarationType} C {{
             await VerifyItemExistsAsync(markup, "readonly");
         }
 
-        [Theory, WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921"), CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58921"), CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCastExpressionThatMightBeParenthesizedExpression1(bool hasNewline)
         {
 
@@ -580,7 +581,7 @@ class C
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(57886, "https://github.com/dotnet/roslyn/issues/57886")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57886")]
         public async Task TestInCastExpressionThatMightBeParenthesizedExpression2(bool hasExpression)
         {
 
@@ -830,6 +831,52 @@ $@"class C
                 """;
 
             await VerifyItemExistsAsync(markup, "file");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterUsingUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("using unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterUsingStaticUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("using static unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("global using unsafe $$", keyword);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        [MemberData(nameof(TypeDeclarationKeywords))]
+        public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingStaticUnsafe(string keyword)
+        {
+            await VerifyItemIsAbsentAsync("global using static unsafe $$", keyword);
+        }
+
+        public static IEnumerable<object[]> TypeDeclarationKeywords()
+        {
+            yield return new[] { "abstract" };
+            yield return new[] { "class" };
+            yield return new[] { "delegate" };
+            yield return new[] { "file" };
+            yield return new[] { "interface" };
+            yield return new[] { "internal" };
+            yield return new[] { "partial" };
+            yield return new[] { "public" };
+            yield return new[] { "readonly" };
+            yield return new[] { "record" };
+            yield return new[] { "ref" };
+            yield return new[] { "sealed" };
+            yield return new[] { "static" };
+            yield return new[] { "struct" };
         }
     }
 }

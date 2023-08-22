@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                 ImmutableArray.Create(firstDiagnostic),
                 (a, _) => action ??= a,
                 options,
-                isBlocking: false,
                 cancellationToken);
             await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
@@ -140,7 +139,8 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
             RoslynDebug.AssertNotNull(fixAllAction);
 
-            var operations = await fixAllAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await fixAllAction.GetOperationsAsync(
+                fixAllContext.Solution, fixAllContext.ProgressTracker, cancellationToken).ConfigureAwait(false);
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
             RoslynDebug.AssertNotNull(applyChangesOperation);
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
         private class DiagnosticProvider : FixAllContext.DiagnosticProvider
         {
-            private static readonly Task<IEnumerable<Diagnostic>> EmptyDignosticResult = Task.FromResult(Enumerable.Empty<Diagnostic>());
+            private static readonly Task<IEnumerable<Diagnostic>> EmptyDiagnosticResult = Task.FromResult(Enumerable.Empty<Diagnostic>());
 
             private readonly ImmutableDictionary<Project, ImmutableArray<Diagnostic>> _diagnosticsByProject;
 
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
-                return _diagnosticsByProject.ContainsKey(project)
-                    ? Task.FromResult<IEnumerable<Diagnostic>>(_diagnosticsByProject[project])
-                    : EmptyDignosticResult;
+                return _diagnosticsByProject.TryGetValue(project, out var diagnostics)
+                    ? Task.FromResult<IEnumerable<Diagnostic>>(diagnostics)
+                    : EmptyDiagnosticResult;
             }
         }
     }

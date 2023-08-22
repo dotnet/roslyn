@@ -4,8 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -20,19 +18,11 @@ internal static class CodeGenerationOptionsStorage
         => document.GetCleanCodeGenerationOptionsAsync(globalOptions.GetCleanCodeGenerationOptions(document.Project.Services), cancellationToken);
 
     public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(globalOptions, fallbackOptions: null);
+        => globalOptions.GetCodeGenerationOptions(languageServices, fallbackOptions: null);
 
     public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new()
-        {
-            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
-            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices)
-        };
+        => globalOptions.GetCodeAndImportGenerationOptions(languageServices, allowImportsInHiddenRegions: null, fallbackOptions: null);
 
     public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new()
-        {
-            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
-            CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices)
-        };
+        => globalOptions.GetCleanCodeGenerationOptions(languageServices, allowImportsInHiddenRegions: null, fallbackOptions: null);
 }

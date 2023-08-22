@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("VisualStudioWorkspaceStatusService_PartialLoadModeFeatureFlag", defaultValue: false);
+        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("visual_studio_workspace_partial_load_mode", defaultValue: false);
 
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
 
                     var completionTask = status.WaitForCompletionAsync();
-                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted));
+                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted, LogLevel.Debug));
 
                     // TODO: WaitForCompletionAsync should accept cancellation directly.
                     //       for now, use WithCancellation to indirectly add cancellation

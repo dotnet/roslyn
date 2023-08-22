@@ -34,9 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         Medium,
 
         /// <summary>
-        /// Indicates that the tagger should run when the user appears to be 
-        /// idle.  
+        /// Indicates that the tagger should run when the user appears to be idle.  
         /// </summary>
-        OnIdle
+        OnIdle,
+
+        /// <summary>
+        /// Indicates that the tagger is not view, and should be on a very delayed update cadence.
+        /// </summary>
+        NonFocus,
     }
 }

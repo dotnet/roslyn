@@ -251,7 +251,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")>
         Public Async Function TestInExpressionOfT() As Task
             Await TestInRegularAndScriptAsync(
 "

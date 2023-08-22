@@ -107,7 +107,7 @@ interface IBar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -135,7 +135,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
-        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnParen()
         {
             var markup = @"
@@ -163,7 +163,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
-        [Fact, WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19947")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
             var markup = @"
@@ -193,7 +193,7 @@ class Bar : I2
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionDoesNotContainAccessors()
         {
             var markup = @"
@@ -333,7 +333,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Goo");
         }
 
-        [Fact, WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_01()
         {
             var markup =
@@ -368,7 +368,7 @@ public interface IGoo
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
-        [Fact, WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_02()
         {
             var markup =
@@ -604,7 +604,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
         }
 
-        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember()
         {
             var markup = @"
@@ -634,7 +634,7 @@ class Test2 : I2<Test2>
             await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
         }
 
-        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_TrueOperator()
         {
             var markup = @"
@@ -666,7 +666,7 @@ class C : I<C>
             await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
         }
 
-        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
         {
             var markup = @"
@@ -696,7 +696,7 @@ class C : I<C>
             await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
         }
 
-        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
         {
             var markup = @"
@@ -880,7 +880,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
         }
 
-        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedUnaryOperator()
         {
             var markup = @"
@@ -914,7 +914,7 @@ class C : I1<C>
             await VerifyProviderCommitAsync(markup, "operator checked -(C x)", expected, '\t');
         }
 
-        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedBinaryOperator()
         {
             var markup = @"
@@ -948,7 +948,7 @@ class C : I1<C>
             await VerifyProviderCommitAsync(markup, "operator checked +(C x, C y)", expected, '\t');
         }
 
-        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedCastOperator()
         {
             var markup = @"

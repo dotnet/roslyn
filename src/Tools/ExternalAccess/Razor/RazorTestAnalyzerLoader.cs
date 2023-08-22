@@ -29,7 +29,7 @@ internal class RazorTestAnalyzerLoader
 
     public void InitializeDiagnosticsServices(Workspace workspace)
     {
-        _globalOptionService.SetGlobalOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.LspPull);
+        _globalOptionService.SetGlobalOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.LspPull);
         _ = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }

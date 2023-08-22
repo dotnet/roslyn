@@ -38,7 +38,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")>
         Public Async Function TestNotWithThrow1() As Task
             Await TestMissingAsync(
 "
@@ -583,7 +583,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingProperty() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -612,7 +612,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingFunction() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -637,7 +637,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingSub1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -666,7 +666,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingSub2() As Task
             Await TestInRegularAndScriptAsync(
 "

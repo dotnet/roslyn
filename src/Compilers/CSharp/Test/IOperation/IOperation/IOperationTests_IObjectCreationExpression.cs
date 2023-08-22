@@ -5181,73 +5181,76 @@ class C3
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term '{'
+                // (8,70): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
-                // CS1026: ) expected
+                // (8,70): error CS1026: ) expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 70),
-                // CS1003: Syntax error, ':' expected
+                // (8,70): error CS1003: Syntax error, ':' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(8, 70),
-                // CS1525: Invalid expression term '{'
+                // (8,70): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
-                // CS1003: Syntax error, ',' expected
+                // (8,70): error CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(8, 70),
-                // CS1513: } expected
+                // (8,88): error CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(8, 88),
+                // (8,90): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 88),
-                // CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
-                // CS1525: Invalid expression term '{'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(8, 90),
+                // (8,90): error CS1513: } expected
+                //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(8, 90),
+                // (8,93): error CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 93),
-                // CS1026: ) expected
+                // (8,93): error CS1026: ) expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 93),
-                // CS1002: ; expected
+                // (8,93): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 93),
-                // CS1002: ; expected
+                // (8,101): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 101),
-                // CS1513: } expected
+                // (8,101): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 101),
-                // CS1002: ; expected
+                // (8,110): error CS1002: ; expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 110),
-                // CS1513: } expected
+                // (8,111): error CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 111),
-                // CS1022: Type or namespace definition, or end-of-file expected
+                // (10,5): error CS1022: Type or namespace definition, or end-of-file expected
                 //     }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 5),
-                // CS1022: Type or namespace definition, or end-of-file expected
+                // (11,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1),
-                // CS0103: The name 'P1' does not exist in the current context
+                // (8,72): error CS0103: The name 'P1' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(8, 72),
-                // CS0103: The name 'P2' does not exist in the current context
+                // (8,80): error CS0103: The name 'P2' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P2").WithArguments("P2").WithLocation(8, 80),
-                // CS0747: Invalid initializer member declarator
+                // (8,70): error CS0747: Invalid initializer member declarator
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ P1 = 3, P2 = 4 }").WithLocation(8, 70),
-                // CS0103: The name 'P1' does not exist in the current context
+                // (8,95): error CS0103: The name 'P1' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(8, 95),
-                // CS0103: The name 'P2' does not exist in the current context
+                // (8,103): error CS0103: The name 'P2' does not exist in the current context
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P2").WithArguments("P2").WithLocation(8, 103)
             };
@@ -5257,7 +5260,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .locals {R1}
 {
     Locals: [C1 x]
@@ -5267,40 +5269,36 @@ Block[B0] - Entry
         Block[B1] - Block
             Predecessors: [B0]
             Statements (3)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Value: 
-                    IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Value:
+                    IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'P1 = 1')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C3.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P1')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IPropertyReferenceOperation: C3 C2.C31 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C31')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                              Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Right: 
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'P2 = 2')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C3.P2 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P2')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IPropertyReferenceOperation: C3 C2.C31 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C31')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                              Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-                  Right: 
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
             Next (Regular) Block[B2]
                 Entering: {R3}
-
         .locals {R3}
         {
             CaptureIds: [1] [2]
@@ -5308,110 +5306,97 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'C2')
-                      Value: 
+                      Value:
                         IPropertyReferenceOperation: C2 C1.C2 { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: 'C2')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
                 Jump if False (Regular) to Block[B4]
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
                 Next (Regular) Block[B3]
             Block[B3] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
-                      Value: 
+                      Value:
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                           Children(0)
-
                 Next (Regular) Block[B5]
             Block[B4] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
-                      Value: 
+                      Value:
                         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                           Children(0)
-
                 Next (Regular) Block[B5]
             Block[B5] - Block
                 Predecessors: [B3] [B4]
                 Statements (1)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid) (Syntax: 'C32 = b ? (')
-                      Left: 
+                      Left:
                         IPropertyReferenceOperation: C3 C2.C32 { get; set; } (OperationKind.PropertyReference, Type: C3) (Syntax: 'C32')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'C2')
-                      Right: 
+                      Right:
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C3, IsInvalid, IsImplicit) (Syntax: 'b ? (')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (NoConversion)
-                          Operand: 
+                          Operand:
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? (')
-
                 Next (Regular) Block[B6]
                     Leaving: {R3}
         }
-
         Block[B6] - Block
             Predecessors: [B5]
             Statements (2)
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{ P1 = 3, P2 = 4 }')
                   Children(2):
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
-                        Left: 
+                        Left:
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                             Children(0)
-                        Right: 
+                        Right:
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
-                        Left: 
+                        Left:
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                             Children(0)
-                        Right: 
+                        Right:
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
-
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 3, P2 = 4 }')
-                  Left: 
-                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 3, P2 = 4 }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... 3, P2 = 4 }')
-
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... , P2 = 4 })')
+                  Left:
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... , P2 = 4 })')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { C2 ... , P2 = 4 })')
             Next (Regular) Block[B7]
                 Leaving: {R2}
     }
-
     Block[B7] - Block
         Predecessors: [B6]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(')
-              Expression: 
+              Expression:
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'P1 = 3')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                       Children(0)
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'P2 = 4 ')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                       Children(0)
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-
         Next (Regular) Block[B8]
             Leaving: {R1}
 }
-
 Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
@@ -15350,6 +15335,183 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ");
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806208")]
+        public void InvalidTrailingUnconvertedExpressions()
+        {
+            var source = """
+                var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+
+                class C
+                {
+                    public int F1;
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,37): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{asdf}""").WithLocation(1, 37),
+                // (1,40): error CS0103: The name 'asdf' does not exist in the current context
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(1, 40),
+                // (1,48): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "true switch { _ => false }").WithLocation(1, 48),
+                // (1,76): error CS0747: Invalid initializer member declarator
+                // var c = /*<bind>*/new C() { F1 = 1, $"{asdf}", true switch { _ => false }, new() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "new()").WithLocation(1, 76)
+            };
+
+            var comp = CreateCompilation(source);
+
+            string expectedOperationTree = """
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')
+                  Arguments(0)
+                  Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ F1 = 1, $ ...  }, new() }')
+                      Initializers(4):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F1 = 1')
+                            Left:
+                              IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F1')
+                            Right:
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{asdf}"')
+                            Parts(1):
+                                IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{asdf}')
+                                  Expression:
+                                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'asdf')
+                                      Children(0)
+                                  Alignment:
+                                    null
+                                  FormatString:
+                                    null
+                          IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                            Children(1):
+                                ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Boolean, IsInvalid) (Syntax: 'true switch ...  => false }')
+                                  Value:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+                                  Arms(1):
+                                      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => false')
+                                        Pattern:
+                                          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                                        Value:
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'new()')
+                            Children(1):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                """;
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            string expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [C c]
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (3)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                              Value:
+                                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { F ...  }, new() }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F1 = 1')
+                              Left:
+                                IFieldReferenceOperation: System.Int32 C.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                                  Instance Receiver:
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{asdf}"')
+                              Parts(1):
+                                  IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{asdf}')
+                                    Expression:
+                                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'asdf')
+                                        Children(0)
+                                    Alignment:
+                                      null
+                                    FormatString:
+                                      null
+                        Next (Regular) Block[B2]
+                            Entering: {R2} {R3}
+                    .locals {R2}
+                    {
+                        CaptureIds: [1]
+                        .locals {R3}
+                        {
+                            CaptureIds: [2]
+                            Block[B2] - Block
+                                Predecessors: [B1]
+                                Statements (1)
+                                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'true')
+                                      Value:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+                                Jump if False (Regular) to Block[B4]
+                                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => false')
+                                      Value:
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Boolean, Constant: True, IsInvalid, IsImplicit) (Syntax: 'true')
+                                      Pattern:
+                                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                                    Leaving: {R3}
+                                Next (Regular) Block[B3]
+                            Block[B3] - Block
+                                Predecessors: [B2]
+                                Statements (1)
+                                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'false')
+                                      Value:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
+                                Next (Regular) Block[B5]
+                                    Leaving: {R3}
+                        }
+                        Block[B4] - Block
+                            Predecessors: [B2]
+                            Statements (0)
+                            Next (Throw) Block[null]
+                                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                        Block[B5] - Block
+                            Predecessors: [B3]
+                            Statements (1)
+                                IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                                  Children(1):
+                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'true switch ...  => false }')
+                            Next (Regular) Block[B6]
+                                Leaving: {R2}
+                    }
+                    Block[B6] - Block
+                        Predecessors: [B5]
+                        Statements (2)
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'new()')
+                              Children(1):
+                                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                    Children(0)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'c = /*<bind ...  }, new() }')
+                              Left:
+                                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c = /*<bind ...  }, new() }')
+                              Right:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { F ...  }, new() }')
+                        Next (Regular) Block[B7]
+                            Leaving: {R1}
+                }
+                Block[B7] - Exit
+                    Predecessors: [B6]
+                    Statements (0)
+                """;
+
+            VerifyFlowGraph(comp, comp.SyntaxTrees[0].GetRoot(), expectedFlowGraph);
         }
     }
 }

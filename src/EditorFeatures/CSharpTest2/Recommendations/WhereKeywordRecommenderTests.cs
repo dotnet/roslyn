@@ -261,7 +261,7 @@ $$");
     void D<T>() where T : IList<T> $$");
         }
 
-        [Fact, WorkItem(550715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550715")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550715")]
         public async Task TestNotAfterWhereTypeConstraint()
         {
             await VerifyAbsenceAsync(
@@ -288,7 +288,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(550720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550720")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550720")]
         public async Task TestNoWhereAfterDot()
         {
             await VerifyAbsenceAsync(
@@ -297,7 +297,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterDot1()
         {
             await VerifyAbsenceAsync(
@@ -307,7 +307,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterDot2()
         {
             await VerifyAbsenceAsync(
@@ -316,7 +316,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidConstraint1()
         {
             await VerifyKeywordAsync(
@@ -326,7 +326,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidConstraint2()
         {
             await VerifyKeywordAsync(
@@ -335,7 +335,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGlobal1()
         {
             await VerifyAbsenceAsync(
@@ -345,7 +345,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGlobal2()
         {
             await VerifyAbsenceAsync(
@@ -354,7 +354,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidConstraint3()
         {
             await VerifyKeywordAsync(
@@ -364,7 +364,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidConstraint4()
         {
             await VerifyKeywordAsync(
@@ -373,7 +373,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -383,7 +383,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -392,7 +392,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint1()
         {
             await VerifyKeywordAsync(
@@ -402,7 +402,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint2()
         {
             await VerifyKeywordAsync(
@@ -411,7 +411,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGenericConstraintStartSecondParameter1()
         {
             await VerifyAbsenceAsync(
@@ -421,7 +421,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterGenericConstraintStartSecondParameter2()
         {
             await VerifyAbsenceAsync(
@@ -430,7 +430,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint3()
         {
             await VerifyKeywordAsync(
@@ -440,7 +440,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint4()
         {
             await VerifyKeywordAsync(
@@ -449,7 +449,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterDoubleUnclosedGenericConstraint1()
         {
             await VerifyAbsenceAsync(
@@ -459,7 +459,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterDoubleUnclosedGenericConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -468,7 +468,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint5()
         {
             await VerifyKeywordAsync(
@@ -478,7 +478,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraint6()
         {
             await VerifyKeywordAsync(
@@ -487,7 +487,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterTupleInsideGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -497,7 +497,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterTupleInsideGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -506,7 +506,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterTupleClosedInsideGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -516,7 +516,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestNotAfterTupleClosedInsideGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -525,7 +525,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraintWithTuple1()
         {
             await VerifyKeywordAsync(
@@ -535,7 +535,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30785")]
         public async Task TestAfterValidGenericConstraintWithTuple2()
         {
             await VerifyKeywordAsync(

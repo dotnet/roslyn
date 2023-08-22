@@ -68,6 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
+        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
             Debug.Assert(assembly IsNot Nothing)
@@ -120,6 +122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
             Return Assembly.GetInternalsVisibleToPublicKeys(simpleName)
+        End Function
+
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return Assembly.GetInternalsVisibleToAssemblyNames()
         End Function
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
@@ -282,5 +288,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, ComputeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized)
+                End If
+
+                Return _lazyObsoleteAttributeData
+            End Get
+        End Property
+
+        Private Function ComputeObsoleteAttributeData() As ObsoleteAttributeData
+            For Each attrData In GetAttributes()
+                If attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                    Return attrData.DecodeExperimentalAttribute()
+                End If
+            Next
+
+            Return Nothing
+        End Function
+
     End Class
 End Namespace

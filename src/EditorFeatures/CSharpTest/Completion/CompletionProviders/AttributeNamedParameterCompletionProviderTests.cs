@@ -108,7 +108,7 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
-        [Fact, WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
         public async Task ExistingItemsAreFiltered()
         {
             var markup = @"
@@ -169,7 +169,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
         public async Task TestPropertiesInScript()
         {
             var markup = @"
@@ -191,7 +191,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
-        [Fact, WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
         public async Task NotInComment()
         {
             var markup = @"

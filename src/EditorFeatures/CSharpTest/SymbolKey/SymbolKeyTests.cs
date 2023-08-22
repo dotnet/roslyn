@@ -127,7 +127,7 @@ file class C
             Assert.Same(type, resolved);
         }
 
-        [Fact, WorkItem(45437, "https://github.com/dotnet/roslyn/issues/45437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45437")]
         public async Task TestGenericsAndNullability()
         {
             var typeSource = @"
@@ -177,9 +177,9 @@ file class C
             Assert.Equal(method, resolved);
         }
 
-        [Fact, WorkItem(1178861, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
-        [WorkItem(1192188, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
-        [WorkItem(1192486, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
         public async Task ResolveBodySymbolsInMultiProjectReferencesToOriginalProjectAsync()
         {
             var random = new Random(Seed: 0);
