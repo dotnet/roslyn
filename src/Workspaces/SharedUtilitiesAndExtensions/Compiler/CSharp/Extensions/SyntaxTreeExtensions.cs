@@ -360,19 +360,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (token.Kind() is not (
+            var kind = token.Kind();
+            if (kind is not (
                     SyntaxKind.StringLiteralToken or
                     SyntaxKind.CharacterLiteralToken or
                     SyntaxKind.SingleLineRawStringLiteralToken or
-                    SyntaxKind.MultiLineRawStringLiteralToken))
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
+            }
+
+            // There wouldn't be a UTF8 string literal token if it's incomplete.
+            if (kind is
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            {
+                return false;
             }
 
             if (position != token.Span.End)
                 return false;
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            if (kind is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var sourceText = token.SyntaxTree!.GetText(cancellationToken);
                 var startDelimeterLength = 0;
