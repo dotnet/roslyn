@@ -71,6 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             foreach (var testClassifiedSpan in testFileClassifiedSpans)
                 AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
 
+            // Finally, fill in everything with the "TestCode" classification.  This will ensure it gets the right
+            // background highlighting.  For raw strings we don't want to classify the full lines with this background
+            // color.  Only the parts to the right of the "start column" designation for that raw string.
+
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var text = semanticModel.SyntaxTree.GetText(cancellationToken);
@@ -259,8 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 
                 context.AddClassification(
                     classificationType,
-                    //ClassificationTypeNames.Keyword,
-                    //classificationType == ClassificationTypeNames.NamespaceName ? ClassificationTypeNames.Punctuation : classificationType,
                     FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
                 currentStartIndexInclusive = currentEndIndexExclusive;
             }
