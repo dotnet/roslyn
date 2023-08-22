@@ -61,7 +61,7 @@ class MyClass<T>
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -75,7 +75,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -89,7 +89,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -98,12 +98,12 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseImage), ServicesVSResources.Type_name_has_a_syntax_error)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseOrInvalidTypeImage), ServicesVSResources.Type_name_has_a_syntax_error)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -117,7 +117,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -159,7 +159,7 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -236,7 +236,7 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -255,7 +255,7 @@ class MyClass
 
         Private Shared Sub AssertTypeBindingIconAndTextIs(viewModel As AddParameterDialogViewModel, currentIcon As String, expectedMessage As String)
             Assert.True(viewModel.TypeIsEmptyImage = If(NameOf(viewModel.TypeIsEmptyImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
-            Assert.True(viewModel.TypeDoesNotParseImage = If(NameOf(viewModel.TypeDoesNotParseImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
+            Assert.True(viewModel.TypeDoesNotParseOrInvalidTypeImage = If(NameOf(viewModel.TypeDoesNotParseOrInvalidTypeImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeDoesNotBindImage = If(NameOf(viewModel.TypeDoesNotBindImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeBindsImage = If(NameOf(viewModel.TypeBindsImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
 
@@ -266,7 +266,7 @@ class MyClass
             Assert.True(viewModel.TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name)
 
             Assert.True(viewModel.TypeIsEmptyImage = Visibility.Visible)
-            Assert.True(viewModel.TypeDoesNotParseImage = Visibility.Collapsed)
+            Assert.True(viewModel.TypeDoesNotParseOrInvalidTypeImage = Visibility.Collapsed)
             Assert.True(viewModel.TypeDoesNotBindImage = Visibility.Collapsed)
             Assert.True(viewModel.TypeBindsImage = Visibility.Collapsed)
 
@@ -347,6 +347,31 @@ class MyClass
             viewModel.VerbatimTypeName = "params int[]"
             Assert.False(viewModel.CanSubmit(message))
             Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44959")>
+        Public Sub AddParameter_CannotSubmitVoidParameterType()
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void M($$) { }
+}"]]></Text>
+
+            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+
+            VerifyOpeningState(viewModel)
+
+            viewModel.ParameterName = "test"
+            Dim message As String = Nothing
+
+            viewModel.VerbatimTypeName = "void"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
+
+            viewModel.VerbatimTypeName = "System.Void"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
         End Sub
     End Class
 End Namespace

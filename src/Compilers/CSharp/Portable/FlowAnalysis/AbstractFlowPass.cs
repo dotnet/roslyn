@@ -1969,19 +1969,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
-            VisitCollectionLiteralExpression(node.Elements);
+            VisitCollectionExpression(node.Elements);
             return null;
         }
 
-        public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        public override BoundNode VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
-            VisitCollectionLiteralExpression(node.Elements);
+            VisitCollectionExpression(node.Elements);
             return null;
         }
 
-        private void VisitCollectionLiteralExpression(ImmutableArray<BoundExpression> elements)
+        private void VisitCollectionExpression(ImmutableArray<BoundExpression> elements)
         {
             foreach (var element in elements)
             {
@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
+        public override BoundNode VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             VisitRvalue(node.Expression);
             return null;

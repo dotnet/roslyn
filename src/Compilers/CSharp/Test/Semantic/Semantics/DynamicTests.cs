@@ -2605,9 +2605,9 @@ unsafe class X
                 // (17,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
                 //             B = ptr,
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic").WithLocation(17, 17),
-                // (18,17): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
+                // (18,20): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
                 //             C = () => {},
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "dynamic").WithLocation(18, 20),
                 // (19,17): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'dynamic'
                 //             D = default(TypedReference)
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic").WithLocation(19, 17)

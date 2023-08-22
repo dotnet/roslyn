@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
     {
         private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
         {
             _asyncListenerProvider = asynchronousOperationListenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+            _globalOptionService = globalOptionService;
         }
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-            return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
+            return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _globalOptionService);
         }
     }
 }

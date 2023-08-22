@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 Options = { AllOptionsOff },
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 FixedCode = expectedMarkup,
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
-                LanguageVersion = LanguageVersion.CSharp10,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         {
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface IInterface
                 {
@@ -1019,6 +1021,37 @@ codeAction: ("True;False;False:global::IInterface;TestProject;Microsoft.CodeAnal
 codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParameter1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : {|CS0535:I|}
+                {
+                }
+                """,
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : I
+                {
+                    public void Method1()
+                    {
+                        i.Method1();
+                    }
+                }
+                """,
+codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+        }
+
         [Fact]
         public async Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
         {
@@ -1313,7 +1346,7 @@ codeAction: ("False;True;True:global::I;TestProject;Microsoft.CodeAnalysis.Imple
 
                 interface I
                 {
-                    void Method1(ref int x, out int y, int z);
+                    void Method1(ref int x, out int y, ref readonly int w, int z);
                     int Method2();
                 }
                 """,
@@ -1322,9 +1355,9 @@ codeAction: ("False;True;True:global::I;TestProject;Microsoft.CodeAnalysis.Imple
                 {
                     I goo;
 
-                    public void Method1(ref int x, out int y, int z)
+                    public void Method1(ref int x, out int y, ref readonly int w, int z)
                     {
-                        goo.Method1(ref x, out y, z);
+                        goo.Method1(ref x, out y, in w, z);
                     }
 
                     public int Method2()
@@ -1335,7 +1368,7 @@ codeAction: ("False;True;True:global::I;TestProject;Microsoft.CodeAnalysis.Imple
 
                 interface I
                 {
-                    void Method1(ref int x, out int y, int z);
+                    void Method1(ref int x, out int y, ref readonly int w, int z);
                     int Method2();
                 }
                 """,
@@ -8202,27 +8235,27 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestInWithMethod_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithMethod_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 interface ITest
                 {
-                    void Method(in int p);
+                    void Method({{modifier}} int p);
                 }
                 public class Test : {|CS0535:ITest|}
                 {
                 }
                 """,
-                """
+                $$"""
                 interface ITest
                 {
-                    void Method(in int p);
+                    void Method({{modifier}} int p);
                 }
                 public class Test : ITest
                 {
-                    public void Method(in int p)
+                    public void Method({{modifier}} int p)
                     {
                         throw new System.NotImplementedException();
                     }
@@ -8283,27 +8316,27 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 """);
         }
 
-        [Fact]
-        public async Task TestInWithIndexer_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithIndexer_Parameters([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 interface ITest
                 {
-                    int this[in int p] { set; }
+                    int this[{{modifier}} int p] { set; }
                 }
                 public class Test : {|CS0535:ITest|}
                 {
                 }
                 """,
-                """
+                $$"""
                 interface ITest
                 {
-                    int this[in int p] { set; }
+                    int this[{{modifier}} int p] { set; }
                 }
                 public class Test : ITest
                 {
-                    public int this[in int p] { set => throw new System.NotImplementedException(); }
+                    public int this[{{modifier}} int p] { set => throw new System.NotImplementedException(); }
                 }
                 """);
         }
@@ -10386,7 +10419,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I
                 {
@@ -10419,7 +10452,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I
                 {
@@ -10452,7 +10485,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I
                 {
@@ -10485,7 +10518,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I
                 {
@@ -10522,7 +10555,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = $@"
 interface I
 {{
@@ -10912,7 +10945,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -10949,7 +10982,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -10986,7 +11019,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -11023,7 +11056,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -11058,7 +11091,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -11093,7 +11126,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11135,7 +11168,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11170,7 +11203,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11205,7 +11238,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11241,7 +11274,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -11277,7 +11310,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest
                 {
@@ -11313,7 +11346,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11349,7 +11382,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11385,7 +11418,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface ITest<T> where T : ITest<T>
                 {
@@ -11421,7 +11454,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I1<T> where T : I1<T>
                 {
@@ -11497,7 +11530,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I1<T> where T : I1<T>
                 {
@@ -11573,7 +11606,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 interface I1<T> where T : I1<T>
                 {
@@ -11727,7 +11760,7 @@ interface I
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = """
                 using System;
 

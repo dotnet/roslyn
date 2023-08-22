@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
+            var map = analyzer.GetTestAccessor().IncludeLambdaBodyMaps(BidirectionalMap<SyntaxNode>.FromMatch(bodyMatch), new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

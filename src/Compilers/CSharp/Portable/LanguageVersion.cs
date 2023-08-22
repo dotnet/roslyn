@@ -216,6 +216,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp11 = 1100,
 
         /// <summary>
+        /// C# language version 12.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Primary constructors</description></item>
+        /// <item><description>Using aliases for any types</description></item>
+        /// <item><description>Nameof accessing instance members</description></item>
+        /// <item><description>Inline arrays</description></item>
+        /// <item><description>Collection expressions</description></item>
+        /// <item><description>Ref readonly parameters</description></item>
+        /// <item><description>Lambda optional parameters</description></item>
+        /// </list>
+        /// </summary>
+        CSharp12 = 1200,
+
+        /// <summary>
         /// The latest major supported version.
         /// </summary>
         LatestMajor = int.MaxValue - 2,
@@ -256,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp9:
                 case LanguageVersion.CSharp10:
                 case LanguageVersion.CSharp11:
+                case LanguageVersion.CSharp12:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -295,6 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion10;
                 case LanguageVersion.CSharp11:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion11;
+                case LanguageVersion.CSharp12:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion12;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -316,11 +335,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static class LanguageVersionFacts
     {
         /// <summary>
-        /// Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
-        /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
-        /// <para>
-        /// Corresponds to Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext.
-        /// </para>
+        /// Usages of:
+        /// - TestOptions.RegularNext,
+        /// - LanguageVersionFacts.CSharpNext,
+        /// - Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext
+        /// will be replaced with:
+        /// - TestOptions.RegularN,
+        /// - LanguageVersion.CSharpN,
+        /// - LanguageVersion.CSharpN
+        /// when language version N is introduced.
         /// </summary>
         internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
 
@@ -360,6 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "10.0";
                 case LanguageVersion.CSharp11:
                     return "11.0";
+                case LanguageVersion.CSharp12:
+                    return "12.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -471,6 +496,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp11;
                     return true;
 
+                case "12":
+                case "12.0":
+                    result = LanguageVersion.CSharp12;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -487,13 +517,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp11;
+                    return LanguageVersion.CSharp12;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp11;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp12;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)
