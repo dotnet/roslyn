@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -55,19 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 return;
 
             using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
-            var virtualCharsWithoutMarkup = StripMarkupCharacters(virtualCharsWithMarkup, markdownSpans);
 
-            cancellationToken.ThrowIfCancellationRequested();
-
+            // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
+            var virtualCharsWithoutMarkup = StripMarkupCharacters(virtualCharsWithMarkup, markdownSpans, cancellationToken);
             foreach (var span in markdownSpans)
                 context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
-            var encoding = semanticModel.SyntaxTree.Encoding;
-            var testFileSourceText = new VirtualCharSequenceSourceText(virtualCharsWithoutMarkup, encoding);
-
-            var testFileTree = SyntaxFactory.ParseSyntaxTree(testFileSourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
-            var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
-            var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
+            // Next, get all the embedded language classifications for the test file.  Combine these with the markdown
+            // components. Note: markdown components may be in between individual language components.  For example
+            // `ret$$urn`.  This will break the `return` classification into two individual classifications around the
+            // `$$` classification.
+            var testFileClassifiedSpans = GetTestFileClassifiedSpans(context.SolutionServices, semanticModel, virtualCharsWithoutMarkup, cancellationToken);
+            foreach (var testClassifiedSpan in testFileClassifiedSpans)
+                AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
 
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
             {
@@ -101,16 +103,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                         virtualCharsWithoutMarkup.Last().Span.End));
             }
 
+        }
+
+        private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
+            Host.SolutionServices solutionServices, SemanticModel semanticModel, VirtualCharSequence virtualCharsWithoutMarkup, CancellationToken cancellationToken)
+        {
+            var compilation = semanticModel.Compilation;
+            var encoding = semanticModel.SyntaxTree.Encoding;
+            var testFileSourceText = new VirtualCharSequenceSourceText(virtualCharsWithoutMarkup, encoding);
+
+            var testFileTree = SyntaxFactory.ParseSyntaxTree(testFileSourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
+            var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
+            var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
+
             var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
-                context.SolutionServices,
+                solutionServices,
                 project: null,
                 semanticModeWithTestFile,
                 new TextSpan(0, virtualCharsWithoutMarkup.Length),
                 ClassificationOptions.Default,
                 cancellationToken);
-
-            foreach (var testClassifiedSpan in testFileClassifiedSpans)
-                AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
+            return testFileClassifiedSpans;
         }
 
         /// <summary>
@@ -122,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         /// document for classification.
         /// </summary>
         private static VirtualCharSequence StripMarkupCharacters(
-            VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans)
+            VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans, CancellationToken cancellationToken)
         {
             var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
@@ -191,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 i++;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             return VirtualCharSequence.Create(builder.ToImmutable());
 
             bool TryConsumeNamedSpanStart(ref int i, int n)

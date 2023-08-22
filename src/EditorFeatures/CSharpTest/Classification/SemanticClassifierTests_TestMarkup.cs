@@ -75,16 +75,18 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
                 $$
             }
             """,
-            testHost,
-                TestCode("class D"),
-                Keyword("class"),
-                Class("D"),
-                TestCode("{"),
-                Punctuation.OpenCurly,
-                TestCode("    $$"),
-                TestCodeMarkdown("$$"),
-                TestCode("}"),
-                Punctuation.CloseCurly);
+            testHost);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestEmbeddedCSharpCaret2(TestHost testHost)
+    {
+        await TestEmbeddedCSharpAsync("""
+            cla$$ss D
+            {
+            }
+            """,
+            testHost);
     }
 
     [Theory, CombinatorialData]
