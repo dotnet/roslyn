@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
     [ExportEmbeddedLanguageClassifier(
         PredefinedEmbeddedLanguageNames.CSharpTest, new[] { LanguageNames.CSharp }, supportsUnannotatedAPIs: false,
         PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
-    internal class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
