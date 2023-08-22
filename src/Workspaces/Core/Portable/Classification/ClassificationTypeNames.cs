@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
 
-        internal const string TestCode = "test code";
-        internal const string TestCodeMarkdown = "test code markdown";
+        internal const string TestCode = "roslyn test code";
+        internal const string TestCodeMarkdown = "roslyn test code markdown";
 
         public const string FieldName = "field name";
         public const string EnumMemberName = "enum member name";

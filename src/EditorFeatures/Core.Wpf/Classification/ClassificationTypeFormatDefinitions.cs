@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestCodeFormatDefinition()
             {
-                this.DisplayName = "test code";
+                this.DisplayName = EditorFeaturesResources.Roslyn_Test_Code;
                 this.BackgroundColor = Color.FromRgb(60, 60, 60);
             }
         }
@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestCodeMarkdownFormatDefinition()
             {
-                this.DisplayName = "test code markdown";
+                this.DisplayName = EditorFeaturesResources.Roslyn_Test_Code_Markup;
                 this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
