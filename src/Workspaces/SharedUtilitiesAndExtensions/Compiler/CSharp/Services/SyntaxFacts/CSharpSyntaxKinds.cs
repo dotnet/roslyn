@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
+        public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;

@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             if (reason == ConnectionReason.TextViewLifetime ||
                 !textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType)).Any())
             {
-                if (_subscribedViews.Contains(textView))
+                if (_subscribedViews.Remove(textView))
                 {
-                    _subscribedViews.Remove(textView);
                     textView.Caret.PositionChanged -= OnTextViewCaretPositionChanged;
                 }
             }

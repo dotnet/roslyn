@@ -2542,6 +2542,39 @@ public class C { } // end").Members[0];
                 "public const global::System.Int32 F;");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")]
+        public void TestConstantDecimalFieldDeclarationFromMetadata()
+        {
+            var compilation = _emptyCompilation.
+                WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const decimal F = 8675309000000M;
+                }
+                """));
+            var reference = compilation.EmitToPortableExecutableReference();
+
+            compilation = _emptyCompilation.AddReferences(reference);
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Decimal F = 8675309000000M;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")]
+        public void TestConstantFieldDeclarationSpecialTypes()
+        {
+            var field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(nameof(UInt32.MaxValue)).Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.UInt32 MaxValue = 4294967295U;");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")]
         public void TestDestructor1()
         {
@@ -4741,6 +4774,60 @@ class C
 public readonly struct [|S|]
 {
 }");
+        }
+
+        [Fact]
+        public void TestStructModifiers2()
+        {
+            var compilation = Compile("""
+                public ref struct S
+                {
+                    public int Value;
+                    public ref int RefValue;
+                    public readonly ref int RORefValue;
+
+                    public void M(scoped ref int value) { }
+                    public void M(scoped ref readonly double value) { } 
+                    public void M(in int x, scoped in int y) { }
+                    public void M(S x, scoped S y) { }
+                    public void M(out int value) { }
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("S").Single();
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public struct S
+                {
+                    public global::System.Int32 Value;
+                    public ref global::System.Int32 RefValue;
+                    public readonly ref global::System.Int32 RORefValue;
+                    public void M(scoped ref global::System.Int32 value)
+                    {
+                    }
+
+                    public void M(scoped ref readonly global::System.Double value)
+                    {
+                    }
+
+                    public void M(in global::System.Int32 x, scoped in global::System.Int32 y)
+                    {
+                    }
+
+                    public void M(global::S x, scoped global::S y)
+                    {
+                    }
+
+                    public void M(out global::System.Int32 value)
+                    {
+                    }
+
+                    public S()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67341")]

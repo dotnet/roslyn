@@ -1032,14 +1032,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFunctionPointerInvocation(node);
         }
 
-        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, node);
+                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, node);
             }
 
-            return base.VisitCollectionLiteralExpression(node);
+            return base.VisitCollectionExpression(node);
         }
     }
 }

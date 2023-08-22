@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.Telemetry
     {
         private static ITelemetryLogProvider? s_logProvider;
 
-        public const string AggregatedKeyName = "Name";
-        public const string AggregatedKeyValue = "Value";
+        public const string KeyName = "Name";
+        public const string KeyValue = "Value";
+        public const string KeyLanguageName = "LanguageName";
 
         public static void SetLogProvider(ITelemetryLogProvider logProvider)
         {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         /// <summary>
         /// Posts a telemetry event representing the <paramref name="functionId"/> operation with context message <paramref name="logMessage"/>
         /// </summary>
-        public static void Log(FunctionId functionId, LogMessage logMessage)
+        public static void Log(FunctionId functionId, KeyValueLogMessage logMessage)
         {
             GetLog(functionId)?.Log(logMessage);
         }
@@ -34,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Telemetry
         /// <summary>
         /// Posts a telemetry event representing the <paramref name="functionId"/> operation 
         /// only if the block duration meets or exceeds <paramref name="minThresholdMs"/> milliseconds.
-        /// This event will contain properties from which both <paramref name="name"/> and <paramref name="minThresholdMs"/>.
-        /// and block execution time can be determined.
+        /// This event will contain properties from <paramref name="logMessage"/> and the actual execution time.
         /// </summary>
+        /// <param name="logMessage">Properties to be set on the telemetry event</param>
         /// <param name="minThresholdMs">Optional parameter used to determine whether to send the telemetry event</param>
-        public static IDisposable? LogBlockTime(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler name, int minThresholdMs = -1)
+        public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
         {
-            return GetLog(functionId)?.LogBlockTime(name.GetFormattedText(), minThresholdMs);
+            return GetLog(functionId)?.LogBlockTime(logMessage, minThresholdMs);
         }
 
         /// <summary>
@@ -54,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
             var logMessage = KeyValueLogMessage.Create(m =>
             {
-                m[AggregatedKeyName] = name.GetFormattedText();
-                m[AggregatedKeyValue] = value;
+                m[KeyName] = name.GetFormattedText();
+                m[KeyValue] = value;
             });
 
             aggregatingLog.Log(logMessage);
@@ -68,7 +69,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
         /// <param name="minThresholdMs">Optional parameter used to determine whether to send the telemetry event</param>
         public static IDisposable? LogBlockTimeAggregated(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler metricName, int minThresholdMs = -1)
         {
-            return GetAggregatingLog(functionId)?.LogBlockTime(metricName.GetFormattedText(), minThresholdMs);
+            if (GetAggregatingLog(functionId) is not { } aggregatingLog)
+                return null;
+
+            var logMessage = KeyValueLogMessage.Create(m =>
+            {
+                m[KeyName] = metricName.GetFormattedText();
+            });
+
+            return aggregatingLog.LogBlockTime(logMessage, minThresholdMs);
         }
 
         /// <summary>

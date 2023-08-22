@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
     internal sealed class TimedTelemetryLogBlock : IDisposable
     {
 #pragma warning disable IDE0052 // Remove unread private members - Not used in debug builds
-        private readonly string _name;
+        private readonly KeyValueLogMessage _logMessage;
         private readonly int _minThresholdMs;
         private readonly ITelemetryLog _telemetryLog;
         private readonly SharedStopwatch _stopwatch;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        public TimedTelemetryLogBlock(string name, int minThresholdMs, ITelemetryLog telemetryLog)
+        public TimedTelemetryLogBlock(KeyValueLogMessage logMessage, int minThresholdMs, ITelemetryLog telemetryLog)
         {
-            _name = name;
+            _logMessage = logMessage;
             _minThresholdMs = minThresholdMs;
             _telemetryLog = telemetryLog;
             _stopwatch = SharedStopwatch.StartNew();
@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Telemetry
             {
                 var logMessage = KeyValueLogMessage.Create(m =>
                 {
-                    m[TelemetryLogging.AggregatedKeyName] = _name;
-                    m[TelemetryLogging.AggregatedKeyValue] = elapsed;
+                    m[TelemetryLogging.KeyValue] = elapsed;
+
+                    m.AddRange(_logMessage.Properties);
                 });
 
                 _telemetryLog.Log(logMessage);

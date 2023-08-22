@@ -295,22 +295,23 @@ class MyClass
 
         <Fact>
         Public Async Function TestRefKindsDisplayedCorrectly() As Tasks.Task
-            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.In, RefKind.RefReadOnly}
+            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.In, RefKind.RefReadOnly, RefKind.RefReadOnlyParameter}
             Assert.Equal(includedInTest, EnumUtilities.GetValues(Of RefKind)())
 
             Dim markup = <Text><![CDATA[
 class Test
 {
-    private void Method$$(int p1, ref int p2, in int p3, out int p4) { }
+    private void Method$$(int p1, ref int p2, in int p3, out int p4, ref readonly int p5) { }
 }"]]></Text>
 
             Dim state = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
-            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, in int p3, out int p4)")
+            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, in int p3, out int p4, ref readonly int p5)")
 
             Assert.Equal("", state.ViewModel.AllParameters(0).Modifier)
             Assert.Equal("ref", state.ViewModel.AllParameters(1).Modifier)
             Assert.Equal("in", state.ViewModel.AllParameters(2).Modifier)
             Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
+            Assert.Equal("ref readonly", state.ViewModel.AllParameters(4).Modifier)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30315")>

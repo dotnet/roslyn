@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CSharp.Conversion.IsInlineArray.get -> bool
-Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionLiteral.get -> bool
+Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.AddElements(params Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -10,6 +11,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.WithCloseBracket
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.WithElements(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.WithOpenBracketToken(Microsoft.CodeAnalysis.SyntaxToken openBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax!
@@ -31,6 +35,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept(Microso
 override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionExpression(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SpreadElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SpreadElement(Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!

@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -19,10 +20,10 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
 public class MakeStructReadOnlyTests
 {
-    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
+    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.CSharp12)
         => TestAsync(testCode, testCode, version);
 
-    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
+    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.CSharp12)
     {
         await new VerifyCS.Test
         {
@@ -434,7 +435,7 @@ LanguageVersion.CSharp7_2);
 {
     readonly int i;
 }",
-LanguageVersion.Preview);
+LanguageVersion.CSharp12);
     }
 
     [Fact]

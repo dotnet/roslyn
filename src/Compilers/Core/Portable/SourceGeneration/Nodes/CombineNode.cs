@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis
 
             if (input1Table.IsCached && input2Table.IsCached && previousTable is not null)
             {
+                this.LogTables(_name, previousTable, previousTable, input1Table, input2Table);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return RecordStepsForCachedTable(graphState, previousTable, input1Table, input2Table);
@@ -42,8 +43,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
-            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
-
+            var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
             // Semantics of a join:
             //
             // When input1[i] is cached:
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var stopwatch = SharedStopwatch.StartNew();
 
-                var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;
+                var stepInputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;
 
                 var state = (entry1.State, isInput2Cached) switch
                 {
@@ -70,14 +70,17 @@ namespace Microsoft.CodeAnalysis
                 };
 
                 var entry = (entry1.Item, input2);
-                if (state != EntryState.Modified || _comparer is null || !builder.TryModifyEntry(entry, _comparer, stopwatch.Elapsed, stepInputs, state))
+                if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, _comparer, stopwatch.Elapsed, stepInputs, state))
                 {
-                    builder.AddEntry(entry, state, stopwatch.Elapsed, stepInputs, state);
+                    tableBuilder.AddEntry(entry, state, stopwatch.Elapsed, stepInputs, state);
                 }
             }
 
-            Debug.Assert(builder.Count == totalEntryItemCount);
-            return builder.ToImmutableAndFree();
+            Debug.Assert(tableBuilder.Count == totalEntryItemCount);
+
+            var newTable = tableBuilder.ToImmutableAndFree();
+            this.LogTables(_name, previousTable, newTable, input1Table, input2Table);
+            return newTable;
         }
 
         private NodeStateTable<(TInput1, TInput2)> RecordStepsForCachedTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)> previousTable, NodeStateTable<TInput1> input1Table, NodeStateTable<TInput2> input2Table)
