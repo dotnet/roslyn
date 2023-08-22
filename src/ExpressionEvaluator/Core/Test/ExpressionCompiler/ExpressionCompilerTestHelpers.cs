@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             get { return this.EndOffset - this.StartOffset + 1; }
         }
 
-        // something
         internal bool Contains(int offset)
         {
             return (offset >= this.StartOffset) && (offset < this.EndOffset);
