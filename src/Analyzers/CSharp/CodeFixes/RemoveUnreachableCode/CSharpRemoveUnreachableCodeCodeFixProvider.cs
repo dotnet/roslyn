@@ -81,9 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // Local function
             static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)
             {
-                if (!statement.IsParentKind(SyntaxKind.Block)
-                    && !statement.IsParentKind(SyntaxKind.SwitchSection)
-                    && !statement.IsParentKind(SyntaxKind.GlobalStatement))
+                if (statement.Parent?.Kind()
+                        is not SyntaxKind.Block
+                        and not SyntaxKind.SwitchSection
+                        and not SyntaxKind.GlobalStatement)
                 {
                     editor.ReplaceNode(statement, SyntaxFactory.Block());
                 }

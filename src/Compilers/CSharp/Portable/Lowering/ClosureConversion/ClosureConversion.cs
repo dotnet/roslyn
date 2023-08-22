@@ -1071,6 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return node.Update(
                     receiver,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     method,
                     args,
                     node.ArgumentNamesOpt,

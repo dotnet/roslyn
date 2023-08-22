@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -915,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
@@ -935,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63551")]
@@ -958,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                         return func;
                     }
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
     }
 }

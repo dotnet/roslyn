@@ -2003,9 +2003,9 @@ foreach (var (a, b) in e1) { }
             GetTopEdits(edits).VerifySemanticDiagnostics(
                 new[]
                 {
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter)
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("lambda")),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("lambda")),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("parameter"))
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
@@ -4645,7 +4645,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_ConstructorInitializer_This()
         {
@@ -4658,7 +4658,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_ConstructorInitializer_Base()
         {
@@ -4699,11 +4699,11 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int y", "y"));
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
-            [CombinatorialValues("class", "struct", "record")] string keyword)
+            [CombinatorialValues("class", "record")] string keyword)
         {
             var src1 = keyword + " C(int x, int y) : B(() => x);";
             var src2 = keyword + " C(int x, int y) : B(() => 1);";
@@ -4711,7 +4711,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "x", "x"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
         }
 
         [Fact]
@@ -5157,7 +5157,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_Capturing_ConstructorInitializer_This()
         {
@@ -5170,7 +5170,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_Capturing_ConstructorInitializer_Base()
         {
@@ -5211,11 +5211,11 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Theory]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         [CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
-            [CombinatorialValues("class", "struct", "record")] string keyword)
+            [CombinatorialValues("class", "record")] string keyword)
         {
             var src1 = keyword + " C(int x, int y) : B(() => 1);";
             var src2 = keyword + " C(int x, int y) : B(() => x);";
@@ -6161,7 +6161,7 @@ class Program
         }
 
         [Fact]
-        public void Lambdas_StackAlloc()
+        public void Lambdas_StackAlloc_Update()
         {
             var src1 = @"
 using System;
@@ -6179,7 +6179,62 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("lambda")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_Insert()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    Delegate F() => () => { };
+}";
+            var src2 = @"
+using System;
+class C
+{
+    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_Delete()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    Delegate F() => () => { Span<int> s = stackalloc int[10]; };
+}";
+            var src2 = @"
+using System;
+class C
+{
+    Delegate F() => () => { };
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "()", GetResource("lambda")));
+        }
+
+        [Fact]
+        public void Lambdas_StackAlloc_UpdateAround()
+        {
+            var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
+            var src2 = "unsafe class C { void M() { F(2, () => { int* a = stackalloc int[10]; }); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6592,7 +6647,7 @@ class C
 
             // To be removed when we will enable EnC for local functions
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF", CSharpFeaturesResources.local_function));
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF"));
         }
 
         [Fact]
@@ -6629,7 +6684,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a", CSharpFeaturesResources.lambda));
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -9090,7 +9145,7 @@ interface I
         }
 
         [Fact]
-        public void LocalFunctions_Stackalloc()
+        public void LocalFunctions_Stackalloc_Update()
         {
             var src1 = @"
 using System;
@@ -9128,7 +9183,73 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("local function")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("local function")));
+        }
+
+        [Fact]
+        public void LocalFunctions_Stackalloc_Insert()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+            Span<int> s = stackalloc int[10];
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("local function")));
+        }
+
+        [Fact]
+        public void LocalFunctions_Stackalloc_Delete()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+            Span<int> s = stackalloc int[10];
+        }
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    void F()
+    {
+        void L1()
+        {
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "L1", GetResource("local function")));
         }
 
         [Fact]
@@ -9255,6 +9376,28 @@ class Test
         #endregion
 
         #region Queries
+
+        [Fact]
+        public void Queries_UpdateAround_BlockBody()
+        {
+            var src1 = "class C { void M() { F(1, from goo in bar select baz); } }";
+            var src2 = "class C { void M() { F(2, from goo in bar select baz); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_UpdateAround_ExpressionBody()
+        {
+            var src1 = "class C { void M() => F(1, from goo in bar select baz); }";
+            var src2 = "class C { void M() => F(2, from goo in bar select baz); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
 
         [Fact]
         public void Queries_Update_Signature_Select1()
@@ -10729,10 +10872,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("where clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("select clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("groupby clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("groupby clause")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("where clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[40]", GetResource("select clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("groupby clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[30]", GetResource("groupby clause")));
         }
 
         #endregion

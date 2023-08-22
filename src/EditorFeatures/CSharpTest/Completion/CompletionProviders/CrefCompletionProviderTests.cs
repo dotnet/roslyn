@@ -494,6 +494,21 @@ class C
             await VerifyItemExistsAsync(text, "MyMethod(in int)");
         }
 
+        [Fact]
+        public async Task CRef_RefReadonlyParameter()
+        {
+            var text = $$"""
+                using System;
+                class C 
+                { 
+                    /// <see cref="C.My$$
+                    public void MyMethod(ref readonly int x) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "MyMethod(ref readonly int)");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
         public async Task ValueTuple1()
         {

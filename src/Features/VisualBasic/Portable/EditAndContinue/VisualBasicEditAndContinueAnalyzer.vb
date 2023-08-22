@@ -538,7 +538,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 syntaxRefs = symbol.DeclaringSyntaxReferences
             End If
 
-            Dim syntax = selector(syntaxRefs).GetSyntax(cancellationToken)
+            Dim syntax = selector(syntaxRefs)?.GetSyntax(cancellationToken)
+            If syntax Is Nothing Then
+                Return Nothing
+            End If
+
             Dim parent = syntax.Parent
 
             Select Case syntax.Kind
@@ -842,6 +846,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides ReadOnly Property IsLambda As Func(Of SyntaxNode, Boolean)
             Get
                 Return AddressOf LambdaUtilities.IsLambda
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsNotLambda As Func(Of SyntaxNode, Boolean)
+            Get
+                Return AddressOf LambdaUtilities.IsNotLambda
             End Get
         End Property
 
@@ -1305,6 +1315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Select Case symbol.MethodKind
                 Case MethodKind.StaticConstructor
                     Return VBFeaturesResources.Shared_constructor
+                Case MethodKind.LambdaMethod
+                    Return VBFeaturesResources.Lambda
                 Case Else
                     Return MyBase.GetDisplayName(symbol)
             End Select
@@ -1850,43 +1862,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody)
+        Friend Overrides Function HasUnsupportedOperation(nodes As IEnumerable(Of SyntaxNode), <Out> ByRef unsupportedNode As SyntaxNode, <Out> ByRef rudeEdit As RudeEditKind) As Boolean
             ' Disallow editing the body even if the change is only in trivia.
             ' The compiler might not emit equivallent IL for these constructs (e.g. different names of backing fields for static locals).
 
-            For Each root In newBody.RootNodes
-                Dim lambdaBody = TryCast(newBody, LambdaBody)
-                For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
-                    For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
-                        Dim rudeEdit = RudeEditKind.None
+            For Each node In nodes
+                Select Case node.Kind()
+                    Case SyntaxKind.AggregateClause,
+                         SyntaxKind.GroupByClause,
+                         SyntaxKind.SimpleJoinClause,
+                         SyntaxKind.GroupJoinClause
+                        unsupportedNode = node
+                        rudeEdit = RudeEditKind.ComplexQueryExpression
+                        Return True
 
-                        Select Case node.Kind()
-                            Case SyntaxKind.AggregateClause,
-                                 SyntaxKind.GroupByClause,
-                                 SyntaxKind.SimpleJoinClause,
-                                 SyntaxKind.GroupJoinClause
-                                rudeEdit = RudeEditKind.ComplexQueryExpression
-
-                            Case SyntaxKind.LocalDeclarationStatement
-                                Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                                If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                    rudeEdit = RudeEditKind.UpdateStaticLocal
-                                End If
-                        End Select
-
-                        If rudeEdit <> RudeEditKind.None Then
-                            diagnostics.Add(New RudeEditDiagnostic(
-                                rudeEdit,
-                                GetDiagnosticSpan(node, EditKind.Update),
-                                newDeclaration,
-                                {GetDisplayName(newDeclaration, EditKind.Update)}))
-
-                            Return
+                    Case SyntaxKind.LocalDeclarationStatement
+                        Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                        If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                            unsupportedNode = node
+                            rudeEdit = RudeEditKind.UpdateStaticLocal
+                            Return True
                         End If
-                    Next
-                Next
+                End Select
             Next
-        End Sub
+
+            unsupportedNode = Nothing
+            rudeEdit = RudeEditKind.None
+            Return False
+        End Function
 
 #End Region
 
@@ -2094,7 +2097,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Function
 
-        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
+        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnosticContext As DiagnosticContext, oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
             If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
@@ -2104,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' If the old statement has spilled state and the new doesn't, the edit is ok. We'll just not use the spilled state.
                 If Not SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) AndAlso
                    Not HasNoSpilledState(newNode, newContainingStatementPart) Then
-                    diagnostics.Add(New RudeEditDiagnostic(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span))
+                    diagnosticContext.Report(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span)
                 End If
             End If
         End Sub

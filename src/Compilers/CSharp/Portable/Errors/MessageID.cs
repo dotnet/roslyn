@@ -275,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
+        IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -455,6 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
+                //case MessageID.IDS_NewFeature:
+                //    return LanguageVersion.Preview;
+
+                // C# 12.0 features.
                 case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check
                 case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
@@ -462,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
                 case MessageID.IDS_FeatureInlineArrays: // semantic check
                 case MessageID.IDS_FeatureCollectionExpressions: // semantic check
-                    return LanguageVersion.Preview;
+                case MessageID.IDS_FeatureRefReadonlyParameters: // semantic check
+                    return LanguageVersion.CSharp12;
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:

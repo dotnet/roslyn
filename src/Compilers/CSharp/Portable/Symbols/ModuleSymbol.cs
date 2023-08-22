@@ -185,15 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
-        }
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
+namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
 {
     internal class CSharpDecompiledSourceFormattingRule : AbstractFormattingRule
     {

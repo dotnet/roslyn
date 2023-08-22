@@ -1092,6 +1092,11 @@
         <target state="translated">UTF-8 文字列リテラルを優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="new">Prefer collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">複合代入を優先</target>
@@ -1481,6 +1486,11 @@
         <source>Sync namespaces changes</source>
         <target state="translated">名前空間の変更の同期</target>
         <note />
+      </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="new">'System.Void' is not a valid type for a parameter</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
