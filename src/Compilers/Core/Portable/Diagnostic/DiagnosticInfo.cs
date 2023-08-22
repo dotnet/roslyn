@@ -60,19 +60,6 @@ namespace Microsoft.CodeAnalysis
             _arguments = arguments;
         }
 
-        // Only the compiler creates instances.
-        internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, DiagnosticSeverity overriddenSeverity, params object[] arguments)
-        {
-            AssertMessageSerializable(arguments);
-            AssertExpectedMessageArgumentsLength(messageProvider, errorCode, arguments.Length);
-
-            _messageProvider = messageProvider;
-            _errorCode = errorCode;
-            _defaultSeverity = messageProvider.GetSeverity(errorCode);
-            _effectiveSeverity = overriddenSeverity;
-            _arguments = arguments;
-        }
-
         protected DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
         {
             _messageProvider = original.MessageProvider;

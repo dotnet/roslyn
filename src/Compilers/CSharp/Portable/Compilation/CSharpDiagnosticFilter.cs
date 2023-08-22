@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
                     d.IsEnabledByDefault,
+                    d.Code,
                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
                     d.Location,
@@ -92,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 reportAction = GetDiagnosticReport(d.Severity,
                     d.IsEnabledByDefault,
+                    d.Code,
                     d.Id,
                     d.WarningLevel,
                     d.Location,
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ReportDiagnostic GetDiagnosticReport(
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
+            int errorCode,
             string id,
             int diagnosticWarningLevel,
             Location location,
@@ -188,6 +191,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     specifiedWarnAsErrorMinus = true;
                 }
+            }
+            else if (errorCode == (int)ErrorCode.WRN_Experimental)
+            {
+                // Special handling for [Experimental] warning (treat as error severity by default)
+                severity = DiagnosticSeverity.Error;
+                report = ReportDiagnostic.Error;
+                isSpecified = true;
             }
 
             // Apply syntax tree options, if applicable.

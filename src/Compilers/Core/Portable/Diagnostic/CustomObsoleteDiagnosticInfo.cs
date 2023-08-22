@@ -18,12 +18,6 @@ namespace Microsoft.CodeAnalysis
             Data = data;
         }
 
-        internal CustomObsoleteDiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, DiagnosticSeverity effectiveSeverity, ObsoleteAttributeData data, params object[] arguments)
-            : base(messageProvider, errorCode, effectiveSeverity, arguments)
-        {
-            Data = data;
-        }
-
         private CustomObsoleteDiagnosticInfo(CustomObsoleteDiagnosticInfo baseInfo, DiagnosticSeverity effectiveSeverity)
             : base(baseInfo, effectiveSeverity)
         {
