@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                         virtualCharsWithoutMarkup.First().Span.Start,
                         virtualCharsWithoutMarkup.Last().Span.End));
             }
-
         }
 
         private static IEnumerable<ClassifiedSpan> GetTestFileClassifiedSpans(
