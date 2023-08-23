@@ -1754,6 +1754,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
                 Debug.Assert(arrayBuilder != null);
+                if (arrayBuilder.Capacity >= ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Count < ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Capacity > arrayBuilder.Count * 2)
+                {
+                    // If we can save half the space without wasting an array that would fit in the pool, go ahead and
+                    // do so by trimming the array builder.
+                    arrayBuilder.Capacity = arrayBuilder.Count;
+                }
+
                 _arrayBuilder = arrayBuilder;
             }
 
