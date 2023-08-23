@@ -222,7 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Special handling for [Experimental] warning (treat as error severity by default)
                     severity = DiagnosticSeverity.Error;
                     report = ReportDiagnostic.Error;
-                    isSpecified = true;
                 }
                 else
                 {
