@@ -51,15 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
-            var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
+            var topmostUsingStatements = diagnostics
+                .Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken))
+                .ToSet();
 
-            // Process blocks in reverse order so we rewrite from inside-to-outside with nested
+            var nodesToUpdate = topmostUsingStatements.Select(statement => statement.Parent);
+
+            // Process syntax nodes in reverse order so we rewrite from inside-to-outside with nested
             // usings.
             var root = editor.OriginalRoot;
             var updatedRoot = root.ReplaceNodes(
-                blocks.OrderByDescending(b => b.SpanStart),
-                (original, current) => RewriteBlock(original, current, topmostUsingStatements));
+                nodesToUpdate.OrderByDescending(b => b.SpanStart),
+                (original, current) => original switch
+                {
+                    CompilationUnitSyntax compilationUnit => RewriteCompilationUnit(compilationUnit, (CompilationUnitSyntax)current, topmostUsingStatements),
+                    BlockSyntax originalBlock => RewriteBlock(originalBlock, (BlockSyntax)current, topmostUsingStatements),
+                    _ => throw ExceptionUtilities.UnexpectedValue(original.Kind())
+                }
+            );
 
             editor.ReplaceNode(root, updatedRoot);
 
@@ -68,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private static BlockSyntax RewriteBlock(
             BlockSyntax originalBlock, BlockSyntax currentBlock,
-            ISet<UsingStatementSyntax> topmostUsingStatements)
+            ISet<SyntaxNode> topmostUsingStatements)
         {
             if (originalBlock.Statements.Count == currentBlock.Statements.Count)
             {
@@ -86,6 +95,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
 
             return currentBlock;
+        }
+
+        private static CompilationUnitSyntax RewriteCompilationUnit(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> usingStatements)
+        {
+            var memberToUpdateIndex = original.Members.IndexOf(usingStatements.Contains);
+            var memberToUpdate = (GlobalStatementSyntax)current.Members[memberToUpdateIndex];
+
+            if (memberToUpdate.Statement is UsingStatementSyntax usingStatement &&
+                usingStatement.Declaration != null)
+            {
+                var updatedStatements = Expand(usingStatement)
+                .Select(GlobalStatement);
+
+                var updatedMembers = current.Members
+                    .ReplaceRange(memberToUpdate, updatedStatements);
+
+                return current.WithMembers(updatedMembers);
+            }
+
+            return current;
         }
 
         private static ImmutableArray<StatementSyntax> Expand(UsingStatementSyntax usingStatement)

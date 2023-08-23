@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -1919,6 +1920,265 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
                     }
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxSingle()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                    }
+
+                    """,
+                FixedCode = """
+                    using System;
+
+                    using var a = {|CS0103:b|};
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementsTwo()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    using (var c = {|CS0103:d|})
+                    {
+                        Console.WriteLine(a);
+                    }
+
+                    """,
+                FixedCode = """
+                    using System;
+
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    Console.WriteLine(a);
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxFixAll()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    using (var c = {|CS0103:d|})
+                    {
+                        [|using|] (var e = {|CS0103:f|})
+                        using (var g = {|CS0103:h|})
+                        {
+                            Console.WriteLine(a);
+                        }
+                    }
+
+                    """,
+                FixedCode = """
+                    using System;
+
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    using var e = {|CS0103:f|};
+                    using var g = {|CS0103:h|};
+                    Console.WriteLine(a);
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxMissingIfCodeFollows()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    using (var a = {|CS0103:b|})
+                    {
+                    }
+                    Console.WriteLine();
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxIfLocalFunctionFollow()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                        Method();
+                    }
+
+                    static void Method() {}
+                    """,
+                FixedCode = """
+                    using System;
+                    
+                    using var a = {|CS0103:b|};
+                    Method();
+                    
+                    static void Method() {}
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxConstantReturn()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                    }
+
+                    return 5;
+                    """,
+                FixedCode = """
+                    using System;
+                    
+                    using var a = {|CS0103:b|};
+                    
+                    return 5;
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxNonConstantReturn()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    using (var a = {|CS0103:b|})
+                    {
+                    }
+
+                    return new Random().Next(10);
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxIfTypeDeclarationsFollow()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                    }
+
+                    namespace MyNamespace {}
+                    record R();
+                    struct S {}
+                    class C {}
+                    """,
+                FixedCode = """
+                    using System;
+                    
+                    using var a = {|CS0103:b|};
+                    
+                    namespace MyNamespace {}
+                    record R();
+                    struct S {}
+                    class C {}
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68285")]
+        public async Task TestGlobalStatementSyntaxCollision()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System.IO;
+
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    using (Stream stream1 = File.OpenRead("test"))
+                    {
+                        Stream stream;
+                    }
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }

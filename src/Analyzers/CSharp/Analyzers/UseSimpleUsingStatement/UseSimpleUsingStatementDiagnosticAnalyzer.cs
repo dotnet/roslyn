@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
@@ -77,9 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             var cancellationToken = context.CancellationToken;
             var outermostUsing = (UsingStatementSyntax)context.Node;
+            var parent = outermostUsing.Parent;
             var semanticModel = context.SemanticModel;
 
-            if (outermostUsing.Parent is not BlockSyntax parentBlock)
+            if (parent is not BlockSyntax && parent is not GlobalStatementSyntax)
             {
                 // Don't offer on a using statement that is parented by another using statement. We'll just offer on the
                 // topmost using statement.
@@ -98,15 +100,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
 
             // Verify that changing this using-statement into a using-declaration will not change semantics.
-            if (!PreservesSemantics(semanticModel, parentBlock, outermostUsing, innermostUsing, cancellationToken))
+            if (!PreservesSemantics(semanticModel, parent, outermostUsing, innermostUsing, cancellationToken))
                 return;
 
             // Converting a using-statement to a using-variable-declaration will cause the using's variables to now be
             // pushed up to the parent block's scope. This is also true for any local variables in the innermost using's
             // block. These may then collide with other variables in the block, causing an error.  Check for that and
             // bail if this happens.
+            var variableScopeNode = parent switch
+            {
+                BlockSyntax block => block,
+                GlobalStatementSyntax global => global.Parent!,
+                _ => throw ExceptionUtilities.UnexpectedValue(parent.Kind())
+            };
+
             if (CausesVariableCollision(
-                    context.SemanticModel, parentBlock,
+                    context.SemanticModel, variableScopeNode,
                     outermostUsing, innermostUsing, cancellationToken))
             {
                 return;
@@ -126,11 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         }
 
         private static bool CausesVariableCollision(
-            SemanticModel semanticModel, BlockSyntax parentBlock,
+            SemanticModel semanticModel, SyntaxNode parent,
             UsingStatementSyntax outermostUsing, UsingStatementSyntax innermostUsing,
             CancellationToken cancellationToken)
         {
-            var symbolNameToExistingSymbol = semanticModel.GetExistingSymbols(parentBlock, cancellationToken).ToLookup(s => s.Name);
+            var symbolNameToExistingSymbol = semanticModel.GetExistingSymbols(parent, cancellationToken).ToLookup(s => s.Name);
 
             for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
             {
@@ -153,6 +162,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private static bool PreservesSemantics(
             SemanticModel semanticModel,
+            SyntaxNode parent,
+            UsingStatementSyntax outermostUsing,
+            UsingStatementSyntax innermostUsing,
+            CancellationToken cancellationToken)
+        {
+            return parent switch
+            {
+                BlockSyntax block => PreservesSemanticsBlock(semanticModel, block, outermostUsing, innermostUsing, cancellationToken),
+                GlobalStatementSyntax global => PreservesSemanticsGlobalStatement(global, semanticModel, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(parent.Kind()),
+            };
+        }
+
+        private static bool PreservesSemanticsBlock(
+            SemanticModel semanticModel,
             BlockSyntax parentBlock,
             UsingStatementSyntax outermostUsing,
             UsingStatementSyntax innermostUsing,
@@ -163,6 +187,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             return UsingValueDoesNotLeakToFollowingStatements(semanticModel, statements, index, cancellationToken) &&
                    UsingStatementDoesNotInvolveJumps(statements, index, innermostUsing);
+        }
+
+        private static bool PreservesSemanticsGlobalStatement(GlobalStatementSyntax globalStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Only allow if it is the last member of a compilationUnit
+            // or all following global statements can be after using without affecting the outcome
+            // (eg. local function declaration or a constant return)
+            var compilationUnit = (CompilationUnitSyntax)globalStatement.Parent!;
+            var nextMemberIndex = compilationUnit.Members.IndexOf(globalStatement) + 1;
+
+            while (nextMemberIndex < compilationUnit.Members.Count)
+            {
+                var member = compilationUnit.Members[nextMemberIndex++];
+
+                if (member is GlobalStatementSyntax globalMember && !CanFollowGlobalUsing(globalMember, semanticModel, cancellationToken))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool CanFollowGlobalUsing(GlobalStatementSyntax globalStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            switch (globalStatement.Statement)
+            {
+                case LocalFunctionStatementSyntax:
+                case ReturnStatementSyntax returnStatement when IsReturnStatementConstant(returnStatement, semanticModel, cancellationToken):
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private static bool UsingStatementDoesNotInvolveJumps(
@@ -234,23 +292,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             if (nextStatement is ReturnStatementSyntax returnStatement)
             {
-                // using statement followed by `return`.  Can convert this as executing the `return` will cause the code
-                // to exit the using scope, causing Dispose to be called at the same place as before.
-                //
-                // Note: the expr has to be null.  If it was non-null, then the expr would now execute before hte using
-                // called 'Dispose' instead of after, potentially changing semantics.
-                if (returnStatement.Expression is null)
-                    return true;
-
-                // return constant;
-                //
-                // This is also safe to return as constants could not be affected by being inside or outside the using block.
-                var constantValue = semanticModel.GetConstantValue(returnStatement.Expression, cancellationToken);
-                return constantValue.HasValue;
+                return IsReturnStatementConstant(returnStatement, semanticModel, cancellationToken);
             }
 
             // Add any additional cases here in the future.
             return false;
+        }
+
+        private static bool IsReturnStatementConstant(ReturnStatementSyntax returnStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // using statement followed by `return`.  Can convert this as executing the `return` will cause the code
+            // to exit the using scope, causing Dispose to be called at the same place as before.
+            //
+            // Note: the expr has to be null.  If it was non-null, then the expr would now execute before hte using
+            // called 'Dispose' instead of after, potentially changing semantics.
+            if (returnStatement.Expression is null)
+                return true;
+
+            // return constant;
+            //
+            // This is also safe to return as constants could not be affected by being inside or outside the using block.
+            var constantValue = semanticModel.GetConstantValue(returnStatement.Expression, cancellationToken);
+            return constantValue.HasValue;
         }
     }
 }
