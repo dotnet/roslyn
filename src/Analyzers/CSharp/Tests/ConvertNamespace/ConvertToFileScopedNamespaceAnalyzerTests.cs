@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         }
 
         [Theory, InlineData(""), InlineData("u8")]
-        public async Task TestConvertToFileScopedWithMultiLineRawString(string suffix)
+        public async Task TestConvertToFileScopedWithMultiLineRawString1(string suffix)
         {
             await new VerifyCS.Test
             {
@@ -719,6 +719,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 }
                 """",
                 LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString2(string suffix)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$""""
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
+                        }
+                    }
+                }
+                """",
+                FixedCode = $$""""
+                namespace $$N;
+
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
+                    }
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
