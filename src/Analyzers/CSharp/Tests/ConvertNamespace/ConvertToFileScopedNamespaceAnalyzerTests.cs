@@ -678,12 +678,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithMultiLineRawString()
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString(string suffix)
         {
             await new VerifyCS.Test
             {
-                TestCode = """"
+                TestCode = $$""""
                 [|namespace N|]
                 {
                     class C
@@ -696,12 +696,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                             c
                                 d
                                     e
-                    """);
+                    """{{suffix}});
                         }
                     }
                 }
                 """",
-                FixedCode = """"
+                FixedCode = $$""""
                 namespace $$N;
 
                 class C
@@ -709,69 +709,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                     void M()
                     {
                         System.Console.WriteLine("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """);
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
                     }
                 }
                 """",
                 LanguageVersion = LanguageVersion.CSharp12,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToFileScopedWithUtf8MultiLineRawString()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """"
-                [|namespace N|]
-                {
-                    class C
-                    {
-                        void M()
-                        {
-                            M2("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """u8);
-                        }
-
-                        void M2(System.ReadOnlySpan<byte> x) {}
-                    }
-                }
-                """",
-                FixedCode = """"
-                namespace $$N;
-
-                class C
-                {
-                    void M()
-                    {
-                        M2("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """u8);
-                    }
-
-                    void M2(System.ReadOnlySpan<byte> x) {}
-                }
-                """",
-                LanguageVersion = LanguageVersion.CSharp12,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }

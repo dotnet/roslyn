@@ -133,8 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
             // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
             // dedented safely depending on the position of their close terminator.
-            if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, cancellationToken))
+            if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken) &&
+                stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            {
                 return null;
+            }
 
             // Determine the amount of indentation this text line starts with.
             var commonIndentation = 0;
