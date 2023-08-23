@@ -182,7 +182,7 @@
                 <Foreground Type="CT_RAW" Source="FF555555" />
             </Color>
             <Color Name="roslyn test code">
-                <Background Type="CT_RAW" Source="FFC4C4C4" />
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
             </Color>
             <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_RAW" Source="FFFF01C1" />
@@ -366,7 +366,7 @@
                 <Foreground Type="CT_RAW" Source="FF555555" />
             </Color>
             <Color Name="roslyn test code">
-                <Background Type="CT_RAW" Source="FFC4C4C4" />
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
             </Color>
             <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_RAW" Source="FFFF01C1" />
@@ -550,7 +550,7 @@
                 <Foreground Type="CT_RAW" Source="FF3F3F3F" />
             </Color>
             <Color Name="roslyn test code">
-                <Background Type="CT_RAW" Source="FFC4C4C4" />
+                <Background Type="CT_RAW" Source="FF505050" />
             </Color>
             <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_RAW" Source="FFFF01C1" />
@@ -734,7 +734,7 @@
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
             </Color>
             <Color Name="roslyn test code">
-                <Background Type="CT_RAW" Source="FF3C3C3C" />
+                <Background Type="CT_RAW" Source="FF505050" />
             </Color>
             <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_RAW" Source="FFFF01C1" />
