@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Special case for 'string -> interpolated string handler' for better user experience
                 // Skip if parameter's ref kind is 'out' since it is invalid ref kind for passing interpolated string
-                if (argument.Display is TypeSymbol { SpecialType: SpecialType.System_String } &&
+                if (argument is { Display: TypeSymbol { SpecialType: SpecialType.System_String }, Kind: not BoundKind.UnconvertedInterpolatedString } &&
                     parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true } &&
                     refParameter != RefKind.Out)
                 {
@@ -1291,6 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Special case for 'string -> interpolated string handler' for better user experience
                         if (argType.SpecialType == SpecialType.System_String &&
+                            argument.Kind != BoundKind.UnconvertedInterpolatedString &&
                             parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
                         {
                             // CS9203: Expected interpolated string
