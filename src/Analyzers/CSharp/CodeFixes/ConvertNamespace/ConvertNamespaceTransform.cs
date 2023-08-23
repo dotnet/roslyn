@@ -126,23 +126,41 @@ internal static class ConvertNamespaceTransform
         // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
         // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
         // dedented safely depending on the position of their close terminator.
-        if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken) &&
-            stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+        if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken))
         {
-            return null;
+            if (stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                return null;
+
+            // Don't touch the raw string if it already has issues.
+            if (stringLiteral.ContainsDiagnostics)
+                return null;
+
+            // Ok, only dedent the raw string contents if we can dedent the closing terminator of the raw string.
+            var closeTerminatorLine = text.Lines.GetLineFromPosition(stringLiteral.Span.End);
+            var closeTerminatorIndentationLength = ComputeCommonIndentationLength(closeTerminatorLine);
+            if (closeTerminatorIndentationLength != indentation.Length)
+                return null;
         }
 
         // Determine the amount of indentation this text line starts with.
-        var commonIndentation = 0;
-        while (commonIndentation < indentation.Length && commonIndentation < textLine.Span.Length)
+
+        return new TextChange(
+            new TextSpan(textLine.Start, ComputeCommonIndentationLength(textLine)),
+            newText: "");
+
+        int ComputeCommonIndentationLength(TextLine textLine)
         {
-            if (indentation[commonIndentation] != text[textLine.Start + commonIndentation])
-                break;
+            var commonIndentation = 0;
+            while (commonIndentation < indentation.Length && commonIndentation < textLine.Span.Length)
+            {
+                if (indentation[commonIndentation] != text[textLine.Start + commonIndentation])
+                    break;
 
-            commonIndentation++;
+                commonIndentation++;
+            }
+
+            return commonIndentation;
         }
-
-        return new TextChange(new TextSpan(textLine.Start, commonIndentation), newText: "");
     }
 
     private static SourceText IndentNamespace(
