@@ -4,10 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -18,6 +21,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             private const int s_indentSize = 2;
             private const int s_wrapLength = 80;
+
+            private static readonly string s_indent = new(' ', s_indentSize * 2);
 
             private static readonly string s_summaryHeader = FeaturesResources.Summary_colon;
             private static readonly string s_paramHeader = FeaturesResources.Parameters_colon;
@@ -166,7 +171,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // First split the string into constituent lines.
                 var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
-
                 // Now split each line into multiple lines.
                 foreach (var item in split)
                     SplitRawLineIntoFormattedLines(item, lines);
@@ -177,40 +181,46 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private static void SplitRawLineIntoFormattedLines(
                 string line, ArrayBuilder<string> lines)
             {
-                var indent = new StringBuilder().Append(' ', s_indentSize * 2).ToString();
-
-                var words = line.Split(' ');
                 var firstInLine = true;
 
-                var sb = new StringBuilder();
-                sb.Append(indent);
-                foreach (var word in words)
+                using var _ = PooledStringBuilder.GetInstance(out var sb);
+
+                for (var current = 0; current < line.Length;)
                 {
+                    while (current < line.Length && line[current] == ' ')
+                        current++;
+
+                    var end = line.IndexOf(' ', current);
+                    if (end < 0)
+                        end = line.Length;
+
+                    if (current == end)
+                        break;
+
                     // We must always append at least one word to ensure progress.
                     if (firstInLine)
                     {
                         firstInLine = false;
+                        sb.Append(s_indent);
                     }
                     else
                     {
                         sb.Append(' ');
                     }
 
-                    sb.Append(word);
+                    sb.Append(line, current, end - current);
 
                     if (sb.Length >= s_wrapLength)
                     {
                         lines.Add(sb.ToString());
                         sb.Clear();
-                        sb.Append(indent);
                         firstInLine = true;
                     }
+
+                    current = end;
                 }
 
-                if (sb.ToString().Trim() != string.Empty)
-                {
-                    lines.Add(sb.ToString());
-                }
+                lines.Add(sb.ToString());
             }
         }
     }
