@@ -14759,7 +14759,7 @@ dotnet_diagnostic.DiagID1.severity = none
         }
 
         [Fact]
-        public void ExperimentalAttribute_SuppressedWithNoWarn()
+        public void ExperimentalAttribute_SuppressedWithSpecificNoWarn()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText("""
@@ -14805,6 +14805,34 @@ public class C
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
+        }
+
+        [Fact]
+        public void ExperimentalAttribute_SuppressedWithGlobalNoWarn()
+        {
+            var src = """
+C.M();
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+    }
+}
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+            comp.VerifyDiagnostics();
         }
     }
 
