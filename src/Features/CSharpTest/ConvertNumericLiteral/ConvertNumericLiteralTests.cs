@@ -143,7 +143,7 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest
     }
 
     [Fact]
-    public async Task TestSelectionDoesntMatchToken()
+    public async Task TestSelectionDoesNotMatchToken()
     {
         await TestMissingInRegularAndScriptAsync(
             """
