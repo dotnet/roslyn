@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(resourceTypeSyntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
-                disposedExpression = BoundCall.Synthesized(resourceSyntax, local, getValueOrDefault);
+                disposedExpression = BoundCall.Synthesized(resourceSyntax, local, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
             }
             else
             {

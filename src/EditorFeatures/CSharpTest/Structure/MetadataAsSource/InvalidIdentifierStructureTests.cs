@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,63 +13,66 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
+
+/// <summary>
+/// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all
+/// possible IL identifiers, we have to account for the possibility that an item's metadata name could lead to
+/// unparseable code.
+/// </summary>
+[Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
 {
-    /// <summary>
-    /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
-    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
-    /// </summary>
-    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
+    protected override string LanguageName => LanguageNames.CSharp;
+    protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+
+    internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+        var outliningService = document.GetRequiredLanguageService<BlockStructureService>();
+        return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
+    }
 
-        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
-        {
-            var outliningService = document.GetLanguageService<BlockStructureService>();
-            return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
+    public async Task PrependedDollarSign()
+    {
+        var code = """
+                {|hint:$$class C{|textspan:
+                {
+                    public void $Invoke();
+                }|}|}
+                """;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        public async Task PrependedDollarSign()
-        {
-            const string code = @"
-{|hint:$$class C{|textspan:
-{
-    public void $Invoke();
-}|}|}";
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
+    public async Task SymbolsAndPunctuation()
+    {
+        var code = """
+                {|hint:$$class C{|textspan:
+                {
+                    public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
+                }|}|}
+                """;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        public async Task SymbolsAndPunctuation()
-        {
-            const string code = @"
-{|hint:$$class C{|textspan:
-{
-    public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
-}|}|}";
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
+    public async Task IdentifierThatLooksLikeCode()
+    {
+        var code = """
+                {|hint1:$$class C{|textspan1:
+                {
+                    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
+                }|}
+                """;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        public async Task IdentifierThatLooksLikeCode()
-        {
-            const string code = @"
-{|hint1:$$class C{|textspan1:
-{
-    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
-}|}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true));
     }
 }

@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                semanticModel, syntaxFacts, objectCreation, cancellationToken);
+            using var analyzer = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
 
+            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
             if (matches.IsDefaultOrEmpty)
                 return;
 

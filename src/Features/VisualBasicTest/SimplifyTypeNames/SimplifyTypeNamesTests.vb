@@ -1616,8 +1616,10 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact>
-        Public Async Function TestShowModuleNameAsUnnecessaryMemberAccess() As Task
+        <Theory>
+        <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+        <InlineData(vbCrLf)>
+        Public Async Function TestShowModuleNameAsUnnecessaryMemberAccess(endOfLine As String) As Task
             Dim source =
         <Code>
 Imports System
@@ -1657,7 +1659,7 @@ Namespace bar
     End Module
 End Namespace
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
         End Function
 
         <Fact>
@@ -1870,7 +1872,7 @@ End Namespace
             Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
+                Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
             End Using
         End Function
@@ -1904,7 +1906,7 @@ End Module
             Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
+                Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
             End Using
         End Function
@@ -1942,8 +1944,10 @@ Public Class Test
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721694")>
-        Public Async Function TestEnableReducersInsideVBCref() As Task
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721694")>
+        <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+        <InlineData(vbCrLf)>
+        Public Async Function TestEnableReducersInsideVBCref(endOfLine As String) As Task
             Dim source =
         <Code>
 Public Class Test_Dev11
@@ -1965,7 +1969,7 @@ Public Class Test_Dev11
         End Sub
     End Class
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>

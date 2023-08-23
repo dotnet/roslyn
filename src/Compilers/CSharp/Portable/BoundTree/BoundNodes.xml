@@ -24,6 +24,7 @@
   <ValueType Name="ConversionKind"/>
   <ValueType Name="Conversion"/>
   <ValueType Name="TextSpan"/>
+  <ValueType Name="ThreeState"/>
   <ValueType Name="UnaryOperatorKind"/>
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
@@ -1786,6 +1787,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -2142,6 +2145,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
@@ -2161,6 +2166,8 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -2316,18 +2323,10 @@
          'is not Type t') will need to compensate for negated patterns. IsNegated is set if Pattern is the negated
          form of the inner pattern represented by DecisionDag. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="IsNegated" Type="bool"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
-    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression" HasValidate="true">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>

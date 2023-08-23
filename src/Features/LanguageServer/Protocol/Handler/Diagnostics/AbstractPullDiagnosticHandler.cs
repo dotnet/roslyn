@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
+        // internal for testing purposes
+        internal const int DocumentNonLocalDiagnosticIdentifier = 3;
 
         private readonly IDiagnosticsRefresher _diagnosticRefresher;
         protected readonly IGlobalOptionService GlobalOptions;
@@ -76,6 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _diagnosticRefresher = diagnosticRefresher;
             GlobalOptions = globalOptions;
         }
+
+        protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
@@ -127,7 +131,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
-            var handlerName = $"{this.GetType().Name}(category: {category})";
+            var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
+            var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
