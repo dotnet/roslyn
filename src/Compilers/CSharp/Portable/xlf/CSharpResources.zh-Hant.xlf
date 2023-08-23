@@ -572,6 +572,11 @@
         <target state="translated">無法在此內容中使用變數 '{0}'，因為它會將參考的變數公開在其宣告範圍外</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>

@@ -572,6 +572,11 @@
         <target state="translated">Die Variable '{0}' kann in diesem Kontext nicht verwendet werden, da sie möglicherweise referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar macht</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>

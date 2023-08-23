@@ -572,6 +572,11 @@
         <target state="translated">선언 범위 외부에서 참조된 변수를 노출할 수 있으므로 이 컨텍스트에서 변수 '{0}'을(를) 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">사용자 정의 연산자 '{0}'의 명시적 구현은 정적으로 선언되어야 합니다.</target>

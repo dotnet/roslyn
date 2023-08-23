@@ -2269,6 +2269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
 
+        ERR_ExpectedInterpolatedString = 9203,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

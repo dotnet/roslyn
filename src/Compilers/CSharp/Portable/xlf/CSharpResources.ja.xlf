@@ -572,6 +572,11 @@
         <target state="translated">参照される変数が宣言のスコープ外に公開される可能性があるため、このコンテキストで変数 '{0}' を使用することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">ユーザー定義演算子 '{0}' の明示的な実装は静的として宣言する必要があります</target>
