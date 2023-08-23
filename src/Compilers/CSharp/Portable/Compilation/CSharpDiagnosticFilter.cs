@@ -294,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isSpecified && errorCode == (int)ErrorCode.WRN_Experimental)
             {
                 // Special handling for [Experimental] warning (treat as error severity by default)
+                Debug.Assert(isEnabledByDefault);
+                Debug.Assert(!specifiedWarnAsErrorMinus);
                 report = ReportDiagnostic.Error;
             }
 
