@@ -235,7 +235,7 @@ internal sealed class LanguageServerProjectSystem
         try
         {
             var projectPath = projectToLoad.Path;
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(cancellationToken);
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken);
 
             if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {

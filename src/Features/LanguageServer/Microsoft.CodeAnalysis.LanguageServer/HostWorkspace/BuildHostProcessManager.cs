@@ -4,7 +4,8 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -14,19 +15,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class BuildHostProcessManager : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
-    private BuildHostProcess? _process;
+    private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
 
-    public async Task<IBuildHost> GetBuildHostAsync(CancellationToken cancellationToken)
+    public async Task<IBuildHost> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
+        var neededBuildHostKind = GetKindForProject(projectFilePath);
+
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (_process == null)
+            if (!_processes.TryGetValue(neededBuildHostKind, out var buildHostProcess))
             {
-                _process = new BuildHostProcess(LaunchDotNetCoreBuildHost());
-                _process.Disconnected += BuildHostProcess_Disconnected;
+                var process = neededBuildHostKind switch
+                {
+                    BuildHostProcessKind.NetCore => LaunchDotNetCoreBuildHost(),
+                    BuildHostProcessKind.NetFramework => LaunchDotNetFrameworkBuildHost(),
+                    _ => throw ExceptionUtilities.UnexpectedValue(neededBuildHostKind)
+                };
+
+                buildHostProcess = new BuildHostProcess(process);
+                buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
+                _processes.Add(neededBuildHostKind, buildHostProcess);
             }
 
-            return _process.BuildHost;
+            return buildHostProcess.BuildHost;
         }
     }
 
@@ -38,12 +49,20 @@ internal sealed class BuildHostProcessManager : IDisposable
 
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
-            if (_process == sender)
+            // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
+            var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
+            if (existingProcess.HasValue)
             {
-                _process.Dispose();
-                _process = null;
+                existingProcess.Value.Value.Dispose();
+                _processes.Remove(existingProcess.Value.Key);
             }
         }
+    }
+
+    public void Dispose()
+    {
+        foreach (var process in _processes.Values)
+            process.Dispose();
     }
 
     private static Process LaunchDotNetCoreBuildHost()
@@ -69,9 +88,70 @@ internal sealed class BuildHostProcessManager : IDisposable
         return process;
     }
 
-    public void Dispose()
+    private static Process LaunchDotNetFrameworkBuildHost()
     {
-        _process?.Dispose();
+        var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
+        Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
+
+        var processStartInfo = new ProcessStartInfo()
+        {
+            FileName = netFrameworkBuildHost,
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+        };
+
+        var process = Process.Start(processStartInfo);
+        Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
+        return process;
+    }
+
+    private static readonly XmlReaderSettings s_xmlSettings = new()
+    {
+        DtdProcessing = DtdProcessing.Prohibit,
+    };
+
+    private static BuildHostProcessKind GetKindForProject(string projectFilePath)
+    {
+        // This implements the algorithm as stated in https://github.com/dotnet/project-system/blob/9a761848e0f330a45e349685a266fea00ac3d9c5/docs/opening-with-new-project-system.md;
+        // we'll load the XML of the project directly, and inspect for certain elements.
+        XDocument document;
+
+        // Read the XML, prohibiting DTD processing due the the usual concerns there.
+        using (var fileStream = new FileStream(projectFilePath, FileMode.Open, FileAccess.Read))
+        using (var xmlReader = XmlReader.Create(fileStream, s_xmlSettings))
+            document = XDocument.Load(xmlReader);
+
+        // If we don't have a root, doesn't really matter which. This project is just malformed.
+        if (document.Root == null)
+            return BuildHostProcessKind.NetCore;
+
+        // Look for SDK attribute on the root
+        if (document.Root.Attribute("Sdk") != null)
+            return BuildHostProcessKind.NetCore;
+
+        // Look for <Import Sdk=... />
+        if (document.Root.Elements("Import").Attributes("Sdk").Any())
+            return BuildHostProcessKind.NetCore;
+
+        // Look for <Sdk ... />
+        if (document.Root.Elements("Sdk").Any())
+            return BuildHostProcessKind.NetCore;
+
+        // Looking for PropertyGroups that contain TargetFramework or TargetFrameworks nodes
+        var propertyGroups = document.Descendants("PropertyGroup");
+        if (propertyGroups.Elements("TargetFramework").Any() || propertyGroups.Elements("TargetFrameworks").Any())
+            return BuildHostProcessKind.NetCore;
+
+        // Nothing that indicates it's an SDK-style project, so use our .NET framework host
+        return BuildHostProcessKind.NetFramework;
+    }
+
+    private enum BuildHostProcessKind
+    {
+        NetCore,
+        NetFramework
     }
 
     private sealed class BuildHostProcess : IDisposable
