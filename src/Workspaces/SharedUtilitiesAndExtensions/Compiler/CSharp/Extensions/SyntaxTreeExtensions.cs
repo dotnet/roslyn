@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            // A UTF8 string literal must end with `"u8` therefore never incomplete.
+            // A UTF8 string literal must end with `"u8` and is thus never incomplete.
             if (kind is
                     SyntaxKind.Utf8StringLiteralToken or
                     SyntaxKind.Utf8SingleLineRawStringLiteralToken or
