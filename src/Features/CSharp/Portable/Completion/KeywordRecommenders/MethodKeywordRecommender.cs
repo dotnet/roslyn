@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 token.Parent.FirstAncestorOrSelf<SyntaxNode>(n => n is
                     PropertyDeclarationSyntax or
                     EventDeclarationSyntax or
-                    ClassDeclarationSyntax { ParameterList: not null }) is not null)
+                    TypeDeclarationSyntax(kind: SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration) { ParameterList: not null }) is not null)
             {
                 return true;
             }
