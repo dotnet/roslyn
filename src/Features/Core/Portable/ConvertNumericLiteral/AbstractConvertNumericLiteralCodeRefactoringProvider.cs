@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral;
 
-internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNumericLiteralExpression>
+internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNumericLiteralExpression>(string hexPrefix, string binaryPrefix)
     : CodeRefactoringProvider
     where TNumericLiteralExpression : SyntaxNode
 {
     private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
 
-    protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
+    private readonly Regex _regex = new($"({hexPrefix}|{binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     /// <summary>
     /// Converting numbers is a fairly uncommon task.  Put these at the end of the list after more relevant
@@ -59,8 +59,7 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
 
         var value = IntegerUtilities.ToInt64(valueOpt.Value);
         var numericText = numericToken.ToString();
-        var (hexPrefix, binaryPrefix) = GetNumericLiteralPrefixes();
-        var (prefix, number, suffix) = GetNumericLiteralParts(numericText, hexPrefix, binaryPrefix);
+        var (prefix, number, suffix) = GetNumericLiteralParts(numericText);
         var kind = string.IsNullOrEmpty(prefix) ? NumericKind.Decimal
             : prefix.Equals(hexPrefix, StringComparison.OrdinalIgnoreCase) ? NumericKind.Hexadecimal
             : prefix.Equals(binaryPrefix, StringComparison.OrdinalIgnoreCase) ? NumericKind.Binary
@@ -128,10 +127,10 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
             return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
         }
 
-        static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
+        (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText)
         {
             // Match literal text and extract out base prefix, type suffix and the number itself.
-            var groups = Regex.Match(numericText, $"({hexPrefix}|{binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase).Groups;
+            var groups = _regex.Match(numericText).Groups;
             return (prefix: groups[1].Value, number: groups[2].Value, suffix: groups[3].Value);
         }
     }
