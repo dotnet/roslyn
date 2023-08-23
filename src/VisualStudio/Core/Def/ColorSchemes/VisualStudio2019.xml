@@ -4,6 +4,9 @@
         Some classifications do not define Foreground colors because we want them to
         inherit their color from the their parent classification (For instance Type
         and Member name classifications inherit from Identifier).
+
+        After editing this file, use "<vs install dir>\VSSDK\VisualStudioIntegration\Tools\Bin\VsixColorEditor.exe"
+        to update VisualStudio2019.pkgdef as well.
     -->
     <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
         <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
