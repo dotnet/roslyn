@@ -19,6 +19,8 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
     : CodeRefactoringProvider
     where TNumericLiteralExpression : SyntaxNode
 {
+    private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
+
     protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
 
     /// <summary>
@@ -31,21 +33,25 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, _, cancellationToken) = context;
-        var numericToken = await GetNumericTokenAsync(context).ConfigureAwait(false);
+        var numericLiteralNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        if (numericToken == default || numericToken.ContainsDiagnostics)
+        if (!syntaxFacts.IsNumericLiteralExpression(numericLiteralNode))
             return;
 
-        var syntaxNode = numericToken.GetRequiredParent();
+        var numericToken = numericLiteralNode.GetFirstToken();
+        if (numericToken.ContainsDiagnostics)
+            return;
+
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
+        var symbol = semanticModel.GetTypeInfo(numericLiteralNode, cancellationToken).Type;
         if (symbol == null)
             return;
 
-        if (!IsIntegral(symbol.SpecialType))
+        if (!symbol.SpecialType.IsIntegralType())
             return;
 
-        var valueOpt = semanticModel.GetConstantValue(syntaxNode);
+        var valueOpt = semanticModel.GetConstantValue(numericLiteralNode);
         if (!valueOpt.HasValue)
             return;
 
@@ -115,20 +121,6 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
         return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
     }
 
-    internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
-    {
-        var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
-        var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
-            ? literalNode
-            : null;
-
-        return numericLiteralExpressionNode != null
-            ? numericLiteralExpressionNode.GetFirstToken()    // We know that TNumericLiteralExpression has always only one token: NumericLiteralToken
-            : default;
-    }
-
     private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
     {
         // Match literal text and extract out base prefix, type suffix and the number itself.
@@ -143,25 +135,4 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
         // Fix for the case "0x_1111" that is not supported yet.
         return result[0] == '_' ? result[1..] : result;
     }
-
-    private static bool IsIntegral(SpecialType specialType)
-    {
-        switch (specialType)
-        {
-            case SpecialType.System_Byte:
-            case SpecialType.System_SByte:
-            case SpecialType.System_Int16:
-            case SpecialType.System_UInt16:
-            case SpecialType.System_Int32:
-            case SpecialType.System_UInt32:
-            case SpecialType.System_Int64:
-            case SpecialType.System_UInt64:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
 }
