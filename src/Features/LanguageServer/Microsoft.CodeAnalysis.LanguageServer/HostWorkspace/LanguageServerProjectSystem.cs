@@ -93,7 +93,6 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-
         if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
             await OpenSolutionCoreAsync(solutionFilePath);
     }
