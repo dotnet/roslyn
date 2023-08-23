@@ -439,9 +439,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +'
                 // /// <see cref="operator unchecked +"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked +").WithArguments("operator unchecked +").WithLocation(1, 16),
-                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // (1,25): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="operator unchecked +"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 25));
 
             N(SyntaxKind.OperatorMemberCref);
             {
@@ -507,9 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +(A)'
                 // /// <see cref="operator unchecked +(A)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked +(A)").WithArguments("operator unchecked +(A)").WithLocation(1, 16),
-                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // (1,25): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="operator unchecked +(A)"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 25));
 
             N(SyntaxKind.OperatorMemberCref);
             {
@@ -583,9 +583,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.operator unchecked +'
                 // /// <see cref="T.operator unchecked +"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator unchecked +").WithArguments("T.operator unchecked +").WithLocation(1, 16),
-                // (1,27): error CS9027: Unexpected keyword 'unchecked'
+                // (1,27): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="T.operator unchecked +"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 27)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 27)
                 );
 
             N(SyntaxKind.QualifiedCref);
@@ -768,9 +768,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked }}(A{A{T}})'
                 // /// <see cref="operator unchecked }}(A{A{T}})"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked }}(A{A{T}})").WithArguments("operator unchecked }}(A{A{T}})").WithLocation(1, 16),
-                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // (1,25): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="operator unchecked }}(A{A{T}})"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 25)
                 );
 
             N(SyntaxKind.OperatorMemberCref);
@@ -903,9 +903,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'implicit operator unchecked A'
                 // /// <see cref="implicit operator unchecked A"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "implicit operator unchecked A").WithArguments("implicit operator unchecked A").WithLocation(1, 16),
-                // (1,34): error CS9027: Unexpected keyword 'unchecked'
+                // (1,34): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="implicit operator unchecked A"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 34)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 34)
                 );
 
             N(SyntaxKind.ConversionOperatorMemberCref);
@@ -984,9 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'explicit operator unchecked A(B)'
                 // /// <see cref="explicit operator unchecked A(B)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "explicit operator unchecked A(B)").WithArguments("explicit operator unchecked A(B)").WithLocation(1, 16),
-                // (1,34): error CS9027: Unexpected keyword 'unchecked'
+                // (1,34): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="explicit operator unchecked A(B)"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 34)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 34)
                 );
 
             N(SyntaxKind.ConversionOperatorMemberCref);
@@ -1072,9 +1072,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.implicit operator unchecked A'
                 // /// <see cref="T.implicit operator unchecked A"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.implicit operator unchecked A").WithArguments("T.implicit operator unchecked A").WithLocation(1, 16),
-                // (1,36): error CS9027: Unexpected keyword 'unchecked'
+                // (1,36): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="T.implicit operator unchecked A"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 36)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 36)
                 );
 
             N(SyntaxKind.QualifiedCref);
@@ -1176,9 +1176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.explicit operator unchecked A(B)'
                 // /// <see cref="T.explicit operator unchecked A(B)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.explicit operator unchecked A(B)").WithArguments("T.explicit operator unchecked A(B)").WithLocation(1, 16),
-                // (1,36): error CS9027: Unexpected keyword 'unchecked'
+                // (1,36): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
                 // /// <see cref="T.explicit operator unchecked A(B)"/>
-                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 36)
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 36)
                 );
 
             N(SyntaxKind.QualifiedCref);

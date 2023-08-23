@@ -282,10 +282,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var newTextDoc = getNewDocument(docId);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    // If the file path doesn't exist, try to create from project path
-                    var uri = newTextDoc.FilePath != null
-                        ? newTextDoc.GetURI()
-                        : newTextDoc.GetUriFromProjectPath();
+                    Uri? uri = null;
+                    if (newTextDoc.FilePath != null)
+                    {
+                        uri = newTextDoc.GetURI();
+                    }
+                    else if (newTextDoc.Project.FilePath != null)
+                    {
+                        // If there is no file path with the document, try to find its path by using its project file.
+                        uri = newTextDoc.CreateUriForDocumentWithoutFilePath();
+                    }
+                    else
+                    {
+                        // No document file path, and no project path. We don't know how to add this document. Throw.
+                        Contract.Fail($"Can't find uri for document: {newTextDoc.Name}.");
+                    }
+
                     textDocumentEdits.Add(new CreateFile { Uri = uri });
 
                     // And then give it content

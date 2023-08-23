@@ -1485,8 +1485,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         () => {
                             List<int> list2 = [2];
-                        }
-
+                        },
                     ];
                 }
             }
@@ -1504,8 +1503,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         () => {
                             List<int> list2 = [2];
-                        }
-
+                        },
                     ];
                 }
             }
@@ -1539,7 +1537,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                     [
                         1, // Goo
-                        2 // Bar
+                        2, // Bar
                     ];
                 }
             }
@@ -1578,7 +1576,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         .. x,
                         // Bar
-                        .. y
+                        .. y,
                     ];
                 }
             }
@@ -1621,7 +1619,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         .. x,
                         // Baz
                         // Quux
-                        .. y
+                        .. y,
                     ];
                 }
             }
@@ -1668,7 +1666,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         b1 ? 0 : 1,
                         // Bar
-                        b2 ? 2 : 3
+                        b2 ? 2 : 3,
                     ];
                 }
             }
@@ -1719,7 +1717,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         b1 ? 0 : 1,
                         // Baz
                         // Quux
-                        b2 ? 2 : 3
+                        b2 ? 2 : 3,
                     ];
                 }
             }
@@ -1758,7 +1756,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         // Goo
                         1,
                         // Bar
-                        2
+                        2,
                     ];
                 }
             }
@@ -3156,7 +3154,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                         1,
                         2,
-                        3
+                        3,
                     ];
                 }
             }
@@ -3332,7 +3330,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                             1,
                             2,
-                            3
+                            3,
                         ];
                 }
             }
@@ -3437,7 +3435,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         1, 2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3473,7 +3471,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     [
                         1, 2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3511,7 +3509,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3547,7 +3545,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3584,7 +3582,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3703,7 +3701,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3739,7 +3737,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                             1, 2,
                             3 +
-                                4
+                                4,
                         ];
                 }
             }
@@ -3809,7 +3807,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                     [
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
@@ -3847,10 +3845,75 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1 +
                             2,
                         3 +
-                            4
+                            4,
                     ];
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestNoMultiLineEvenWhenLongIfAllElementsAlreadyPresent()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        class D
+                        {
+                            void M()
+                            {
+                                List<string> s_microsoftCustomTags = [|new|] List<string> { WellKnownDiagnosticTags.Telemetry };
+                                List<string> s_editAndContinueCustomTags = [|new|] List<string> { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
+                                List<string> s_unnecessaryCustomTags = [|new|] List<string> { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
+                                List<string> s_notConfigurableCustomTags = [|new|] List<string> { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                                List<string> s_unnecessaryAndNotConfigurableCustomTags = [|new|] List<string> { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+                
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+                
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        class D
+                        {
+                            void M()
+                            {
+                                List<string> s_microsoftCustomTags = [WellKnownDiagnosticTags.Telemetry];
+                                List<string> s_editAndContinueCustomTags = [WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag];
+                                List<string> s_unnecessaryCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry];
+                                List<string> s_notConfigurableCustomTags = [WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                                List<string> s_unnecessaryAndNotConfigurableCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                            }
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
     }
 }

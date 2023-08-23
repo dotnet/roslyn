@@ -16,20 +16,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
-#if NETCOREAPP
-
         internal DefaultAnalyzerAssemblyLoader()
         {
         }
+
+#if NETCOREAPP
 
         internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk)
             : base(compilerLoadContext, loadOption)
-        {
-        }
-
-#else
-
-        internal DefaultAnalyzerAssemblyLoader()
         {
         }
 
@@ -51,32 +45,21 @@ namespace Microsoft.CodeAnalysis
         internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string windowsShadowPath)
         {
 #if NETCOREAPP
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // The cost of doing stream based loading on Windows is too expensive and we must continue to 
-                // use the shadow copy loader.
-                return createShadowLoaderWindows();
-            }
-            else
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream);
             }
-#else
-            return createShadowLoaderWindows();
 #endif
 
-            ShadowCopyAnalyzerAssemblyLoader createShadowLoaderWindows()
+            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+            // effect
+            if (!Path.IsPathRooted(windowsShadowPath))
             {
-                // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
-                // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
-                // effect
-                if (!Path.IsPathRooted(windowsShadowPath))
-                {
-                    throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
-                }
-
-                return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath);
+                throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
+
+            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath);
         }
     }
 }

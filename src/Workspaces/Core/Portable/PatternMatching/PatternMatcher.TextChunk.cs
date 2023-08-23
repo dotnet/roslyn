@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// </summary>
             public TemporaryArray<TextSpan> PatternHumps;
 
-            public readonly WordSimilarityChecker? SimilarityChecker;
+            /// <summary>
+            /// Not readonly as this value caches data within it, and so it needs to be able to mutate.
+            /// </summary>
+            public WordSimilarityChecker SimilarityChecker;
 
             public readonly bool IsLowercase;
 
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 this.SimilarityChecker = allowFuzzingMatching
                     ? new WordSimilarityChecker(text, substringsAreSimilar: false)
-                    : null;
+                    : default;
 
                 IsLowercase = !ContainsUpperCaseLetter(text);
             }
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             public void Dispose()
             {
                 this.PatternHumps.Dispose();
-                this.SimilarityChecker?.Dispose();
+                this.SimilarityChecker.Dispose();
             }
         }
     }

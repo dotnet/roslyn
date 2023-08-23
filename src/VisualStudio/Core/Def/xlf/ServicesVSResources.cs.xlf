@@ -247,6 +247,11 @@
         <target state="translated">Analýza kódu pro řešení se ukončila dříve, než se dokončila.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">Sbalit soubory s podpisy metadat do definic při otevření souboru</target>

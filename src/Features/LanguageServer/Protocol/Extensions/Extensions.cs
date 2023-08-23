@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -45,17 +47,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.CreateAbsoluteUri(path);
         }
 
-        /// <summary>
-        /// Generate the Uri of a document based on the name and the project path of the document.
-        /// </summary>
-        public static Uri GetUriFromProjectPath(this TextDocument document)
+        public static Uri CreateUriForDocumentWithoutFilePath(this TextDocument document)
         {
             Contract.ThrowIfNull(document.Name);
             Contract.ThrowIfNull(document.Project.FilePath);
-            var directoryName = Path.GetDirectoryName(document.Project.FilePath);
-            Contract.ThrowIfNull(directoryName);
 
-            var path = Path.Combine(directoryName, document.Name);
+            var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(projectDirectoryName);
+
+            using var _ = ArrayBuilder<string>.GetInstance(capacity: 2 + document.Folders.Count, out var pathBuilder);
+            pathBuilder.Add(projectDirectoryName);
+            pathBuilder.AddRange(document.Folders);
+            pathBuilder.Add(document.Name);
+
+            var path = Path.Combine(pathBuilder.ToArray());
             return ProtocolConversions.CreateAbsoluteUri(path);
         }
 

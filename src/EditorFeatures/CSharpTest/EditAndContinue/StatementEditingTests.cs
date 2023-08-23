@@ -2003,9 +2003,9 @@ foreach (var (a, b) in e1) { }
             GetTopEdits(edits).VerifySemanticDiagnostics(
                 new[]
                 {
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter)
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("lambda")),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("lambda")),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", GetResource("parameter"))
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
@@ -6179,7 +6179,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("lambda")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("lambda")));
         }
 
         [Fact]
@@ -6201,7 +6201,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("lambda")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("lambda")));
         }
 
         [Fact]
@@ -6647,7 +6647,7 @@ class C
 
             // To be removed when we will enable EnC for local functions
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF", CSharpFeaturesResources.local_function));
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF"));
         }
 
         [Fact]
@@ -6684,7 +6684,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a", CSharpFeaturesResources.lambda));
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -9183,7 +9183,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("local function")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("local function")));
         }
 
         [Fact]
@@ -9216,7 +9216,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("local function")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("local function")));
         }
 
         [Fact]
@@ -10872,10 +10872,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("where clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("select clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("groupby clause")),
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("groupby clause")));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[10]", GetResource("where clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[40]", GetResource("select clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[20]", GetResource("groupby clause")),
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[30]", GetResource("groupby clause")));
         }
 
         #endregion

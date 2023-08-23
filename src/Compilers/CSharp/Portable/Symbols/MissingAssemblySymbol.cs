@@ -203,11 +203,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         public override AssemblyMetadata GetMetadata() => null;
 
         internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
             return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
         }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
     }
 }

@@ -23,20 +23,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
-            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, argsId.Kind, cancellationToken);
+            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, argsId.Kind, cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds: null, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds: null, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
+            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
 
         private abstract class DiagnosticGetter
         {
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected readonly ProjectId? ProjectId;
             protected readonly DocumentId? DocumentId;
             protected readonly bool IncludeSuppressedDiagnostics;
+            protected readonly bool IncludeLocalDocumentDiagnostics;
             protected readonly bool IncludeNonLocalDocumentDiagnostics;
 
             private ImmutableArray<DiagnosticData>.Builder? _lazyDataBuilder;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectId? projectId,
                 DocumentId? documentId,
                 bool includeSuppressedDiagnostics,
+                bool includeLocalDocumentDiagnostics,
                 bool includeNonLocalDocumentDiagnostics)
             {
                 Owner = owner;
@@ -65,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectId = projectId ?? documentId?.ProjectId;
 
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
+                IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
                 IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
             }
 
@@ -139,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private sealed class IdeCachedDiagnosticGetter : DiagnosticGetter
         {
-            public IdeCachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics)
-                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics)
+            public IdeCachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics)
+                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
             {
             }
 
@@ -150,8 +153,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     foreach (var documentId in documentIds)
                     {
-                        AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
-                        AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
+                        if (IncludeLocalDocumentDiagnostics)
+                        {
+                            AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
+                            AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
+                        }
+
                         if (IncludeNonLocalDocumentDiagnostics)
                             AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
@@ -236,8 +243,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IdeLatestDiagnosticGetter(
                 DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId? projectId,
                 DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-                bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics)
-                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics)
+                bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics)
+                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
             {
                 _diagnosticIds = diagnosticIds;
                 _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
@@ -281,8 +288,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var documentId in documentIds)
                     {
-                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
-                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                        if (IncludeLocalDocumentDiagnostics)
+                        {
+                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                        }
+
                         if (IncludeNonLocalDocumentDiagnostics)
                             AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }

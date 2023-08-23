@@ -6688,8 +6688,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">'in' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">'in' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -12684,8 +12684,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">'in' 拡張メソッド '{0}' の最初のパラメーターは、具象 (非ジェネリック) の値型である必要があります。</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">'in' 拡張メソッド '{0}' の最初のパラメーターは、具象 (非ジェネリック) の値型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

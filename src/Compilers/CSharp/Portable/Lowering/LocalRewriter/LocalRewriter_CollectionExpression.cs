@@ -235,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 node.Syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: constructMethod,
                 arguments: ImmutableArray.Create(span),
                 argumentNamesOpt: default,

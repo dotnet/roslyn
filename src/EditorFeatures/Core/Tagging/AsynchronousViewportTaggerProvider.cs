@@ -29,7 +29,8 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     private enum ViewPortToTag
     {
         InView,
-        AboveAndBelow,
+        Above,
+        Below,
     }
 
     /// <summary>
@@ -64,7 +65,10 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
 
         // Also tag what's outside the viewport if requested and it's beyond what would be in the normal InView tagger.
         if (extraLinesAroundViewportToTag > s_standardLineCountAroundViewportToTag)
-            providers.Add(CreateSingleViewportTaggerProvider(ViewPortToTag.AboveAndBelow));
+        {
+            providers.Add(CreateSingleViewportTaggerProvider(ViewPortToTag.Above));
+            providers.Add(CreateSingleViewportTaggerProvider(ViewPortToTag.Below));
+        }
 
         _viewportTaggerProviders = providers.ToImmutableAndClear();
 
