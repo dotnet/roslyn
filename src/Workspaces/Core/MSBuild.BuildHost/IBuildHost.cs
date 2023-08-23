@@ -19,5 +19,5 @@ internal interface IBuildHost
 
     Task<IRemoteProjectFile> LoadProjectFileAsync(string path, CancellationToken cancellationToken);
 
-    void Shutdown();
+    Task ShutdownAsync();
 }

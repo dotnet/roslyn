@@ -12,10 +12,17 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal sealed class BuildHostProcessManager : IDisposable
+internal sealed class BuildHostProcessManager : IAsyncDisposable
 {
+    private readonly string? _binaryLogPath;
+
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
+
+    public BuildHostProcessManager(string? binaryLogPath = null)
+    {
+        _binaryLogPath = binaryLogPath;
+    }
 
     public async Task<IBuildHost> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
@@ -47,25 +54,31 @@ internal sealed class BuildHostProcessManager : IDisposable
     {
         Contract.ThrowIfNull(sender, $"{nameof(BuildHostProcess)}.{nameof(BuildHostProcess.Disconnected)} was raised with a null sender.");
 
+        BuildHostProcess? processToDispose = null;
+
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
             // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
             var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
             if (existingProcess.HasValue)
             {
-                existingProcess.Value.Value.Dispose();
+                processToDispose = existingProcess.Value.Value;
                 _processes.Remove(existingProcess.Value.Key);
             }
         }
+
+        // Dispose outside of the lock (even though we don't expect much to happen at this point)
+        if (processToDispose != null)
+            await processToDispose.DisposeAsync();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         foreach (var process in _processes.Values)
-            process.Dispose();
+            await process.DisposeAsync();
     }
 
-    private static Process LaunchDotNetCoreBuildHost()
+    private Process LaunchDotNetCoreBuildHost()
     {
         var processStartInfo = new ProcessStartInfo()
         {
@@ -78,17 +91,20 @@ internal sealed class BuildHostProcessManager : IDisposable
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
         // We set the environment variable since --roll-forward LatestMajor doesn't roll forward to prerelease SDKs otherwise.
+        processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
         processStartInfo.ArgumentList.Add("--roll-forward");
         processStartInfo.ArgumentList.Add("LatestMajor");
-        processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
 
         processStartInfo.ArgumentList.Add(typeof(IBuildHost).Assembly.Location);
+
+        AppendBuildHostCommandLineArguments(processStartInfo);
+
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
         return process;
     }
 
-    private static Process LaunchDotNetFrameworkBuildHost()
+    private Process LaunchDotNetFrameworkBuildHost()
     {
         var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
         Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
@@ -102,9 +118,20 @@ internal sealed class BuildHostProcessManager : IDisposable
             RedirectStandardOutput = true,
         };
 
+        AppendBuildHostCommandLineArguments(processStartInfo);
+
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
         return process;
+    }
+
+    private void AppendBuildHostCommandLineArguments(ProcessStartInfo processStartInfo)
+    {
+        if (_binaryLogPath is not null)
+        {
+            processStartInfo.ArgumentList.Add("--binlog");
+            processStartInfo.ArgumentList.Add(_binaryLogPath);
+        }
     }
 
     private static readonly XmlReaderSettings s_xmlSettings = new()
@@ -154,7 +181,7 @@ internal sealed class BuildHostProcessManager : IDisposable
         NetFramework
     }
 
-    private sealed class BuildHostProcess : IDisposable
+    private sealed class BuildHostProcess : IAsyncDisposable
     {
         private readonly Process _process;
         private readonly JsonRpc _jsonRpc;
@@ -182,8 +209,19 @@ internal sealed class BuildHostProcessManager : IDisposable
 
         public event EventHandler? Disconnected;
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
+            // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
+            try
+            {
+                await BuildHost.ShutdownAsync();
+            }
+            catch (Exception)
+            {
+                // OK, process may have gone bad.
+                _process.Kill();
+            }
+
             _jsonRpc.Dispose();
         }
     }

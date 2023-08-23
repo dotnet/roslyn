@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Host.Mef;
 using StreamJsonRpc;
+using System.CommandLine;
 
 #if NETCOREAPP
 using System.Runtime.Loader;
@@ -19,8 +20,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
 internal static class Program
 {
-    internal static async Task Main()
+    internal static async Task Main(string[] args)
     {
+        var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
+        var command = new CliRootCommand { binaryLogOption };
+        var parsedArguments = command.Parse(args);
+        var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
+
         // We'll locate MSBuild right away before any other methods try to load any MSBuild types and fail in the process.
         // TODO: we should pick the appropriate instance via a command line switch.
         MSBuildLocator.RegisterInstance(MSBuildLocator.QueryVisualStudioInstances().First());
@@ -57,7 +63,7 @@ internal static class Program
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        jsonRpc.AddLocalRpcTarget(new BuildHost(jsonRpc, solutionServices));
+        jsonRpc.AddLocalRpcTarget(new BuildHost(jsonRpc, solutionServices, binaryLogPath));
         jsonRpc.StartListening();
 
         await jsonRpc.Completion.ConfigureAwait(false);

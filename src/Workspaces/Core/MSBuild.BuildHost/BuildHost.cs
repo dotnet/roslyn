@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
@@ -18,11 +19,13 @@ internal sealed class BuildHost : IBuildHost
     private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
     private readonly ProjectBuildManager _buildManager;
 
-    public BuildHost(JsonRpc jsonRpc, SolutionServices solutionServices)
+    public BuildHost(JsonRpc jsonRpc, SolutionServices solutionServices, string? binaryLogPath)
     {
         _jsonRpc = jsonRpc;
         _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(solutionServices, new DiagnosticReporter(new AdhocWorkspace()));
-        _buildManager = new ProjectBuildManager(System.Collections.Immutable.ImmutableDictionary<string, string>.Empty);
+
+        var logger = binaryLogPath != null ? new BinaryLogger { Parameters = binaryLogPath } : null;
+        _buildManager = new ProjectBuildManager(System.Collections.Immutable.ImmutableDictionary<string, string>.Empty, logger);
         _buildManager.StartBatchBuild();
     }
 
@@ -37,9 +40,11 @@ internal sealed class BuildHost : IBuildHost
         return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
     }
 
-    public void Shutdown()
+    public Task ShutdownAsync()
     {
         _buildManager.EndBatchBuild();
         _jsonRpc.Dispose();
+
+        return Task.CompletedTask;
     }
 }

@@ -182,7 +182,7 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        using var buildHostProcessManager = new BuildHostProcessManager();
+        await using var buildHostProcessManager = new BuildHostProcessManager(GetMSBuildBinaryLogPath());
 
         var displayedToast = 0;
 
@@ -216,8 +216,7 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    // TODO: reconnect this to the out-of-proc build host
-    private Build.Framework.ILogger? CreateMSBuildLogger()
+    private string? GetMSBuildBinaryLogPath()
     {
         if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
             return null;
@@ -227,7 +226,7 @@ internal sealed class LanguageServerProjectSystem
 
         _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
 
-        return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
+        return binaryLogPath;
     }
 
     private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
