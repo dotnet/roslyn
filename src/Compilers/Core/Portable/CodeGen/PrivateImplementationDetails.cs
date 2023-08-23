@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -24,14 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class PrivateImplementationDetails : DefaultTypeDef, Cci.INamespaceTypeDefinition
     {
+        private const string TypeNamePrefix = "<PrivateImplementationDetails>";
+
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
         internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
         internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
-
-        internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
-        internal const string SynthesizedThrowFunctionName = "Throw";
 
         internal const string SynthesizedThrowSwitchExpressionExceptionFunctionName = "ThrowSwitchExpressionException";
         internal const string SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName = "ThrowSwitchExpressionExceptionParameterless";
@@ -115,24 +115,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
-            var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
-            _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
-        }
+            _name = getClassName();
 
-        private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
-        {
-            // we include the module name in the name of the PrivateImplementationDetails class so that more than
-            // one of them can be included in an assembly as part of netmodules.    
-            var name = isNetModule ?
-                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
-                        $"<PrivateImplementationDetails>";
-
-            if (submissionSlotIndex >= 0)
+            string getClassName()
             {
-                name += submissionSlotIndex.ToString();
-            }
+                // we include the module name in the name of the PrivateImplementationDetails class so that more than
+                // one of them can be included in an assembly as part of netmodules.    
+                var name = (moduleBuilder.OutputKind == OutputKind.NetModule) ?
+                    $"{TypeNamePrefix}<{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" : TypeNamePrefix;
 
-            return name;
+                if (submissionSlotIndex >= 0)
+                {
+                    name += submissionSlotIndex.ToString();
+                }
+
+                if (moduleBuilder.CurrentGenerationOrdinal > 0)
+                {
+                    name += "#" + moduleBuilder.CurrentGenerationOrdinal;
+                }
+
+                return name;
+            }
         }
 
         internal void Freeze()
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
-        private bool IsFrozen => _frozen != 0;
+        internal bool IsFrozen => _frozen != 0;
 
         /// <summary>
         /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="CreateDataField"/> call.

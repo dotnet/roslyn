@@ -244,8 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return ArrayInitializerStyle.Element;
             }
 
@@ -440,10 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             avoidInPlace = false;
             SpecialType specialElementType = SpecialType.None;
 
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
-                // The implementation stores blobs and possibly cached arrays on the private implementation class.
-                // If it's not supported, the optimizations can't be applied.
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return false;
             }
 

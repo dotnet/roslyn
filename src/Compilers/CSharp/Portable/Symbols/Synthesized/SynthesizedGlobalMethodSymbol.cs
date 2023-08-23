@@ -4,14 +4,11 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -21,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// that must be emitted in the compiler generated
     /// PrivateImplementationDetails class
     /// </summary>
-    internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol
+    internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol, ISynthesizedGlobalMethodSymbol
     {
         private readonly ModuleSymbol _containingModule;
         private readonly PrivateImplementationDetails _privateImplType;
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal PrivateImplementationDetails ContainingPrivateImplementationDetailsType
+        public PrivateImplementationDetails ContainingPrivateImplementationDetailsType
         {
             get { return _privateImplType; }
         }
