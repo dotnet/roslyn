@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,15 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     public class ClassificationTypeNamesTests
     {
         public static IEnumerable<object[]> AllPublicClassificationTypeNames
-        {
-            get
-            {
-                foreach (var field in typeof(ClassificationTypeNames).GetFields(BindingFlags.Static | BindingFlags.Public))
-                {
-                    yield return new[] { field.Name, field.GetRawConstantValue() };
-                }
-            }
-        }
+            => typeof(ClassificationTypeNames)
+                .GetFields(BindingFlags.Static | BindingFlags.Public)
+                .Select(f => new[] { f.Name, f.GetRawConstantValue() });
+
         public static IEnumerable<object[]> AllClassificationTypeNames => typeof(ClassificationTypeNames).GetAllFields().Where(
             field => field.GetValue(null) is string value).Select(field => new[] { field.GetValue(null) });
 
