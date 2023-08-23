@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -42,7 +40,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var expected = CreateCodeAction(
             title: CSharpAnalyzersResources.Use_implicit_type,
             kind: CodeActionKind.Refactor,
-            children: Array.Empty<LSP.VSInternalCodeAction>(),
+            children: Array.Empty<VSInternalCodeAction>(),
             data: CreateCodeActionResolveData(
                 CSharpAnalyzersResources.Use_implicit_type,
                 caretLocation,
@@ -77,7 +75,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var expected = CreateCodeAction(
             title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
             kind: CodeActionKind.Refactor,
-            children: Array.Empty<LSP.VSInternalCodeAction>(),
+            children: Array.Empty<VSInternalCodeAction>(),
             data: CreateCodeActionResolveData(
                 FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 caretLocation),
@@ -91,7 +89,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
         var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
         var introduceConstant = topLevelAction.Children.FirstOrDefault(
-            r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == expectedChildActionTitle);
+            r => ((JObject)r.Data!).ToObject<CodeActionResolveData>()!.UniqueIdentifier == expectedChildActionTitle);
 
         AssertJsonEquals(expected, introduceConstant);
     }
@@ -112,11 +110,11 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var caret = testLspServer.GetLocations("caret").Single();
-        var codeActionParams = new LSP.CodeActionParams
+        var codeActionParams = new CodeActionParams
         {
             TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
-            Context = new LSP.CodeActionContext
+            Context = new CodeActionContext
             {
                 Diagnostics = new[]
                 {
@@ -134,8 +132,8 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
         var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
-        Assert.Equal(1, addImport.Diagnostics.Length);
-        Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code.Value);
+        Assert.Equal(1, addImport.Diagnostics!.Length);
+        Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
     }
 
     [WpfTheory, CombinatorialData]
@@ -153,11 +151,11 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var caret = testLspServer.GetLocations("caret").Single();
-        var codeActionParams = new LSP.CodeActionParams
+        var codeActionParams = new CodeActionParams
         {
             TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
-            Context = new LSP.CodeActionContext
+            Context = new CodeActionContext
             {
                 Diagnostics = new[]
                 {
@@ -193,11 +191,11 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var caret = testLspServer.GetLocations("caret").Single();
-        var codeActionParams = new LSP.CodeActionParams
+        var codeActionParams = new CodeActionParams
         {
             TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
-            Context = new LSP.CodeActionContext
+            Context = new CodeActionContext
             {
             }
         };
@@ -210,33 +208,33 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline and keep 'A()'"));
     }
 
-    private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
+    private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
         TestLspServer testLspServer,
         CodeActionParams codeActionParams)
     {
-        var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
+        var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return result.Cast<LSP.VSInternalCodeAction>().ToArray();
+        return result.Cast<VSInternalCodeAction>().ToArray();
     }
 
-    internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
-        => new LSP.CodeActionParams
+    internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
+        => new CodeActionParams
         {
             TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
-            Context = new LSP.CodeActionContext
+            Context = new CodeActionContext
             {
                 // TODO - Code actions should respect context.
             }
         };
 
-    internal static LSP.VSInternalCodeAction CreateCodeAction(
-        string title, LSP.CodeActionKind kind, LSP.VSInternalCodeAction[] children,
-        CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
-        LSP.VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
-        LSP.WorkspaceEdit edit = null, LSP.Command command = null)
+    internal static VSInternalCodeAction CreateCodeAction(
+        string title, CodeActionKind kind, VSInternalCodeAction[] children,
+        CodeActionResolveData data, LSP.Diagnostic[]? diagnostics,
+        VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
+        WorkspaceEdit? edit = null, Command? command = null)
     {
-        var action = new LSP.VSInternalCodeAction
+        var action = new VSInternalCodeAction
         {
             Title = title,
             Kind = kind,
