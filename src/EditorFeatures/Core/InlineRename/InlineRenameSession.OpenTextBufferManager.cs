@@ -254,31 +254,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            /// <summary>
-            /// This is a work around for a bug in Razor where the projection spans can get out-of-sync with the
-            /// identifiers.  When that bug is fixed this helper can be deleted.
-            /// </summary>
-            private bool AreAllReferenceSpansMappable()
-            {
-                // in tests `ActiveTextview` could be null so don't depend on it
-                return ActiveTextView == null ||
-                    _referenceSpanToLinkedRenameSpanMap.Keys
-                    .Select(s => s.ToSpan())
-                    .All(s =>
-                        s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
-                        ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
-            }
-
             internal void ApplyReplacementText(bool updateSelection = true)
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
-
-                if (!AreAllReferenceSpansMappable())
-                {
-                    // don't dynamically update the reference spans for documents with unmappable projections
-                    return;
-                }
-
                 _session.UndoManager.ApplyCurrentState(
                     _subjectBuffer,
                     s_propagateSpansEditTag,
@@ -316,13 +294,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
-
-                if (!AreAllReferenceSpansMappable())
-                {
-                    // don't dynamically update the reference spans for documents with unmappable projections
-                    return;
-                }
-
                 using (new SelectionTracking(this))
                 {
                     // 1. Undo any previous edits and update the buffer to resulting document after conflict resolution
