@@ -97,7 +97,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         processStartInfo.ArgumentList.Add(typeof(IBuildHost).Assembly.Location);
 
-        AppendBuildHostCommandLineArguments(processStartInfo);
+        AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(processStartInfo);
 
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
@@ -118,20 +118,24 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             RedirectStandardOutput = true,
         };
 
-        AppendBuildHostCommandLineArguments(processStartInfo);
+        AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(processStartInfo);
 
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
         return process;
     }
 
-    private void AppendBuildHostCommandLineArguments(ProcessStartInfo processStartInfo)
+    private void AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(ProcessStartInfo processStartInfo)
     {
         if (_binaryLogPath is not null)
         {
             processStartInfo.ArgumentList.Add("--binlog");
             processStartInfo.ArgumentList.Add(_binaryLogPath);
         }
+
+        // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
+        // it might try to load targets that aren't appropriate for the build host.
+        processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");
     }
 
     private static readonly XmlReaderSettings s_xmlSettings = new()
