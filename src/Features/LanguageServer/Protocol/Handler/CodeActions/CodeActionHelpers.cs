@@ -145,8 +145,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
+                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, null)
                 });
+
+                if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
+                {
+                    var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
+
+                    builder.Add(new LSP.CodeAction
+                    {
+                        Title = "Fix All: " + currentTitle,
+                        Kind = codeActionKind,
+                        Diagnostics = diagnosticsForFix,
+                        Data = new CodeActionResolveData("Fix All: " + currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())
+                    });
+                }
             }
 
             return builder.ToArray();
@@ -186,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, null)
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(
@@ -256,7 +269,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string? fixAllScope = null)
         {
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
@@ -275,6 +289,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     }
 
                     codeActions.Add(GetNestedActionsFromActionSet(suggestedAction));
+                    codeActions.Add(GetFixAllActionsFromActionSet(suggestedAction, fixAllScope));
                 }
             }
 
@@ -303,6 +318,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             return CodeAction.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
+        }
+
+        private static CodeAction GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
+        {
+            var codeAction = suggestedAction.OriginalCodeAction;
+            if (suggestedAction is not UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction || unifiedCodeFixSuggestedAction.FixAllFlavors is null)
+            {
+                return codeAction;
+            }
+
+            var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope);
+
+            return CodeAction.Create("Fix All: " + codeAction.Title, codeAction.NestedCodeActions, codeAction.IsInlinable, codeAction.Priority);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
