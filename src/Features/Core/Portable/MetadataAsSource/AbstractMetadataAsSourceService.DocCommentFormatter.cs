@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!string.IsNullOrWhiteSpace(formattedSummaryText))
                 {
                     formattedCommentLinesBuilder.Add(s_summaryHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedSummaryText));
+                    AddWrappedTextFromRawText(formattedSummaryText, formattedCommentLinesBuilder);
                 }
 
                 var parameterNames = docComment.ParameterNames;
@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         var rawParameterText = docComment.GetParameterText(parameterNames[i]);
                         var formattedParameterText = docCommentFormattingService.Format(rawParameterText);
                         if (!string.IsNullOrWhiteSpace(formattedParameterText))
-                        {
-                            formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedParameterText));
-                        }
+                            AddWrappedTextFromRawText(formattedParameterText, formattedCommentLinesBuilder);
                     }
                 }
 
@@ -93,9 +91,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         var rawTypeParameterText = docComment.GetTypeParameterText(typeParameterNames[i]);
                         var formattedTypeParameterText = docCommentFormattingService.Format(rawTypeParameterText);
                         if (!string.IsNullOrWhiteSpace(formattedTypeParameterText))
-                        {
-                            formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedTypeParameterText));
-                        }
+                            AddWrappedTextFromRawText(formattedTypeParameterText, formattedCommentLinesBuilder);
                     }
                 }
 
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
                     formattedCommentLinesBuilder.Add(s_returnsHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedReturnsText));
+                    AddWrappedTextFromRawText(formattedReturnsText, formattedCommentLinesBuilder);
                 }
 
                 var formattedValueText = docCommentFormattingService.Format(docComment.ValueText);
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
                     formattedCommentLinesBuilder.Add(s_valueHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedValueText));
+                    AddWrappedTextFromRawText(formattedValueText, formattedCommentLinesBuilder);
                 }
 
                 var exceptionTypes = docComment.ExceptionTypes;
@@ -139,9 +135,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                             var formattedExceptionText = docCommentFormattingService.Format(rawExceptionTexts[j]);
                             if (!string.IsNullOrWhiteSpace(formattedExceptionText))
-                            {
-                                formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedExceptionText));
-                            }
+                                AddWrappedTextFromRawText(formattedExceptionText, formattedCommentLinesBuilder);
                         }
                     }
                 }
@@ -151,7 +145,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
                     formattedCommentLinesBuilder.Add(s_remarksHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedRemarksText));
+                    AddWrappedTextFromRawText(formattedRemarksText, formattedCommentLinesBuilder);
                 }
 
                 // Eliminate any blank lines at the beginning.
@@ -165,21 +159,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return formattedCommentLinesBuilder.ToImmutableAndFree();
             }
 
-            private static ImmutableArray<string> CreateWrappedTextFromRawText(string rawText)
+            private static void AddWrappedTextFromRawText(string rawText, ArrayBuilder<string> result)
             {
-                using var _ = ArrayBuilder<string>.GetInstance(out var lines);
-
                 // First split the string into constituent lines.
                 var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
                 // Now split each line into multiple lines.
                 foreach (var item in split)
-                    SplitRawLineIntoFormattedLines(item, lines);
-
-                return lines.ToImmutable();
+                    SplitRawLineIntoFormattedLines(item, result);
             }
 
             private static void SplitRawLineIntoFormattedLines(
-                string line, ArrayBuilder<string> lines)
+                string line, ArrayBuilder<string> formattedLines)
             {
                 var firstInLine = true;
 
@@ -212,7 +202,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     if (sb.Length >= s_wrapLength)
                     {
-                        lines.Add(sb.ToString());
+                        formattedLines.Add(sb.ToString());
                         sb.Clear();
                         firstInLine = true;
                     }
@@ -220,7 +210,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     current = end;
                 }
 
-                lines.Add(sb.ToString());
+                formattedLines.Add(sb.ToString());
             }
         }
     }
