@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
+            // If _additionalLocals is null, this must be the outermost block of the current function.
+            // If so, create a collection where child statements can insert inline array temporaries,
+            // and add those temporaries to the generated block.
             var previousLocals = _additionalLocals;
             if (previousLocals is null)
             {

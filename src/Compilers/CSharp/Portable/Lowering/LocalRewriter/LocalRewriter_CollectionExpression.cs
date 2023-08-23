@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(_additionalLocals is { });
             Debug.Assert(node.Type is { });
 
             var previousSyntax = _factory.Syntax;

@@ -4014,43 +4014,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // A non-empty collection expression with span type may be stored
             // on the stack. In those cases the expression may have local scope.
-            if (expr.Type?.IsRefLikeType == true && expr.Elements.Length > 0)
-            {
-                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
 
-                switch (collectionTypeKind)
-                {
-                    case CollectionExpressionTypeKind.ReadOnlySpan:
-                        Debug.Assert(elementType is { });
-                        return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType);
-                    case CollectionExpressionTypeKind.Span:
-                        return true;
-                    case CollectionExpressionTypeKind.CollectionBuilder:
-                        // For a ref struct type with a builder method, the scope of the collection
-                        // expression is the scope of an invocation of the builder method with the
-                        // collection expression as the span argument.
-                        var constructMethod = expr.CollectionBuilderMethod;
-                        if (constructMethod is not { Parameters: [{ RefKind: RefKind.None } parameter] })
-                        {
-                            // Unexpected construct method. Restrict the collection to local scope.
-                            return true;
-                        }
-                        Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
-                        Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-                        if (parameter.EffectiveScope == ScopedKind.ScopedValue)
-                        {
-                            return false;
-                        }
-                        if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
-                        {
-                            return false;
-                        }
-                        return true;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
-                }
+            if (expr.Type?.IsRefLikeType != true || expr.Elements.Length == 0)
+            {
+                return false;
             }
-            return false;
+
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
+
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.ReadOnlySpan:
+                    Debug.Assert(elementType is { });
+                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType);
+                case CollectionExpressionTypeKind.Span:
+                    return true;
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    // For a ref struct type with a builder method, the scope of the collection
+                    // expression is the scope of an invocation of the builder method with the
+                    // collection expression as the span argument. That is, `R r = [x, y, z];`
+                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    var constructMethod = expr.CollectionBuilderMethod;
+                    if (constructMethod is not { Parameters: [{ RefKind: RefKind.None } parameter] })
+                    {
+                        // Unexpected construct method. Restrict the collection to local scope.
+                        return true;
+                    }
+                    Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+                    if (parameter.EffectiveScope == ScopedKind.ScopedValue)
+                    {
+                        return false;
+                    }
+                    if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                    {
+                        return false;
+                    }
+                    return true;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
+            }
         }
 #nullable disable
 
