@@ -54,10 +54,9 @@ Friend Class MockVisualBasicCompiler
         transformerOrder As ImmutableArray(Of String),
         ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
         ByRef generators As ImmutableArray(Of ISourceGenerator),
-        ByRef transformers As ImmutableArray(Of ISourceTransformer),
-        ByRef plugins As ImmutableArray(Of Object))
+        ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, analyzers, generators, transformers, plugins)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, analyzers, generators, transformers)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If

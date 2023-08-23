@@ -64,13 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             // <Metalama>
-            out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins
+            out ImmutableArray<ISourceTransformer> transformers
             // </Metalama>
             )
         {
             // <Metalama>
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
             // </Metalama>
             if (!_analyzers.IsDefaultOrEmpty)
             {
@@ -95,12 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins
+            out ImmutableArray<ISourceTransformer> transformers
             )
         {
             diagnostics = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, TestOptions.DebugDll, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, TestOptions.DebugDll, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
         }
 
         public void ResolveAnalyzersFromArguments(
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             out ImmutableArray<ISourceGenerator> generators
         )
         {
-            ResolveAnalyzersFromArguments(skipAnalyzers, out diagnostics, ImmutableArray<string>.Empty, out analyzers, out generators, out _, out _);
+            ResolveAnalyzersFromArguments(skipAnalyzers, out diagnostics, ImmutableArray<string>.Empty, out analyzers, out generators, out _);
         }
         // </Metalama>
 
