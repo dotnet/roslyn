@@ -110,29 +110,29 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
 
         CodeAction CreateCodeAction(string text, string title)
             => CodeAction.Create(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix), title);
-    }
 
-    private static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
-    {
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
-            .WithTriviaFrom(numericToken);
-        var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
-        return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
-    }
+        static string AddSeparators(string numericText, int interval)
+        {
+            // Insert digit separators in the given interval.
+            var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
+            // Fix for the case "0x_1111" that is not supported yet.
+            return result[0] == '_' ? result[1..] : result;
+        }
 
-    private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
-    {
-        // Match literal text and extract out base prefix, type suffix and the number itself.
-        var groups = Regex.Match(numericText, $"({hexPrefix}|{binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase).Groups;
-        return (prefix: groups[1].Value, number: groups[2].Value, suffix: groups[3].Value);
-    }
+        static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                .WithTriviaFrom(numericToken);
+            var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
+            return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
+        }
 
-    private static string AddSeparators(string numericText, int interval)
-    {
-        // Insert digit separators in the given interval.
-        var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
-        // Fix for the case "0x_1111" that is not supported yet.
-        return result[0] == '_' ? result[1..] : result;
+        static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
+        {
+            // Match literal text and extract out base prefix, type suffix and the number itself.
+            var groups = Regex.Match(numericText, $"({hexPrefix}|{binaryPrefix})?([_0-9a-f]+)(.*)", RegexOptions.IgnoreCase).Groups;
+            return (prefix: groups[1].Value, number: groups[2].Value, suffix: groups[3].Value);
+        }
     }
 }
