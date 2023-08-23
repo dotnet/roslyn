@@ -8,10 +8,12 @@ using System.Composition;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -32,13 +34,23 @@ internal sealed class LanguageServerProjectSystem
     /// This is just we don't have code simultaneously trying to load and unload solutions at once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
     private bool _msbuildLoaded = false;
+
+    /// <summary>
+    /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
+    /// </summary>
+    private int _binaryLogNumericSuffix;
+
+    /// <summary>
+    /// A GUID put into all binary log file names, so that way one session doesn't accidentally overwrite the logs from a prior session.
+    /// </summary>
+    private readonly Guid _binaryLogGuidSuffix = Guid.NewGuid();
 
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
 
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -54,11 +66,13 @@ internal sealed class LanguageServerProjectSystem
     public LanguageServerProjectSystem(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
+        IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
+        _globalOptionService = globalOptionService;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
@@ -164,7 +178,7 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty);
+        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty, msbuildLogger: CreateMSBuildLogger());
 
         projectBuildManager.StartBatchBuild();
 
@@ -200,6 +214,19 @@ internal sealed class LanguageServerProjectSystem
 
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
         }
+    }
+
+    private Build.Framework.ILogger? CreateMSBuildLogger()
+    {
+        if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
+            return null;
+
+        var numericSuffix = Interlocked.Increment(ref _binaryLogNumericSuffix);
+        var binaryLogPath = Path.Combine(binaryLogDirectory, $"LanguageServerDesignTimeBuild-{_binaryLogGuidSuffix}-{numericSuffix}.binlog");
+
+        _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
+
+        return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
     }
 
     private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)

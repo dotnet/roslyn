@@ -14,8 +14,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using System.Linq;
-using Microsoft.VisualStudio.Settings;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -1725,8 +1723,8 @@ public record <AS:0>C</AS:0>(int P);";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "partial " + typeKind + " C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+            // Synthesized constructor is generated and the active statement is remapped into it.
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Theory]
@@ -1742,8 +1740,8 @@ public record <AS:0>C</AS:0>(int P);";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, typeKind + " C", GetResource("constructor", "C()")));
+            // Synthesized constructor is generated and the active statement is remapped into it.
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Theory]
@@ -12121,8 +12119,8 @@ class C
             });
 
             var expectedDiagnostic = outOfMemory
-                ? Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method)
-                : Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method, SimpleToStringException.ToStringOutput);
+                ? Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", "G")
+                : Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", "G", SimpleToStringException.ToStringOutput);
 
             validator.VerifySemantics(
                 new[] { edits },

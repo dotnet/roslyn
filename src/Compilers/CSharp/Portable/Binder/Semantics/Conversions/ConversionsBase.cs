@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)corLibrary != null);
             Debug.Assert(otherNullabilityOpt == null || includeNullability != otherNullabilityOpt.IncludeNullability);
             Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
+            Debug.Assert(corLibrary == corLibrary.CorLibrary);
 
             this.corLibrary = corLibrary;
             this.currentRecursionDepth = currentRecursionDepth;

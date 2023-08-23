@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1233,6 +1230,96 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable
                     public static T EnsureInitialized<T>([NotNull] ref T? [|target|]) where T : class
                         => Volatile.Read(ref [|target|]!);
                 }
+                """);
+        }
+
+        [Fact]
+        public async Task TestPrimaryConstructor1()
+        {
+            await TestAsync(
+                """
+                class C(int [|p|])
+                {
+                    void M()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestPrimaryConstructor2()
+        {
+            await TestAsync(
+                """
+                class C(int p)
+                {
+                    void M()
+                    {
+                        var v = new C(p: 1);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestPrimaryConstructor3()
+        {
+            await TestAsync(
+                """
+                partial class C(int [|p|])
+                {
+                }
+
+                partial class C
+                {
+                    void M()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestPrimaryConstructor4()
+        {
+            await TestAsync(
+                """
+                class B(int p)
+                {
+                }
+
+                partial class C(int [|p|]) : B([|p|] = 1)
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestPrimaryConstructor5()
+        {
+            await TestAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                partial class C(int [|p|])
+                {
+                }
+                        </Document>
+                        <Document>
+                partial class C
+                {
+                    void M()
+                    {
+                        [|p|] = 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
                 """);
         }
     }

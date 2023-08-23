@@ -3506,19 +3506,12 @@ global using Bar x;
                 // (2,15): error CS1001: Identifier expected
                 // 			       W   )b
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1002: ; expected
+                // (2,15): error CS1003: Syntax error, ',' expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1022: Type or namespace definition, or end-of-file expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 15),
-                // (2,17): error CS1001: Identifier expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 15),
                 // (2,17): error CS1002: ; expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3531,24 +3524,6 @@ global using Bar x;
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "W");
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {

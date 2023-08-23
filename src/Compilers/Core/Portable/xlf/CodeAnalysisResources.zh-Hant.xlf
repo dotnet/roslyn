@@ -89,11 +89,6 @@
         <target state="translated">hintName '{0}' 的位置 {2} 包含無效的字元 '{1}'。</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotWithinCurrentDirectory">
-        <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="translated">hintName '{0}' 不在目前的目錄內。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">新增來源檔案的 hintName '{0}' 在產生器中必須是唯一的。</target>

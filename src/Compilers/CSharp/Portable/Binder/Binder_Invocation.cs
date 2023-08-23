@@ -1189,12 +1189,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
+            => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
+        {
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            {
+                return ThreeState.False;
+            }
+
+            var valueKind = method.IsEffectivelyReadOnly
+                ? BindValueKind.RefersToLocation
+                : BindValueKind.RefersToLocation | BindValueKind.Assignable;
+            var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+            return result.ToThreeState();
+        }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)
         {

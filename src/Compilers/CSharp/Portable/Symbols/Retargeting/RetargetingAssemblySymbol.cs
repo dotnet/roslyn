@@ -278,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return null; }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         internal override bool GetGuidString(out string guidString)
         {
             return _underlyingAssembly.GetGuidString(out guidString);

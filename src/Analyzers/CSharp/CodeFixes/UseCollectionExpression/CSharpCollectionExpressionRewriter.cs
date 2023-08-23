@@ -271,7 +271,7 @@ internal static class CSharpCollectionExpressionRewriter
                 ? TriviaList(Space)
                 : TriviaList(EndOfLine(formattingOptions.NewLine));
 
-            foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
+            foreach (var element in matches.SelectMany(m => CreateElements(m, preferredIndentation)))
             {
                 AddCommaIfMissing();
                 nodesAndTokens.Add(element);
@@ -350,32 +350,39 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         static CollectionElementSyntax CreateCollectionElement(
-            CollectionExpressionMatch<TMatchNode>? match, ExpressionSyntax expression)
+            bool useSpread, ExpressionSyntax expression)
         {
-            return match?.UseSpread is true
+            return useSpread
                 ? SpreadElement(
                     Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
                     expression.WithoutLeadingTrivia())
                 : ExpressionElement(expression);
         }
 
-        CollectionElementSyntax CreateElement(
+        IEnumerable<CollectionElementSyntax> CreateElements(
             CollectionExpressionMatch<TMatchNode> match, string? preferredIndentation)
         {
             var node = match.Node;
 
             if (node is ExpressionStatementSyntax expressionStatement)
             {
-                // Create: `x` for `collection.Add(x)` or `.. x` for `collection.AddRange(x)`
-                return CreateCollectionElement(
-                    match,
-                    ConvertExpression(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation)));
+                // Create:
+                //
+                //      `x` for `collection.Add(x)`
+                //      `.. x` for `collection.AddRange(x)`
+                //      `x, y, z` for `collection.AddRange(x, y, z)`
+                var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation));
+
+                Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
+
+                foreach (var expression in expressions)
+                    yield return CreateCollectionElement(match.UseSpread, expression);
             }
             else if (node is ForEachStatementSyntax foreachStatement)
             {
                 // Create: `.. x` for `foreach (var v in x) collection.Add(v)`
-                return CreateCollectionElement(
-                    match,
+                yield return CreateCollectionElement(
+                    match.UseSpread,
                     IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation));
             }
             else if (node is IfStatementSyntax ifStatement)
@@ -391,7 +398,7 @@ internal static class CSharpCollectionExpressionRewriter
                         CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
                             ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null)))),
                         CollectionExpression());
-                    return CreateCollectionElement(match, expression);
+                    yield return CreateCollectionElement(match.UseSpread, expression);
                 }
                 else
                 {
@@ -401,12 +408,12 @@ internal static class CSharpCollectionExpressionRewriter
                         condition,
                         ConvertExpression(trueStatement.Expression, indent: null).Parenthesize(includeElasticTrivia: false),
                         ConvertExpression(falseStatement.Expression, indent: null).Parenthesize(includeElasticTrivia: false));
-                    return CreateCollectionElement(match, expression);
+                    yield return CreateCollectionElement(match.UseSpread, expression);
                 }
             }
             else if (node is ExpressionSyntax expression)
             {
-                return CreateCollectionElement(match, IndentExpression(parentStatement: null, expression, preferredIndentation));
+                yield return CreateCollectionElement(match.UseSpread, IndentExpression(parentStatement: null, expression, preferredIndentation));
             }
             else
             {
@@ -425,22 +432,7 @@ internal static class CSharpCollectionExpressionRewriter
             if (preferredIndentation is null)
                 return expression.WithoutLeadingTrivia();
 
-            // we're starting with something either like:
-            //
-            //      collection.Add(some_expr +
-            //          cont);
-            //
-            // or
-            //
-            //      collection.Add(
-            //          some_expr +
-            //              cont);
-            //
-            // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
-            // that we can accurately determine where the preferred indentation should move all of it.
-
-            var startLine = document.Text.Lines.GetLineFromPosition(expression.SpanStart);
-
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
             var expressionFirstToken = expression.GetFirstToken();
@@ -457,6 +449,38 @@ internal static class CSharpCollectionExpressionRewriter
 
             // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
             return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
+
+            SyntaxNode GetAnchorNode(SyntaxNode node)
+            {
+                // we're starting with something either like:
+                //
+                //      collection.Add(some_expr +
+                //          cont);
+                //
+                // or
+                //
+                //      collection.Add(
+                //          some_expr +
+                //              cont);
+                //
+                // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+                // that we can accurately determine where the preferred indentation should move all of it.
+
+                // If the expression is parented by a statement or member-decl (like a field/prop), use that container
+                // to determine the indentation point. Otherwise, default to the indentation of the line the expression
+                // is on.
+                var firstToken = node.GetFirstToken();
+                if (document.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current is StatementSyntax or MemberDeclarationSyntax)
+                            return current;
+                    }
+                }
+
+                return node;
+            }
         }
 
         SyntaxToken IndentToken(
@@ -585,6 +609,11 @@ internal static class CSharpCollectionExpressionRewriter
 
         bool MakeMultiLineCollectionExpression()
         {
+            // If there's already an initializer, and we're not adding anything to it, then just keep the initializer
+            // as-is.  No need to convert it to be multi-line if it's currently single-line.
+            if (initializer != null && matches.Length == 0)
+                return false;
+
             var totalLength = 0;
             if (initializer != null)
             {
@@ -644,6 +673,13 @@ internal static class CSharpCollectionExpressionRewriter
         static ExpressionSyntax ConvertExpression(
             ExpressionSyntax expression, Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
+            var expressions = ConvertExpressions(expression, indent);
+            return expressions.Single();
+        }
+
+        static ImmutableArray<ExpressionSyntax> ConvertExpressions(
+            ExpressionSyntax expression, Func<ExpressionSyntax, ExpressionSyntax>? indent)
+        {
             indent ??= static e => e;
 
             // This must be called from an expression from the original tree.  Not something we're already transforming.
@@ -657,19 +693,18 @@ internal static class CSharpCollectionExpressionRewriter
             };
         }
 
-        static ExpressionSyntax ConvertAssignment(
+        static ImmutableArray<ExpressionSyntax> ConvertAssignment(
             AssignmentExpressionSyntax assignment, Func<ExpressionSyntax, ExpressionSyntax> indent)
         {
-            return indent(assignment.Right);
+            return ImmutableArray.Create(indent(assignment.Right));
         }
 
-        static ExpressionSyntax ConvertInvocation(
+        static ImmutableArray<ExpressionSyntax> ConvertInvocation(
             InvocationExpressionSyntax invocation, Func<ExpressionSyntax, ExpressionSyntax> indent)
         {
             var arguments = invocation.ArgumentList.Arguments;
-            Contract.ThrowIfFalse(arguments.Count == 1);
 
-            return indent(arguments[0].Expression);
+            return arguments.SelectAsArray(a => indent(a.Expression));
         }
     }
 }

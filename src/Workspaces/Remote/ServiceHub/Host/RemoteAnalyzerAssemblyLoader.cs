@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public RemoteAnalyzerAssemblyLoader(string baseDirectory)
         {
-            // jason should we load from stream here on Linux or is this VS only?
             _baseDirectory = baseDirectory;
         }
 
