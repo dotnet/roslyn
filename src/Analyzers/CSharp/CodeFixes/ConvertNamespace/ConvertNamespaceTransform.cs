@@ -112,41 +112,45 @@ internal static class ConvertNamespaceTransform
         var fileScopedNamespace = (FileScopedNamespaceDeclarationSyntax)root.GetAnnotatedNodes(annotation).Single();
         var semicolonLine = text.Lines.GetLineFromPosition(fileScopedNamespace.SemicolonToken.SpanStart).LineNumber;
 
+        // Cache what we compute so we don't have to recompute it for every line of a raw string literal.
+        (SyntaxToken stringLiteral, int closeTerminatorIndentationLength) lastRawStringLiteralData = default;
+
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var changes);
         for (var line = semicolonLine + 1; line < text.Lines.Count; line++)
-            changes.AddIfNotNull(TryDedentLine(syntaxTree, text, indentation, text.Lines[line], cancellationToken));
+            changes.AddIfNotNull(TryDedentLine(text.Lines[line]));
 
         var dedentedText = text.WithChanges(changes);
         return (dedentedText, fileScopedNamespace.SemicolonToken.Span);
-    }
 
-    private static TextChange? TryDedentLine(
-        SyntaxTree tree, SourceText text, string indentation, TextLine textLine, CancellationToken cancellationToken)
-    {
-        // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
-        // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
-        // dedented safely depending on the position of their close terminator.
-        if (tree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken))
+        TextChange? TryDedentLine(TextLine textLine)
         {
-            if (stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
-                return null;
+            // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
+            // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
+            // dedented safely depending on the position of their close terminator.
+            if (syntaxTree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken))
+            {
+                if (stringLiteral.Kind() is not SyntaxKind.MultiLineRawStringLiteralToken and not SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                    return null;
 
-            // Don't touch the raw string if it already has issues.
-            if (stringLiteral.ContainsDiagnostics)
-                return null;
+                // Don't touch the raw string if it already has issues.
+                if (stringLiteral.ContainsDiagnostics)
+                    return null;
 
-            // Ok, only dedent the raw string contents if we can dedent the closing terminator of the raw string.
-            var closeTerminatorLine = text.Lines.GetLineFromPosition(stringLiteral.Span.End);
-            var closeTerminatorIndentationLength = ComputeCommonIndentationLength(closeTerminatorLine);
-            if (closeTerminatorIndentationLength != indentation.Length)
-                return null;
+                // Ok, only dedent the raw string contents if we can dedent the closing terminator of the raw string.
+                if (lastRawStringLiteralData.stringLiteral != stringLiteral)
+                    lastRawStringLiteralData = (stringLiteral, ComputeCommonIndentationLength(text.Lines.GetLineFromPosition(stringLiteral.Span.End)));
+
+                // If we can't dedent the close terminator the right amount, don't dedent any contents.
+                if (lastRawStringLiteralData.closeTerminatorIndentationLength != indentation.Length)
+                    return null;
+            }
+
+            // Determine the amount of indentation this text line starts with.
+
+            return new TextChange(
+                new TextSpan(textLine.Start, ComputeCommonIndentationLength(textLine)),
+                newText: "");
         }
-
-        // Determine the amount of indentation this text line starts with.
-
-        return new TextChange(
-            new TextSpan(textLine.Start, ComputeCommonIndentationLength(textLine)),
-            newText: "");
 
         int ComputeCommonIndentationLength(TextLine textLine)
         {
