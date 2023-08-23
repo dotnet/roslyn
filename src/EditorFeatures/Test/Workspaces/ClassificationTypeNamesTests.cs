@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
         public static IEnumerable<object[]> AllClassificationTypeNames => typeof(ClassificationTypeNames).GetAllFields().Where(
-            field => field.GetValue(null) is string value).Select(field => new object[] { (string)field.GetValue(null) });
+            field => field.GetValue(null) is string value).Select(field => new[] { field.GetValue(null) });
 
         [Theory]
         [MemberData(nameof(AllPublicClassificationTypeNames))]
