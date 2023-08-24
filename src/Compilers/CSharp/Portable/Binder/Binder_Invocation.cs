@@ -1770,16 +1770,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.UnboundLambda:
                         {
-                            // bind the argument against each applicable parameter
                             var unboundArgument = (UnboundLambda)argument;
-                            foreach (var parameterList in parameterListList)
+
+                            // If nested in other lambdas where type inference is involved,
+                            // the target delegate type could be different each time.
+                            // But if the lambda is explicitly typed, we can bind only once.
+                            // https://github.com/dotnet/roslyn/issues/69093
+                            if (unboundArgument.HasExplicitlyTypedParameterList &&
+                                unboundArgument.HasExplicitReturnType(out _, out _) &&
+                                unboundArgument.FunctionType is { } functionType &&
+                                functionType.GetInternalDelegateType() is { } delegateType)
                             {
-                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if (parameterType?.Kind == SymbolKind.NamedType &&
-                                    (object)parameterType.GetDelegateType() != null)
+                                _ = unboundArgument.Bind(delegateType, isExpressionTree: false);
+                            }
+                            else
+                            {
+                                // bind the argument against each applicable parameter
+                                foreach (var parameterList in parameterListList)
                                 {
-                                    // Just assume we're not in an expression tree for the purposes of error recovery.
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
+                                    var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                    if (parameterType?.Kind == SymbolKind.NamedType &&
+                                        (object)parameterType.GetDelegateType() != null)
+                                    {
+                                        // Just assume we're not in an expression tree for the purposes of error recovery.
+                                        var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
+                                    }
                                 }
                             }
 

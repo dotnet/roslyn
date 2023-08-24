@@ -514,5 +514,122 @@ $@"        if (F({i}))
                 return builder.ToString();
             }
         }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void NestedLambdas(bool localFunctions, bool concurrentBuild)
+        {
+            const int overloads1Number = 20;
+            const int overloads2Number = 10;
+            const int lambdasNumber = 10;
+            const int statementsNumber = 1000;
+
+            /*
+                interface I0 { }
+                // ...
+                interface I9 { }
+            */
+            var builder1 = new StringBuilder();
+            var interfacesNumber = Math.Max(overloads1Number, overloads2Number);
+            for (int i = 0; i < interfacesNumber; i++)
+            {
+                builder1.AppendLine($$"""interface I{{i}} { }""");
+            }
+
+            /*
+                void M1(System.Action<I0> a) { }
+                // ...
+                void M1(System.Action<I9> a) { }
+            */
+            var builder2 = new StringBuilder();
+            for (int i = 0; i < overloads1Number; i++)
+            {
+                builder2.AppendLine($$"""void M1(System.Action<I{{i}}> a) { }""");
+            }
+
+            /*
+                void M2(I0 x, System.Func<string, I0> f) { }
+                // ...
+                void M2(I9 x, System.Func<string, I9> f) { }
+            */
+            for (int i = 0; i < overloads2Number; i++)
+            {
+                builder2.AppendLine($$"""void M2(I{{i}} x, System.Func<string, I{{i}}> f) { }""");
+            }
+
+            var builder3 = new StringBuilder();
+            // Local functions should be similarly fast as lambdas.
+            if (localFunctions)
+            {
+                /*
+                    M2(x, L0);
+                    static I0 L0(string arg) {
+                        arg = arg + "0";
+                        // ...
+                        arg = arg + "9";
+                        return default;
+                    }
+                    // ...
+                    M2(x, L9);
+                    static I0 L9(string arg) { ... }
+                */
+                for (int i = 0; i < lambdasNumber; i++)
+                {
+                    builder3.AppendLine($"M2(x, L{i});");
+                    builder3.AppendLine($$"""static I0 L{{i}}(string arg) {""");
+                    for (int j = 0; j < statementsNumber; j++)
+                    {
+                        builder3.AppendLine($"""arg = arg + "{j}";""");
+                    }
+                    builder3.AppendLine("return default;");
+                    builder3.AppendLine("}");
+                }
+            }
+            else
+            {
+                /*
+                    M2(x, static I0 (string arg) => {
+                        arg = arg + "0";
+                        // ...
+                        arg = arg + "9";
+                        return default;
+                    });
+                    // ...
+                    M2(x, static I0 (string arg) => {
+                        // ...
+                        return default;
+                    });
+                */
+                for (int i = 0; i < lambdasNumber; i++)
+                {
+                    builder3.AppendLine("M2(x, static I0 (string arg) => {");
+                    for (int j = 0; j < statementsNumber; j++)
+                    {
+                        builder3.AppendLine($"""arg = arg + "{j}";""");
+                    }
+                    builder3.AppendLine("return default;");
+                    builder3.AppendLine("});");
+                }
+            }
+
+            var source = $$"""
+                {{builder1}}
+                class C
+                {
+                    {{builder2}}
+                    void Main()
+                    {
+                        M1(x =>
+                        {
+                            {{builder3}}
+                        });
+                    }
+                }
+                """;
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(concurrentBuild));
+                comp.VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
     }
 }
