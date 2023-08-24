@@ -97,23 +97,9 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             //      ...
             //  else
             //      ...
-
-            var elseStatement = elseClause.Statement;
-            var elseStatementFirstToken = elseStatement.GetFirstToken();
-
-            StatementSyntax newStatement;
-            if (text.AreOnSameLine(elseStatementFirstToken.GetPreviousToken(), elseStatementFirstToken))
-            {
-                newStatement = elseStatement.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine), Whitespace(ifIndentation));
-            }
-            else
-            {
-                newStatement = AdjustIndentation(elseStatement, ifIndentation);
-            }
-
             editor.InsertAfter(
                 globalStatement ?? (SyntaxNode)ifStatement,
-                WrapWithGlobalStatement(newStatement));
+                AddBlankLine(WrapWithGlobalStatements(UpdateIndentation(SingletonList(elseClause.Statement), ifIndentation))));
         }
 
         return;
