@@ -77,5 +77,7 @@
     <Prerequisite Id="Microsoft.DiaSymReader.Native" Version="[17.0,18.0)" DisplayName="Windows PDB reader/writer" />
     <Prerequisite Id="Microsoft.VisualStudio.InteractiveWindow" Version="[4.0.0.0,5.0.0.0)" DisplayName="Interactive Window" />
     <Prerequisite Id="Microsoft.VisualStudio.Cache.Service" Version="[0.0,18.0)" DisplayName="Visual Studio Cache Service" />
+    <Prerequisite Id="Microsoft.CodeAnalysis.VisualStudio.ServiceHub.Setup.x64" Version="|%CurrentProject%;GetVsixVersion|" DisplayName="Roslyn Services for .NET ServiceHub Host" />
+    <Prerequisite Id="Microsoft.CodeAnalysis.VisualStudio.ServiceHub.Setup.arm64" Version="|%CurrentProject%;GetVsixVersion|" DisplayName="Roslyn Services for .NET ServiceHub Host (ARM64)" />
   </Prerequisites>
 </PackageManifest>
