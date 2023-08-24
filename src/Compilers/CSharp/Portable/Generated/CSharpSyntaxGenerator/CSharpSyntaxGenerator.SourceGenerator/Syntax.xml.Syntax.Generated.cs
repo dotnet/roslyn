@@ -914,7 +914,7 @@ public sealed partial class TupleElementSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.TupleElementSyntax)this.Green).identifier;
+            var slot = ((InternalSyntax.TupleElementSyntax)this.Green).identifier;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -1005,7 +1005,7 @@ public sealed partial class RefTypeSyntax : TypeSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).readOnlyKeyword;
+            var slot = ((InternalSyntax.RefTypeSyntax)this.Green).readOnlyKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -2708,7 +2708,7 @@ public sealed partial class ArgumentSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ArgumentSyntax)this.Green).refKindKeyword;
+            var slot = ((InternalSyntax.ArgumentSyntax)this.Green).refKindKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -4730,7 +4730,7 @@ public sealed partial class OrderingSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.OrderingSyntax)this.Green).ascendingOrDescendingKeyword;
+            var slot = ((InternalSyntax.OrderingSyntax)this.Green).ascendingOrDescendingKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -6317,7 +6317,7 @@ public sealed partial class LocalFunctionStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.LocalFunctionStatementSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.LocalFunctionStatementSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
         }
     }
@@ -6419,7 +6419,7 @@ public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).awaitKeyword;
+            var slot = ((InternalSyntax.LocalDeclarationStatementSyntax)this.Green).awaitKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -6428,7 +6428,7 @@ public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).usingKeyword;
+            var slot = ((InternalSyntax.LocalDeclarationStatementSyntax)this.Green).usingKeyword;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -7012,7 +7012,7 @@ public sealed partial class GotoStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.GotoStatementSyntax)this.Green).caseOrDefaultKeyword;
+            var slot = ((InternalSyntax.GotoStatementSyntax)this.Green).caseOrDefaultKeyword;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -7698,7 +7698,7 @@ public sealed partial class ForEachStatementSyntax : CommonForEachStatementSynta
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).awaitKeyword;
+            var slot = ((InternalSyntax.ForEachStatementSyntax)this.Green).awaitKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -7802,7 +7802,7 @@ public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatem
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).awaitKeyword;
+            var slot = ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).awaitKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -7908,7 +7908,7 @@ public sealed partial class UsingStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).awaitKeyword;
+            var slot = ((InternalSyntax.UsingStatementSyntax)this.Green).awaitKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -8431,7 +8431,7 @@ public sealed partial class SwitchStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).openParenToken;
+            var slot = ((InternalSyntax.SwitchStatementSyntax)this.Green).openParenToken;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -8448,7 +8448,7 @@ public sealed partial class SwitchStatementSyntax : StatementSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeParenToken;
+            var slot = ((InternalSyntax.SwitchStatementSyntax)this.Green).closeParenToken;
             return slot != null ? new(this, slot, GetChildPosition(4), GetChildIndex(4)) : default;
         }
     }
@@ -9073,7 +9073,7 @@ public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).identifier;
+            var slot = ((InternalSyntax.CatchDeclarationSyntax)this.Green).identifier;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -9348,7 +9348,7 @@ public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).globalKeyword;
+            var slot = ((InternalSyntax.UsingDirectiveSyntax)this.Green).globalKeyword;
             return slot != null ? new(this, slot, Position, 0) : default;
         }
     }
@@ -9359,7 +9359,7 @@ public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).staticKeyword;
+            var slot = ((InternalSyntax.UsingDirectiveSyntax)this.Green).staticKeyword;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -9368,7 +9368,7 @@ public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).unsafeKeyword;
+            var slot = ((InternalSyntax.UsingDirectiveSyntax)this.Green).unsafeKeyword;
             return slot != null ? new(this, slot, GetChildPosition(3), GetChildIndex(3)) : default;
         }
     }
@@ -9537,7 +9537,7 @@ public sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclaratio
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
         }
     }
@@ -10144,7 +10144,7 @@ public sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.TypeParameterSyntax)this.Green).varianceKeyword;
+            var slot = ((InternalSyntax.TypeParameterSyntax)this.Green).varianceKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -10323,7 +10323,7 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((InternalSyntax.ClassDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -10334,7 +10334,7 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((InternalSyntax.ClassDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -10343,7 +10343,7 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.ClassDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
         }
     }
@@ -10489,7 +10489,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((InternalSyntax.StructDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -10500,7 +10500,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((InternalSyntax.StructDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -10509,7 +10509,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.StructDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
         }
     }
@@ -10655,7 +10655,7 @@ public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -10666,7 +10666,7 @@ public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -10675,7 +10675,7 @@ public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
         }
     }
@@ -10810,7 +10810,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).classOrStructKeyword;
+            var slot = ((InternalSyntax.RecordDeclarationSyntax)this.Green).classOrStructKeyword;
             return slot != null ? new(this, slot, GetChildPosition(3), GetChildIndex(3)) : default;
         }
     }
@@ -10829,7 +10829,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((InternalSyntax.RecordDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
         }
     }
@@ -10840,7 +10840,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((InternalSyntax.RecordDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
         }
     }
@@ -10849,7 +10849,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.RecordDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(12), GetChildIndex(12)) : default;
         }
     }
@@ -10987,7 +10987,7 @@ public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((InternalSyntax.EnumDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
         }
     }
@@ -11006,7 +11006,7 @@ public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((InternalSyntax.EnumDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new(this, slot, GetChildPosition(7), GetChildIndex(7)) : default;
         }
     }
@@ -11016,7 +11016,7 @@ public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.EnumDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -11593,7 +11593,7 @@ public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstra
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).questionToken;
+            var slot = ((InternalSyntax.ClassOrStructConstraintSyntax)this.Green).questionToken;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -12032,7 +12032,7 @@ public sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSynta
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.MethodDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.MethodDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -12169,7 +12169,7 @@ public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyn
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).checkedKeyword;
+            var slot = ((InternalSyntax.OperatorDeclarationSyntax)this.Green).checkedKeyword;
             return slot != null ? new(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
         }
     }
@@ -12188,7 +12188,7 @@ public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyn
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.OperatorDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -12315,7 +12315,7 @@ public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDecl
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).checkedKeyword;
+            var slot = ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).checkedKeyword;
             return slot != null ? new(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
         }
     }
@@ -12334,7 +12334,7 @@ public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDecl
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
         }
     }
@@ -12463,7 +12463,7 @@ public sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclaration
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ConstructorDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.ConstructorDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(7), GetChildIndex(7)) : default;
         }
     }
@@ -12638,7 +12638,7 @@ public sealed partial class DestructorDeclarationSyntax : BaseMethodDeclarationS
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.DestructorDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.DestructorDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(7), GetChildIndex(7)) : default;
         }
     }
@@ -12794,7 +12794,7 @@ public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationS
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.PropertyDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.PropertyDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -12952,7 +12952,7 @@ public sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSynt
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.EventDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(7), GetChildIndex(7)) : default;
         }
     }
@@ -13066,7 +13066,7 @@ public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSy
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.IndexerDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.IndexerDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -13234,7 +13234,7 @@ public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.AccessorDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((InternalSyntax.AccessorDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
         }
     }
@@ -14066,7 +14066,7 @@ public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).checkedKeyword;
+            var slot = ((InternalSyntax.OperatorMemberCrefSyntax)this.Green).checkedKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -14135,7 +14135,7 @@ public sealed partial class ConversionOperatorMemberCrefSyntax : MemberCrefSynta
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).checkedKeyword;
+            var slot = ((InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).checkedKeyword;
             return slot != null ? new(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
         }
     }
@@ -14355,7 +14355,7 @@ public sealed partial class CrefParameterSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.CrefParameterSyntax)this.Green).refKindKeyword;
+            var slot = ((InternalSyntax.CrefParameterSyntax)this.Green).refKindKeyword;
             return slot != null ? new(this, slot, Position, 0) : default;
         }
     }
@@ -14364,7 +14364,7 @@ public sealed partial class CrefParameterSyntax : CSharpSyntaxNode
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.CrefParameterSyntax)this.Green).readOnlyKeyword;
+            var slot = ((InternalSyntax.CrefParameterSyntax)this.Green).readOnlyKeyword;
             return slot != null ? new(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
         }
     }
@@ -15813,7 +15813,7 @@ public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTrivi
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).file;
+            var slot = ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).file;
             return slot != null ? new(this, slot, GetChildPosition(3), GetChildIndex(3)) : default;
         }
     }
@@ -15933,7 +15933,7 @@ public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveT
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).characterOffset;
+            var slot = ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).characterOffset;
             return slot != null ? new(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
         }
     }
@@ -16296,7 +16296,7 @@ public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSynta
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).targetToken;
+            var slot = ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).targetToken;
             return slot != null ? new(this, slot, GetChildPosition(3), GetChildIndex(3)) : default;
         }
     }
