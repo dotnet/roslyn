@@ -958,7 +958,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteLine($" => new(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
+                            WriteLine($" => new(this, ((InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
                         }
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")

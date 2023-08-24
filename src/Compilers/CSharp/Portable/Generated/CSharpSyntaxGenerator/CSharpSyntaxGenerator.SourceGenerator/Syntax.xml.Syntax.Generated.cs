@@ -51,7 +51,7 @@ public sealed partial class IdentifierNameSyntax : SimpleNameSyntax
     }
 
     /// <summary>SyntaxToken representing the keyword for the kind of the identifier name.</summary>
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.IdentifierNameSyntax)this.Green).identifier, Position, 0);
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.IdentifierNameSyntax)this.Green).identifier, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -97,7 +97,7 @@ public sealed partial class QualifiedNameSyntax : NameSyntax
     public NameSyntax Left => GetRedAtZero(ref this.left)!;
 
     /// <summary>SyntaxToken representing the dot.</summary>
-    public SyntaxToken DotToken => new(this, ((Syntax.InternalSyntax.QualifiedNameSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DotToken => new(this, ((InternalSyntax.QualifiedNameSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the qualified name.</summary>
     public SimpleNameSyntax Right => GetRed(ref this.right, 2)!;
@@ -155,7 +155,7 @@ public sealed partial class GenericNameSyntax : SimpleNameSyntax
     }
 
     /// <summary>SyntaxToken representing the name of the identifier of the generic name.</summary>
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.GenericNameSyntax)this.Green).identifier, Position, 0);
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.GenericNameSyntax)this.Green).identifier, Position, 0);
 
     /// <summary>TypeArgumentListSyntax node representing the list of type arguments of the generic name.</summary>
     public TypeArgumentListSyntax TypeArgumentList => GetRed(ref this.typeArgumentList, 1)!;
@@ -203,7 +203,7 @@ public sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>SyntaxToken representing less than.</summary>
-    public SyntaxToken LessThanToken => new(this, ((Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).lessThanToken, Position, 0);
+    public SyntaxToken LessThanToken => new(this, ((InternalSyntax.TypeArgumentListSyntax)this.Green).lessThanToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of TypeSyntax node representing the type arguments.</summary>
     public SeparatedSyntaxList<TypeSyntax> Arguments
@@ -216,7 +216,7 @@ public sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>SyntaxToken representing greater than.</summary>
-    public SyntaxToken GreaterThanToken => new(this, ((Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken GreaterThanToken => new(this, ((InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -265,7 +265,7 @@ public sealed partial class AliasQualifiedNameSyntax : NameSyntax
     public IdentifierNameSyntax Alias => GetRedAtZero(ref this.alias)!;
 
     /// <summary>SyntaxToken representing colon colon.</summary>
-    public SyntaxToken ColonColonToken => new(this, ((Syntax.InternalSyntax.AliasQualifiedNameSyntax)this.Green).colonColonToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ColonColonToken => new(this, ((InternalSyntax.AliasQualifiedNameSyntax)this.Green).colonColonToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SimpleNameSyntax node representing the name that is being alias qualified.</summary>
     public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
@@ -331,7 +331,7 @@ public sealed partial class PredefinedTypeSyntax : TypeSyntax
     }
 
     /// <summary>SyntaxToken which represents the keyword corresponding to the predefined type.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.PredefinedTypeSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.PredefinedTypeSyntax)this.Green).keyword, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -430,7 +430,7 @@ public sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.ArrayRankSpecifierSyntax)this.Green).openBracketToken, Position, 0);
 
     public SeparatedSyntaxList<ExpressionSyntax> Sizes
     {
@@ -441,7 +441,7 @@ public sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
         }
     }
 
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.sizes, 1)! : null;
 
@@ -489,7 +489,7 @@ public sealed partial class PointerTypeSyntax : TypeSyntax
     public TypeSyntax ElementType => GetRedAtZero(ref this.elementType)!;
 
     /// <summary>SyntaxToken representing the asterisk.</summary>
-    public SyntaxToken AsteriskToken => new(this, ((Syntax.InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken AsteriskToken => new(this, ((InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
@@ -531,10 +531,10 @@ public sealed partial class FunctionPointerTypeSyntax : TypeSyntax
     }
 
     /// <summary>SyntaxToken representing the delegate keyword.</summary>
-    public SyntaxToken DelegateKeyword => new(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).delegateKeyword, Position, 0);
+    public SyntaxToken DelegateKeyword => new(this, ((InternalSyntax.FunctionPointerTypeSyntax)this.Green).delegateKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the asterisk.</summary>
-    public SyntaxToken AsteriskToken => new(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken AsteriskToken => new(this, ((InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Node representing the optional calling convention.</summary>
     public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
@@ -598,7 +598,7 @@ public sealed partial class FunctionPointerParameterListSyntax : CSharpSyntaxNod
     }
 
     /// <summary>SyntaxToken representing the less than token.</summary>
-    public SyntaxToken LessThanToken => new(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
+    public SyntaxToken LessThanToken => new(this, ((InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
     public SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters
@@ -611,7 +611,7 @@ public sealed partial class FunctionPointerParameterListSyntax : CSharpSyntaxNod
     }
 
     /// <summary>SyntaxToken representing the greater than token.</summary>
-    public SyntaxToken GreaterThanToken => new(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken GreaterThanToken => new(this, ((InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -656,7 +656,7 @@ public sealed partial class FunctionPointerCallingConventionSyntax : CSharpSynta
     }
 
     /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
-    public SyntaxToken ManagedOrUnmanagedKeyword => new(this, ((Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedOrUnmanagedKeyword, Position, 0);
+    public SyntaxToken ManagedOrUnmanagedKeyword => new(this, ((InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedOrUnmanagedKeyword, Position, 0);
 
     /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
     public FunctionPointerUnmanagedCallingConventionListSyntax? UnmanagedCallingConventionList => GetRed(ref this.unmanagedCallingConventionList, 1);
@@ -707,7 +707,7 @@ public sealed partial class FunctionPointerUnmanagedCallingConventionListSyntax 
     }
 
     /// <summary>SyntaxToken representing open bracket.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
     public SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions
@@ -720,7 +720,7 @@ public sealed partial class FunctionPointerUnmanagedCallingConventionListSyntax 
     }
 
     /// <summary>SyntaxToken representing close bracket.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.callingConventions, 1)! : null;
 
@@ -764,7 +764,7 @@ public sealed partial class FunctionPointerUnmanagedCallingConventionSyntax : CS
     }
 
     /// <summary>SyntaxToken representing the calling convention identifier.</summary>
-    public SyntaxToken Name => new(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
+    public SyntaxToken Name => new(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -808,7 +808,7 @@ public sealed partial class NullableTypeSyntax : TypeSyntax
     public TypeSyntax ElementType => GetRedAtZero(ref this.elementType)!;
 
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken => new(this, ((Syntax.InternalSyntax.NullableTypeSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken QuestionToken => new(this, ((InternalSyntax.NullableTypeSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
@@ -850,7 +850,7 @@ public sealed partial class TupleTypeSyntax : TypeSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.TupleTypeSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.TupleTypeSyntax)this.Green).openParenToken, Position, 0);
 
     public SeparatedSyntaxList<TupleElementSyntax> Elements
     {
@@ -862,7 +862,7 @@ public sealed partial class TupleTypeSyntax : TypeSyntax
     }
 
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
@@ -958,7 +958,7 @@ public sealed partial class OmittedTypeArgumentSyntax : TypeSyntax
     }
 
     /// <summary>SyntaxToken representing the omitted type argument.</summary>
-    public SyntaxToken OmittedTypeArgumentToken => new(this, ((Syntax.InternalSyntax.OmittedTypeArgumentSyntax)this.Green).omittedTypeArgumentToken, Position, 0);
+    public SyntaxToken OmittedTypeArgumentToken => new(this, ((InternalSyntax.OmittedTypeArgumentSyntax)this.Green).omittedTypeArgumentToken, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -998,7 +998,7 @@ public sealed partial class RefTypeSyntax : TypeSyntax
     {
     }
 
-    public SyntaxToken RefKeyword => new(this, ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).refKeyword, Position, 0);
+    public SyntaxToken RefKeyword => new(this, ((InternalSyntax.RefTypeSyntax)this.Green).refKeyword, Position, 0);
 
     /// <summary>Gets the optional "readonly" keyword.</summary>
     public SyntaxToken ReadOnlyKeyword
@@ -1052,7 +1052,7 @@ public sealed partial class ScopedTypeSyntax : TypeSyntax
     {
     }
 
-    public SyntaxToken ScopedKeyword => new(this, ((Syntax.InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
+    public SyntaxToken ScopedKeyword => new(this, ((InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
 
     public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
@@ -1113,13 +1113,13 @@ public sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ParenthesizedExpressionSyntax)this.Green).openParenToken, Position, 0);
 
     /// <summary>ExpressionSyntax node representing the expression enclosed within the parenthesis.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
@@ -1162,7 +1162,7 @@ public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.TupleExpressionSyntax)this.Green).openParenToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
     public SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -1175,7 +1175,7 @@ public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -1228,7 +1228,7 @@ public sealed partial class PrefixUnaryExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.PrefixUnaryExpressionSyntax)this.Green).operatorToken, Position, 0);
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.PrefixUnaryExpressionSyntax)this.Green).operatorToken, Position, 0);
 
     /// <summary>ExpressionSyntax representing the operand of the prefix unary expression.</summary>
     public ExpressionSyntax Operand => GetRed(ref this.operand, 1)!;
@@ -1273,7 +1273,7 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
-    public SyntaxToken AwaitKeyword => new(this, ((Syntax.InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
+    public SyntaxToken AwaitKeyword => new(this, ((InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
 
     /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
@@ -1323,7 +1323,7 @@ public sealed partial class PostfixUnaryExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Operand => GetRedAtZero(ref this.operand)!;
 
     /// <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.operand)! : null;
 
@@ -1370,7 +1370,7 @@ public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
     /// <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
     public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
@@ -1432,7 +1432,7 @@ public sealed partial class ConditionalAccessExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.ConditionalAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.ConditionalAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>ExpressionSyntax node representing the access expression to be executed when the object is not null.</summary>
     public ExpressionSyntax WhenNotNull => GetRed(ref this.whenNotNull, 2)!;
@@ -1490,7 +1490,7 @@ public sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing dot.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.MemberBindingExpressionSyntax)this.Green).operatorToken, Position, 0);
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.MemberBindingExpressionSyntax)this.Green).operatorToken, Position, 0);
 
     /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
     public SimpleNameSyntax Name => GetRed(ref this.name, 1)!;
@@ -1582,7 +1582,7 @@ public sealed partial class RangeExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax? LeftOperand => GetRedAtZero(ref this.leftOperand);
 
     /// <summary>SyntaxToken representing the operator of the range expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
     public ExpressionSyntax? RightOperand => GetRed(ref this.rightOperand, 2);
@@ -1708,7 +1708,7 @@ public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Left => GetRedAtZero(ref this.left)!;
 
     /// <summary>SyntaxToken representing the operator of the binary expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.BinaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.BinaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>ExpressionSyntax node representing the expression on the right of the binary operator.</summary>
     public ExpressionSyntax Right => GetRed(ref this.right, 2)!;
@@ -1782,7 +1782,7 @@ public sealed partial class AssignmentExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Left => GetRedAtZero(ref this.left)!;
 
     /// <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.AssignmentExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.AssignmentExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
     public ExpressionSyntax Right => GetRed(ref this.right, 2)!;
@@ -1845,13 +1845,13 @@ public sealed partial class ConditionalExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Condition => GetRedAtZero(ref this.condition)!;
 
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken => new(this, ((Syntax.InternalSyntax.ConditionalExpressionSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken QuestionToken => new(this, ((InternalSyntax.ConditionalExpressionSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is true.</summary>
     public ExpressionSyntax WhenTrue => GetRed(ref this.whenTrue, 2)!;
 
     /// <summary>SyntaxToken representing the colon.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.ConditionalExpressionSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.ConditionalExpressionSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
 
     /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is false.</summary>
     public ExpressionSyntax WhenFalse => GetRed(ref this.whenFalse, 4)!;
@@ -1921,7 +1921,7 @@ public sealed partial class ThisExpressionSyntax : InstanceExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the this keyword.</summary>
-    public SyntaxToken Token => new(this, ((Syntax.InternalSyntax.ThisExpressionSyntax)this.Green).token, Position, 0);
+    public SyntaxToken Token => new(this, ((InternalSyntax.ThisExpressionSyntax)this.Green).token, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -1961,7 +1961,7 @@ public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the base keyword.</summary>
-    public SyntaxToken Token => new(this, ((Syntax.InternalSyntax.BaseExpressionSyntax)this.Green).token, Position, 0);
+    public SyntaxToken Token => new(this, ((InternalSyntax.BaseExpressionSyntax)this.Green).token, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -2009,7 +2009,7 @@ public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
-    public SyntaxToken Token => new(this, ((Syntax.InternalSyntax.LiteralExpressionSyntax)this.Green).token, Position, 0);
+    public SyntaxToken Token => new(this, ((InternalSyntax.LiteralExpressionSyntax)this.Green).token, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -2050,16 +2050,16 @@ public sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the MakeRefKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Argument of the primary function.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2103,16 +2103,16 @@ public sealed partial class RefTypeExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the RefTypeKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Argument of the primary function.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2157,22 +2157,22 @@ public sealed partial class RefValueExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the RefValueKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Typed reference expression.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
     /// <summary>Comma separating the arguments.</summary>
-    public SyntaxToken Comma => new(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).comma, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken Comma => new(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).comma, GetChildPosition(3), GetChildIndex(3));
 
     /// <summary>The type of the value.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 4)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).closeParenToken, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).closeParenToken, GetChildPosition(5), GetChildIndex(5));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -2231,16 +2231,16 @@ public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the checked or unchecked keyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Argument of the primary function.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2284,16 +2284,16 @@ public sealed partial class DefaultExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the DefaultKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Argument of the primary function.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2337,16 +2337,16 @@ public sealed partial class TypeOfExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the TypeOfKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>The expression to return type of.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2390,16 +2390,16 @@ public sealed partial class SizeOfExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the SizeOfKeyword.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).keyword, Position, 0);
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Argument of the primary function.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2580,7 +2580,7 @@ public sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     }
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ArgumentListSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ArgumentListSyntax)this.Green).openParenToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
     public override SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -2593,7 +2593,7 @@ public sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     }
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -2640,7 +2640,7 @@ public sealed partial class BracketedArgumentListSyntax : BaseArgumentListSyntax
     }
 
     /// <summary>SyntaxToken representing open bracket.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.BracketedArgumentListSyntax)this.Green).openBracketToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
     public override SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -2653,7 +2653,7 @@ public sealed partial class BracketedArgumentListSyntax : BaseArgumentListSyntax
     }
 
     /// <summary>SyntaxToken representing close bracket.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -2785,7 +2785,7 @@ public sealed partial class ExpressionColonSyntax : BaseExpressionColonSyntax
 
     public override ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-    public override SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken ColonToken => new(this, ((InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
 
@@ -2832,7 +2832,7 @@ public sealed partial class NameColonSyntax : BaseExpressionColonSyntax
     public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
     /// <summary>SyntaxToken representing colon.</summary>
-    public override SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken ColonToken => new(this, ((InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -2933,13 +2933,13 @@ public sealed partial class CastExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.CastExpressionSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.CastExpressionSyntax)this.Green).openParenToken, Position, 0);
 
     /// <summary>TypeSyntax node representing the type to which the expression is being cast.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.CastExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.CastExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>ExpressionSyntax node representing the expression that is being casted.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
@@ -3047,7 +3047,7 @@ public sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionE
     }
 
     /// <summary>SyntaxToken representing the delegate keyword.</summary>
-    public SyntaxToken DelegateKeyword => new(this, ((Syntax.InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).delegateKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DelegateKeyword => new(this, ((InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).delegateKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
     public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 2);
@@ -3184,7 +3184,7 @@ public sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSynta
     public ParameterSyntax Parameter => GetRed(ref this.parameter, 2)!;
 
     /// <summary>SyntaxToken representing equals greater than.</summary>
-    public override SyntaxToken ArrowToken => new(this, ((Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken ArrowToken => new(this, ((InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
 
     /// <summary>
     /// BlockSyntax node representing the body of the lambda.
@@ -3280,7 +3280,7 @@ public sealed partial class RefExpressionSyntax : ExpressionSyntax
     {
     }
 
-    public SyntaxToken RefKeyword => new(this, ((Syntax.InternalSyntax.RefExpressionSyntax)this.Green).refKeyword, Position, 0);
+    public SyntaxToken RefKeyword => new(this, ((InternalSyntax.RefExpressionSyntax)this.Green).refKeyword, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -3344,7 +3344,7 @@ public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressi
     public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
     /// <summary>SyntaxToken representing equals greater than.</summary>
-    public override SyntaxToken ArrowToken => new(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken ArrowToken => new(this, ((InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
 
     /// <summary>
     /// BlockSyntax node representing the body of the lambda.
@@ -3448,7 +3448,7 @@ public sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the open brace.</summary>
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).openBraceToken, Position, 0);
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.InitializerExpressionSyntax)this.Green).openBraceToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
     public SeparatedSyntaxList<ExpressionSyntax> Expressions
@@ -3461,7 +3461,7 @@ public sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the close brace.</summary>
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expressions, 1)! : null;
 
@@ -3533,7 +3533,7 @@ public sealed partial class ImplicitObjectCreationExpressionSyntax : BaseObjectC
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public override SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+    public override SyntaxToken NewKeyword => new(this, ((InternalSyntax.ImplicitObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
     public override ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
@@ -3602,7 +3602,7 @@ public sealed partial class ObjectCreationExpressionSyntax : BaseObjectCreationE
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public override SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.ObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+    public override SyntaxToken NewKeyword => new(this, ((InternalSyntax.ObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>TypeSyntax representing the type of the object being created.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -3680,7 +3680,7 @@ public sealed partial class WithExpressionSyntax : ExpressionSyntax
 
     public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-    public SyntaxToken WithKeyword => new(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken WithKeyword => new(this, ((InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
     public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 2)!;
@@ -3797,10 +3797,10 @@ public sealed partial class AnonymousObjectCreationExpressionSyntax : Expression
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+    public SyntaxToken NewKeyword => new(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the open brace.</summary>
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
     public SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers
@@ -3813,7 +3813,7 @@ public sealed partial class AnonymousObjectCreationExpressionSyntax : Expression
     }
 
     /// <summary>SyntaxToken representing the close brace.</summary>
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.initializers, 2)! : null;
 
@@ -3860,7 +3860,7 @@ public sealed partial class ArrayCreationExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.ArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+    public SyntaxToken NewKeyword => new(this, ((InternalSyntax.ArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>ArrayTypeSyntax node representing the type of the array.</summary>
     public ArrayTypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -3923,10 +3923,10 @@ public sealed partial class ImplicitArrayCreationExpressionSyntax : ExpressionSy
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+    public SyntaxToken NewKeyword => new(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the open bracket.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SyntaxList of SyntaxToken representing the commas in the implicit array creation expression.</summary>
     public SyntaxTokenList Commas
@@ -3939,7 +3939,7 @@ public sealed partial class ImplicitArrayCreationExpressionSyntax : ExpressionSy
     }
 
     /// <summary>SyntaxToken representing the close bracket.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
 
     /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
     public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 4)!;
@@ -3991,7 +3991,7 @@ public sealed partial class StackAllocArrayCreationExpressionSyntax : Expression
     }
 
     /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-    public SyntaxToken StackAllocKeyword => new(this, ((Syntax.InternalSyntax.StackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
+    public SyntaxToken StackAllocKeyword => new(this, ((InternalSyntax.StackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
 
     /// <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
     public TypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -4052,13 +4052,13 @@ public sealed partial class ImplicitStackAllocArrayCreationExpressionSyntax : Ex
     }
 
     /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-    public SyntaxToken StackAllocKeyword => new(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
+    public SyntaxToken StackAllocKeyword => new(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the open bracket.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>SyntaxToken representing the close bracket.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
     public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 3)!;
@@ -4105,7 +4105,7 @@ public sealed partial class CollectionExpressionSyntax : ExpressionSyntax
     {
     }
 
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.CollectionExpressionSyntax)this.Green).openBracketToken, Position, 0);
 
     /// <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
     public SeparatedSyntaxList<CollectionElementSyntax> Elements
@@ -4117,7 +4117,7 @@ public sealed partial class CollectionExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.CollectionExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
@@ -4207,7 +4207,7 @@ public sealed partial class SpreadElementSyntax : CollectionElementSyntax
     {
     }
 
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.SpreadElementSyntax)this.Green).operatorToken, Position, 0);
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.SpreadElementSyntax)this.Green).operatorToken, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -4386,14 +4386,14 @@ public sealed partial class FromClauseSyntax : QueryClauseSyntax
     {
     }
 
-    public SyntaxToken FromKeyword => new(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).fromKeyword, Position, 0);
+    public SyntaxToken FromKeyword => new(this, ((InternalSyntax.FromClauseSyntax)this.Green).fromKeyword, Position, 0);
 
     public TypeSyntax? Type => GetRed(ref this.type, 1);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.FromClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken InKeyword => new(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken InKeyword => new(this, ((InternalSyntax.FromClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 4)!;
 
@@ -4450,12 +4450,12 @@ public sealed partial class LetClauseSyntax : QueryClauseSyntax
     {
     }
 
-    public SyntaxToken LetKeyword => new(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).letKeyword, Position, 0);
+    public SyntaxToken LetKeyword => new(this, ((InternalSyntax.LetClauseSyntax)this.Green).letKeyword, Position, 0);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.LetClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).equalsToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EqualsToken => new(this, ((InternalSyntax.LetClauseSyntax)this.Green).equalsToken, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
@@ -4503,22 +4503,22 @@ public sealed partial class JoinClauseSyntax : QueryClauseSyntax
     {
     }
 
-    public SyntaxToken JoinKeyword => new(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).joinKeyword, Position, 0);
+    public SyntaxToken JoinKeyword => new(this, ((InternalSyntax.JoinClauseSyntax)this.Green).joinKeyword, Position, 0);
 
     public TypeSyntax? Type => GetRed(ref this.type, 1);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.JoinClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken InKeyword => new(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken InKeyword => new(this, ((InternalSyntax.JoinClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
 
     public ExpressionSyntax InExpression => GetRed(ref this.inExpression, 4)!;
 
-    public SyntaxToken OnKeyword => new(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).onKeyword, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken OnKeyword => new(this, ((InternalSyntax.JoinClauseSyntax)this.Green).onKeyword, GetChildPosition(5), GetChildIndex(5));
 
     public ExpressionSyntax LeftExpression => GetRed(ref this.leftExpression, 6)!;
 
-    public SyntaxToken EqualsKeyword => new(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).equalsKeyword, GetChildPosition(7), GetChildIndex(7));
+    public SyntaxToken EqualsKeyword => new(this, ((InternalSyntax.JoinClauseSyntax)this.Green).equalsKeyword, GetChildPosition(7), GetChildIndex(7));
 
     public ExpressionSyntax RightExpression => GetRed(ref this.rightExpression, 8)!;
 
@@ -4587,10 +4587,10 @@ public sealed partial class JoinIntoClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken IntoKeyword => new(this, ((Syntax.InternalSyntax.JoinIntoClauseSyntax)this.Green).intoKeyword, Position, 0);
+    public SyntaxToken IntoKeyword => new(this, ((InternalSyntax.JoinIntoClauseSyntax)this.Green).intoKeyword, Position, 0);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.JoinIntoClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.JoinIntoClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -4630,7 +4630,7 @@ public sealed partial class WhereClauseSyntax : QueryClauseSyntax
     {
     }
 
-    public SyntaxToken WhereKeyword => new(this, ((Syntax.InternalSyntax.WhereClauseSyntax)this.Green).whereKeyword, Position, 0);
+    public SyntaxToken WhereKeyword => new(this, ((InternalSyntax.WhereClauseSyntax)this.Green).whereKeyword, Position, 0);
 
     public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
@@ -4672,7 +4672,7 @@ public sealed partial class OrderByClauseSyntax : QueryClauseSyntax
     {
     }
 
-    public SyntaxToken OrderByKeyword => new(this, ((Syntax.InternalSyntax.OrderByClauseSyntax)this.Green).orderByKeyword, Position, 0);
+    public SyntaxToken OrderByKeyword => new(this, ((InternalSyntax.OrderByClauseSyntax)this.Green).orderByKeyword, Position, 0);
 
     public SeparatedSyntaxList<OrderingSyntax> Orderings
     {
@@ -4773,7 +4773,7 @@ public sealed partial class SelectClauseSyntax : SelectOrGroupClauseSyntax
     {
     }
 
-    public SyntaxToken SelectKeyword => new(this, ((Syntax.InternalSyntax.SelectClauseSyntax)this.Green).selectKeyword, Position, 0);
+    public SyntaxToken SelectKeyword => new(this, ((InternalSyntax.SelectClauseSyntax)this.Green).selectKeyword, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -4816,11 +4816,11 @@ public sealed partial class GroupClauseSyntax : SelectOrGroupClauseSyntax
     {
     }
 
-    public SyntaxToken GroupKeyword => new(this, ((Syntax.InternalSyntax.GroupClauseSyntax)this.Green).groupKeyword, Position, 0);
+    public SyntaxToken GroupKeyword => new(this, ((InternalSyntax.GroupClauseSyntax)this.Green).groupKeyword, Position, 0);
 
     public ExpressionSyntax GroupExpression => GetRed(ref this.groupExpression, 1)!;
 
-    public SyntaxToken ByKeyword => new(this, ((Syntax.InternalSyntax.GroupClauseSyntax)this.Green).byKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ByKeyword => new(this, ((InternalSyntax.GroupClauseSyntax)this.Green).byKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax ByExpression => GetRed(ref this.byExpression, 3)!;
 
@@ -4876,10 +4876,10 @@ public sealed partial class QueryContinuationSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken IntoKeyword => new(this, ((Syntax.InternalSyntax.QueryContinuationSyntax)this.Green).intoKeyword, Position, 0);
+    public SyntaxToken IntoKeyword => new(this, ((InternalSyntax.QueryContinuationSyntax)this.Green).intoKeyword, Position, 0);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.QueryContinuationSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.QueryContinuationSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
     public QueryBodySyntax Body => GetRed(ref this.body, 2)!;
 
@@ -4925,7 +4925,7 @@ public sealed partial class OmittedArraySizeExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the omitted array size expression.</summary>
-    public SyntaxToken OmittedArraySizeExpressionToken => new(this, ((Syntax.InternalSyntax.OmittedArraySizeExpressionSyntax)this.Green).omittedArraySizeExpressionToken, Position, 0);
+    public SyntaxToken OmittedArraySizeExpressionToken => new(this, ((InternalSyntax.OmittedArraySizeExpressionSyntax)this.Green).omittedArraySizeExpressionToken, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -4965,13 +4965,13 @@ public sealed partial class InterpolatedStringExpressionSyntax : ExpressionSynta
     }
 
     /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
-    public SyntaxToken StringStartToken => new(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
+    public SyntaxToken StringStartToken => new(this, ((InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
 
     /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
     public SyntaxList<InterpolatedStringContentSyntax> Contents => new(GetRed(ref this.contents, 1));
 
     /// <summary>The closing quote of the interpolated string.</summary>
-    public SyntaxToken StringEndToken => new(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken StringEndToken => new(this, ((InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.contents, 1)! : null;
 
@@ -5019,7 +5019,7 @@ public sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
     /// <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
     public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-    public SyntaxToken IsKeyword => new(this, ((Syntax.InternalSyntax.IsPatternExpressionSyntax)this.Green).isKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken IsKeyword => new(this, ((InternalSyntax.IsPatternExpressionSyntax)this.Green).isKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
     public PatternSyntax Pattern => GetRed(ref this.pattern, 2)!;
@@ -5075,7 +5075,7 @@ public sealed partial class ThrowExpressionSyntax : ExpressionSyntax
     {
     }
 
-    public SyntaxToken ThrowKeyword => new(this, ((Syntax.InternalSyntax.ThrowExpressionSyntax)this.Green).throwKeyword, Position, 0);
+    public SyntaxToken ThrowKeyword => new(this, ((InternalSyntax.ThrowExpressionSyntax)this.Green).throwKeyword, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5117,7 +5117,7 @@ public sealed partial class WhenClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken WhenKeyword => new(this, ((Syntax.InternalSyntax.WhenClauseSyntax)this.Green).whenKeyword, Position, 0);
+    public SyntaxToken WhenKeyword => new(this, ((InternalSyntax.WhenClauseSyntax)this.Green).whenKeyword, Position, 0);
 
     public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
@@ -5166,7 +5166,7 @@ public sealed partial class DiscardPatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken UnderscoreToken => new(this, ((Syntax.InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, Position, 0);
+    public SyntaxToken UnderscoreToken => new(this, ((InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -5260,7 +5260,7 @@ public sealed partial class VarPatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken VarKeyword => new(this, ((Syntax.InternalSyntax.VarPatternSyntax)this.Green).varKeyword, Position, 0);
+    public SyntaxToken VarKeyword => new(this, ((InternalSyntax.VarPatternSyntax)this.Green).varKeyword, Position, 0);
 
     public VariableDesignationSyntax Designation => GetRed(ref this.designation, 1)!;
 
@@ -5380,7 +5380,7 @@ public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.PositionalPatternClauseSyntax)this.Green).openParenToken, Position, 0);
 
     public SeparatedSyntaxList<SubpatternSyntax> Subpatterns
     {
@@ -5391,7 +5391,7 @@ public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
         }
     }
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
@@ -5434,7 +5434,7 @@ public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).openBraceToken, Position, 0);
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.PropertyPatternClauseSyntax)this.Green).openBraceToken, Position, 0);
 
     public SeparatedSyntaxList<SubpatternSyntax> Subpatterns
     {
@@ -5445,7 +5445,7 @@ public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
         }
     }
 
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
@@ -5583,11 +5583,11 @@ public sealed partial class ParenthesizedPatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ParenthesizedPatternSyntax)this.Green).openParenToken, Position, 0);
 
     public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ParenthesizedPatternSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1)! : null;
 
@@ -5629,7 +5629,7 @@ public sealed partial class RelationalPatternSyntax : PatternSyntax
     }
 
     /// <summary>SyntaxToken representing the operator of the relational pattern.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.RelationalPatternSyntax)this.Green).operatorToken, Position, 0);
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.RelationalPatternSyntax)this.Green).operatorToken, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5715,7 +5715,7 @@ public sealed partial class BinaryPatternSyntax : PatternSyntax
 
     public PatternSyntax Left => GetRedAtZero(ref this.left)!;
 
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
     public PatternSyntax Right => GetRed(ref this.right, 2)!;
 
@@ -5770,7 +5770,7 @@ public sealed partial class UnaryPatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.UnaryPatternSyntax)this.Green).operatorToken, Position, 0);
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.UnaryPatternSyntax)this.Green).operatorToken, Position, 0);
 
     public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
@@ -5813,7 +5813,7 @@ public sealed partial class ListPatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
 
     public SeparatedSyntaxList<PatternSyntax> Patterns
     {
@@ -5824,7 +5824,7 @@ public sealed partial class ListPatternSyntax : PatternSyntax
         }
     }
 
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 3);
 
@@ -5882,7 +5882,7 @@ public sealed partial class SlicePatternSyntax : PatternSyntax
     {
     }
 
-    public SyntaxToken DotDotToken => new(this, ((Syntax.InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
+    public SyntaxToken DotDotToken => new(this, ((InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
 
     public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
 
@@ -5932,7 +5932,7 @@ public sealed partial class InterpolatedStringTextSyntax : InterpolatedStringCon
     }
 
     /// <summary>The text contents of a part of the interpolated string.</summary>
-    public SyntaxToken TextToken => new(this, ((Syntax.InternalSyntax.InterpolatedStringTextSyntax)this.Green).textToken, Position, 0);
+    public SyntaxToken TextToken => new(this, ((InternalSyntax.InterpolatedStringTextSyntax)this.Green).textToken, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -5974,7 +5974,7 @@ public sealed partial class InterpolationSyntax : InterpolatedStringContentSynta
     }
 
     /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5985,7 +5985,7 @@ public sealed partial class InterpolationSyntax : InterpolatedStringContentSynta
     /// <summary>
     /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
     /// </summary>
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -6042,7 +6042,7 @@ public sealed partial class InterpolationAlignmentClauseSyntax : CSharpSyntaxNod
     {
     }
 
-    public SyntaxToken CommaToken => new(this, ((Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)this.Green).commaToken, Position, 0);
+    public SyntaxToken CommaToken => new(this, ((InternalSyntax.InterpolationAlignmentClauseSyntax)this.Green).commaToken, Position, 0);
 
     public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
@@ -6083,10 +6083,10 @@ public sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.InterpolationFormatClauseSyntax)this.Green).colonToken, Position, 0);
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.InterpolationFormatClauseSyntax)this.Green).colonToken, Position, 0);
 
     /// <summary>The text contents of the format specifier for an interpolation.</summary>
-    public SyntaxToken FormatStringToken => new(this, ((Syntax.InternalSyntax.InterpolationFormatClauseSyntax)this.Green).formatStringToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken FormatStringToken => new(this, ((InternalSyntax.InterpolationFormatClauseSyntax)this.Green).formatStringToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6217,11 +6217,11 @@ public sealed partial class BlockSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.BlockSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.BlockSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
 
     public SyntaxList<StatementSyntax> Statements => new(GetRed(ref this.statements, 2));
 
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.BlockSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -6300,7 +6300,7 @@ public sealed partial class LocalFunctionStatementSyntax : StatementSyntax
     public TypeSyntax ReturnType => GetRed(ref this.returnType, 2)!;
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.LocalFunctionStatementSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.LocalFunctionStatementSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -6445,7 +6445,7 @@ public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
 
     public VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 4)!;
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, GetChildPosition(5), GetChildIndex(5));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -6573,7 +6573,7 @@ public sealed partial class VariableDeclaratorSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.VariableDeclaratorSyntax)this.Green).identifier, Position, 0);
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.VariableDeclaratorSyntax)this.Green).identifier, Position, 0);
 
     public BracketedArgumentListSyntax? ArgumentList => GetRed(ref this.argumentList, 1);
 
@@ -6636,7 +6636,7 @@ public sealed partial class EqualsValueClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.EqualsValueClauseSyntax)this.Green).equalsToken, Position, 0);
+    public SyntaxToken EqualsToken => new(this, ((InternalSyntax.EqualsValueClauseSyntax)this.Green).equalsToken, Position, 0);
 
     public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
@@ -6685,7 +6685,7 @@ public sealed partial class SingleVariableDesignationSyntax : VariableDesignatio
     {
     }
 
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.SingleVariableDesignationSyntax)this.Green).identifier, Position, 0);
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.SingleVariableDesignationSyntax)this.Green).identifier, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6723,7 +6723,7 @@ public sealed partial class DiscardDesignationSyntax : VariableDesignationSyntax
     {
     }
 
-    public SyntaxToken UnderscoreToken => new(this, ((Syntax.InternalSyntax.DiscardDesignationSyntax)this.Green).underscoreToken, Position, 0);
+    public SyntaxToken UnderscoreToken => new(this, ((InternalSyntax.DiscardDesignationSyntax)this.Green).underscoreToken, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6762,7 +6762,7 @@ public sealed partial class ParenthesizedVariableDesignationSyntax : VariableDes
     {
     }
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).openParenToken, Position, 0);
 
     public SeparatedSyntaxList<VariableDesignationSyntax> Variables
     {
@@ -6773,7 +6773,7 @@ public sealed partial class ParenthesizedVariableDesignationSyntax : VariableDes
         }
     }
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.variables, 1)! : null;
 
@@ -6821,7 +6821,7 @@ public sealed partial class ExpressionStatementSyntax : StatementSyntax
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -6880,7 +6880,7 @@ public sealed partial class EmptyStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.EmptyStatementSyntax)this.Green).semicolonToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.EmptyStatementSyntax)this.Green).semicolonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -6929,10 +6929,10 @@ public sealed partial class LabeledStatementSyntax : StatementSyntax
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.LabeledStatementSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.LabeledStatementSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 3)!;
 
@@ -7003,7 +7003,7 @@ public sealed partial class GotoStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the goto keyword.
     /// </summary>
-    public SyntaxToken GotoKeyword => new(this, ((Syntax.InternalSyntax.GotoStatementSyntax)this.Green).gotoKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken GotoKeyword => new(this, ((InternalSyntax.GotoStatementSyntax)this.Green).gotoKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>
     /// Gets a SyntaxToken that represents the case or default keywords if any exists.
@@ -7025,7 +7025,7 @@ public sealed partial class GotoStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the semi-colon at the end of the statement.
     /// </summary>
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.GotoStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.GotoStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -7086,9 +7086,9 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken BreakKeyword => new(this, ((Syntax.InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken BreakKeyword => new(this, ((InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -7135,9 +7135,9 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken ContinueKeyword => new(this, ((Syntax.InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ContinueKeyword => new(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -7185,11 +7185,11 @@ public sealed partial class ReturnStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken ReturnKeyword => new(this, ((Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).returnKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ReturnKeyword => new(this, ((InternalSyntax.ReturnStatementSyntax)this.Green).returnKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public ExpressionSyntax? Expression => GetRed(ref this.expression, 2);
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.ReturnStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -7250,11 +7250,11 @@ public sealed partial class ThrowStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken ThrowKeyword => new(this, ((Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).throwKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ThrowKeyword => new(this, ((InternalSyntax.ThrowStatementSyntax)this.Green).throwKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public ExpressionSyntax? Expression => GetRed(ref this.expression, 2);
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.ThrowStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -7316,13 +7316,13 @@ public sealed partial class YieldStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken YieldKeyword => new(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).yieldKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken YieldKeyword => new(this, ((InternalSyntax.YieldStatementSyntax)this.Green).yieldKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken ReturnOrBreakKeyword => new(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).returnOrBreakKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ReturnOrBreakKeyword => new(this, ((InternalSyntax.YieldStatementSyntax)this.Green).returnOrBreakKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax? Expression => GetRed(ref this.expression, 3);
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.YieldStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -7385,13 +7385,13 @@ public sealed partial class WhileStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken WhileKeyword => new(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).whileKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken WhileKeyword => new(this, ((InternalSyntax.WhileStatementSyntax)this.Green).whileKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.WhileStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax Condition => GetRed(ref this.condition, 3)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.WhileStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -7459,19 +7459,19 @@ public sealed partial class DoStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken DoKeyword => new(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).doKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DoKeyword => new(this, ((InternalSyntax.DoStatementSyntax)this.Green).doKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 2)!;
 
-    public SyntaxToken WhileKeyword => new(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).whileKeyword, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken WhileKeyword => new(this, ((InternalSyntax.DoStatementSyntax)this.Green).whileKeyword, GetChildPosition(3), GetChildIndex(3));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).openParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.DoStatementSyntax)this.Green).openParenToken, GetChildPosition(4), GetChildIndex(4));
 
     public ExpressionSyntax Condition => GetRed(ref this.condition, 5)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.DoStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).semicolonToken, GetChildPosition(7), GetChildIndex(7));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.DoStatementSyntax)this.Green).semicolonToken, GetChildPosition(7), GetChildIndex(7));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -7542,9 +7542,9 @@ public sealed partial class ForStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken ForKeyword => new(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).forKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ForKeyword => new(this, ((InternalSyntax.ForStatementSyntax)this.Green).forKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ForStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
     public VariableDeclarationSyntax? Declaration => GetRed(ref this.declaration, 3);
 
@@ -7557,11 +7557,11 @@ public sealed partial class ForStatementSyntax : StatementSyntax
         }
     }
 
-    public SyntaxToken FirstSemicolonToken => new(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).firstSemicolonToken, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken FirstSemicolonToken => new(this, ((InternalSyntax.ForStatementSyntax)this.Green).firstSemicolonToken, GetChildPosition(5), GetChildIndex(5));
 
     public ExpressionSyntax? Condition => GetRed(ref this.condition, 6);
 
-    public SyntaxToken SecondSemicolonToken => new(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).secondSemicolonToken, GetChildPosition(7), GetChildIndex(7));
+    public SyntaxToken SecondSemicolonToken => new(this, ((InternalSyntax.ForStatementSyntax)this.Green).secondSemicolonToken, GetChildPosition(7), GetChildIndex(7));
 
     public SeparatedSyntaxList<ExpressionSyntax> Incrementors
     {
@@ -7572,7 +7572,7 @@ public sealed partial class ForStatementSyntax : StatementSyntax
         }
     }
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).closeParenToken, GetChildPosition(9), GetChildIndex(9));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ForStatementSyntax)this.Green).closeParenToken, GetChildPosition(9), GetChildIndex(9));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 10)!;
 
@@ -7703,20 +7703,20 @@ public sealed partial class ForEachStatementSyntax : CommonForEachStatementSynta
         }
     }
 
-    public override SyntaxToken ForEachKeyword => new(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken ForEachKeyword => new(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
     public TypeSyntax Type => GetRed(ref this.type, 4)!;
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
 
-    public override SyntaxToken InKeyword => new(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, GetChildPosition(6), GetChildIndex(6));
+    public override SyntaxToken InKeyword => new(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, GetChildPosition(6), GetChildIndex(6));
 
     public override ExpressionSyntax Expression => GetRed(ref this.expression, 7)!;
 
-    public override SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, GetChildPosition(8), GetChildIndex(8));
+    public override SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, GetChildPosition(8), GetChildIndex(8));
 
     public override StatementSyntax Statement => GetRed(ref this.statement, 9)!;
 
@@ -7807,9 +7807,9 @@ public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatem
         }
     }
 
-    public override SyntaxToken ForEachKeyword => new(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken ForEachKeyword => new(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
@@ -7819,11 +7819,11 @@ public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatem
     /// </summary>
     public ExpressionSyntax Variable => GetRed(ref this.variable, 4)!;
 
-    public override SyntaxToken InKeyword => new(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, GetChildPosition(5), GetChildIndex(5));
+    public override SyntaxToken InKeyword => new(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, GetChildPosition(5), GetChildIndex(5));
 
     public override ExpressionSyntax Expression => GetRed(ref this.expression, 6)!;
 
-    public override SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, GetChildPosition(7), GetChildIndex(7));
+    public override SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, GetChildPosition(7), GetChildIndex(7));
 
     public override StatementSyntax Statement => GetRed(ref this.statement, 8)!;
 
@@ -7913,15 +7913,15 @@ public sealed partial class UsingStatementSyntax : StatementSyntax
         }
     }
 
-    public SyntaxToken UsingKeyword => new(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken UsingKeyword => new(this, ((InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
     public VariableDeclarationSyntax? Declaration => GetRed(ref this.declaration, 4);
 
     public ExpressionSyntax? Expression => GetRed(ref this.expression, 5);
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 7)!;
 
@@ -7993,13 +7993,13 @@ public sealed partial class FixedStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken FixedKeyword => new(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).fixedKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken FixedKeyword => new(this, ((InternalSyntax.FixedStatementSyntax)this.Green).fixedKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.FixedStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
     public VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 3)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.FixedStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -8068,7 +8068,7 @@ public sealed partial class CheckedStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.CheckedStatementSyntax)this.Green).keyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.CheckedStatementSyntax)this.Green).keyword, GetChildPosition(1), GetChildIndex(1));
 
     public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -8132,7 +8132,7 @@ public sealed partial class UnsafeStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken UnsafeKeyword => new(this, ((Syntax.InternalSyntax.UnsafeStatementSyntax)this.Green).unsafeKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken UnsafeKeyword => new(this, ((InternalSyntax.UnsafeStatementSyntax)this.Green).unsafeKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -8197,13 +8197,13 @@ public sealed partial class LockStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken LockKeyword => new(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).lockKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken LockKeyword => new(this, ((InternalSyntax.LockStatementSyntax)this.Green).lockKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.LockStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.LockStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
     public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -8278,12 +8278,12 @@ public sealed partial class IfStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the if keyword.
     /// </summary>
-    public SyntaxToken IfKeyword => new(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken IfKeyword => new(this, ((InternalSyntax.IfStatementSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>
     /// Gets a SyntaxToken that represents the open parenthesis before the if statement's condition expression.
     /// </summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.IfStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>
     /// Gets an ExpressionSyntax that represents the condition of the if statement.
@@ -8293,7 +8293,7 @@ public sealed partial class IfStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the close parenthesis after the if statement's condition expression.
     /// </summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.IfStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
     /// <summary>
     /// Gets a StatementSyntax the represents the statement to be executed when the condition is true.
@@ -8372,7 +8372,7 @@ public sealed partial class ElseClauseSyntax : CSharpSyntaxNode
     /// <summary>
     /// Gets a syntax token
     /// </summary>
-    public SyntaxToken ElseKeyword => new(this, ((Syntax.InternalSyntax.ElseClauseSyntax)this.Green).elseKeyword, Position, 0);
+    public SyntaxToken ElseKeyword => new(this, ((InternalSyntax.ElseClauseSyntax)this.Green).elseKeyword, Position, 0);
 
     public StatementSyntax Statement => GetRed(ref this.statement, 1)!;
 
@@ -8422,7 +8422,7 @@ public sealed partial class SwitchStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the switch keyword.
     /// </summary>
-    public SyntaxToken SwitchKeyword => new(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken SwitchKeyword => new(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>
     /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
@@ -8456,7 +8456,7 @@ public sealed partial class SwitchStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces preceding the switch sections.
     /// </summary>
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).openBraceToken, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).openBraceToken, GetChildPosition(5), GetChildIndex(5));
 
     /// <summary>
     /// Gets a SyntaxList of SwitchSectionSyntax's that represents the switch sections of the switch statement.
@@ -8466,7 +8466,7 @@ public sealed partial class SwitchStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces following the switch sections.
     /// </summary>
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeBraceToken, GetChildPosition(7), GetChildIndex(7));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).closeBraceToken, GetChildPosition(7), GetChildIndex(7));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -8622,7 +8622,7 @@ public sealed partial class CasePatternSwitchLabelSyntax : SwitchLabelSyntax
     }
 
     /// <summary>Gets the case keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).keyword, Position, 0);
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>
     /// Gets a PatternSyntax that represents the pattern that gets matched for the case label.
@@ -8631,7 +8631,7 @@ public sealed partial class CasePatternSwitchLabelSyntax : SwitchLabelSyntax
 
     public WhenClauseSyntax? WhenClause => GetRed(ref this.whenClause, 2);
 
-    public override SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken ColonToken => new(this, ((InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -8689,14 +8689,14 @@ public sealed partial class CaseSwitchLabelSyntax : SwitchLabelSyntax
     }
 
     /// <summary>Gets the case keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).keyword, Position, 0);
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.CaseSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>
     /// Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label.
     /// </summary>
     public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
-    public override SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken ColonToken => new(this, ((InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1)! : null;
 
@@ -8740,9 +8740,9 @@ public sealed partial class DefaultSwitchLabelSyntax : SwitchLabelSyntax
     }
 
     /// <summary>Gets the default keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.DefaultSwitchLabelSyntax)this.Green).keyword, Position, 0);
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.DefaultSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
-    public override SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.DefaultSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken ColonToken => new(this, ((InternalSyntax.DefaultSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -8787,9 +8787,9 @@ public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
 
     public ExpressionSyntax GoverningExpression => GetRedAtZero(ref this.governingExpression)!;
 
-    public SyntaxToken SwitchKeyword => new(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken SwitchKeyword => new(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
 
     public SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms
     {
@@ -8800,7 +8800,7 @@ public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -8863,7 +8863,7 @@ public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
 
     public WhenClauseSyntax? WhenClause => GetRed(ref this.whenClause, 1);
 
-    public SyntaxToken EqualsGreaterThanToken => new(this, ((Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EqualsGreaterThanToken => new(this, ((InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
@@ -8926,7 +8926,7 @@ public sealed partial class TryStatementSyntax : StatementSyntax
 
     public override SyntaxList<AttributeListSyntax> AttributeLists => new(GetRed(ref this.attributeLists, 0));
 
-    public SyntaxToken TryKeyword => new(this, ((Syntax.InternalSyntax.TryStatementSyntax)this.Green).tryKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken TryKeyword => new(this, ((InternalSyntax.TryStatementSyntax)this.Green).tryKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -9000,7 +9000,7 @@ public sealed partial class CatchClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken CatchKeyword => new(this, ((Syntax.InternalSyntax.CatchClauseSyntax)this.Green).catchKeyword, Position, 0);
+    public SyntaxToken CatchKeyword => new(this, ((InternalSyntax.CatchClauseSyntax)this.Green).catchKeyword, Position, 0);
 
     public CatchDeclarationSyntax? Declaration => GetRed(ref this.declaration, 1);
 
@@ -9065,7 +9065,7 @@ public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.CatchDeclarationSyntax)this.Green).openParenToken, Position, 0);
 
     public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
@@ -9078,7 +9078,7 @@ public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
         }
     }
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
 
@@ -9120,13 +9120,13 @@ public sealed partial class CatchFilterClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken WhenKeyword => new(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).whenKeyword, Position, 0);
+    public SyntaxToken WhenKeyword => new(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).whenKeyword, Position, 0);
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     public ExpressionSyntax FilterExpression => GetRed(ref this.filterExpression, 2)!;
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.filterExpression, 2)! : null;
 
@@ -9168,7 +9168,7 @@ public sealed partial class FinallyClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken FinallyKeyword => new(this, ((Syntax.InternalSyntax.FinallyClauseSyntax)this.Green).finallyKeyword, Position, 0);
+    public SyntaxToken FinallyKeyword => new(this, ((InternalSyntax.FinallyClauseSyntax)this.Green).finallyKeyword, Position, 0);
 
     public BlockSyntax Block => GetRed(ref this.block, 1)!;
 
@@ -9225,7 +9225,7 @@ public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
 
     public SyntaxList<MemberDeclarationSyntax> Members => new(GetRed(ref this.members, 3));
 
-    public SyntaxToken EndOfFileToken => new(this, ((Syntax.InternalSyntax.CompilationUnitSyntax)this.Green).endOfFileToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken EndOfFileToken => new(this, ((InternalSyntax.CompilationUnitSyntax)this.Green).endOfFileToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -9292,16 +9292,16 @@ public sealed partial class ExternAliasDirectiveSyntax : CSharpSyntaxNode
     }
 
     /// <summary>SyntaxToken representing the extern keyword.</summary>
-    public SyntaxToken ExternKeyword => new(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).externKeyword, Position, 0);
+    public SyntaxToken ExternKeyword => new(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).externKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the alias keyword.</summary>
-    public SyntaxToken AliasKeyword => new(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).aliasKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken AliasKeyword => new(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).aliasKeyword, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>SyntaxToken representing the semicolon token.</summary>
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -9353,7 +9353,7 @@ public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
         }
     }
 
-    public SyntaxToken UsingKeyword => new(this, ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).usingKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken UsingKeyword => new(this, ((InternalSyntax.UsingDirectiveSyntax)this.Green).usingKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public SyntaxToken StaticKeyword
     {
@@ -9377,7 +9377,7 @@ public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
 
     public TypeSyntax NamespaceOrType => GetRed(ref this.namespaceOrType, 5)!;
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -9518,11 +9518,11 @@ public sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclaratio
         }
     }
 
-    public override SyntaxToken NamespaceKeyword => new(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken NamespaceKeyword => new(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public override NameSyntax Name => GetRed(ref this.name, 3)!;
 
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).openBraceToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).openBraceToken, GetChildPosition(4), GetChildIndex(4));
 
     public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new(GetRed(ref this.externs, 5));
 
@@ -9530,7 +9530,7 @@ public sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclaratio
 
     public override SyntaxList<MemberDeclarationSyntax> Members => new(GetRed(ref this.members, 7));
 
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).closeBraceToken, GetChildPosition(8), GetChildIndex(8));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).closeBraceToken, GetChildPosition(8), GetChildIndex(8));
 
     /// <summary>Gets the optional semicolon token.</summary>
     public SyntaxToken SemicolonToken
@@ -9639,11 +9639,11 @@ public sealed partial class FileScopedNamespaceDeclarationSyntax : BaseNamespace
         }
     }
 
-    public override SyntaxToken NamespaceKeyword => new(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken NamespaceKeyword => new(this, ((InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public override NameSyntax Name => GetRed(ref this.name, 3)!;
 
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
     public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new(GetRed(ref this.externs, 5));
 
@@ -9734,7 +9734,7 @@ public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.AttributeListSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.AttributeListSyntax)this.Green).openBracketToken, Position, 0);
 
     /// <summary>Gets the optional construct targeted by the attribute.</summary>
     public AttributeTargetSpecifierSyntax? Target => GetRed(ref this.target, 1);
@@ -9750,7 +9750,7 @@ public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.AttributeListSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.AttributeListSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -9807,10 +9807,10 @@ public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).identifier, Position, 0);
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).identifier, Position, 0);
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -9915,7 +9915,7 @@ public sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.AttributeArgumentListSyntax)this.Green).openParenToken, Position, 0);
 
     /// <summary>Gets the arguments syntax list.</summary>
     public SeparatedSyntaxList<AttributeArgumentSyntax> Arguments
@@ -9928,7 +9928,7 @@ public sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -10038,7 +10038,7 @@ public sealed partial class NameEqualsSyntax : CSharpSyntaxNode
     /// <summary>Gets the identifier name.</summary>
     public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-    public SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken EqualsToken => new(this, ((InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -10080,7 +10080,7 @@ public sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the &lt; token.</summary>
-    public SyntaxToken LessThanToken => new(this, ((Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).lessThanToken, Position, 0);
+    public SyntaxToken LessThanToken => new(this, ((InternalSyntax.TypeParameterListSyntax)this.Green).lessThanToken, Position, 0);
 
     /// <summary>Gets the parameter list.</summary>
     public SeparatedSyntaxList<TypeParameterSyntax> Parameters
@@ -10093,7 +10093,7 @@ public sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the &gt; token.</summary>
-    public SyntaxToken GreaterThanToken => new(this, ((Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken GreaterThanToken => new(this, ((InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -10150,7 +10150,7 @@ public sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.TypeParameterSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.TypeParameterSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -10307,9 +10307,9 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     }
 
     /// <summary>Gets the class keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.ClassDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.ClassDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10473,9 +10473,9 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     }
 
     /// <summary>Gets the struct keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10639,9 +10639,9 @@ public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     }
 
     /// <summary>Gets the interface keyword token.</summary>
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10804,7 +10804,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken Keyword => new(this, ((InternalSyntax.RecordDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
     public SyntaxToken ClassOrStructKeyword
     {
@@ -10815,7 +10815,7 @@ public sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.RecordDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
     public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -10977,9 +10977,9 @@ public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     }
 
     /// <summary>Gets the enum keyword token.</summary>
-    public SyntaxToken EnumKeyword => new(this, ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).enumKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EnumKeyword => new(this, ((InternalSyntax.EnumDeclarationSyntax)this.Green).enumKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken Identifier => new(this, ((InternalSyntax.EnumDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 4);
 
@@ -11116,13 +11116,13 @@ public sealed partial class DelegateDeclarationSyntax : MemberDeclarationSyntax
     }
 
     /// <summary>Gets the "delegate" keyword.</summary>
-    public SyntaxToken DelegateKeyword => new(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).delegateKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken DelegateKeyword => new(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).delegateKeyword, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>Gets the return type.</summary>
     public TypeSyntax ReturnType => GetRed(ref this.returnType, 3)!;
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
     public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -11133,7 +11133,7 @@ public sealed partial class DelegateDeclarationSyntax : MemberDeclarationSyntax
     public SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(GetRed(ref this.constraintClauses, 7));
 
     /// <summary>Gets the semicolon token.</summary>
-    public SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(8), GetChildIndex(8));
+    public SyntaxToken SemicolonToken => new(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(8), GetChildIndex(8));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -11225,7 +11225,7 @@ public sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSynta
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.EnumMemberDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.EnumMemberDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
     public EqualsValueClauseSyntax? EqualsValue => GetRed(ref this.equalsValue, 3);
 
@@ -11290,7 +11290,7 @@ public sealed partial class BaseListSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.BaseListSyntax)this.Green).colonToken, Position, 0);
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.BaseListSyntax)this.Green).colonToken, Position, 0);
 
     /// <summary>Gets the base type references.</summary>
     public SeparatedSyntaxList<BaseTypeSyntax> Types
@@ -11455,13 +11455,13 @@ public sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntaxNo
     {
     }
 
-    public SyntaxToken WhereKeyword => new(this, ((Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).whereKeyword, Position, 0);
+    public SyntaxToken WhereKeyword => new(this, ((InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).whereKeyword, Position, 0);
 
     /// <summary>Gets the identifier.</summary>
     public IdentifierNameSyntax Name => GetRed(ref this.name, 1)!;
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>Gets the constraints list.</summary>
     public SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints
@@ -11537,13 +11537,13 @@ public sealed partial class ConstructorConstraintSyntax : TypeParameterConstrain
     }
 
     /// <summary>Gets the "new" keyword.</summary>
-    public SyntaxToken NewKeyword => new(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).newKeyword, Position, 0);
+    public SyntaxToken NewKeyword => new(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).newKeyword, Position, 0);
 
     /// <summary>Gets the open paren keyword.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
     /// <summary>Gets the close paren keyword.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -11586,7 +11586,7 @@ public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstra
     }
 
     /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
-    public SyntaxToken ClassOrStructKeyword => new(this, ((Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, Position, 0);
+    public SyntaxToken ClassOrStructKeyword => new(this, ((InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, Position, 0);
 
     /// <summary>SyntaxToken representing the question mark.</summary>
     public SyntaxToken QuestionToken
@@ -11678,7 +11678,7 @@ public sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyn
     }
 
     /// <summary>Gets the "default" keyword.</summary>
-    public SyntaxToken DefaultKeyword => new(this, ((Syntax.InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
+    public SyntaxToken DefaultKeyword => new(this, ((InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -11757,7 +11757,7 @@ public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
 
     public override VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 2)!;
 
-    public override SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.FieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken SemicolonToken => new(this, ((InternalSyntax.FieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -11834,11 +11834,11 @@ public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSy
         }
     }
 
-    public SyntaxToken EventKeyword => new(this, ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EventKeyword => new(this, ((InternalSyntax.EventFieldDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public override VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 3)!;
 
-    public override SyntaxToken SemicolonToken => new(this, ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken SemicolonToken => new(this, ((InternalSyntax.EventFieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -11906,7 +11906,7 @@ public sealed partial class ExplicitInterfaceSpecifierSyntax : CSharpSyntaxNode
 
     public NameSyntax Name => GetRedAtZero(ref this.name)!;
 
-    public SyntaxToken DotToken => new(this, ((Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DotToken => new(this, ((InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -12014,7 +12014,7 @@ public sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSynta
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.MethodDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.MethodDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
     public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -12162,7 +12162,7 @@ public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyn
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
     /// <summary>Gets the "operator" keyword.</summary>
-    public SyntaxToken OperatorKeyword => new(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken OperatorKeyword => new(this, ((InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
     /// <summary>Gets the "checked" keyword.</summary>
     public SyntaxToken CheckedKeyword
@@ -12175,7 +12175,7 @@ public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyn
     }
 
     /// <summary>Gets the operator token.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(6), GetChildIndex(6));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(6), GetChildIndex(6));
 
     public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 7)!;
 
@@ -12303,12 +12303,12 @@ public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDecl
     }
 
     /// <summary>Gets the "implicit" or "explicit" token.</summary>
-    public SyntaxToken ImplicitOrExplicitKeyword => new(this, ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).implicitOrExplicitKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ImplicitOrExplicitKeyword => new(this, ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).implicitOrExplicitKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
     /// <summary>Gets the "operator" token.</summary>
-    public SyntaxToken OperatorKeyword => new(this, ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken OperatorKeyword => new(this, ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
     /// <summary>Gets the "checked" keyword.</summary>
     public SyntaxToken CheckedKeyword
@@ -12448,7 +12448,7 @@ public sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclaration
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.ConstructorDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.ConstructorDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
     public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
@@ -12558,10 +12558,10 @@ public sealed partial class ConstructorInitializerSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.ConstructorInitializerSyntax)this.Green).colonToken, Position, 0);
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.ConstructorInitializerSyntax)this.Green).colonToken, Position, 0);
 
     /// <summary>Gets the "this" or "base" keyword.</summary>
-    public SyntaxToken ThisOrBaseKeyword => new(this, ((Syntax.InternalSyntax.ConstructorInitializerSyntax)this.Green).thisOrBaseKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ThisOrBaseKeyword => new(this, ((InternalSyntax.ConstructorInitializerSyntax)this.Green).thisOrBaseKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 2)!;
 
@@ -12622,10 +12622,10 @@ public sealed partial class DestructorDeclarationSyntax : BaseMethodDeclarationS
     }
 
     /// <summary>Gets the tilde token.</summary>
-    public SyntaxToken TildeToken => new(this, ((Syntax.InternalSyntax.DestructorDeclarationSyntax)this.Green).tildeToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken TildeToken => new(this, ((InternalSyntax.DestructorDeclarationSyntax)this.Green).tildeToken, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.DestructorDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.DestructorDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 4)!;
 
@@ -12782,7 +12782,7 @@ public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationS
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.PropertyDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.PropertyDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
     public override AccessorListSyntax? AccessorList => GetRed(ref this.accessorList, 5);
 
@@ -12881,7 +12881,7 @@ public sealed partial class ArrowExpressionClauseSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken ArrowToken => new(this, ((Syntax.InternalSyntax.ArrowExpressionClauseSyntax)this.Green).arrowToken, Position, 0);
+    public SyntaxToken ArrowToken => new(this, ((InternalSyntax.ArrowExpressionClauseSyntax)this.Green).arrowToken, Position, 0);
 
     public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -12937,14 +12937,14 @@ public sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSynt
         }
     }
 
-    public SyntaxToken EventKeyword => new(this, ((Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EventKeyword => new(this, ((InternalSyntax.EventDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
 
     public override TypeSyntax Type => GetRed(ref this.type, 3)!;
 
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 4);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.EventDeclarationSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
 
     public override AccessorListSyntax? AccessorList => GetRed(ref this.accessorList, 6);
 
@@ -13053,7 +13053,7 @@ public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSy
 
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
-    public SyntaxToken ThisKeyword => new(this, ((Syntax.InternalSyntax.IndexerDeclarationSyntax)this.Green).thisKeyword, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken ThisKeyword => new(this, ((InternalSyntax.IndexerDeclarationSyntax)this.Green).thisKeyword, GetChildPosition(4), GetChildIndex(4));
 
     /// <summary>Gets the parameter list.</summary>
     public BracketedParameterListSyntax ParameterList => GetRed(ref this.parameterList, 5)!;
@@ -13153,11 +13153,11 @@ public sealed partial class AccessorListSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenBraceToken => new(this, ((Syntax.InternalSyntax.AccessorListSyntax)this.Green).openBraceToken, Position, 0);
+    public SyntaxToken OpenBraceToken => new(this, ((InternalSyntax.AccessorListSyntax)this.Green).openBraceToken, Position, 0);
 
     public SyntaxList<AccessorDeclarationSyntax> Accessors => new(GetRed(ref this.accessors, 1));
 
-    public SyntaxToken CloseBraceToken => new(this, ((Syntax.InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBraceToken => new(this, ((InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.accessors, 1)! : null;
 
@@ -13221,7 +13221,7 @@ public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
-    public SyntaxToken Keyword => new(this, ((Syntax.InternalSyntax.AccessorDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Keyword => new(this, ((InternalSyntax.AccessorDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
     /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
     public BlockSyntax? Body => GetRed(ref this.body, 3);
@@ -13327,7 +13327,7 @@ public sealed partial class ParameterListSyntax : BaseParameterListSyntax
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.ParameterListSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.ParameterListSyntax)this.Green).openParenToken, Position, 0);
 
     public override SeparatedSyntaxList<ParameterSyntax> Parameters
     {
@@ -13339,7 +13339,7 @@ public sealed partial class ParameterListSyntax : BaseParameterListSyntax
     }
 
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -13386,7 +13386,7 @@ public sealed partial class BracketedParameterListSyntax : BaseParameterListSynt
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.BracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
 
     public override SeparatedSyntaxList<ParameterSyntax> Parameters
     {
@@ -13398,7 +13398,7 @@ public sealed partial class BracketedParameterListSyntax : BaseParameterListSynt
     }
 
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -13491,7 +13491,7 @@ public sealed partial class ParameterSyntax : BaseParameterSyntax
     public override TypeSyntax? Type => GetRed(ref this.type, 2);
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
     public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 4);
 
@@ -13756,7 +13756,7 @@ public sealed partial class DocumentationCommentTriviaSyntax : StructuredTriviaS
 
     public SyntaxList<XmlNodeSyntax> Content => new(GetRed(ref this.content, 0));
 
-    public SyntaxToken EndOfComment => new(this, ((Syntax.InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken EndOfComment => new(this, ((InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.content)! : null;
 
@@ -13866,7 +13866,7 @@ public sealed partial class QualifiedCrefSyntax : CrefSyntax
 
     public TypeSyntax Container => GetRedAtZero(ref this.container)!;
 
-    public SyntaxToken DotToken => new(this, ((Syntax.InternalSyntax.QualifiedCrefSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DotToken => new(this, ((InternalSyntax.QualifiedCrefSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
     public MemberCrefSyntax Member => GetRed(ref this.member, 2)!;
 
@@ -14007,7 +14007,7 @@ public sealed partial class IndexerMemberCrefSyntax : MemberCrefSyntax
     {
     }
 
-    public SyntaxToken ThisKeyword => new(this, ((Syntax.InternalSyntax.IndexerMemberCrefSyntax)this.Green).thisKeyword, Position, 0);
+    public SyntaxToken ThisKeyword => new(this, ((InternalSyntax.IndexerMemberCrefSyntax)this.Green).thisKeyword, Position, 0);
 
     public CrefBracketedParameterListSyntax? Parameters => GetRed(ref this.parameters, 1);
 
@@ -14060,7 +14060,7 @@ public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
     }
 
-    public SyntaxToken OperatorKeyword => new(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorKeyword, Position, 0);
+    public SyntaxToken OperatorKeyword => new(this, ((InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorKeyword, Position, 0);
 
     public SyntaxToken CheckedKeyword
     {
@@ -14072,7 +14072,7 @@ public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     }
 
     /// <summary>Gets the operator token.</summary>
-    public SyntaxToken OperatorToken => new(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken OperatorToken => new(this, ((InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(2), GetChildIndex(2));
 
     public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 3);
 
@@ -14127,9 +14127,9 @@ public sealed partial class ConversionOperatorMemberCrefSyntax : MemberCrefSynta
     {
     }
 
-    public SyntaxToken ImplicitOrExplicitKeyword => new(this, ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).implicitOrExplicitKeyword, Position, 0);
+    public SyntaxToken ImplicitOrExplicitKeyword => new(this, ((InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).implicitOrExplicitKeyword, Position, 0);
 
-    public SyntaxToken OperatorKeyword => new(this, ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).operatorKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken OperatorKeyword => new(this, ((InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).operatorKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public SyntaxToken CheckedKeyword
     {
@@ -14227,7 +14227,7 @@ public sealed partial class CrefParameterListSyntax : BaseCrefParameterListSynta
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.CrefParameterListSyntax)this.Green).openParenToken, Position, 0);
 
     public override SeparatedSyntaxList<CrefParameterSyntax> Parameters
     {
@@ -14239,7 +14239,7 @@ public sealed partial class CrefParameterListSyntax : BaseCrefParameterListSynta
     }
 
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -14288,7 +14288,7 @@ public sealed partial class CrefBracketedParameterListSyntax : BaseCrefParameter
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken => new(this, ((Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
+    public SyntaxToken OpenBracketToken => new(this, ((InternalSyntax.CrefBracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
 
     public override SeparatedSyntaxList<CrefParameterSyntax> Parameters
     {
@@ -14300,7 +14300,7 @@ public sealed partial class CrefBracketedParameterListSyntax : BaseCrefParameter
     }
 
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken => new(this, ((Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CloseBracketToken => new(this, ((InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -14483,13 +14483,13 @@ public sealed partial class XmlElementStartTagSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken LessThanToken => new(this, ((Syntax.InternalSyntax.XmlElementStartTagSyntax)this.Green).lessThanToken, Position, 0);
+    public SyntaxToken LessThanToken => new(this, ((InternalSyntax.XmlElementStartTagSyntax)this.Green).lessThanToken, Position, 0);
 
     public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
     public SyntaxList<XmlAttributeSyntax> Attributes => new(GetRed(ref this.attributes, 2));
 
-    public SyntaxToken GreaterThanToken => new(this, ((Syntax.InternalSyntax.XmlElementStartTagSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken GreaterThanToken => new(this, ((InternalSyntax.XmlElementStartTagSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -14545,11 +14545,11 @@ public sealed partial class XmlElementEndTagSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken LessThanSlashToken => new(this, ((Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).lessThanSlashToken, Position, 0);
+    public SyntaxToken LessThanSlashToken => new(this, ((InternalSyntax.XmlElementEndTagSyntax)this.Green).lessThanSlashToken, Position, 0);
 
     public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
-    public SyntaxToken GreaterThanToken => new(this, ((Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken GreaterThanToken => new(this, ((InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
@@ -14591,13 +14591,13 @@ public sealed partial class XmlEmptyElementSyntax : XmlNodeSyntax
     {
     }
 
-    public SyntaxToken LessThanToken => new(this, ((Syntax.InternalSyntax.XmlEmptyElementSyntax)this.Green).lessThanToken, Position, 0);
+    public SyntaxToken LessThanToken => new(this, ((InternalSyntax.XmlEmptyElementSyntax)this.Green).lessThanToken, Position, 0);
 
     public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
     public SyntaxList<XmlAttributeSyntax> Attributes => new(GetRed(ref this.attributes, 2));
 
-    public SyntaxToken SlashGreaterThanToken => new(this, ((Syntax.InternalSyntax.XmlEmptyElementSyntax)this.Green).slashGreaterThanToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken SlashGreaterThanToken => new(this, ((InternalSyntax.XmlEmptyElementSyntax)this.Green).slashGreaterThanToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -14655,7 +14655,7 @@ public sealed partial class XmlNameSyntax : CSharpSyntaxNode
 
     public XmlPrefixSyntax? Prefix => GetRedAtZero(ref this.prefix);
 
-    public SyntaxToken LocalName => new(this, ((Syntax.InternalSyntax.XmlNameSyntax)this.Green).localName, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken LocalName => new(this, ((InternalSyntax.XmlNameSyntax)this.Green).localName, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.prefix) : null;
 
@@ -14694,9 +14694,9 @@ public sealed partial class XmlPrefixSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken Prefix => new(this, ((Syntax.InternalSyntax.XmlPrefixSyntax)this.Green).prefix, Position, 0);
+    public SyntaxToken Prefix => new(this, ((InternalSyntax.XmlPrefixSyntax)this.Green).prefix, Position, 0);
 
-    public SyntaxToken ColonToken => new(this, ((Syntax.InternalSyntax.XmlPrefixSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ColonToken => new(this, ((InternalSyntax.XmlPrefixSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -14762,9 +14762,9 @@ public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
 
     public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-    public override SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken EqualsToken => new(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken StartQuoteToken => new(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken StartQuoteToken => new(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
     public SyntaxTokenList TextTokens
     {
@@ -14775,7 +14775,7 @@ public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
         }
     }
 
-    public override SyntaxToken EndQuoteToken => new(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken EndQuoteToken => new(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -14827,13 +14827,13 @@ public sealed partial class XmlCrefAttributeSyntax : XmlAttributeSyntax
 
     public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-    public override SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken EqualsToken => new(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken StartQuoteToken => new(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken StartQuoteToken => new(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
     public CrefSyntax Cref => GetRed(ref this.cref, 3)!;
 
-    public override SyntaxToken EndQuoteToken => new(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken EndQuoteToken => new(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -14895,13 +14895,13 @@ public sealed partial class XmlNameAttributeSyntax : XmlAttributeSyntax
 
     public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-    public override SyntaxToken EqualsToken => new(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken EqualsToken => new(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken StartQuoteToken => new(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken StartQuoteToken => new(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
     public IdentifierNameSyntax Identifier => GetRed(ref this.identifier, 3)!;
 
-    public override SyntaxToken EndQuoteToken => new(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken EndQuoteToken => new(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -15006,7 +15006,7 @@ public sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
     {
     }
 
-    public SyntaxToken StartCDataToken => new(this, ((Syntax.InternalSyntax.XmlCDataSectionSyntax)this.Green).startCDataToken, Position, 0);
+    public SyntaxToken StartCDataToken => new(this, ((InternalSyntax.XmlCDataSectionSyntax)this.Green).startCDataToken, Position, 0);
 
     public SyntaxTokenList TextTokens
     {
@@ -15017,7 +15017,7 @@ public sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
         }
     }
 
-    public SyntaxToken EndCDataToken => new(this, ((Syntax.InternalSyntax.XmlCDataSectionSyntax)this.Green).endCDataToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken EndCDataToken => new(this, ((InternalSyntax.XmlCDataSectionSyntax)this.Green).endCDataToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15060,7 +15060,7 @@ public sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
     {
     }
 
-    public SyntaxToken StartProcessingInstructionToken => new(this, ((Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).startProcessingInstructionToken, Position, 0);
+    public SyntaxToken StartProcessingInstructionToken => new(this, ((InternalSyntax.XmlProcessingInstructionSyntax)this.Green).startProcessingInstructionToken, Position, 0);
 
     public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
@@ -15073,7 +15073,7 @@ public sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
         }
     }
 
-    public SyntaxToken EndProcessingInstructionToken => new(this, ((Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken EndProcessingInstructionToken => new(this, ((InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, GetChildPosition(3), GetChildIndex(3));
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
@@ -15116,7 +15116,7 @@ public sealed partial class XmlCommentSyntax : XmlNodeSyntax
     {
     }
 
-    public SyntaxToken LessThanExclamationMinusMinusToken => new(this, ((Syntax.InternalSyntax.XmlCommentSyntax)this.Green).lessThanExclamationMinusMinusToken, Position, 0);
+    public SyntaxToken LessThanExclamationMinusMinusToken => new(this, ((InternalSyntax.XmlCommentSyntax)this.Green).lessThanExclamationMinusMinusToken, Position, 0);
 
     public SyntaxTokenList TextTokens
     {
@@ -15127,7 +15127,7 @@ public sealed partial class XmlCommentSyntax : XmlNodeSyntax
         }
     }
 
-    public SyntaxToken MinusMinusGreaterThanToken => new(this, ((Syntax.InternalSyntax.XmlCommentSyntax)this.Green).minusMinusGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken MinusMinusGreaterThanToken => new(this, ((InternalSyntax.XmlCommentSyntax)this.Green).minusMinusGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15215,13 +15215,13 @@ public sealed partial class IfDirectiveTriviaSyntax : ConditionalDirectiveTrivia
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken IfKeyword => new(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken IfKeyword => new(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public override ExpressionSyntax Condition => GetRed(ref this.condition, 2)!;
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15275,13 +15275,13 @@ public sealed partial class ElifDirectiveTriviaSyntax : ConditionalDirectiveTriv
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken ElifKeyword => new(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).elifKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ElifKeyword => new(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).elifKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public override ExpressionSyntax Condition => GetRed(ref this.condition, 2)!;
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15334,11 +15334,11 @@ public sealed partial class ElseDirectiveTriviaSyntax : BranchingDirectiveTrivia
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken ElseKeyword => new(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).elseKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ElseKeyword => new(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).elseKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15386,11 +15386,11 @@ public sealed partial class EndIfDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken EndIfKeyword => new(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endIfKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken EndIfKeyword => new(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endIfKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15435,11 +15435,11 @@ public sealed partial class RegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken RegionKeyword => new(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).regionKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken RegionKeyword => new(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).regionKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15484,11 +15484,11 @@ public sealed partial class EndRegionDirectiveTriviaSyntax : DirectiveTriviaSynt
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken EndRegionKeyword => new(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endRegionKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken EndRegionKeyword => new(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endRegionKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15533,11 +15533,11 @@ public sealed partial class ErrorDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken ErrorKeyword => new(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).errorKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ErrorKeyword => new(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).errorKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15582,11 +15582,11 @@ public sealed partial class WarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken WarningKeyword => new(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken WarningKeyword => new(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15631,11 +15631,11 @@ public sealed partial class BadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken Identifier => new(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Identifier => new(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15680,13 +15680,13 @@ public sealed partial class DefineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken DefineKeyword => new(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).defineKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken DefineKeyword => new(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).defineKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken Name => new(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Name => new(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15732,13 +15732,13 @@ public sealed partial class UndefDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken UndefKeyword => new(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).undefKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken UndefKeyword => new(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).undefKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken Name => new(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Name => new(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15803,11 +15803,11 @@ public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTrivi
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public override SyntaxToken LineKeyword => new(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken LineKeyword => new(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken Line => new(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Line => new(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
 
     public override SyntaxToken File
     {
@@ -15818,7 +15818,7 @@ public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTrivi
         }
     }
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
     public override bool IsActive => ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -15867,15 +15867,15 @@ public sealed partial class LineDirectivePositionSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken OpenParenToken => new(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
+    public SyntaxToken OpenParenToken => new(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
 
-    public SyntaxToken Line => new(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken Line => new(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken CommaToken => new(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken CommaToken => new(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken Character => new(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken Character => new(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
 
-    public SyntaxToken CloseParenToken => new(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken CloseParenToken => new(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15919,13 +15919,13 @@ public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveT
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public override SyntaxToken LineKeyword => new(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+    public override SyntaxToken LineKeyword => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
     public LineDirectivePositionSyntax Start => GetRed(ref this.start, 2)!;
 
-    public SyntaxToken MinusToken => new(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken MinusToken => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
 
     public LineDirectivePositionSyntax End => GetRed(ref this.end, 4)!;
 
@@ -15938,9 +15938,9 @@ public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveT
         }
     }
 
-    public override SyntaxToken File => new(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
+    public override SyntaxToken File => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
 
     public override bool IsActive => ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16005,13 +16005,13 @@ public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTrivia
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken PragmaKeyword => new(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken PragmaKeyword => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken WarningKeyword => new(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken WarningKeyword => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken DisableOrRestoreKeyword => new(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken DisableOrRestoreKeyword => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, GetChildPosition(3), GetChildIndex(3));
 
     public SeparatedSyntaxList<ExpressionSyntax> ErrorCodes
     {
@@ -16022,7 +16022,7 @@ public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTrivia
         }
     }
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(5), GetChildIndex(5));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(5), GetChildIndex(5));
 
     public override bool IsActive => ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16072,19 +16072,19 @@ public sealed partial class PragmaChecksumDirectiveTriviaSyntax : DirectiveTrivi
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken PragmaKeyword => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken PragmaKeyword => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken ChecksumKeyword => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).checksumKeyword, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken ChecksumKeyword => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).checksumKeyword, GetChildPosition(2), GetChildIndex(2));
 
-    public SyntaxToken File => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).file, GetChildPosition(3), GetChildIndex(3));
+    public SyntaxToken File => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).file, GetChildPosition(3), GetChildIndex(3));
 
-    public SyntaxToken Guid => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).guid, GetChildPosition(4), GetChildIndex(4));
+    public SyntaxToken Guid => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).guid, GetChildPosition(4), GetChildIndex(4));
 
-    public SyntaxToken Bytes => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).bytes, GetChildPosition(5), GetChildIndex(5));
+    public SyntaxToken Bytes => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).bytes, GetChildPosition(5), GetChildIndex(5));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(6), GetChildIndex(6));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(6), GetChildIndex(6));
 
     public override bool IsActive => ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16133,13 +16133,13 @@ public sealed partial class ReferenceDirectiveTriviaSyntax : DirectiveTriviaSynt
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken ReferenceKeyword => new(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).referenceKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ReferenceKeyword => new(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).referenceKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken File => new(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken File => new(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16185,13 +16185,13 @@ public sealed partial class LoadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken LoadKeyword => new(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).loadKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken LoadKeyword => new(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).loadKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken File => new(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken File => new(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16237,11 +16237,11 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken ExclamationToken => new(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).exclamationToken, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken ExclamationToken => new(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).exclamationToken, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
     public override bool IsActive => ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16286,11 +16286,11 @@ public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSynta
     {
     }
 
-    public override SyntaxToken HashToken => new(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+    public override SyntaxToken HashToken => new(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-    public SyntaxToken NullableKeyword => new(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, GetChildPosition(1), GetChildIndex(1));
+    public SyntaxToken NullableKeyword => new(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken SettingToken => new(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken SettingToken => new(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, GetChildPosition(2), GetChildIndex(2));
 
     public SyntaxToken TargetToken
     {
@@ -16301,7 +16301,7 @@ public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSynta
         }
     }
 
-    public override SyntaxToken EndOfDirectiveToken => new(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
+    public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
     public override bool IsActive => ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive;
 
