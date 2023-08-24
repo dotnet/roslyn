@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(iTupleType.Name == "ITuple");
             var tests = ArrayBuilder<Tests>.GetInstance(4 + patternLength * 2);
 
-            tests.Add(new Tests.One(new BoundDagTypeTest(syntax, iTupleType, input)));
+            tests.Add(new Tests.One(new BoundDagTypeTest(syntax, iTupleType, pattern, input)));
             var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
             tests.Add(new Tests.One(valueAsITupleEvaluation));
             var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, isLengthOrCount: true, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(new Tests.One(lengthEvaluation));
             var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
-            tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp)));
+            tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), pattern, lengthTemp)));
 
             var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add a null and type test if needed.
             if (!declaration.IsVar)
-                input = MakeConvertToType(input, declaration.Syntax, type!, isExplicitTest: false, tests);
+                input = MakeConvertToType(input, declaration.Syntax, source: declaration, type!, isExplicitTest: false, tests);
 
             BoundExpression? variableAccess = declaration.VariableAccess;
             if (variableAccess is { })
@@ -423,13 +423,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = typePattern.DeclaredType.Type;
             var tests = ArrayBuilder<Tests>.GetInstance(4);
-            output = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: typePattern.IsExplicitNotNullTest, tests: tests);
+            output = MakeConvertToType(input: input, syntax: typePattern.Syntax, source: typePattern, type: type, isExplicitTest: typePattern.IsExplicitNotNullTest, tests: tests);
             return Tests.AndSequence.Create(tests);
         }
 
         private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
+            BoundPattern source,
             bool isExplicitTest,
             ArrayBuilder<Tests> tests)
         {
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The slice value is assumed to be never null
                 input.Source is not BoundDagSliceEvaluation)
             {
-                tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, input)));
+                tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, source, input)));
             }
         }
 
@@ -448,11 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDagTemp MakeConvertToType(
             BoundDagTemp input,
             SyntaxNode syntax,
+            BoundPattern source,
             TypeSymbol type,
             bool isExplicitTest,
             ArrayBuilder<Tests> tests)
         {
-            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
+            MakeCheckNotNull(input, syntax, source, isExplicitTest, tests);
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -468,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // both type test and cast needed
-                    tests.Add(new Tests.One(new BoundDagTypeTest(syntax, type, input)));
+                    tests.Add(new Tests.One(new BoundDagTypeTest(syntax, type, source, input)));
                 }
 
                 var evaluation = new BoundDagTypeEvaluation(syntax, type, input);
@@ -487,18 +489,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constant.ConstantValue == ConstantValue.Null)
             {
                 output = input;
-                return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, input));
+                return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, source: constant, input));
             }
             else if (constant.ConstantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
             {
                 output = input;
-                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input));
+                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, source: constant, input));
             }
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
                 Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
-                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
+                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, source: constant, type, isExplicitTest: false, tests) : input;
                 if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
                 {
                     // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
@@ -507,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input)));
+                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, source: constant, input)));
                 }
                 return Tests.AndSequence.Create(tests);
             }
@@ -522,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input.Type.IsErrorType() || recursive.HasErrors || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             var tests = ArrayBuilder<Tests>.GetInstance(5);
-            output = input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
+            output = input = MakeConvertToType(input, recursive.Syntax, source: recursive, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -568,10 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // This occurs in error cases.
-                    RoslynDebug.Assert(recursive.HasAnyErrors);
-                    // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
-                    tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                    MakeErrorTest(tests, recursive, input);
                 }
             }
 
@@ -584,8 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTemp currentInput = input;
                     if (!tryMakeTestsForSubpatternMember(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
                     {
-                        Debug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                        MakeErrorTest(tests, recursive, input);
                     }
                     else
                     {
@@ -611,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tryMakeTestsForSubpatternMember(member.Receiver, ref input, isLengthOrCount: false))
                 {
                     // If this is not the first member, add null test, unwrap nullables, and continue.
-                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                    input = MakeConvertToType(input, member.Syntax, source: null, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
                 }
 
                 BoundDagEvaluation evaluation;
@@ -631,6 +629,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
                 return true;
             }
+        }
+
+        private void MakeErrorTest(ArrayBuilder<Tests> tests, BoundPattern pattern, BoundDagTemp input)
+        {
+            // This occurs in error cases.
+            RoslynDebug.Assert(pattern.HasAnyErrors);
+            // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
+            tests.Add(new Tests.One(new BoundDagTypeTest(pattern.Syntax, ErrorType(), source: null, input, hasErrors: true)));
         }
 
         private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
@@ -660,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                    output = MakeConvertToType(input: input, source: null, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
                     return Tests.AndSequence.Create(builder);
                 }
             }
@@ -682,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rel.Value.Type is not null);
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, source: rel, rel.Value.Type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
@@ -691,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (values?.Complement().IsEmpty != true)
             {
-                tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors)));
+                tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, source: rel, output, rel.HasErrors)));
             }
 
             return Tests.AndSequence.Create(tests);
@@ -928,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
                             {
                                 // Turn an "implicit" non-null test into an explicit one
-                                state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
+                                state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Source, t.Input, t.HasErrors);
                             }
                             break;
                         case var n:
@@ -1101,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool falsePossible)
             SplitValues(
             ImmutableDictionary<BoundDagTemp, IValueSet> values,
-            BoundDagTest test)
+            BoundDagTestOrEvaluation test)
         {
             switch (test)
             {
@@ -1472,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
+                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), source: null, s1LengthTemp)));
                                     continue;
                                 }
                             }
@@ -1702,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return instance.ToStringAndFree();
                 }
 
-                string dumpDagTest(BoundDagTest d)
+                string dumpDagTest(BoundDagTestOrEvaluation d)
                 {
                     switch (d)
                     {
@@ -1816,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
             // decision automaton.
-            public BoundDagTest? SelectedTest;
+            public BoundDagTestOrEvaluation? SelectedTest;
 
             // We only compute the dag states for the branches after we de-dup this DagState itself.
             // If all that remains is the `when` clauses, SelectedDecision is left `null` (we can
@@ -1875,7 +1881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// heuristic we can change to adjust the quality of the generated decision automaton.
             /// See https://www.cs.tufts.edu/~nr/cs257/archive/norman-ramsey/match.pdf for some ideas.
             /// </summary>
-            internal BoundDagTest ComputeSelectedTest()
+            internal BoundDagTestOrEvaluation ComputeSelectedTest()
             {
                 return Cases[0].RemainingTests.ComputeSelectedTest();
             }
@@ -2029,13 +2035,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
-            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
+            public virtual BoundDagTestOrEvaluation ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
             /// </summary>
             public virtual Tests RewriteNestedLengthTests() => this;
-            public abstract string Dump(Func<BoundDagTest, string> dump);
+            public abstract string Dump(Func<BoundDagTestOrEvaluation, string> dump);
 
             /// <summary>
             /// No tests to be performed; the result is true (success).
@@ -2043,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class True : Tests
             {
                 public static readonly True Instance = new True();
-                public override string Dump(Func<BoundDagTest, string> dump) => "TRUE";
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump) => "TRUE";
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -2064,7 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class False : Tests
             {
                 public static readonly False Instance = new False();
-                public override string Dump(Func<BoundDagTest, string> dump) => "FALSE";
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump) => "FALSE";
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -2086,9 +2092,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public sealed class One : Tests
             {
-                public readonly BoundDagTest Test;
-                public One(BoundDagTest test) => this.Test = test;
-                public void Deconstruct(out BoundDagTest Test) => Test = this.Test;
+                public readonly BoundDagTestOrEvaluation Test;
+                public One(BoundDagTestOrEvaluation test) => this.Test = test;
+                public void Deconstruct(out BoundDagTestOrEvaluation Test) => Test = this.Test;
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -2100,8 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref bool foundExplicitNullTest)
                 {
                     SyntaxNode syntax = test.Syntax;
-                    BoundDagTest other = this.Test;
-                    if (other is BoundDagEvaluation ||
+                    if (this.Test is not BoundDagTest other ||
                         !builder.CheckInputRelation(syntax, state, test, other,
                             relationCondition: out Tests relationCondition,
                             relationEffect: out Tests relationEffect))
@@ -2161,14 +2166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : AndSequence.Create(OrSequence.Create(Not.Create(relationCondition), relationEffect), other);
                     }
                 }
-                public override BoundDagTest ComputeSelectedTest() => this.Test;
+                public override BoundDagTestOrEvaluation ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
-                public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
                 public override int GetHashCode() => this.Test.GetHashCode();
                 public override Tests RewriteNestedLengthTests()
                 {
-                    BoundDagTest test = Test;
+                    BoundDagTestOrEvaluation test = Test;
                     if (test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
                     {
                         if (e.Syntax.IsKind(SyntaxKind.ListPattern))
@@ -2194,11 +2199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagValueTest t when !t.Value.IsBad:
                                     Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                     return knownResult(BinaryOperatorKind.Equal, t.Value, offset) ??
-                                           new One(new BoundDagValueTest(t.Syntax, safeAdd(t.Value, offset), lengthTemp));
+                                           new One(new BoundDagValueTest(t.Syntax, safeAdd(t.Value, offset), t.Source, lengthTemp));
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
                                     Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
                                     return knownResult(t.Relation, t.Value, offset) ??
-                                           new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, safeAdd(t.Value, offset), lengthTemp));
+                                           new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, safeAdd(t.Value, offset), t.Source, lengthTemp));
                             }
                         }
                     }
@@ -2254,8 +2259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => Create(Negated.RemoveEvaluation(e));
                 public override Tests RewriteNestedLengthTests() => Create(Negated.RewriteNestedLengthTests());
-                public override BoundDagTest ComputeSelectedTest() => Negated.ComputeSelectedTest();
-                public override string Dump(Func<BoundDagTest, string> dump) => $"Not ({Negated.Dump(dump)})";
+                public override BoundDagTestOrEvaluation ComputeSelectedTest() => Negated.ComputeSelectedTest();
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump) => $"Not ({Negated.Dump(dump)})";
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -2379,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-                public override BoundDagTest ComputeSelectedTest()
+                public override BoundDagTestOrEvaluation ComputeSelectedTest()
                 {
                     // Our simple heuristic is to perform the first test of the
                     // first possible matched case, with two exceptions.
@@ -2405,7 +2410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return RemainingTests[0].ComputeSelectedTest();
                 }
-                public override string Dump(Func<BoundDagTest, string> dump)
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump)
                 {
                     return $"AND({string.Join(", ", RemainingTests.Select(t => t.Dump(dump)))})";
                 }
@@ -2418,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class OrSequence : SequenceTests
             {
                 private OrSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
-                public override BoundDagTest ComputeSelectedTest() => this.RemainingTests[0].ComputeSelectedTest();
+                public override BoundDagTestOrEvaluation ComputeSelectedTest() => this.RemainingTests[0].ComputeSelectedTest();
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
@@ -2459,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-                public override string Dump(Func<BoundDagTest, string> dump)
+                public override string Dump(Func<BoundDagTestOrEvaluation, string> dump)
                 {
                     return $"OR({string.Join(", ", RemainingTests.Select(t => t.Dump(dump)))})";
                 }

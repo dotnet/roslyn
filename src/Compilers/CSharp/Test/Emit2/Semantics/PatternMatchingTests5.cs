@@ -3356,5 +3356,79 @@ class Outer
                 Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
             );
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52674")]
+        public void IsPatternExpression_RedudantPatterns()
+        {
+            var source =
+"""
+int i = default;
+int[] array = default;
+
+if (i is 1 and
+         1)    // warn 1
+{}
+
+if (i is not 1 or
+         0 or  // warn 2 
+         2)    // warn 3
+{}
+
+if (array is [] or
+             { Length: 0 }) // warn 4
+{}
+
+if (array is { Length: 1 } or
+             [_]) // warn 5
+{}
+
+if (array is [_,_,..] or
+             [1])
+{}
+
+if (array is [_,_,..] or
+             { Length: >2 }) // warn 6
+{}
+
+if (array is [_,_,..] or
+             { Length: _ }) // warn 7
+{}
+
+switch (i) {
+    case < 2: break;
+    case 0 or 1 or 2: break; // warn 8, 9
+}
+""";
+            CreateCompilationWithIndexAndRange(source).VerifyDiagnostics(
+                // (5,10): warning CS9124: The pattern is redundant.
+                //          1)    // warn 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(5, 10),
+                // (9,10): warning CS9124: The pattern is redundant.
+                //          0 or  // warn 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(9, 10),
+                // (10,10): warning CS9124: The pattern is redundant.
+                //          2)    // warn 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "2").WithLocation(10, 10),
+                // (14,14): warning CS9124: The pattern is redundant.
+                //              { Length: 0 }) // warn 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: 0 }").WithLocation(14, 14),
+                // (18,14): warning CS9124: The pattern is redundant.
+                //              [_]) // warn 5
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "[_]").WithLocation(18, 14),
+                // (26,14): warning CS9124: The pattern is redundant.
+                //              { Length: >2 }) // warn 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >2 }").WithLocation(26, 14),
+                // (30,14): warning CS9124: The pattern is redundant.
+                //              { Length: _ }) // warn 7
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: _ }").WithLocation(30, 14),
+                // (35,10): warning CS9124: The pattern is redundant.
+                //     case 0 or 1 or 2: break; // warn 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(35, 10),
+                // (35,15): warning CS9124: The pattern is redundant.
+                //     case 0 or 1 or 2: break; // warn 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(35, 15)
+                );
+        }
     }
 }

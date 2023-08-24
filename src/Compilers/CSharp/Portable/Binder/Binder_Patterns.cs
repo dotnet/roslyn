@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
+            bool hasWarnings = false;
             if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
                 if (!constantResult)
@@ -81,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundListPattern:
                             Debug.Assert(expression.Type is object);
                             diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                            hasWarnings = true;
                             break;
                         case BoundDiscardPattern _:
                             // we do not give a warning on this because it is an existing scenario, and it should
@@ -101,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
+                        hasWarnings = true;
                     }
                     else
                     {
@@ -108,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundConstantPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                                hasWarnings = true;
                                 break;
                             case BoundRelationalPattern _:
                             case BoundTypePattern _:
@@ -115,10 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundBinaryPattern _:
                             case BoundDiscardPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
+                                hasWarnings = true;
                                 break;
                         }
                     }
                 }
+            }
+
+            if (!hasErrors && !hasWarnings)
+            {
+                var walker = new ReduntantPatternWalker(decisionDag, diagnostics);
+                walker.VisitTopLevelPattern(pattern);
+                walker.Free();
             }
 
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
@@ -137,6 +151,204 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !negated;
                 }
                 return null;
+            }
+        }
+
+        internal sealed class ReduntantPatternWalker : BoundTreeVisitor<object, bool>
+        {
+            private readonly PooledHashSet<BoundPattern> _usedPatterns;
+            private readonly BindingDiagnosticBag _diagnostics;
+
+            private bool _isTopLevel;
+
+            public ReduntantPatternWalker(BoundDecisionDag decisionDag, BindingDiagnosticBag diagnostics)
+            {
+                _usedPatterns = PooledHashSet<BoundPattern>.GetInstance();
+                _diagnostics = diagnostics;
+
+                foreach (BoundDecisionDagNode sortedNode in decisionDag.TopologicallySortedNodes)
+                {
+                    if (sortedNode is BoundTestDecisionDagNode testNode &&
+                        testNode.Test.Source is { } source)
+                    {
+                        _usedPatterns.Add(source);
+                    }
+                }
+            }
+
+            public override bool DefaultVisit(BoundNode node, object arg)
+            {
+                throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            private bool Visit(BoundNode node)
+            {
+                return this.Visit(node, arg: null);
+            }
+
+            public bool VisitTopLevelPattern(BoundPattern pattern)
+            {
+                bool wasTopLevel = _isTopLevel;
+                _isTopLevel = true;
+                bool used = this.Visit(pattern);
+                _isTopLevel = wasTopLevel;
+                return used;
+            }
+
+            private bool VisitSubpatterns<T>(ImmutableArray<T> subpatterns) where T : BoundNode
+            {
+                bool used = false;
+
+                if (!subpatterns.IsDefault)
+                {
+                    bool wasTopLevel = _isTopLevel;
+                    _isTopLevel = true;
+                    foreach (var subpattern in subpatterns)
+                    {
+                        used |= this.Visit(subpattern);
+                    }
+
+                    _isTopLevel = wasTopLevel;
+                }
+
+                return used;
+            }
+
+            private bool ReportIfUnused(BoundPattern node)
+            {
+                if (node.HasErrors)
+                {
+                    return true;
+                }
+
+                bool used = _usedPatterns.Contains(node);
+                if (!used && !_isTopLevel)
+                {
+                    _diagnostics.Add(ErrorCode.WRN_RedundantPattern, node.Syntax);
+                }
+
+                return used;
+            }
+
+            public override bool VisitPositionalSubpattern(BoundPositionalSubpattern node, object arg)
+            {
+                return Visit(node.Pattern);
+            }
+
+            public override bool VisitPropertySubpattern(BoundPropertySubpattern node, object arg)
+            {
+                return Visit(node.Pattern);
+            }
+
+            public override bool VisitConstantPattern(BoundConstantPattern node, object arg)
+            {
+                if (!node.ConstantValue.IsBad)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitDeclarationPattern(BoundDeclarationPattern node, object arg)
+            {
+                if (!node.IsVar && !node.NarrowedType.Equals(node.InputType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitDiscardPattern(BoundDiscardPattern node, object arg)
+            {
+                return false;
+            }
+
+            public override bool VisitTypePattern(BoundTypePattern node, object arg)
+            {
+                if (!node.DeclaredType.HasErrors)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitRelationalPattern(BoundRelationalPattern node, object arg)
+            {
+                if (!node.ConstantValue.IsBad)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitNegatedPattern(BoundNegatedPattern node, object arg)
+            {
+                return VisitTopLevelPattern(node.Negated);
+            }
+
+            public override bool VisitSlicePattern(BoundSlicePattern node, object arg)
+            {
+                return Visit(node.Pattern);
+            }
+
+            public override bool VisitBinaryPattern(BoundBinaryPattern node, object arg)
+            {
+                bool wasTopLevel = _isTopLevel;
+                _isTopLevel = false;
+
+                bool used = Visit(node.Right);
+                BoundPattern left = node.Left;
+                while (left is BoundBinaryPattern bin)
+                {
+                    used |= Visit(bin.Right);
+                    left = bin.Left;
+                }
+
+                used |= Visit(left);
+                _isTopLevel = wasTopLevel;
+                return used;
+            }
+
+            public override bool VisitRecursivePattern(BoundRecursivePattern node, object arg)
+            {
+                bool used = VisitSubpatterns(node.Deconstruction) | VisitSubpatterns(node.Properties);
+                if (!used)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitListPattern(BoundListPattern node, object arg)
+            {
+                bool used = VisitSubpatterns(node.Subpatterns);
+                if (!used)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public override bool VisitITuplePattern(BoundITuplePattern node, object arg)
+            {
+                bool used = VisitSubpatterns(node.Subpatterns);
+                if (!used)
+                {
+                    return ReportIfUnused(node);
+                }
+
+                return true;
+            }
+
+            public void Free()
+            {
+                _usedPatterns.Free();
             }
         }
 

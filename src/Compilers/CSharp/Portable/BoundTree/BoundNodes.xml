@@ -1536,9 +1536,13 @@
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
-  <AbstractNode Name="BoundDagTest" Base="BoundNode">
+  <AbstractNode Name="BoundDagTestOrEvaluation" Base="BoundNode">
     <!-- Input is the input to the decision point. -->
     <Field Name="Input" Type="BoundDagTemp"/>
+  </AbstractNode>
+  <AbstractNode Name="BoundDagTest" Base="BoundDagTestOrEvaluation">
+    <!-- Used to mark the source pattern as used. -->
+    <Field Name="Source" Type="BoundPattern?"/>
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
@@ -1566,7 +1570,7 @@
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
-  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
+  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTestOrEvaluation">
   </AbstractNode>
   <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
     <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>

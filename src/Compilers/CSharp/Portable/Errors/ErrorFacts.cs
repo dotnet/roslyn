@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_RedundantPattern:
+                    //return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
@@ -2319,6 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter:
                 case ErrorCode.ERR_UnexpectedParameterList:
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_RedundantPattern:
                 case ErrorCode.ERR_BadRefInUsingAlias:
                 case ErrorCode.ERR_BadUnsafeInUsingDirective:
                 case ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias:

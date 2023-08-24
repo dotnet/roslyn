@@ -83,6 +83,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If no switch sections are subsumed, just return
             if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(isSubsumed, reachableLabels), reachableLabels))
             {
+                var walker = new ReduntantPatternWalker(decisionDag, diagnostics);
+                foreach (BoundSwitchSection switchSection in switchSections)
+                {
+                    foreach (BoundSwitchLabel switchLabel in switchSection.SwitchLabels)
+                    {
+                        walker.VisitTopLevelPattern(switchLabel.Pattern);
+                    }
+                }
+
+                walker.Free();
                 return;
             }
 

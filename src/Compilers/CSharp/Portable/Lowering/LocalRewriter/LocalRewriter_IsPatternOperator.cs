@@ -188,10 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Translate the single test into _sideEffectBuilder and _conjunctBuilder.
             /// </summary>
-            private void LowerOneTest(BoundDagTest test, bool invert = false)
+            private void LowerOneTest(BoundDagTestOrEvaluation testOrEvaluation, bool invert = false)
             {
-                _factory.Syntax = test.Syntax;
-                switch (test)
+                _factory.Syntax = testOrEvaluation.Syntax;
+                switch (testOrEvaluation)
                 {
                     case BoundDagEvaluation eval:
                         {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _sideEffectBuilder.Add(sideEffect);
                             return;
                         }
-                    case var _:
+                    case BoundDagTest test:
                         {
                             var testExpression = LowerTest(test);
                             if (testExpression != null)
@@ -212,6 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return;
                         }
+                    default:
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

@@ -5067,9 +5067,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal abstract partial class BoundDagTest : BoundNode
+    internal abstract partial class BoundDagTestOrEvaluation : BoundNode
     {
-        protected BoundDagTest(BoundKind kind, SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
+        protected BoundDagTestOrEvaluation(BoundKind kind, SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
             : base(kind, syntax, hasErrors)
         {
 
@@ -5079,6 +5079,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundDagTemp Input { get; }
+    }
+
+    internal abstract partial class BoundDagTest : BoundDagTestOrEvaluation
+    {
+        protected BoundDagTest(BoundKind kind, SyntaxNode syntax, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(kind, syntax, input, hasErrors)
+        {
+
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Source = source;
+        }
+
+        public BoundPattern? Source { get; }
     }
 
     internal sealed partial class BoundDagTemp : BoundNode
@@ -5115,8 +5129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagTypeTest : BoundDagTest
     {
-        public BoundDagTypeTest(SyntaxNode syntax, TypeSymbol type, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagTypeTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagTypeTest(SyntaxNode syntax, TypeSymbol type, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagTypeTest, syntax, source, input, hasErrors || source.HasErrors() || input.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5130,11 +5144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagTypeTest(this);
 
-        public BoundDagTypeTest Update(TypeSymbol type, BoundDagTemp input)
+        public BoundDagTypeTest Update(TypeSymbol type, BoundPattern? source, BoundDagTemp input)
         {
-            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything) || input != this.Input)
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything) || source != this.Source || input != this.Input)
             {
-                var result = new BoundDagTypeTest(this.Syntax, type, input, this.HasErrors);
+                var result = new BoundDagTypeTest(this.Syntax, type, source, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5144,8 +5158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagNonNullTest : BoundDagTest
     {
-        public BoundDagNonNullTest(SyntaxNode syntax, bool isExplicitTest, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagNonNullTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagNonNullTest(SyntaxNode syntax, bool isExplicitTest, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagNonNullTest, syntax, source, input, hasErrors || source.HasErrors() || input.HasErrors())
         {
 
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5158,11 +5172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagNonNullTest(this);
 
-        public BoundDagNonNullTest Update(bool isExplicitTest, BoundDagTemp input)
+        public BoundDagNonNullTest Update(bool isExplicitTest, BoundPattern? source, BoundDagTemp input)
         {
-            if (isExplicitTest != this.IsExplicitTest || input != this.Input)
+            if (isExplicitTest != this.IsExplicitTest || source != this.Source || input != this.Input)
             {
-                var result = new BoundDagNonNullTest(this.Syntax, isExplicitTest, input, this.HasErrors);
+                var result = new BoundDagNonNullTest(this.Syntax, isExplicitTest, source, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5172,8 +5186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagExplicitNullTest : BoundDagTest
     {
-        public BoundDagExplicitNullTest(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagExplicitNullTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagExplicitNullTest(SyntaxNode syntax, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagExplicitNullTest, syntax, source, input, hasErrors || source.HasErrors() || input.HasErrors())
         {
 
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5184,11 +5198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagExplicitNullTest(this);
 
-        public BoundDagExplicitNullTest Update(BoundDagTemp input)
+        public BoundDagExplicitNullTest Update(BoundPattern? source, BoundDagTemp input)
         {
-            if (input != this.Input)
+            if (source != this.Source || input != this.Input)
             {
-                var result = new BoundDagExplicitNullTest(this.Syntax, input, this.HasErrors);
+                var result = new BoundDagExplicitNullTest(this.Syntax, source, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5198,8 +5212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagValueTest : BoundDagTest
     {
-        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagValueTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagValueTest, syntax, source, input, hasErrors || source.HasErrors() || input.HasErrors())
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5213,11 +5227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagValueTest(this);
 
-        public BoundDagValueTest Update(ConstantValue value, BoundDagTemp input)
+        public BoundDagValueTest Update(ConstantValue value, BoundPattern? source, BoundDagTemp input)
         {
-            if (value != this.Value || input != this.Input)
+            if (value != this.Value || source != this.Source || input != this.Input)
             {
-                var result = new BoundDagValueTest(this.Syntax, value, input, this.HasErrors);
+                var result = new BoundDagValueTest(this.Syntax, value, source, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5227,8 +5241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagRelationalTest : BoundDagTest
     {
-        public BoundDagRelationalTest(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagRelationalTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagRelationalTest(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue value, BoundPattern? source, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagRelationalTest, syntax, source, input, hasErrors || source.HasErrors() || input.HasErrors())
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5244,11 +5258,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagRelationalTest(this);
 
-        public BoundDagRelationalTest Update(BinaryOperatorKind operatorKind, ConstantValue value, BoundDagTemp input)
+        public BoundDagRelationalTest Update(BinaryOperatorKind operatorKind, ConstantValue value, BoundPattern? source, BoundDagTemp input)
         {
-            if (operatorKind != this.OperatorKind || value != this.Value || input != this.Input)
+            if (operatorKind != this.OperatorKind || value != this.Value || source != this.Source || input != this.Input)
             {
-                var result = new BoundDagRelationalTest(this.Syntax, operatorKind, value, input, this.HasErrors);
+                var result = new BoundDagRelationalTest(this.Syntax, operatorKind, value, source, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5256,7 +5270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal abstract partial class BoundDagEvaluation : BoundDagTest
+    internal abstract partial class BoundDagEvaluation : BoundDagTestOrEvaluation
     {
         protected BoundDagEvaluation(BoundKind kind, SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
             : base(kind, syntax, input, hasErrors)
@@ -9956,26 +9970,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitDagTypeTest(BoundDagTypeTest node)
         {
+            this.Visit(node.Source);
             this.Visit(node.Input);
             return null;
         }
         public override BoundNode? VisitDagNonNullTest(BoundDagNonNullTest node)
         {
+            this.Visit(node.Source);
             this.Visit(node.Input);
             return null;
         }
         public override BoundNode? VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
+            this.Visit(node.Source);
             this.Visit(node.Input);
             return null;
         }
         public override BoundNode? VisitDagValueTest(BoundDagValueTest node)
         {
+            this.Visit(node.Source);
             this.Visit(node.Input);
             return null;
         }
         public override BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node)
         {
+            this.Visit(node.Source);
             this.Visit(node.Input);
             return null;
         }
@@ -11179,29 +11198,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitDagTypeTest(BoundDagTypeTest node)
         {
+            BoundPattern? source = (BoundPattern?)this.Visit(node.Source);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(type, input);
+            return node.Update(type, source, input);
         }
         public override BoundNode? VisitDagNonNullTest(BoundDagNonNullTest node)
         {
+            BoundPattern? source = (BoundPattern?)this.Visit(node.Source);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.IsExplicitTest, input);
+            return node.Update(node.IsExplicitTest, source, input);
         }
         public override BoundNode? VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
+            BoundPattern? source = (BoundPattern?)this.Visit(node.Source);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(input);
+            return node.Update(source, input);
         }
         public override BoundNode? VisitDagValueTest(BoundDagValueTest node)
         {
+            BoundPattern? source = (BoundPattern?)this.Visit(node.Source);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Value, input);
+            return node.Update(node.Value, source, input);
         }
         public override BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node)
         {
+            BoundPattern? source = (BoundPattern?)this.Visit(node.Source);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.OperatorKind, node.Value, input);
+            return node.Update(node.OperatorKind, node.Value, source, input);
         }
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
         {
@@ -15586,6 +15610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagTypeTest(BoundDagTypeTest node, object? arg) => new TreeDumperNode("dagTypeTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15593,12 +15618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagNonNullTest(BoundDagNonNullTest node, object? arg) => new TreeDumperNode("dagNonNullTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("isExplicitTest", node.IsExplicitTest, null),
+            new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node, object? arg) => new TreeDumperNode("dagExplicitNullTest", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15606,6 +15633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagValueTest(BoundDagValueTest node, object? arg) => new TreeDumperNode("dagValueTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", node.Value, null),
+            new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15614,6 +15642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("operatorKind", node.OperatorKind, null),
             new TreeDumperNode("value", node.Value, null),
+            new TreeDumperNode("source", null, new TreeDumperNode[] { Visit(node.Source, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

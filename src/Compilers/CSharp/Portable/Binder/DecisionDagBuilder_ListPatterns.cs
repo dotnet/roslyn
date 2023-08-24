@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = list.Syntax;
             var subpatterns = list.Subpatterns;
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
-            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
+            output = input = MakeConvertToType(input, list.Syntax, source: list, list.NarrowedType, isExplicitTest: false, tests);
 
             if (list.HasErrors)
             {
-                tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
+                MakeErrorTest(tests, list, input);
             }
             else if (list.HasSlice &&
                      subpatterns.Length == 1 &&
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
                 tests.Add(new Tests.One(list.HasSlice
-                    ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
-                    : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
+                    ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), source: list, lengthTemp)
+                    : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), source: list, lengthTemp)));
 
                 int index = 0;
                 foreach (BoundPattern subpattern in subpatterns)

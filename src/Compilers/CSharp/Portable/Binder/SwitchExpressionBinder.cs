@@ -63,14 +63,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
             bool hasErrors = false;
+            var walker = new ReduntantPatternWalker(decisionDag, diagnostics);
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
                 hasErrors |= arm.HasErrors;
-                if (!hasErrors && !reachableLabels.Contains(arm.Label))
+                if (!hasErrors)
                 {
-                    diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
+                    if (!reachableLabels.Contains(arm.Label))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
+                    }
+                    else
+                    {
+                        walker.VisitTopLevelPattern(arm.Pattern);
+                    }
                 }
             }
+            walker.Free();
 
             if (!reachableLabels.Contains(defaultLabel))
             {

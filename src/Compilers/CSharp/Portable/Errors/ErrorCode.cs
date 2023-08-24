@@ -2182,6 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
+        WRN_RedundantPattern = 9124,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,

@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 #endif
-    partial class BoundDagTest
+    partial class BoundDagTestOrEvaluation
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => this.Equals(obj as BoundDagTest);
+        public override bool Equals([NotNullWhen(true)] object? obj) => this.Equals(obj as BoundDagTestOrEvaluation);
 
-        private bool Equals(BoundDagTest? other)
+        private bool Equals(BoundDagTestOrEvaluation? other)
         {
             if (other is null || this.Kind != other.Kind)
                 return false;
