@@ -1217,10 +1217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !(refArg == RefKind.Ref && refParameter == RefKind.In && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters)) &&
                 !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
-                // Special case for 'string -> interpolated string handler' for better user experience
+                // Special case for 'string literal -> interpolated string handler' for better user experience
                 // Skip if parameter's ref kind is 'out' since it is invalid ref kind for passing interpolated string
-                if (argument is { Display: TypeSymbol { SpecialType: SpecialType.System_String }, Kind: not BoundKind.UnconvertedInterpolatedString } &&
-                    parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true } &&
+                if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter) &&
                     refParameter != RefKind.Out)
                 {
                     // CS9203: Expected interpolated string
@@ -1289,10 +1288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // have the same format as the display value of the parameter).
                     if (argument.Display is TypeSymbol argType)
                     {
-                        // Special case for 'string -> interpolated string handler' for better user experience
-                        if (argType.SpecialType == SpecialType.System_String &&
-                            argument.Kind != BoundKind.UnconvertedInterpolatedString &&
-                            parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
+                        // Special case for 'string literal -> interpolated string handler' for better user experience
+                        if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter))
                         {
                             // CS9203: Expected interpolated string
                             diagnostics.Add(ErrorCode.ERR_ExpectedInterpolatedString, sourceLocation);
@@ -1329,6 +1326,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            static bool isStringLiteralToInterpolatedStringHandlerArgumentConversion(BoundExpression argument, ParameterSymbol parameter)
+                => argument.Syntax.Kind() is SyntaxKind.StringLiteralExpression &&
+                    parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true };
         }
 
         /// <summary>

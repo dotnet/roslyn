@@ -4771,44 +4771,26 @@ literal:Literal");
 ");
     }
 
-    [Fact]
-    public void PassAsRefWithoutKeyword_02_ConstantInterpolatedString()
+    [Theory]
+    [InlineData(@"$""""""{1,2:f}Literal""""""")]
+    [InlineData(@"$""""""{1,2:f}"""""" + $""""""Literal""""""")]
+    public void PassAsRefWithoutKeyword_02(string expression)
     {
-        var code = """"
-                M($"""{1,2:f}Literal""");
-                M(ref $"""{1,2:f}Literal""");
+        var code = $$"""
+            M({{expression}});
+            M(ref {{expression}});
 
-                void M(ref CustomHandler c) => System.Console.WriteLine(c);
-                """";
+            void M(ref CustomHandler c) => System.Console.WriteLine(c);
+            """;
 
         var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
         comp.VerifyDiagnostics(
             // (1,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
             // M($"{1,2:f}Literal");
-            Diagnostic(ErrorCode.ERR_BadArgRef, @"$""""""{1,2:f}Literal""""""").WithArguments("1", "ref").WithLocation(1, 3),
+            Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(1, 3),
             // (2,7): error CS1510: A ref or out value must be an assignable variable
             // M(ref $"{1,2:f}Literal");
-            Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"$""""""{1,2:f}Literal""""""").WithLocation(2, 7));
-    }
-
-    [Fact]
-    public void PassAsRefWithoutKeyword_02_SumOfInterpolatedStrings()
-    {
-        var code = """"
-                M($"""{1,2:f}""" + $"""Literal""");
-                M(ref $"""{1,2:f}""" + $"""Literal""");
-
-                void M(ref CustomHandler c) => System.Console.WriteLine(c);
-                """";
-
-        var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
-        comp.VerifyDiagnostics(
-            // (1,3): error CS9203: Expected interpolated string
-            // M($"""{1,2:f}""" + $"""Literal""");
-            Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, @"$""""""{1,2:f}"""""" + $""""""Literal""""""").WithLocation(1, 3),
-            // (2,7): error CS1510: A ref or out value must be an assignable variable
-            // M(ref $"{1,2:f}Literal");
-            Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"$""""""{1,2:f}"""""" + $""""""Literal""""""").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(2, 7));
     }
 
     [Theory]
