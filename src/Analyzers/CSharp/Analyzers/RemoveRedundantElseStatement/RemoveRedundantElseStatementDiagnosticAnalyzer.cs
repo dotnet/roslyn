@@ -71,14 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
                 return;
 
             var ifStatement = (IfStatementSyntax)context.Node;
-
             if (ifStatement.Parent is not BlockSyntax and not SwitchSectionSyntax and not GlobalStatementSyntax)
-            {
                 return;
-            }
 
             var redundantElse = FindRedundantElse(ifStatement);
-
             if (redundantElse is null ||
                 WillCauseVariableCollision(context.SemanticModel, ifStatement, redundantElse, context.CancellationToken))
             {
@@ -96,19 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         private static ElseClauseSyntax? FindRedundantElse(IfStatementSyntax ifStatement)
         {
             var elseClause = ifStatement.Else;
-
             while (elseClause is not null)
             {
                 if (!AllCodePathsEndWithJump(ifStatement.Statement))
-                {
                     return null;
-                }
 
                 // Reached else not followed by an if
                 if (elseClause.Statement is not IfStatementSyntax elseIfStatement)
-                {
                     break;
-                }
 
                 ifStatement = elseIfStatement;
                 elseClause = elseIfStatement.Else;
@@ -120,46 +111,35 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
         private static bool AllCodePathsEndWithJump(StatementSyntax statement)
         {
             if (IsJumpStatement(statement))
-            {
                 return true;
-            }
-            else if (statement is IfStatementSyntax ifStatement)
+            
+            if (statement is IfStatementSyntax ifStatement)
             {
                 // Check for nested if/else
                 var redundantElse = FindRedundantElse(ifStatement);
                 return redundantElse is not null && AllCodePathsEndWithJump(redundantElse.Statement);
             }
 
-            return statement switch
-            {
-                BlockSyntax block when block.Statements.Any() => AllCodePathsEndWithJump(block.Statements.Last()),
-                _ => false,
-            };
-        }
-
-        private static bool IsJumpStatement(StatementSyntax statement)
-        {
-            // Goto could be added as well
-            // but it would require more analysis
-            switch (statement.Kind())
-            {
-                case SyntaxKind.ReturnStatement:
-                case SyntaxKind.BreakStatement:
-                case SyntaxKind.ContinueStatement:
-                case SyntaxKind.YieldBreakStatement:
-                case SyntaxKind.ThrowStatement:
-                    return true;
-            }
+            if (statement is BlockSyntax { Statements: [.., var lastStatement] })
+                return AllCodePathsEndWithJump(lastStatement);
 
             return false;
         }
 
+        // Goto could be added as well
+        // but it would require more analysis
+        private static bool IsJumpStatement(StatementSyntax statement)
+            => statement.Kind()
+                is SyntaxKind.ReturnStatement
+                or SyntaxKind.BreakStatement
+                or SyntaxKind.ContinueStatement
+                or SyntaxKind.YieldBreakStatement
+                or SyntaxKind.ThrowStatement;
+
         private static bool WillCauseVariableCollision(SemanticModel semanticModel, IfStatementSyntax ifStatement, ElseClauseSyntax elseClause, CancellationToken cancellationToken)
         {
             if (elseClause.Statement is not BlockSyntax elseBlock)
-            {
                 return false;
-            }
 
             var outerScope = ifStatement.Parent switch
             {
