@@ -545,6 +545,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Содержащий тип</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_number">
+        <source>Convert number</source>
+        <target state="new">Convert number</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Преобразовать в LINQ</target>
