@@ -55,6 +55,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var ifIndentation = GetIndentationStringForPosition(ifStatement.IfKeyword.SpanStart);
         var globalStatement = ifStatement.Parent as GlobalStatementSyntax;
+        var newLineTrivia = EndOfLine(formattingOptions.NewLine);
 
         // Cases to consider:
         // 
@@ -77,34 +78,25 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         //      {
         //          ...
         //      }
+
+        // Always remove the else clause.
         editor.RemoveNode(elseClause);
-        if (elseClause.Statement is BlockSyntax elseBlock)
-        {
-            editor.InsertAfter(
-                globalStatement ?? (SyntaxNode)ifStatement,
-                AddBlankLineIfMissing(WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation))));
-        }
-        else
-        {
-            // One of the following forms:
-            //
-            //  if ... else ...
-            //
-            //  if ...
-            //  else ...
-            //
-            //  if
-            //      ...
-            //  else
-            //      ...
-            editor.InsertAfter(
-                globalStatement ?? (SyntaxNode)ifStatement,
-                AddBlankLineIfMissing(WrapWithGlobalStatements(UpdateIndentation(SingletonList(elseClause.Statement), ifIndentation))));
-        }
 
-        // if we have `if () { } else { }`
-        // then trim the trailing whitespace at the end of the if's block.
+        var statementsToRewrite = elseClause.Statement is BlockSyntax elseBlock
+            ? elseBlock.Statements
+            : SingletonList(elseClause.Statement);
 
+        // Now go through all the statements, adjust their indentation outwards as appropriate, then add a blank line if
+        // the if-statement ends with a `}`.
+        var rewrittenStatements = AddBlankLineIfMissing(UpdateIndentation(statementsToRewrite, ifIndentation));
+
+        // Insert these statements after the `if` statement/
+        editor.InsertAfter(
+             globalStatement ?? (SyntaxNode)ifStatement,
+             WrapWithGlobalStatements(rewrittenStatements));
+
+
+        // Finally, if we have `if () { } else { }` then trim the trailing whitespace at the end of the if's block.
         var elseToken = elseClause.ElseKeyword;
         var beforeElseToken = elseToken.GetPreviousToken();
         if (text.AreOnSameLine(beforeElseToken, elseToken) &&
@@ -113,7 +105,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             var beforeElseParent = beforeElseToken.GetRequiredParent();
             editor.ReplaceNode(
                 beforeElseParent,
-                beforeElseParent.ReplaceToken(beforeElseToken, beforeElseToken.WithTrailingTrivia(EndOfLine(formattingOptions.NewLine))));
+                beforeElseParent.ReplaceToken(beforeElseToken, beforeElseToken.WithTrailingTrivia(newLineTrivia)));
         }
 
         return;
@@ -124,20 +116,20 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         SyntaxNode WrapWithGlobalStatement(StatementSyntax statement)
             => globalStatement != null ? GlobalStatement(statement) : statement;
 
-        IEnumerable<SyntaxNode> AddBlankLineIfMissing(IEnumerable<SyntaxNode> nodes)
+        IEnumerable<StatementSyntax> AddBlankLineIfMissing(IEnumerable<StatementSyntax> statements)
         {
             var first = true;
-            foreach (var node in nodes)
+            foreach (var statement in statements)
             {
                 if (first &&
                     ifStatement.Statement is BlockSyntax &&
-                    node.GetLeadingTrivia() is not [(kind: SyntaxKind.EndOfLineTrivia), ..])
+                    statement.GetLeadingTrivia() is not [(kind: SyntaxKind.EndOfLineTrivia), ..])
                 {
-                    yield return node.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine));
+                    yield return statement.WithPrependedLeadingTrivia(newLineTrivia);
                 }
                 else
                 {
-                    yield return node;
+                    yield return statement;
                 }
 
                 first = false;
@@ -160,7 +152,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
                     // Place on new line at the appropriate indentation.
                     if (i == 0)
                     {
-                        yield return statement.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine), Whitespace(ifIndentation));
+                        yield return statement.WithPrependedLeadingTrivia(newLineTrivia, Whitespace(ifIndentation));
                     }
                     else
                     {
@@ -190,11 +182,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             var statementFirstToken = statement.GetFirstToken();
             var updatedStatement = statement.ReplaceTokens(
                 statement.DescendantTokens(),
-                (currentToken, _) =>
-                {
-                    // Ensure the first token has the indentation we're moving the entire node to
-                    return DedentToken(currentToken, indentationToTrim, force: currentToken == statementFirstToken);
-                });
+                (currentToken, _) => DedentToken(currentToken, indentationToTrim, force: currentToken == statementFirstToken));
 
             return updatedStatement;
         }
@@ -204,8 +192,8 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             string indentationToTrim,
             bool force)
         {
-            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
-            // otherwise always consumed as trailing trivia if it comes after a token.
+            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is otherwise always
+            // consumed as trailing trivia if it comes after a token.
             if (!force && token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
                 return token;
 
