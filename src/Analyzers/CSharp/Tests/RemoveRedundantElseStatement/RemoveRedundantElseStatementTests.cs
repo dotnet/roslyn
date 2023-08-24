@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class RemoveRedundantElseStatementTests
 {
     [Fact]
-    public async Task TestRedundantElseFix_SimpleIfElse()
+    public async Task TestSimpleIfElse()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -57,7 +57,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_SimpleIfElseWithSingleStatement()
+    public async Task TestSimpleIfElseWithSingleStatement()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -88,7 +88,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_IfElseIfElseWithThrow()
+    public async Task TestIfElseIfElseWithThrow()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -134,7 +134,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_MultipleIfElseWithThrow()
+    public async Task TestMultipleIfElseWithThrow()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -188,7 +188,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_IfElseIfElseWithoutThrow()
+    public async Task TestIfElseIfElseWithoutThrow()
     {
         await new VerifyCS.Test
         {
@@ -216,7 +216,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_ElseIfWithoutJump()
+    public async Task TestElseIfWithoutJump()
     {
         await new VerifyCS.Test
         {
@@ -243,7 +243,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_IfElseWithBreak()
+    public async Task TestIfElseWithBreak()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -293,7 +293,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_IfElseWithContinue()
+    public async Task TestIfElseWithContinue()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -341,7 +341,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_IfElseWithoutContinue()
+    public async Task TestIfElseWithoutContinue()
     {
         await new VerifyCS.Test
         {
@@ -371,7 +371,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_YieldBreak()
+    public async Task TestYieldBreak()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -419,7 +419,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_YieldReturn()
+    public async Task TestYieldReturn()
     {
         await new VerifyCS.Test
         {
@@ -450,7 +450,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_InSwitchCase()
+    public async Task TestInSwitchCase()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -501,7 +501,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_InSwitchDefaultCase()
+    public async Task TestInSwitchDefaultCase()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -553,7 +553,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_NestedIfStatements()
+    public async Task TestNestedIfStatements()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -603,7 +603,57 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_NestedIfStatementsInSwitch()
+    public async Task TestNestedIfStatementsInElse()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int M(int n) 
+                {
+                    if (true)
+                    {
+                        return 1;
+                    }
+                    [|else|]
+                    {
+                        if (false)
+                        {
+                            return 0;
+                        }
+                        [|else|]
+                        {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                int M(int n) 
+                {
+                    if (true)
+                    {
+                        return 1;
+                    }
+
+                    if (false)
+                    {
+                        return 0;
+                    }
+
+                    return 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedIfStatementsInSwitch()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             using System;
@@ -665,7 +715,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_GlobalStatement()
+    public async Task TestGlobalStatement()
     {
         await new VerifyCS.Test
         {
@@ -701,7 +751,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_VariableCollisionInIf()
+    public async Task TestVariableCollisionInIf()
     {
         await new VerifyCS.Test
         {
@@ -734,7 +784,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_VariableCollisionInSeparateBlock()
+    public async Task TestVariableCollisionInSeparateBlock()
     {
         await new VerifyCS.Test
         {
@@ -767,7 +817,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_VariableCollisionInSwitch()
+    public async Task TestVariableCollisionInSwitch()
     {
         await new VerifyCS.Test
         {
@@ -804,7 +854,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_VariableCollisionGlobalStatement()
+    public async Task TestVariableCollisionGlobalStatement()
     {
         await new VerifyCS.Test
         {
@@ -833,7 +883,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_VariableCollisionGlobalStatementSwitch()
+    public async Task TestVariableCollisionGlobalStatementSwitch()
     {
         await new VerifyCS.Test
         {
@@ -868,7 +918,7 @@ public sealed class RemoveRedundantElseStatementTests
     }
 
     [Fact]
-    public async Task TestRedundantElseFix_NoVariableCollision()
+    public async Task TestNoVariableCollisionLocalFunction()
     {
         await new VerifyCS.Test
         {
@@ -880,19 +930,100 @@ public sealed class RemoveRedundantElseStatementTests
                     int M(int n) 
                     {
                         int i = 0;
-                        while (true)
+                        if (i < n)
                         {
-                            if (i < n)
-                            {
-                                i+=1;
-                                continue;
-                            }
-                            [|else|]
-                            {
-                                int j = 0;
-                                return j;
-                            }
+                            return 1;
                         }
+                        [|else|]
+                        {
+                            int j = 0;
+                            return j;
+                        }
+
+                        void L()
+                        {
+                            int j = 1;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    int M(int n) 
+                    {
+                        int i = 0;
+                        if (i < n)
+                        {
+                            return 1;
+                        }
+
+                        int j = 0;
+                        return j;
+                        void L()
+                        {
+                            int j = 1;
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoVariableCollisionLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    int M(int n) 
+                    {
+                        Func<int, int> lamb = x => 
+                        {
+                            int j = 3;
+                            return j + x; 
+                        };
+
+                        int i = 0;
+                        if (i < n)
+                        {
+                            return 1;
+                        }
+                        [|else|]
+                        {
+                            int j = 0;
+                            return j;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    int M(int n) 
+                    {
+                        Func<int, int> lamb = x => 
+                        {
+                            int j = 3;
+                            return j + x; 
+                        };
+
+                        int i = 0;
+                        if (i < n)
+                        {
+                            return 1;
+                        }
+
+                        int j = 0;
+                        return j;
                     }
                 }
                 """

@@ -124,7 +124,7 @@ internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractB
     {
         if (IsJumpStatement(statement))
             return true;
-        
+ 
         if (statement is IfStatementSyntax ifStatement)
         {
             // Check for nested if/else
@@ -168,6 +168,6 @@ internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractB
         var operation = semanticModel.GetRequiredOperation(elseClause.Statement, cancellationToken);
 
         return operation is IBlockOperation blockOperation &&
-            blockOperation.Locals.Any(local => existingSymbols[local.Name].Any(other => !Equals(local, other)));
+            blockOperation.Locals.Any(local => existingSymbols[local.Name].Any(other => Equals(local.ContainingSymbol, other.ContainingSymbol) && !Equals(local, other)));
     }
 }
