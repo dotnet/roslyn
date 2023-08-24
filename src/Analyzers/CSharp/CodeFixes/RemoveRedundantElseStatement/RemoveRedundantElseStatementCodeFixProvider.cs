@@ -25,131 +25,130 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
+namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement;
+
+using static SyntaxFactory;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
+internal sealed class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    using static SyntaxFactory;
-
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
-    internal sealed class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoveRedundantElseStatementCodeFixProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoveRedundantElseStatementCodeFixProvider()
-        {
-        }
+    }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId);
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Remove_redundant_else_statement, nameof(CSharpAnalyzersResources.Remove_redundant_else_statement));
-            return Task.CompletedTask;
-        }
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, CSharpAnalyzersResources.Remove_redundant_else_statement, nameof(CSharpAnalyzersResources.Remove_redundant_else_statement));
+        return Task.CompletedTask;
+    }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var ifStatements = diagnostics
-                .Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken))
-                .ToSet();
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        var ifStatements = diagnostics
+            .Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken))
+            .ToSet();
 
-            var nodesToUpdate = ifStatements.Select(statement => statement.Parent!);
+        var nodesToUpdate = ifStatements.Select(statement => statement.Parent!);
 
-            var root = editor.OriginalRoot;
+        var root = editor.OriginalRoot;
 
-            var updatedRoot = root.ReplaceNodes(
-                nodesToUpdate,
-                (original, current) => original switch
-                {
-                    CompilationUnitSyntax compilationUnit => RewriteCompilationUnit(compilationUnit, (CompilationUnitSyntax)current, ifStatements),
-                    _ => RewriteNode(original, current, ifStatements),
-                }
-            );
-
-            editor.ReplaceNode(root, updatedRoot);
-
-            return Task.CompletedTask;
-        }
-
-        private static CompilationUnitSyntax RewriteCompilationUnit(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
-        {
-            var memberToUpdateIndex = original.Members.IndexOf(ifStatements.Contains);
-            var memberToUpdate = (GlobalStatementSyntax)original.Members[memberToUpdateIndex];
-
-            var elseClause = GetLastElse((IfStatementSyntax)memberToUpdate.Statement);
-            var ifWithoutElse = memberToUpdate
-                .RemoveNode(elseClause, SyntaxRemoveOptions.KeepExteriorTrivia)
-                !.WithAppendedTrailingTrivia(CarriageReturnLineFeed);
-
-            var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse);
-            var newStatements = Expand(elseClause).Select(GlobalStatement);
-
-            var updatedMembers = updatedCompilationUnit.Members
-                .InsertRange(memberToUpdateIndex + 1, newStatements);
-
-            return current.WithMembers(updatedMembers);
-        }
-
-        private static SyntaxNode RewriteNode(SyntaxNode original, SyntaxNode current, ISet<SyntaxNode> ifStatements)
-        {
-            var originalNodeStatements = GetStatements(original);
-            var currentNodeStatements = GetStatements(current);
-
-            var statementToUpdateIndex = originalNodeStatements.IndexOf(ifStatements.Contains);
-            var statementToUpdate = currentNodeStatements[statementToUpdateIndex];
-
-            var elseClause = GetLastElse((IfStatementSyntax)statementToUpdate);
-            var ifWithoutElse = statementToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
-            var newStatements = new[] { ifWithoutElse }.Concat(Expand(elseClause));
-
-            var updatedStatements = currentNodeStatements.ReplaceRange(statementToUpdate, newStatements!);
-
-            return current switch
+        var updatedRoot = root.ReplaceNodes(
+            nodesToUpdate,
+            (original, current) => original switch
             {
-                BlockSyntax block => block.WithStatements(updatedStatements),
-                SwitchSectionSyntax switchSelection => switchSelection.WithStatements(updatedStatements),
-                _ => throw ExceptionUtilities.UnexpectedValue(current.Kind())
-            };
-        }
-
-        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
-        {
-            return node switch
-            {
-                BlockSyntax block => block.Statements,
-                SwitchSectionSyntax switchSelection => switchSelection.Statements,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
-            };
-        }
-
-        private static ElseClauseSyntax GetLastElse(IfStatementSyntax ifStatement)
-        {
-            while (ifStatement.Else?.Statement is IfStatementSyntax elseIfStatement)
-            {
-                ifStatement = elseIfStatement;
+                CompilationUnitSyntax compilationUnit => RewriteCompilationUnit(compilationUnit, (CompilationUnitSyntax)current, ifStatements),
+                _ => RewriteNode(original, current, ifStatements),
             }
+        );
 
-            return ifStatement.Else!;
-        }
+        editor.ReplaceNode(root, updatedRoot);
 
-        private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
+        return Task.CompletedTask;
+    }
+
+    private static CompilationUnitSyntax RewriteCompilationUnit(CompilationUnitSyntax original, CompilationUnitSyntax current, ISet<SyntaxNode> ifStatements)
+    {
+        var memberToUpdateIndex = original.Members.IndexOf(ifStatements.Contains);
+        var memberToUpdate = (GlobalStatementSyntax)original.Members[memberToUpdateIndex];
+
+        var elseClause = GetLastElse((IfStatementSyntax)memberToUpdate.Statement);
+        var ifWithoutElse = memberToUpdate
+            .RemoveNode(elseClause, SyntaxRemoveOptions.KeepExteriorTrivia)
+            !.WithAppendedTrailingTrivia(CarriageReturnLineFeed);
+
+        var updatedCompilationUnit = current.ReplaceNode(memberToUpdate, ifWithoutElse);
+        var newStatements = Expand(elseClause).Select(GlobalStatement);
+
+        var updatedMembers = updatedCompilationUnit.Members
+            .InsertRange(memberToUpdateIndex + 1, newStatements);
+
+        return current.WithMembers(updatedMembers);
+    }
+
+    private static SyntaxNode RewriteNode(SyntaxNode original, SyntaxNode current, ISet<SyntaxNode> ifStatements)
+    {
+        var originalNodeStatements = GetStatements(original);
+        var currentNodeStatements = GetStatements(current);
+
+        var statementToUpdateIndex = originalNodeStatements.IndexOf(ifStatements.Contains);
+        var statementToUpdate = currentNodeStatements[statementToUpdateIndex];
+
+        var elseClause = GetLastElse((IfStatementSyntax)statementToUpdate);
+        var ifWithoutElse = statementToUpdate.RemoveNode(elseClause, SyntaxRemoveOptions.KeepEndOfLine);
+        var newStatements = new[] { ifWithoutElse }.Concat(Expand(elseClause));
+
+        var updatedStatements = currentNodeStatements.ReplaceRange(statementToUpdate, newStatements!);
+
+        return current switch
         {
-            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
+            BlockSyntax block => block.WithStatements(updatedStatements),
+            SwitchSectionSyntax switchSelection => switchSelection.WithStatements(updatedStatements),
+            _ => throw ExceptionUtilities.UnexpectedValue(current.Kind())
+        };
+    }
 
-            switch (elseClause.Statement)
-            {
-                case BlockSyntax block:
-                    result.AddRange(block.Statements);
-                    break;
+    private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
+    {
+        return node switch
+        {
+            BlockSyntax block => block.Statements,
+            SwitchSectionSyntax switchSelection => switchSelection.Statements,
+            _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+        };
+    }
 
-                case StatementSyntax anythingElse:
-                    result.Add(anythingElse);
-                    break;
-            }
-
-            return result
-                .Select(statement => statement.WithAdditionalAnnotations(Formatter.Annotation))
-                .AsImmutable();
+    private static ElseClauseSyntax GetLastElse(IfStatementSyntax ifStatement)
+    {
+        while (ifStatement.Else?.Statement is IfStatementSyntax elseIfStatement)
+        {
+            ifStatement = elseIfStatement;
         }
+
+        return ifStatement.Else!;
+    }
+
+    private static ImmutableArray<StatementSyntax> Expand(ElseClauseSyntax elseClause)
+    {
+        using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
+
+        switch (elseClause.Statement)
+        {
+            case BlockSyntax block:
+                result.AddRange(block.Statements);
+                break;
+
+            case StatementSyntax anythingElse:
+                result.Add(anythingElse);
+                break;
+        }
+
+        return result
+            .Select(statement => statement.WithAdditionalAnnotations(Formatter.Annotation))
+            .AsImmutable();
     }
 }
