@@ -1081,7 +1081,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1121,7 +1121,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1152,7 +1152,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1180,7 +1180,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1208,7 +1208,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
