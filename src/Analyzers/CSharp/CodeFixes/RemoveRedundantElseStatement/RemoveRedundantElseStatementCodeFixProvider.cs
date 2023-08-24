@@ -126,7 +126,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
 
         IEnumerable<StatementSyntax> UpdateIndentation(SyntaxList<StatementSyntax> statements, string ifIndentation)
         {
-            for (var i =0; i < statements.Count; i++)
+            for (var i = 0; i < statements.Count; i++)
             {
                 var statement = statements[i];
 
@@ -152,7 +152,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
                 }
                 else
                 {
-                    AdjustIndentation(statement, ifIndentation);
+                    yield return AdjustIndentation(statement, ifIndentation);
                 }
             }
         }
@@ -223,10 +223,9 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         SyntaxTrivia GetIndentedWhitespaceTrivia(string indentationToTrim, int pos)
         {
             var positionIndentation = GetIndentationStringForPosition(pos);
-            if (positionIndentation.EndsWith(indentationToTrim))
-                return Whitespace(positionIndentation[0..indentationToTrim.Length]);
-            else
-                return Whitespace(positionIndentation);
+            return positionIndentation.EndsWith(indentationToTrim)
+                ? Whitespace(positionIndentation[0..^indentationToTrim.Length])
+                : Whitespace(positionIndentation);
         }
 
         string GetIndentationStringForToken(SyntaxToken token)

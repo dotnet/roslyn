@@ -40,7 +40,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -74,7 +74,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -114,7 +114,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -164,7 +164,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -195,7 +195,7 @@ public sealed class RemoveRedundantElseStatementTests
         {
             TestCode = """
                 using System;
-                    
+
                 class C
                 {
                     int Fib(int n) 
@@ -208,7 +208,7 @@ public sealed class RemoveRedundantElseStatementTests
                         {
                             return 1;
                         }
-                            
+
                         return Fib(n - 1) + Fib(n - 2);
                     }
                 }
@@ -235,7 +235,7 @@ public sealed class RemoveRedundantElseStatementTests
                         else if (n <= 2)
                         {
                         }
-                            
+
                         return Fib(n - 1) + Fib(n - 2);
                     }
                 }
@@ -271,7 +271,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+            
             class C
             {
                 int M(int n) 
@@ -286,7 +286,7 @@ public sealed class RemoveRedundantElseStatementTests
 
                         i++;
                     }
-                
+            
                     return i;
                 }
             }
@@ -348,7 +348,7 @@ public sealed class RemoveRedundantElseStatementTests
         {
             TestCode = """
                 using System;
-                    
+
                 class C
                 {
                     int M(int n) 
@@ -399,7 +399,7 @@ public sealed class RemoveRedundantElseStatementTests
             """, """
             using System;
             using System.Collections.Generic;
-                
+
             class C
             {
                 IEnumerable<int> M(int n) 
@@ -427,7 +427,7 @@ public sealed class RemoveRedundantElseStatementTests
             TestCode = """
                 using System;
                 using System.Collections.Generic;
-                    
+
                 class C
                 {
                     IEnumerable<int> M(int n) 
@@ -673,7 +673,7 @@ public sealed class RemoveRedundantElseStatementTests
         {
             TestCode = """
                 using System;
-                    
+
                 if (false)
                 {
                     return;
@@ -692,7 +692,6 @@ public sealed class RemoveRedundantElseStatementTests
                 }
 
                 Console.WriteLine("Success");
-
                 """,
             TestState =
             {
@@ -709,7 +708,7 @@ public sealed class RemoveRedundantElseStatementTests
         {
             TestCode = """
                 using System;
-                    
+
                 class C
                 {
                     int M(int n) 
@@ -876,7 +875,7 @@ public sealed class RemoveRedundantElseStatementTests
         {
             TestCode = """
                 using System;
-                    
+
                 class C
                 {
                     int M(int n) 
@@ -920,7 +919,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -955,7 +954,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -994,7 +993,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1036,7 +1035,7 @@ public sealed class RemoveRedundantElseStatementTests
             }
             """, """
             using System;
-                
+
             class C
             {
                 int Fib(int n) 
@@ -1098,6 +1097,125 @@ public sealed class RemoveRedundantElseStatementTests
                     /* leading comment 2 */
                     return Fib(n - 1) +
                         Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting6()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|] { int i = 1; return Fib(n - 1) + Fib(n - 2); }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+
+                    int i = 1; return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting7()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) { return 1; } [|else|] { return Fib(n - 1) + Fib(n - 2); }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) { return 1; }
+
+                    return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting8()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) { return 1; } [|else|] { int i = 1; return Fib(n - 1) + Fib(n - 2); }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) { return 1; }
+
+                    int i = 1; return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting9()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) return 1; [|else|] return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2) return 1;
+
+                    return Fib(n - 1) + Fib(n - 2);
                 }
             }
             """);
