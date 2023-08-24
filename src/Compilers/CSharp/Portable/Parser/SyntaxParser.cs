@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (lexedTokens != null)
             {
                 _lexedTokens = null;
+
+                // Put lexedTokens back into the pool if it's correctly sized.
                 if (lexedTokens.Length == CachedTokenArraySize)
                 {
                     Array.Clear(lexedTokens, 0, _tokenCount);
@@ -438,13 +440,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 var lexedTokens = _lexedTokens;
+
+                Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
+
+                // Put lexedTokens back into the pool if it's correctly sized.
                 if (lexedTokens.Length == CachedTokenArraySize)
                 {
                     Array.Clear(lexedTokens, 0, lexedTokens.Length);
                     s_lexedTokensPool.Free(lexedTokens);
                 }
-
-                Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
             }
         }
 
