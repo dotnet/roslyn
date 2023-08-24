@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static bool isStringLiteralToInterpolatedStringHandlerArgumentConversion(BoundExpression argument, ParameterSymbol parameter)
-                => argument.Syntax.Kind() is SyntaxKind.StringLiteralExpression &&
+                => argument is BoundLiteral { Type.SpecialType: SpecialType.System_String } &&
                     parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true };
         }
 
