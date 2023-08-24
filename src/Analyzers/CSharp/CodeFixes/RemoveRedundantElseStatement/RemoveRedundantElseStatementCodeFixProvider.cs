@@ -102,6 +102,20 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
                 AddBlankLineIfMissing(WrapWithGlobalStatements(UpdateIndentation(SingletonList(elseClause.Statement), ifIndentation))));
         }
 
+        // if we have `if () { } else { }`
+        // then trim the trailing whitespace at the end of the if's block.
+
+        var elseToken = elseClause.ElseKeyword;
+        var beforeElseToken = elseToken.GetPreviousToken();
+        if (text.AreOnSameLine(beforeElseToken, elseToken) &&
+            beforeElseToken.TrailingTrivia.All(t => t.IsWhitespace()))
+        {
+            var beforeElseParent = beforeElseToken.GetRequiredParent();
+            editor.ReplaceNode(
+                beforeElseParent,
+                beforeElseParent.ReplaceToken(beforeElseToken, beforeElseToken.WithTrailingTrivia(EndOfLine(formattingOptions.NewLine))));
+        }
+
         return;
 
         IEnumerable<SyntaxNode> WrapWithGlobalStatements(IEnumerable<StatementSyntax> statements)
