@@ -30,14 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
-internal sealed class RemoveRedundantElseStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoveRedundantElseStatementCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoveRedundantElseStatementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId);
 
