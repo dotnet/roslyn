@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,80 +9,83 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
-{
-    [Trait(Traits.Feature, Traits.Features.Outlining)]
-    public class ParenthesizedLambdaStructureTests : AbstractCSharpSyntaxNodeStructureTests<ParenthesizedLambdaExpressionSyntax>
-    {
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new ParenthesizedLambdaExpressionStructureProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-        [Fact]
-        public async Task TestLambda()
-        {
-            const string code = @"
-class C
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class ParenthesizedLambdaStructureTests : AbstractCSharpSyntaxNodeStructureTests<ParenthesizedLambdaExpressionSyntax>
 {
-    void M()
+    internal override AbstractSyntaxStructureProvider CreateProvider() => new ParenthesizedLambdaExpressionStructureProvider();
+
+    [Fact]
+    public async Task TestLambda()
     {
-        {|hint:$$() => {|textspan:{
-            x();
-        };|}|}
+        var code = """
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:$$() => {|textspan:{
+                            x();
+                        };|}|}
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
-}";
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-
-        [Fact]
-        public async Task TestLambdaInForLoop()
-        {
-            const string code = @"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestLambdaInForLoop()
     {
-        for (Action a = $$() => { }; true; a()) { }
+        var code = """
+                class C
+                {
+                    void M()
+                    {
+                        for (Action a = $$() => { }; true; a()) { }
+                    }
+                }
+                """;
+
+        await VerifyNoBlockSpansAsync(code);
     }
-}";
 
-            await VerifyNoBlockSpansAsync(code);
-        }
-
-        [Fact]
-        public async Task TestLambdaInMethodCall1()
-        {
-            const string code = @"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestLambdaInMethodCall1()
     {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
-            return x + y + z;
-        }|}|}, ""other arguments"");
+        var code = """
+                class C
+                {
+                    void M()
+                    {
+                        someMethod(42, "test", false, {|hint:$$(x, y, z) => {|textspan:{
+                            return x + y + z;
+                        }|}|}, "other arguments");
+                    }
+                }
+                """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
-}";
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-
-        [Fact]
-        public async Task TestLambdaInMethodCall2()
-        {
-            const string code = @"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestLambdaInMethodCall2()
     {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
-            return x + y + z;
-        }|}|});
-    }
-}";
+        var code = """
+                class C
+                {
+                    void M()
+                    {
+                        someMethod(42, "test", false, {|hint:$$(x, y, z) => {|textspan:{
+                            return x + y + z;
+                        }|}|});
+                    }
+                }
+                """;
 
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

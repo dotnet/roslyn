@@ -673,7 +673,6 @@ index: 2);
                 """
                 using System;
                 using System.Runtime.Serialization;
-
                 class Program : Exception
                 {
                     public Program()

@@ -200,7 +200,6 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
-
 Module Program
     Sub Main(args As String())
         Throw New Goo()

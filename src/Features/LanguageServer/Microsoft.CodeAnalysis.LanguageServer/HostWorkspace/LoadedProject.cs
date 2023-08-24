@@ -104,7 +104,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.Documents,
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddSourceFile(document.FilePath),
+            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath));
 
         var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences.Distinct();

@@ -24,10 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
-#if DEBUG
-        private int _expectedStackDepth = 0;
-#endif
-
         private void EmitStatement(BoundStatement statement)
         {
             switch (statement.Kind)
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
             if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                _builder.AssertStackDepth(_expectedStackDepth);
+                _builder.AssertStackEmpty();
             }
 #endif
 
@@ -572,28 +568,6 @@ oneMoreTime:
                             EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
-                        }
-                    }
-                    return;
-
-                case BoundKind.LoweredIsPatternExpression:
-                    {
-                        var loweredIs = (BoundLoweredIsPatternExpression)condition;
-                        dest ??= new object();
-
-                        EmitSideEffects(loweredIs.Statements);
-
-                        if (sense)
-                        {
-                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
-                            _builder.EmitBranch(ILOpCode.Br, dest);
-                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
-                        }
-                        else
-                        {
-                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
-                            _builder.EmitBranch(ILOpCode.Br, dest);
-                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
                         }
                     }
                     return;
@@ -1491,10 +1465,8 @@ oneMoreTime:
             LocalDefinition keyHash = null;
 
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
-            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, switchCaseLabels.Length))
+            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(switchCaseLabels.Length))
             {
-                Debug.Assert(_module.SupportsPrivateImplClass);
-
                 var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag);
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
                     isSpanOrReadOnlySpan

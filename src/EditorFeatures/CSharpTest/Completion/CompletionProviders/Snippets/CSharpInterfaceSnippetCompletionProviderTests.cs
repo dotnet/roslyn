@@ -283,5 +283,34 @@ public interface MyInterface
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory]
+        [InlineData("unsafe")]
+        public async Task InsertInterfaceSnippetAfterValidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} interface MyInterface
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [InlineData("static")]
+        [InlineData("ref")]
+        [InlineData("readonly")]
+        public async Task NoInterfaceSnippetAfterInvalidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }
