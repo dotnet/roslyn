@@ -54,6 +54,9 @@
       <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
       <_R2RAssemblies Include="StreamJsonRpc.dll" />
       <_R2RAssemblies Include="System.IO.Pipelines.dll" />
+      <_R2RAssemblies Include="System.Text.Json.dll" />
+      <_R2RAssemblies Include="System.Text.Encodings.Web.dll" />
+      <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="$(PublishDir)**\*.dll" Exclude="$(PublishDir)**\*.resources.dll" />
