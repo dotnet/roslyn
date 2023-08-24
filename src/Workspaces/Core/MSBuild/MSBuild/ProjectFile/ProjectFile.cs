@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
-                ? CreateProjectFileInfo(project)
+                ? CreateProjectFileInfo(project, _loadedProject)
                 : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath, Log);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
         {
             var commandLineArgs = GetCommandLineArgs(project);
 
@@ -161,6 +161,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
+            var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
+            var contentFileInfo = GetContentFiles(project);
+            var isSdkStyle = IsSdkStyleProject(loadedProject);
+            var outputKind = project.ReadPropertyString(PropertyNames.OutputType);
+            var projectTelemetryMetadata = new ProjectTelemetryMetadata(projectCapabilities, contentFileInfo, isSdkStyle);
+
             return ProjectFileInfo.Create(
                 Language,
                 project.FullPath,
@@ -175,7 +181,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
+                projectTelemetryMetadata,
                 Log);
+        }
+
+        private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
+        {
+            var contentFiles = project
+                .GetItems(ItemNames.Content)
+                .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
+            return contentFiles;
+        }
+
+        private static bool IsSdkStyleProject(MSB.Evaluation.Project loadedProject)
+        {
+            // To see if a project is an SDK style project we check for either of two things
+            //   1.  If it has a TargetFramework / TargetFrameworks property.  This isn't fully complete
+            //       as this property could come from a different props file
+            //   2.  If it imports an SDK.  This can be defined multiple ways in the project file, but
+            //       we can look at the resolved imports after evaluation to see if any are SDK based.
+            var hasTargetFrameworkProperty = loadedProject.Properties.Any(property => property.Name is "TargetFramework" or "TargetFrameworks");
+            var importsSdk = loadedProject.Imports.Any(import => import.SdkResult != null);
+            return hasTargetFrameworkProperty || importsSdk;
         }
 
         private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)

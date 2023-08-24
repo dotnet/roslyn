@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
+        /// Additional info from msbuild that needs to be reported in telemetry.
+        /// </summary>
+        public ProjectTelemetryMetadata ProjectTelemetryMetadata { get; }
+
+        /// <summary>
         /// The error message produced when a failure occurred attempting to get the info. 
         /// If a failure occurred some or all of the information may be inaccurate or incomplete.
         /// </summary>
@@ -119,6 +124,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ProjectTelemetryMetadata projectTelemetryMetadata,
             DiagnosticLog log)
         {
             RoslynDebug.Assert(filePath != null);
@@ -137,6 +143,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.AdditionalDocuments = additionalDocuments;
             this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
+            this.ProjectTelemetryMetadata = projectTelemetryMetadata;
             this.Log = log;
         }
 
@@ -154,6 +161,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ProjectTelemetryMetadata projectTelemetryMetadata,
             DiagnosticLog log)
             => new(
                 isEmpty: false,
@@ -170,6 +178,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments,
                 analyzerConfigDocuments,
                 projectReferences,
+                projectTelemetryMetadata,
                 log);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
@@ -188,6 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
+                projectTelemetryMetadata: new(ImmutableArray<string>.Empty, ImmutableArray<string>.Empty, IsSdkStyle: true),
                 log);
     }
 }

@@ -5,9 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -72,7 +74,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
+    public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ProjectToLoad projectToLoad, ILogger logger, CancellationToken cancellationToken)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -142,6 +144,9 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileInfo = newProjectInfo;
 
+        var outputKind = _projectSystemProject.CompilationOptions?.OutputKind;
+        var metadataReferencesStr = metadataReferences.SelectAsArray(m => m.Reference);
+        await ProjectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(metadataReferencesStr, outputKind, newProjectInfo, projectToLoad, logger, cancellationToken);
         return;
 
         static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
