@@ -431,6 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (shiftCount > 0)
                 {
                     Array.Copy(_lexedTokens, shiftOffset, _lexedTokens, 0, shiftCount);
+
+                    // Clear out the cached tokens from shiftCount to the end of the token array
+                    Array.Clear(_lexedTokens, shiftCount, shiftOffset);
                 }
 
                 _firstToken += shiftOffset;
