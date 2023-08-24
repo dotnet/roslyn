@@ -10562,7 +10562,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T>(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: targetFramework);
+            var comp = CreateCompilation(
+                targetFramework == TargetFramework.Net80 ? new[] { sourceA } : new[] { sourceA, CollectionBuilderAttributeDefinition },
+                targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics();
             var refA = comp.EmitToImageReference();
 
@@ -13405,7 +13407,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T>(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: targetFramework);
+            var comp = CreateCompilation(
+                targetFramework == TargetFramework.Net80 ? new[] { sourceA } : new[] { sourceA, CollectionBuilderAttributeDefinition },
+                targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics();
             var refA = comp.EmitToImageReference();
 
