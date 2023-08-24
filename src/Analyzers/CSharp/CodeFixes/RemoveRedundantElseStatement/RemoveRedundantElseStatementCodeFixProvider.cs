@@ -28,15 +28,27 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveRedundantElseStatement), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RemoveRedundantElseStatementCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class RemoveRedundantElseStatementCodeFixProvider()
+    : ForkingSyntaxEditorBasedCodeFixProvider<IfStatementSyntax>(
+        CSharpAnalyzersResources.Remove_redundant_else_statement,
+        nameof(CSharpAnalyzersResources.Remove_redundant_else_statement))
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantElseStatementDiagnosticId);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override async Task FixAsync(
+        Document document,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions,
+        IfStatementSyntax ifStatement,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.Remove_redundant_else_statement, nameof(CSharpAnalyzersResources.Remove_redundant_else_statement));
-        return Task.CompletedTask;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (!RemoveRedundantElseStatementDiagnosticAnalyzer.CanSimplify(semanticModel, ifStatement, out _, cancellationToken))
+            return;
+
+
     }
 
     protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
