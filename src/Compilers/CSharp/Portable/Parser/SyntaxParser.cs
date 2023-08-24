@@ -11,11 +11,9 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.CSharp.Symbols;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -38,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-        private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[MaxCachedTokenArraySize], 2);
-
-        // Cap array size held in token pool. This should be large enough to prevent most allocations, but
+        private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[CachedTokenArraySize], 2);
+        
+        // Array size held in token pool. This should be large enough to prevent most allocations, but
         //  not so large as to be wasteful when not in use.
-        private const int MaxCachedTokenArraySize = 4096;
+        private const int CachedTokenArraySize = 4096;
 
         private BlendedNode[] _blendedTokens;
 
@@ -105,14 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (lexedTokens != null)
             {
                 _lexedTokens = null;
-                if (lexedTokens.Length < MaxCachedTokenArraySize)
+                if (lexedTokens.Length == CachedTokenArraySize)
                 {
-                    Array.Clear(lexedTokens, 0, lexedTokens.Length);
+                    Array.Clear(lexedTokens, 0, _tokenCount);
                     s_lexedTokensPool.Free(lexedTokens);
-                }
-                else
-                {
-                    s_lexedTokensPool.ForgetTrackedObject(lexedTokens);
                 }
             }
         }
@@ -143,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void PreLex()
         {
             // NOTE: Do not cancel in this method. It is called from the constructor.
-            var size = Math.Min(MaxCachedTokenArraySize, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
+            var size = Math.Min(CachedTokenArraySize, this.lexer.TextWindow.Text.Length / 2);
             var lexer = this.lexer;
             var mode = _mode;
 
@@ -443,9 +437,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                var old = _lexedTokens;
+                var lexedTokens = _lexedTokens;
+                if (lexedTokens.Length == CachedTokenArraySize)
+                {
+                    Array.Clear(lexedTokens, 0, lexedTokens.Length);
+                    s_lexedTokensPool.Free(lexedTokens);
+                }
+
                 Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
-                s_lexedTokensPool.ForgetTrackedObject(old, replacement: _lexedTokens);
             }
         }
 
