@@ -5930,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB1 = """
@@ -6135,7 +6135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: targetFramework);
+            var sources = targetFramework == TargetFramework.Net70
+                ? new[] { sourceA, CollectionBuilderAttributeDefinition }
+                : new[] { sourceA };
+            var comp = CreateCompilation(sources, targetFramework: targetFramework);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6274,7 +6277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilationWithSpanAndMemoryExtensions(
-                new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition, s_collectionExtensions },
+                new[] { sourceA, sourceB, s_collectionExtensions, CollectionBuilderAttributeDefinition },
                 targetFramework: TargetFramework.NetFramework,
                 options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
@@ -6345,7 +6348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             CompileAndVerify(
                 comp,
                 symbolValidator: module =>
@@ -6442,7 +6445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6555,7 +6558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         new MyCollection(new List<int>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6604,7 +6607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6653,7 +6656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6702,7 +6705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6742,7 +6745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6804,7 +6807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T>(items.ToArray());
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6869,7 +6872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection(items.ToArray());
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6918,7 +6921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection(items.ToArray());
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -6960,7 +6963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7014,7 +7017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new C<T>(new List<E<T>>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7064,7 +7067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyImmutableDictionary<K, V>(items);
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7110,7 +7113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 """;
-            comp = CreateCompilation(new[] { sourceB, CollectionBuilderAttributeDefinition }, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
             var refB = comp.EmitToImageReference();
 
             string sourceC = """
@@ -7153,7 +7156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7204,7 +7207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(4,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(null, "Create")]
@@ -7288,7 +7291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
@@ -7380,7 +7383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(MyCollectionBuilder), "ToString")]
@@ -7421,7 +7424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(4,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(int*), "ToString")]
@@ -7461,7 +7464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(6,24): error CS0416: 'T': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(T), "ToString")]
@@ -7501,7 +7504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(4,2): error CS9186: The CollectionBuilderAttribute method name is invalid.
                 // [CollectionBuilder(typeof(MyCollectionBuilder), "")]
@@ -7583,7 +7586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7632,7 +7635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {{createMember}}
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -7686,7 +7689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection(new List<dynamic>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
@@ -7753,7 +7756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection(new List<{{collectionElementType}}>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
@@ -7879,7 +7882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(MyCollectionBuilder<>), "Create")]
@@ -7923,7 +7926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(MyCollectionBuilder<int>), "Create")]
@@ -7971,7 +7974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
@@ -8007,7 +8010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new Container<T>.MyCollection(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8056,7 +8059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new Container<T>.MyCollection(new List<int>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8105,7 +8108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new Container<T>.MyCollection<U>(new List<U>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8151,7 +8154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T, U>(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8197,7 +8200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T, U>(new List<U>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8240,7 +8243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8288,7 +8291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8333,7 +8336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static readonly MyCollection _instance = [1, 2, 3];
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8379,7 +8382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8441,7 +8444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8493,7 +8496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8553,7 +8556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {{methodDeclaration}}
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8598,7 +8601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8643,7 +8646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T, int> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8745,7 +8748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8790,7 +8793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8847,7 +8850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,27): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
                 // [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
@@ -8881,7 +8884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8927,7 +8930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -8985,7 +8988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(6,34): error CS8901: 'MyCollectionBuilder.Create<string>(ReadOnlySpan<string>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         MyCollection<string> x = [];
@@ -9024,7 +9027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T>(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB1 = """
@@ -9087,7 +9090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         => new MyCollection<T>(new List<T>(items.ToArray()));
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB1 = """
@@ -9161,7 +9164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(7,22): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //         MyCollection<int> y = [1, 2, 3];
@@ -9191,7 +9194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -9262,7 +9265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,2): error CS9185: The CollectionBuilderAttribute builder type must be a non-generic class or struct.
                 // [CollectionBuilder(typeof(Container<string>.MyCollectionBuilder), "Create")]
@@ -9320,7 +9323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
@@ -9424,7 +9427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(24,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
@@ -9452,7 +9455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static MyCollection<T> F<T>() => [];
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
             var refA = comp.EmitToImageReference();
 
@@ -9498,7 +9501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(8,42): error CS9188: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
                 //     public static MyCollection<T> F() => [];
@@ -9536,7 +9539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>({{builderParameterModifier}} ReadOnlySpan<T> items) => new(items);
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -9601,7 +9604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(16,78): error CS8347: Cannot use a result of 'MyCollection<T>.MyCollection(ReadOnlySpan<T>)' in this context because it may expose variables referenced by parameter 'items' outside of their declaration scope
                 //     public static MyCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => new(items);
@@ -9629,7 +9632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
@@ -9703,7 +9706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(
-                new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition, s_collectionExtensions },
+                new[] { sourceA, sourceB, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Fails,
                 expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
@@ -9874,7 +9877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(6,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [CollectionBuilder(typeof(MyCollectionBuilder), MyCollectionBuilder.GetName([1, 2, 3]))]
