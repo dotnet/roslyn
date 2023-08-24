@@ -18016,7 +18016,7 @@ class C
                 """;
 
             CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (5,15): error CS9203: Expected interpolated string
+                // (5,15): error CS9204: Expected interpolated string
                 //         ByVal("");
                 Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
@@ -18053,7 +18053,7 @@ class C
                 """;
 
             CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (5,15): error CS9203: Expected interpolated string
+                // (5,15): error CS9204: Expected interpolated string
                 //         ByRef("");
                 Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
@@ -18090,7 +18090,7 @@ class C
                 """;
 
             CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (5,14): error CS9203: Expected interpolated string
+                // (5,14): error CS9204: Expected interpolated string
                 //         ByIn("");
                 Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 14),
                 // (6,18): error CS1510: A ref or out value must be an assignable variable
