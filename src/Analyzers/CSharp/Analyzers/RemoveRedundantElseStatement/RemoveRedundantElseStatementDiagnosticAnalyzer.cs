@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
             var operation = semanticModel.GetRequiredOperation(elseClause.Statement, cancellationToken);
 
             return operation is IBlockOperation blockOperation &&
-                blockOperation.Locals.Any(local => existingSymbols[local.Name].Any(other => local != other));
+                blockOperation.Locals.Any(local => existingSymbols[local.Name].Any(other => !Equals(local, other)));
         }
     }
 }
