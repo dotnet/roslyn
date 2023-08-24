@@ -947,14 +947,7 @@ namespace CSharpSyntaxGenerator
                         Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                         if (IsOptional(field))
                         {
-                            WriteLine();
-                            OpenBlock();
-                            WriteLine("get");
-                            OpenBlock();
-                            WriteLine($"var slot = ((InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
-                            WriteLine($"return slot != null ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
-                            CloseBlock();
-                            CloseBlock();
+                            WriteLine($" => ((InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)} is {{ }} slot ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                         }
                         else
                         {
@@ -964,14 +957,8 @@ namespace CSharpSyntaxGenerator
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
                         WriteComment(field.PropertyComment, "");
-                        WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
-                        OpenBlock();
-                        WriteLine("get");
-                        OpenBlock();
-                        WriteLine($"var slot = this.Green.GetSlot({i});");
-                        WriteLine($"return slot != null ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
-                        CloseBlock();
-                        CloseBlock();
+                        Write($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name} => ");
+                        WriteLine($"this.Green.GetSlot({i}) is {{ }} slot ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                     }
                     else
                     {
@@ -984,15 +971,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else if (IsSeparatedNodeList(field.Type))
                         {
-                            WriteLine();
-                            OpenBlock();
-                            WriteLine("get");
-                            OpenBlock();
-
-                            WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
-                            WriteLine($"return red != null ? new(red, {GetChildIndex(i)}) : default;");
-                            CloseBlock();
-                            CloseBlock();
+                            WriteLine($" => GetRed(ref this.{CamelCase(field.Name)}, {i}) is {{ }} red ? new(red, {GetChildIndex(i)}) : default;");
                         }
                         else if (field.Type == "SyntaxNodeOrTokenList")
                         {
