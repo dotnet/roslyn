@@ -15223,11 +15223,11 @@ public sealed partial class IfDirectiveTriviaSyntax : ConditionalDirectiveTrivia
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).IsActive;
 
-    public override bool BranchTaken => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).BranchTaken;
+    public override bool BranchTaken => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).BranchTaken;
 
-    public override bool ConditionValue => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue;
+    public override bool ConditionValue => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue;
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
@@ -15283,11 +15283,11 @@ public sealed partial class ElifDirectiveTriviaSyntax : ConditionalDirectiveTriv
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).IsActive;
 
-    public override bool BranchTaken => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).BranchTaken;
+    public override bool BranchTaken => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).BranchTaken;
 
-    public override bool ConditionValue => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue;
+    public override bool ConditionValue => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue;
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
@@ -15340,9 +15340,9 @@ public sealed partial class ElseDirectiveTriviaSyntax : BranchingDirectiveTrivia
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).IsActive;
 
-    public override bool BranchTaken => ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).BranchTaken;
+    public override bool BranchTaken => ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).BranchTaken;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15392,7 +15392,7 @@ public sealed partial class EndIfDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15441,7 +15441,7 @@ public sealed partial class RegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15490,7 +15490,7 @@ public sealed partial class EndRegionDirectiveTriviaSyntax : DirectiveTriviaSynt
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15539,7 +15539,7 @@ public sealed partial class ErrorDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15588,7 +15588,7 @@ public sealed partial class WarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15637,7 +15637,7 @@ public sealed partial class BadDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15688,7 +15688,7 @@ public sealed partial class DefineDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15740,7 +15740,7 @@ public sealed partial class UndefDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15820,7 +15820,7 @@ public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTrivi
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15942,7 +15942,7 @@ public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveT
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index)
         => index switch
@@ -16024,7 +16024,7 @@ public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTrivia
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(5), GetChildIndex(5));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.errorCodes, 4)! : null;
 
@@ -16086,7 +16086,7 @@ public sealed partial class PragmaChecksumDirectiveTriviaSyntax : DirectiveTrivi
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(6), GetChildIndex(6));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16141,7 +16141,7 @@ public sealed partial class ReferenceDirectiveTriviaSyntax : DirectiveTriviaSynt
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16193,7 +16193,7 @@ public sealed partial class LoadDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16243,7 +16243,7 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16303,7 +16303,7 @@ public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSynta
 
     public override SyntaxToken EndOfDirectiveToken => new(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
-    public override bool IsActive => ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive;
+    public override bool IsActive => ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive;
 
     internal override SyntaxNode? GetNodeSlot(int index) => null;
 
