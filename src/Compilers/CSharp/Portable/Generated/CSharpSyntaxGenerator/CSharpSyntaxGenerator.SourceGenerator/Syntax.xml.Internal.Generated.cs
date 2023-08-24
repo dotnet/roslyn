@@ -414,7 +414,7 @@ internal sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     /// <summary>SyntaxToken representing less than.</summary>
     public SyntaxToken LessThanToken => this.lessThanToken;
     /// <summary>SeparatedSyntaxList of TypeSyntax node representing the type arguments.</summary>
-    public CoreSyntax.SeparatedSyntaxList<TypeSyntax> Arguments => new CoreSyntax.SeparatedSyntaxList<TypeSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
+    public CoreSyntax.SeparatedSyntaxList<TypeSyntax> Arguments => new(new(this.arguments));
     /// <summary>SyntaxToken representing greater than.</summary>
     public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
@@ -757,7 +757,7 @@ internal sealed partial class ArrayTypeSyntax : TypeSyntax
     /// <summary>TypeSyntax node representing the type of the element of the array.</summary>
     public TypeSyntax ElementType => this.elementType;
     /// <summary>SyntaxList of ArrayRankSpecifierSyntax nodes representing the list of rank specifiers for the array.</summary>
-    public CoreSyntax.SyntaxList<ArrayRankSpecifierSyntax> RankSpecifiers => new CoreSyntax.SyntaxList<ArrayRankSpecifierSyntax>(this.rankSpecifiers);
+    public CoreSyntax.SyntaxList<ArrayRankSpecifierSyntax> RankSpecifiers => new(this.rankSpecifiers);
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -876,7 +876,7 @@ internal sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
     }
 
     public SyntaxToken OpenBracketToken => this.openBracketToken;
-    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Sizes => new CoreSyntax.SeparatedSyntaxList<ExpressionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.sizes));
+    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Sizes => new(new(this.sizes));
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -1249,7 +1249,7 @@ internal sealed partial class FunctionPointerParameterListSyntax : CSharpSyntaxN
     /// <summary>SyntaxToken representing the less than token.</summary>
     public SyntaxToken LessThanToken => this.lessThanToken;
     /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
-    public CoreSyntax.SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<FunctionPointerParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public CoreSyntax.SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>SyntaxToken representing the greater than token.</summary>
     public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
@@ -1493,7 +1493,7 @@ internal sealed partial class FunctionPointerUnmanagedCallingConventionListSynta
     /// <summary>SyntaxToken representing open bracket.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
-    public CoreSyntax.SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions => new CoreSyntax.SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.callingConventions));
+    public CoreSyntax.SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions => new(new(this.callingConventions));
     /// <summary>SyntaxToken representing close bracket.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
@@ -1809,7 +1809,7 @@ internal sealed partial class TupleTypeSyntax : TypeSyntax
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public CoreSyntax.SeparatedSyntaxList<TupleElementSyntax> Elements => new CoreSyntax.SeparatedSyntaxList<TupleElementSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.elements));
+    public CoreSyntax.SeparatedSyntaxList<TupleElementSyntax> Elements => new(new(this.elements));
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -2520,7 +2520,7 @@ internal sealed partial class TupleExpressionSyntax : ExpressionSyntax
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new CoreSyntax.SeparatedSyntaxList<ArgumentSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
+    public CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new(new(this.arguments));
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -5432,7 +5432,7 @@ internal sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     /// <summary>SyntaxToken representing open parenthesis.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public override CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new CoreSyntax.SeparatedSyntaxList<ArgumentSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
+    public override CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new(new(this.arguments));
     /// <summary>SyntaxToken representing close parenthesis.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -5561,7 +5561,7 @@ internal sealed partial class BracketedArgumentListSyntax : BaseArgumentListSynt
     /// <summary>SyntaxToken representing open bracket.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public override CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new CoreSyntax.SeparatedSyntaxList<ArgumentSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
+    public override CoreSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => new(new(this.arguments));
     /// <summary>SyntaxToken representing close bracket.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
@@ -6351,7 +6351,7 @@ internal sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctio
         }
     }
 
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>SyntaxToken representing the delegate keyword.</summary>
     public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
@@ -6577,8 +6577,8 @@ internal sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyn
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
     public ParameterSyntax Parameter => this.parameter;
     /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6904,8 +6904,8 @@ internal sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpres
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public TypeSyntax? ReturnType => this.returnType;
     /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
     public ParameterListSyntax ParameterList => this.parameterList;
@@ -7079,7 +7079,7 @@ internal sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     /// <summary>SyntaxToken representing the open brace.</summary>
     public SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
-    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Expressions => new CoreSyntax.SeparatedSyntaxList<ExpressionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.expressions));
+    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Expressions => new(new(this.expressions));
     /// <summary>SyntaxToken representing the close brace.</summary>
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
@@ -7756,7 +7756,7 @@ internal sealed partial class AnonymousObjectCreationExpressionSyntax : Expressi
     /// <summary>SyntaxToken representing the open brace.</summary>
     public SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
-    public CoreSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers => new CoreSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
+    public CoreSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers => new(new(this.initializers));
     /// <summary>SyntaxToken representing the close brace.</summary>
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
@@ -8035,7 +8035,7 @@ internal sealed partial class ImplicitArrayCreationExpressionSyntax : Expression
     /// <summary>SyntaxToken representing the open bracket.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SyntaxList of SyntaxToken representing the commas in the implicit array creation expression.</summary>
-    public CoreSyntax.SyntaxList<SyntaxToken> Commas => new CoreSyntax.SyntaxList<SyntaxToken>(this.commas);
+    public CoreSyntax.SyntaxList<SyntaxToken> Commas => new(this.commas);
     /// <summary>SyntaxToken representing the close bracket.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
     /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
@@ -8434,7 +8434,7 @@ internal sealed partial class CollectionExpressionSyntax : ExpressionSyntax
 
     public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
-    public CoreSyntax.SeparatedSyntaxList<CollectionElementSyntax> Elements => new CoreSyntax.SeparatedSyntaxList<CollectionElementSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.elements));
+    public CoreSyntax.SeparatedSyntaxList<CollectionElementSyntax> Elements => new(new(this.elements));
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -8904,7 +8904,7 @@ internal sealed partial class QueryBodySyntax : CSharpSyntaxNode
         }
     }
 
-    public CoreSyntax.SyntaxList<QueryClauseSyntax> Clauses => new CoreSyntax.SyntaxList<QueryClauseSyntax>(this.clauses);
+    public CoreSyntax.SyntaxList<QueryClauseSyntax> Clauses => new(this.clauses);
     public SelectOrGroupClauseSyntax SelectOrGroup => this.selectOrGroup;
     public QueryContinuationSyntax? Continuation => this.continuation;
 
@@ -9735,7 +9735,7 @@ internal sealed partial class OrderByClauseSyntax : QueryClauseSyntax
     }
 
     public SyntaxToken OrderByKeyword => this.orderByKeyword;
-    public CoreSyntax.SeparatedSyntaxList<OrderingSyntax> Orderings => new CoreSyntax.SeparatedSyntaxList<OrderingSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.orderings));
+    public CoreSyntax.SeparatedSyntaxList<OrderingSyntax> Orderings => new(new(this.orderings));
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -10393,7 +10393,7 @@ internal sealed partial class InterpolatedStringExpressionSyntax : ExpressionSyn
     /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
     public SyntaxToken StringStartToken => this.stringStartToken;
     /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
-    public CoreSyntax.SyntaxList<InterpolatedStringContentSyntax> Contents => new CoreSyntax.SyntaxList<InterpolatedStringContentSyntax>(this.contents);
+    public CoreSyntax.SyntaxList<InterpolatedStringContentSyntax> Contents => new(this.contents);
     /// <summary>The closing quote of the interpolated string.</summary>
     public SyntaxToken StringEndToken => this.stringEndToken;
 
@@ -11310,7 +11310,7 @@ internal sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
     }
 
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public CoreSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new CoreSyntax.SeparatedSyntaxList<SubpatternSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns));
+    public CoreSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new(new(this.subpatterns));
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -11435,7 +11435,7 @@ internal sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
     }
 
     public SyntaxToken OpenBraceToken => this.openBraceToken;
-    public CoreSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new CoreSyntax.SeparatedSyntaxList<SubpatternSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns));
+    public CoreSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new(new(this.subpatterns));
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -12283,7 +12283,7 @@ internal sealed partial class ListPatternSyntax : PatternSyntax
     }
 
     public SyntaxToken OpenBracketToken => this.openBracketToken;
-    public CoreSyntax.SeparatedSyntaxList<PatternSyntax> Patterns => new CoreSyntax.SeparatedSyntaxList<PatternSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.patterns));
+    public CoreSyntax.SeparatedSyntaxList<PatternSyntax> Patterns => new(new(this.patterns));
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
     public VariableDesignationSyntax? Designation => this.designation;
 
@@ -13007,8 +13007,8 @@ internal sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public StatementSyntax Statement => this.statement;
 
     internal override GreenNode? GetSlot(int index)
@@ -13172,9 +13172,9 @@ internal sealed partial class BlockSyntax : StatementSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken OpenBraceToken => this.openBraceToken;
-    public CoreSyntax.SyntaxList<StatementSyntax> Statements => new CoreSyntax.SyntaxList<StatementSyntax>(this.statements);
+    public CoreSyntax.SyntaxList<StatementSyntax> Statements => new(this.statements);
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -13409,14 +13409,14 @@ internal sealed partial class LocalFunctionStatementSyntax : StatementSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public ParameterListSyntax ParameterList => this.parameterList;
-    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public BlockSyntax? Body => this.body;
     public ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
@@ -13644,11 +13644,11 @@ internal sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public SyntaxToken? UsingKeyword => this.usingKeyword;
     /// <summary>Gets the modifier list.</summary>
-    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public VariableDeclarationSyntax Declaration => this.declaration;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -13791,7 +13791,7 @@ internal sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
     }
 
     public TypeSyntax Type => this.type;
-    public CoreSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> Variables => new CoreSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.variables));
+    public CoreSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> Variables => new(new(this.variables));
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -14332,7 +14332,7 @@ internal sealed partial class ParenthesizedVariableDesignationSyntax : VariableD
     }
 
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public CoreSyntax.SeparatedSyntaxList<VariableDesignationSyntax> Variables => new CoreSyntax.SeparatedSyntaxList<VariableDesignationSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.variables));
+    public CoreSyntax.SeparatedSyntaxList<VariableDesignationSyntax> Variables => new(new(this.variables));
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -14456,7 +14456,7 @@ internal sealed partial class ExpressionStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public ExpressionSyntax Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -14574,7 +14574,7 @@ internal sealed partial class EmptyStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -14701,7 +14701,7 @@ internal sealed partial class LabeledStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
@@ -14869,7 +14869,7 @@ internal sealed partial class GotoStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the goto keyword.
     /// </summary>
@@ -15024,7 +15024,7 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken BreakKeyword => this.breakKeyword;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -15149,7 +15149,7 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken ContinueKeyword => this.continueKeyword;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -15290,7 +15290,7 @@ internal sealed partial class ReturnStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken ReturnKeyword => this.returnKeyword;
     public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
@@ -15440,7 +15440,7 @@ internal sealed partial class ThrowStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken ThrowKeyword => this.throwKeyword;
     public ExpressionSyntax? Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
@@ -15597,7 +15597,7 @@ internal sealed partial class YieldStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken YieldKeyword => this.yieldKeyword;
     public SyntaxToken ReturnOrBreakKeyword => this.returnOrBreakKeyword;
     public ExpressionSyntax? Expression => this.expression;
@@ -15758,7 +15758,7 @@ internal sealed partial class WhileStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken WhileKeyword => this.whileKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public ExpressionSyntax Condition => this.condition;
@@ -15936,7 +15936,7 @@ internal sealed partial class DoStatementSyntax : StatementSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken DoKeyword => this.doKeyword;
     public StatementSyntax Statement => this.statement;
     public SyntaxToken WhileKeyword => this.whileKeyword;
@@ -16183,15 +16183,15 @@ internal sealed partial class ForStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken ForKeyword => this.forKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public VariableDeclarationSyntax? Declaration => this.declaration;
-    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Initializers => new CoreSyntax.SeparatedSyntaxList<ExpressionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
+    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Initializers => new(new(this.initializers));
     public SyntaxToken FirstSemicolonToken => this.firstSemicolonToken;
     public ExpressionSyntax? Condition => this.condition;
     public SyntaxToken SecondSemicolonToken => this.secondSemicolonToken;
-    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Incrementors => new CoreSyntax.SeparatedSyntaxList<ExpressionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.incrementors));
+    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> Incrementors => new(new(this.incrementors));
     public SyntaxToken CloseParenToken => this.closeParenToken;
     public StatementSyntax Statement => this.statement;
 
@@ -16458,7 +16458,7 @@ internal sealed partial class ForEachStatementSyntax : CommonForEachStatementSyn
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public override SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
@@ -16680,7 +16680,7 @@ internal sealed partial class ForEachVariableStatementSyntax : CommonForEachStat
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public override SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
@@ -16912,7 +16912,7 @@ internal sealed partial class UsingStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken? AwaitKeyword => this.awaitKeyword;
     public SyntaxToken UsingKeyword => this.usingKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
@@ -17097,7 +17097,7 @@ internal sealed partial class FixedStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken FixedKeyword => this.fixedKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public VariableDeclarationSyntax Declaration => this.declaration;
@@ -17240,7 +17240,7 @@ internal sealed partial class CheckedStatementSyntax : StatementSyntax
         this.block = block;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken Keyword => this.keyword;
     public BlockSyntax Block => this.block;
 
@@ -17365,7 +17365,7 @@ internal sealed partial class UnsafeStatementSyntax : StatementSyntax
         this.block = block;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken UnsafeKeyword => this.unsafeKeyword;
     public BlockSyntax Block => this.block;
 
@@ -17511,7 +17511,7 @@ internal sealed partial class LockStatementSyntax : StatementSyntax
         this.statement = statement;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken LockKeyword => this.lockKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public ExpressionSyntax Expression => this.expression;
@@ -17694,7 +17694,7 @@ internal sealed partial class IfStatementSyntax : StatementSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the if keyword.
     /// </summary>
@@ -18031,7 +18031,7 @@ internal sealed partial class SwitchStatementSyntax : StatementSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the switch keyword.
     /// </summary>
@@ -18055,7 +18055,7 @@ internal sealed partial class SwitchStatementSyntax : StatementSyntax
     /// <summary>
     /// Gets a SyntaxList of SwitchSectionSyntax's that represents the switch sections of the switch statement.
     /// </summary>
-    public CoreSyntax.SyntaxList<SwitchSectionSyntax> Sections => new CoreSyntax.SyntaxList<SwitchSectionSyntax>(this.sections);
+    public CoreSyntax.SyntaxList<SwitchSectionSyntax> Sections => new(this.sections);
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces following the switch sections.
     /// </summary>
@@ -18222,11 +18222,11 @@ internal sealed partial class SwitchSectionSyntax : CSharpSyntaxNode
     /// <summary>
     /// Gets a SyntaxList of SwitchLabelSyntax's the represents the possible labels that control can transfer to within the section.
     /// </summary>
-    public CoreSyntax.SyntaxList<SwitchLabelSyntax> Labels => new CoreSyntax.SyntaxList<SwitchLabelSyntax>(this.labels);
+    public CoreSyntax.SyntaxList<SwitchLabelSyntax> Labels => new(this.labels);
     /// <summary>
     /// Gets a SyntaxList of StatementSyntax's the represents the statements to be executed when control transfer to a label the belongs to the section.
     /// </summary>
-    public CoreSyntax.SyntaxList<StatementSyntax> Statements => new CoreSyntax.SyntaxList<StatementSyntax>(this.statements);
+    public CoreSyntax.SyntaxList<StatementSyntax> Statements => new(this.statements);
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -18756,7 +18756,7 @@ internal sealed partial class SwitchExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax GoverningExpression => this.governingExpression;
     public SyntaxToken SwitchKeyword => this.switchKeyword;
     public SyntaxToken OpenBraceToken => this.openBraceToken;
-    public CoreSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms => new CoreSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arms));
+    public CoreSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms => new(new(this.arms));
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -19060,10 +19060,10 @@ internal sealed partial class TryStatementSyntax : StatementSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken TryKeyword => this.tryKeyword;
     public BlockSyntax Block => this.block;
-    public CoreSyntax.SyntaxList<CatchClauseSyntax> Catches => new CoreSyntax.SyntaxList<CatchClauseSyntax>(this.catches);
+    public CoreSyntax.SyntaxList<CatchClauseSyntax> Catches => new(this.catches);
     public FinallyClauseSyntax? Finally => this.@finally;
 
     internal override GreenNode? GetSlot(int index)
@@ -19758,11 +19758,11 @@ internal sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
         this.endOfFileToken = endOfFileToken;
     }
 
-    public CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
-    public CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new CoreSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
+    public CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new(this.externs);
+    public CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new(this.usings);
     /// <summary>Gets the attribute declaration list.</summary>
-    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public SyntaxToken EndOfFileToken => this.endOfFileToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -20398,14 +20398,14 @@ internal sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclarat
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override SyntaxToken NamespaceKeyword => this.namespaceKeyword;
     public override NameSyntax Name => this.name;
     public SyntaxToken OpenBraceToken => this.openBraceToken;
-    public override CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
-    public override CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new CoreSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new(this.externs);
+    public override CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new(this.usings);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
     public SyntaxToken? SemicolonToken => this.semicolonToken;
@@ -20652,14 +20652,14 @@ internal sealed partial class FileScopedNamespaceDeclarationSyntax : BaseNamespa
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override SyntaxToken NamespaceKeyword => this.namespaceKeyword;
     public override NameSyntax Name => this.name;
     public SyntaxToken SemicolonToken => this.semicolonToken;
-    public override CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
-    public override CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new CoreSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new(this.externs);
+    public override CoreSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new(this.usings);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -20841,7 +20841,7 @@ internal sealed partial class AttributeListSyntax : CSharpSyntaxNode
     /// <summary>Gets the optional construct targeted by the attribute.</summary>
     public AttributeTargetSpecifierSyntax? Target => this.target;
     /// <summary>Gets the attribute declaration list.</summary>
-    public CoreSyntax.SeparatedSyntaxList<AttributeSyntax> Attributes => new CoreSyntax.SeparatedSyntaxList<AttributeSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.attributes));
+    public CoreSyntax.SeparatedSyntaxList<AttributeSyntax> Attributes => new(new(this.attributes));
     /// <summary>Gets the close bracket token.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
@@ -21195,7 +21195,7 @@ internal sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     /// <summary>Gets the open paren token.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Gets the arguments syntax list.</summary>
-    public CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> Arguments => new CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
+    public CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> Arguments => new(new(this.arguments));
     /// <summary>Gets the close paren token.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -21565,7 +21565,7 @@ internal sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     /// <summary>Gets the &lt; token.</summary>
     public SyntaxToken LessThanToken => this.lessThanToken;
     /// <summary>Gets the parameter list.</summary>
-    public CoreSyntax.SeparatedSyntaxList<TypeParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<TypeParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public CoreSyntax.SeparatedSyntaxList<TypeParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>Gets the &gt; token.</summary>
     public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
@@ -21701,7 +21701,7 @@ internal sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     public SyntaxToken? VarianceKeyword => this.varianceKeyword;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
@@ -22041,17 +22041,17 @@ internal sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the class keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax? ParameterList => this.parameterList;
     public override BaseListSyntax? BaseList => this.baseList;
-    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
     public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
@@ -22393,17 +22393,17 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the struct keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax? ParameterList => this.parameterList;
     public override BaseListSyntax? BaseList => this.baseList;
-    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
     public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
@@ -22745,17 +22745,17 @@ internal sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the interface keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax? ParameterList => this.parameterList;
     public override BaseListSyntax? BaseList => this.baseList;
-    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
     public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
@@ -23112,17 +23112,17 @@ internal sealed partial class RecordDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override SyntaxToken Keyword => this.keyword;
     public SyntaxToken? ClassOrStructKeyword => this.classOrStructKeyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax? ParameterList => this.parameterList;
     public override BaseListSyntax? BaseList => this.baseList;
-    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
-    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new(this.members);
     public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
     public override SyntaxToken? SemicolonToken => this.semicolonToken;
 
@@ -23424,15 +23424,15 @@ internal sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the enum keyword token.</summary>
     public SyntaxToken EnumKeyword => this.enumKeyword;
     public override SyntaxToken Identifier => this.identifier;
     public override BaseListSyntax? BaseList => this.baseList;
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
     /// <summary>Gets the members declaration list.</summary>
-    public CoreSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members => new CoreSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.members));
+    public CoreSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members => new(new(this.members));
     public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
     public override SyntaxToken? SemicolonToken => this.semicolonToken;
@@ -23676,8 +23676,8 @@ internal sealed partial class DelegateDeclarationSyntax : MemberDeclarationSynta
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the "delegate" keyword.</summary>
     public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>Gets the return type.</summary>
@@ -23688,7 +23688,7 @@ internal sealed partial class DelegateDeclarationSyntax : MemberDeclarationSynta
     /// <summary>Gets the parameter list.</summary>
     public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
-    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     /// <summary>Gets the semicolon token.</summary>
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -23877,8 +23877,8 @@ internal sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyn
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public EqualsValueClauseSyntax? EqualsValue => this.equalsValue;
@@ -24012,7 +24012,7 @@ internal sealed partial class BaseListSyntax : CSharpSyntaxNode
     /// <summary>Gets the colon token.</summary>
     public SyntaxToken ColonToken => this.colonToken;
     /// <summary>Gets the base type references.</summary>
-    public CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> Types => new CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.types));
+    public CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> Types => new(new(this.types));
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -24348,7 +24348,7 @@ internal sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntax
     /// <summary>Gets the colon token.</summary>
     public SyntaxToken ColonToken => this.colonToken;
     /// <summary>Gets the constraints list.</summary>
-    public CoreSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints => new CoreSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.constraints));
+    public CoreSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints => new(new(this.constraints));
 
     internal override GreenNode? GetSlot(int index)
         => index switch
@@ -24935,8 +24935,8 @@ internal sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSynta
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override VariableDeclarationSyntax Declaration => this.declaration;
     public override SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -25092,8 +25092,8 @@ internal sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclaration
         this.semicolonToken = semicolonToken;
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public SyntaxToken EventKeyword => this.eventKeyword;
     public override VariableDeclarationSyntax Declaration => this.declaration;
     public override SyntaxToken SemicolonToken => this.semicolonToken;
@@ -25481,8 +25481,8 @@ internal sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSyn
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the return type syntax.</summary>
     public TypeSyntax ReturnType => this.returnType;
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
@@ -25491,7 +25491,7 @@ internal sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSyn
     public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
-    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new(this.constraintClauses);
     public override BlockSyntax? Body => this.body;
     public override ArrowExpressionClauseSyntax? ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
@@ -25790,8 +25790,8 @@ internal sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationS
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the return type.</summary>
     public TypeSyntax ReturnType => this.returnType;
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
@@ -26097,8 +26097,8 @@ internal sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDe
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the "implicit" or "explicit" token.</summary>
     public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
     public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
@@ -26374,8 +26374,8 @@ internal sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclarati
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     public override ParameterListSyntax ParameterList => this.parameterList;
@@ -26734,8 +26734,8 @@ internal sealed partial class DestructorDeclarationSyntax : BaseMethodDeclaratio
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the tilde token.</summary>
     public SyntaxToken TildeToken => this.tildeToken;
     /// <summary>Gets the identifier.</summary>
@@ -27027,8 +27027,8 @@ internal sealed partial class PropertyDeclarationSyntax : BasePropertyDeclaratio
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override TypeSyntax Type => this.type;
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
@@ -27379,8 +27379,8 @@ internal sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSy
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public SyntaxToken EventKeyword => this.eventKeyword;
     public override TypeSyntax Type => this.type;
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
@@ -27634,8 +27634,8 @@ internal sealed partial class IndexerDeclarationSyntax : BasePropertyDeclaration
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override TypeSyntax Type => this.type;
     public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     public SyntaxToken ThisKeyword => this.thisKeyword;
@@ -27812,7 +27812,7 @@ internal sealed partial class AccessorListSyntax : CSharpSyntaxNode
     }
 
     public SyntaxToken OpenBraceToken => this.openBraceToken;
-    public CoreSyntax.SyntaxList<AccessorDeclarationSyntax> Accessors => new CoreSyntax.SyntaxList<AccessorDeclarationSyntax>(this.accessors);
+    public CoreSyntax.SyntaxList<AccessorDeclarationSyntax> Accessors => new(this.accessors);
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -27994,9 +27994,9 @@ internal sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     /// <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
     public SyntaxToken Keyword => this.keyword;
     /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
@@ -28179,7 +28179,7 @@ internal sealed partial class ParameterListSyntax : BaseParameterListSyntax
 
     /// <summary>Gets the open paren token.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public override CoreSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<ParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public override CoreSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>Gets the close paren token.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -28307,7 +28307,7 @@ internal sealed partial class BracketedParameterListSyntax : BaseParameterListSy
 
     /// <summary>Gets the open bracket token.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
-    public override CoreSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<ParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public override CoreSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>Gets the close bracket token.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
@@ -28502,9 +28502,9 @@ internal sealed partial class ParameterSyntax : BaseParameterSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override TypeSyntax? Type => this.type;
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
@@ -28661,9 +28661,9 @@ internal sealed partial class FunctionPointerParameterSyntax : BaseParameterSynt
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public override TypeSyntax Type => this.type;
 
     internal override GreenNode? GetSlot(int index)
@@ -28808,8 +28808,8 @@ internal sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
         }
     }
 
-    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
-    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new(this.modifiers);
     public TypeSyntax? Type => this.type;
 
     internal override GreenNode? GetSlot(int index)
@@ -28925,7 +28925,7 @@ internal sealed partial class SkippedTokensTriviaSyntax : StructuredTriviaSyntax
         }
     }
 
-    public CoreSyntax.SyntaxList<SyntaxToken> Tokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.tokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> Tokens => new(this.tokens);
 
     internal override GreenNode? GetSlot(int index)
         => index == 0 ? this.tokens : null;
@@ -29027,7 +29027,7 @@ internal sealed partial class DocumentationCommentTriviaSyntax : StructuredTrivi
         this.endOfComment = endOfComment;
     }
 
-    public CoreSyntax.SyntaxList<XmlNodeSyntax> Content => new CoreSyntax.SyntaxList<XmlNodeSyntax>(this.content);
+    public CoreSyntax.SyntaxList<XmlNodeSyntax> Content => new(this.content);
     public SyntaxToken EndOfComment => this.endOfComment;
 
     internal override GreenNode? GetSlot(int index)
@@ -29990,7 +29990,7 @@ internal sealed partial class CrefParameterListSyntax : BaseCrefParameterListSyn
 
     /// <summary>Gets the open paren token.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
-    public override CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public override CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>Gets the close paren token.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
 
@@ -30120,7 +30120,7 @@ internal sealed partial class CrefBracketedParameterListSyntax : BaseCrefParamet
 
     /// <summary>Gets the open bracket token.</summary>
     public SyntaxToken OpenBracketToken => this.openBracketToken;
-    public override CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => new CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+    public override CoreSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => new(new(this.parameters));
     /// <summary>Gets the close bracket token.</summary>
     public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
@@ -30407,7 +30407,7 @@ internal sealed partial class XmlElementSyntax : XmlNodeSyntax
     }
 
     public XmlElementStartTagSyntax StartTag => this.startTag;
-    public CoreSyntax.SyntaxList<XmlNodeSyntax> Content => new CoreSyntax.SyntaxList<XmlNodeSyntax>(this.content);
+    public CoreSyntax.SyntaxList<XmlNodeSyntax> Content => new(this.content);
     public XmlElementEndTagSyntax EndTag => this.endTag;
 
     internal override GreenNode? GetSlot(int index)
@@ -30540,7 +30540,7 @@ internal sealed partial class XmlElementStartTagSyntax : CSharpSyntaxNode
 
     public SyntaxToken LessThanToken => this.lessThanToken;
     public XmlNameSyntax Name => this.name;
-    public CoreSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new CoreSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes);
+    public CoreSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new(this.attributes);
     public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -30791,7 +30791,7 @@ internal sealed partial class XmlEmptyElementSyntax : XmlNodeSyntax
 
     public SyntaxToken LessThanToken => this.lessThanToken;
     public XmlNameSyntax Name => this.name;
-    public CoreSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new CoreSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes);
+    public CoreSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new(this.attributes);
     public SyntaxToken SlashGreaterThanToken => this.slashGreaterThanToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -31175,7 +31175,7 @@ internal sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
     public override XmlNameSyntax Name => this.name;
     public override SyntaxToken EqualsToken => this.equalsToken;
     public override SyntaxToken StartQuoteToken => this.startQuoteToken;
-    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new(this.textTokens);
     public override SyntaxToken EndQuoteToken => this.endQuoteToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -31573,7 +31573,7 @@ internal sealed partial class XmlTextSyntax : XmlNodeSyntax
         }
     }
 
-    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new(this.textTokens);
 
     internal override GreenNode? GetSlot(int index)
         => index == 0 ? this.textTokens : null;
@@ -31683,7 +31683,7 @@ internal sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
     }
 
     public SyntaxToken StartCDataToken => this.startCDataToken;
-    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new(this.textTokens);
     public SyntaxToken EndCDataToken => this.endCDataToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -31816,7 +31816,7 @@ internal sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
 
     public SyntaxToken StartProcessingInstructionToken => this.startProcessingInstructionToken;
     public XmlNameSyntax Name => this.name;
-    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new(this.textTokens);
     public SyntaxToken EndProcessingInstructionToken => this.endProcessingInstructionToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -31946,7 +31946,7 @@ internal sealed partial class XmlCommentSyntax : XmlNodeSyntax
     }
 
     public SyntaxToken LessThanExclamationMinusMinusToken => this.lessThanExclamationMinusMinusToken;
-    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new CoreSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public CoreSyntax.SyntaxList<SyntaxToken> TextTokens => new(this.textTokens);
     public SyntaxToken MinusMinusGreaterThanToken => this.minusMinusGreaterThanToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -34091,7 +34091,7 @@ internal sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTriv
     public SyntaxToken PragmaKeyword => this.pragmaKeyword;
     public SyntaxToken WarningKeyword => this.warningKeyword;
     public SyntaxToken DisableOrRestoreKeyword => this.disableOrRestoreKeyword;
-    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> ErrorCodes => new CoreSyntax.SeparatedSyntaxList<ExpressionSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.errorCodes));
+    public CoreSyntax.SeparatedSyntaxList<ExpressionSyntax> ErrorCodes => new(new(this.errorCodes));
     public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
     public override bool IsActive => this.isActive;
 

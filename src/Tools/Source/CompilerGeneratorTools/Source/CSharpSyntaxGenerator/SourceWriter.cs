@@ -224,15 +224,15 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new CoreSyntax.{field.Type}(this.{CamelCase(field.Name)});");
+                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new(this.{CamelCase(field.Name)});");
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new CoreSyntax.{field.Type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
+                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new(new(this.{CamelCase(field.Name)}));");
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)});");
+                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new(this.{CamelCase(field.Name)});");
                     }
                     else
                     {
@@ -952,13 +952,13 @@ namespace CSharpSyntaxGenerator
                             WriteLine("get");
                             OpenBlock();
                             WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
-                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                            WriteLine($"return slot != null ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                             CloseBlock();
                             CloseBlock();
                         }
                         else
                         {
-                            WriteLine($" => new SyntaxToken(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
+                            WriteLine($" => new(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
                         }
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
@@ -969,7 +969,7 @@ namespace CSharpSyntaxGenerator
                         WriteLine("get");
                         OpenBlock();
                         WriteLine($"var slot = this.Green.GetSlot({i});");
-                        WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                        WriteLine($"return slot != null ? new(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                         CloseBlock();
                         CloseBlock();
                     }
@@ -980,7 +980,7 @@ namespace CSharpSyntaxGenerator
 
                         if (IsNodeList(field.Type))
                         {
-                            WriteLine($" => new {field.Type}(GetRed(ref this.{CamelCase(field.Name)}, {i}));");
+                            WriteLine($" => new(GetRed(ref this.{CamelCase(field.Name)}, {i}));");
                         }
                         else if (IsSeparatedNodeList(field.Type))
                         {
@@ -990,7 +990,7 @@ namespace CSharpSyntaxGenerator
                             OpenBlock();
 
                             WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
-                            WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
+                            WriteLine($"return red != null ? new(red, {GetChildIndex(i)}) : default;");
                             CloseBlock();
                             CloseBlock();
                         }
