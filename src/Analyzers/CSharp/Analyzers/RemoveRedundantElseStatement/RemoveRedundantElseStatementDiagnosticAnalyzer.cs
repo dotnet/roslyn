@@ -69,22 +69,32 @@ internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractB
             return;
 
         var ifStatement = (IfStatementSyntax)context.Node;
-        if (ifStatement.Parent is not BlockSyntax and not SwitchSectionSyntax and not GlobalStatementSyntax)
+        if (!CanSimplify(context.SemanticModel, ifStatement, out var elseKeyword, context.CancellationToken))
             return;
-
-        var redundantElse = FindRedundantElse(ifStatement);
-        if (redundantElse is null ||
-            WillCauseVariableCollision(context.SemanticModel, ifStatement, redundantElse, context.CancellationToken))
-        {
-            return;
-        }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            redundantElse.ElseKeyword.GetLocation(),
+            elseKeyword.GetLocation(),
             codeStyleOption.Notification.Severity,
-            additionalLocations: ImmutableArray.Create(ifStatement.GetLocation(), redundantElse.GetLocation()),
+            additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
             properties: null));
+    }
+
+    public static bool CanSimplify(SemanticModel semanticModel, IfStatementSyntax ifStatement, out SyntaxToken elseKeyword, CancellationToken cancellationToken)
+    {
+        elseKeyword = default;
+        if (ifStatement.Parent is not BlockSyntax and not SwitchSectionSyntax and not GlobalStatementSyntax)
+            return false;
+
+        var redundantElse = FindRedundantElse(ifStatement);
+        if (redundantElse is null ||
+            WillCauseVariableCollision(semanticModel, ifStatement, redundantElse, cancellationToken))
+        {
+            return false;
+        }
+
+        elseKeyword = redundantElse.ElseKeyword;
+        return true;
     }
 
     private static ElseClauseSyntax? FindRedundantElse(IfStatementSyntax ifStatement)
