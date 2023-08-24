@@ -49,7 +49,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider() : SyntaxEdit
             .Select(diagnostic => diagnostic.AdditionalLocations[0].FindNode(cancellationToken))
             .ToSet();
 
-        var nodesToUpdate = ifStatements.Select(statement => statement.Parent!);
+        var nodesToUpdate = ifStatements.Select(statement => statement.GetRequiredParent());
 
         var root = editor.OriginalRoot;
 
