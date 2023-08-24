@@ -503,67 +503,69 @@ public class UseCollectionExpressionForEmptyTests
     [Fact]
     public async Task TestBuilder2()
     {
+        // This is an error case where someone has defined an incorrect collection builder.  It's ok in that case that
+        // we offer the feature and the user is then told there is a problem.
         await new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
             TestCode = """
-            using System;
-            using System.Collections;
-            using System.Collections.Generic;
-            using System.Runtime.CompilerServices;
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    MyList<int> x = MyList<int>.[|Empty|];
+                    void M()
+                    {
+                        MyList<int> x = MyList<int>.[|Empty|];
+                    }
                 }
-            }
 
-            [CollectionBuilder(typeof(MyList), "Create")]
-            class MyList<T> : IEnumerable<T>
-            {
-                public static MyList<T> Empty { get; }
+                [CollectionBuilder(typeof(MyList), "Create")]
+                class MyList<T> : IEnumerable<T>
+                {
+                    public static MyList<T> Empty { get; }
 
-                public IEnumerator<T> GetEnumerator() => default;
+                    public IEnumerator<T> GetEnumerator() => default;
             
-                IEnumerator IEnumerable.GetEnumerator() => default;
-            }
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
 
-            static class MyList
-            {
-                public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
-            }
-            """ + CollectionBuilderAttributeDefinition,
+                static class MyList
+                {
+                    public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
+                }
+                """ + CollectionBuilderAttributeDefinition,
             FixedCode = """
-            using System;
-            using System.Collections;
-            using System.Collections.Generic;
-            using System.Runtime.CompilerServices;
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    MyList<int> x = {|CS9187:[]|};
+                    void M()
+                    {
+                        MyList<int> x = {|CS9187:[]|};
+                    }
                 }
-            }
+
+                [CollectionBuilder(typeof(MyList), "Create")]
+                class MyList<T> : IEnumerable<T>
+                {
+                    public static MyList<T> Empty { get; }
+
+                    public IEnumerator<T> GetEnumerator() => default;
             
-            [CollectionBuilder(typeof(MyList), "Create")]
-            class MyList<T> : IEnumerable<T>
-            {
-                public static MyList<T> Empty { get; }
-            
-                public IEnumerator<T> GetEnumerator() => default;
-            
-                IEnumerator IEnumerable.GetEnumerator() => default;
-            }
-            
-            static class MyList
-            {
-                public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
-            }
-            """ + CollectionBuilderAttributeDefinition,
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+
+                static class MyList
+                {
+                    public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
+                }
+                """ + CollectionBuilderAttributeDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
