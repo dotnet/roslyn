@@ -149,7 +149,7 @@ class A
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
 
         TextEdit expectedAdditionalEdit = isInUsingStatement
-            ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(1, 20), End = new(1, 24) } }
+            ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(0, 20), End = new(0, 24) } }
             : new() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
 
         AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
