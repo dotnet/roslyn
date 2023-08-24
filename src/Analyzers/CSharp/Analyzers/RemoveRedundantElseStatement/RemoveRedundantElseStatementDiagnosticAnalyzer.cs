@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -69,31 +70,34 @@ internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractB
             return;
 
         var ifStatement = (IfStatementSyntax)context.Node;
-        if (!CanSimplify(context.SemanticModel, ifStatement, out var elseKeyword, context.CancellationToken))
+        if (!CanSimplify(context.SemanticModel, ifStatement, out var elseClause, context.CancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            elseKeyword.GetLocation(),
+            elseClause.ElseKeyword.GetLocation(),
             codeStyleOption.Notification.Severity,
             additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
             properties: null));
     }
 
-    public static bool CanSimplify(SemanticModel semanticModel, IfStatementSyntax ifStatement, out SyntaxToken elseKeyword, CancellationToken cancellationToken)
+    public static bool CanSimplify(
+        SemanticModel semanticModel,
+        IfStatementSyntax ifStatement,
+        [NotNullWhen(true)] out ElseClauseSyntax? elseClause,
+        CancellationToken cancellationToken)
     {
-        elseKeyword = default;
+        elseClause = null;
         if (ifStatement.Parent is not BlockSyntax and not SwitchSectionSyntax and not GlobalStatementSyntax)
             return false;
 
-        var redundantElse = FindRedundantElse(ifStatement);
-        if (redundantElse is null ||
-            WillCauseVariableCollision(semanticModel, ifStatement, redundantElse, cancellationToken))
+        elseClause = FindRedundantElse(ifStatement);
+        if (elseClause is null ||
+            WillCauseVariableCollision(semanticModel, ifStatement, elseClause, cancellationToken))
         {
             return false;
         }
 
-        elseKeyword = redundantElse.ElseKeyword;
         return true;
     }
 

@@ -45,12 +45,33 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (!RemoveRedundantElseStatementDiagnosticAnalyzer.CanSimplify(semanticModel, ifStatement, out _, cancellationToken))
+        if (!RemoveRedundantElseStatementDiagnosticAnalyzer.CanSimplify(semanticModel, ifStatement, out var elseClause, cancellationToken))
             return;
 
-
+        // Cases to consider:
+        // 
+        //  1. No block.  Embedded statement on same line
+        //
+        //      else EmbeddedStatement()
+        //
+        //  2. No block.  EmbeddedStatement follows
+        //
+        //      else
+        //          EmbeddedStatement()
+        //
+        //  3. Block.  Single line after else:
+        //
+        //      else { EmbeddedStatement(); }
+        //
+        //  4. Block. After else:
+        //
+        //      else
+        //      {
+        //          ...
+        //      }
+        if (ifStatement)
     }
-
+#if false
     protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var ifStatements = diagnostics
@@ -155,4 +176,5 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             .Select(statement => statement.WithAdditionalAnnotations(Formatter.Annotation))
             .AsImmutable();
     }
+#endif
 }
