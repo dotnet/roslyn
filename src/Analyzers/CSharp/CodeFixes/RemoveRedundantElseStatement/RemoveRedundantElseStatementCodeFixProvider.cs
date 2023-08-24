@@ -82,7 +82,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         {
             editor.InsertAfter(
                 globalStatement ?? (SyntaxNode)ifStatement,
-                WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation)));
+                AddBlankLine(WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation))));
         }
         else
         {
@@ -123,6 +123,24 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
 
         SyntaxNode WrapWithGlobalStatement(StatementSyntax statement)
             => globalStatement != null ? GlobalStatement(statement) : statement;
+
+        IEnumerable<SyntaxNode> AddBlankLine(IEnumerable<SyntaxNode> nodes)
+        {
+            var first = true;
+            foreach (var node in nodes)
+            {
+                if (first && ifStatement.Statement is BlockSyntax)
+                {
+                    yield return node.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine));
+                }
+                else
+                {
+                    yield return node;
+                }
+
+                first = false;
+            }
+        }
 
         IEnumerable<StatementSyntax> UpdateIndentation(SyntaxList<StatementSyntax> statements, string ifIndentation)
         {
