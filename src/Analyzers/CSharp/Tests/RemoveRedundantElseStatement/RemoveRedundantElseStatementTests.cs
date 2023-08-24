@@ -758,9 +758,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                     int j = 0;
                                 }
 
-                    			{
-                    				int j = 0;
-                    			}
+                                {
+                                    int j = 0;
+                                }
                             }
                         }
                     }
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                     }
                                     else
                                     {
-                    					int m = 0;
+                                        int m = 0;
                                         break;
                                     }
 
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                                     return 0;
                             }
 
-                    		return 0;
+                            return 0;
                         }
                     }
                     """
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantElseStat
                             }
                             else
                             {
-                    			int m = 0;
+                                int m = 0;
                                 break;
                             }
                     
