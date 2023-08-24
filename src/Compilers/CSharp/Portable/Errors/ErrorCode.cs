@@ -2268,6 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationRefField = 9201,
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
+        ERR_CollectionExpressionEscape = 9203,
 
         ERR_ExpectedInterpolatedString = 9204,
 

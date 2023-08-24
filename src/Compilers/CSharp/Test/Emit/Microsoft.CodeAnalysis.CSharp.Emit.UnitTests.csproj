@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net50" Version="$(BasicReferenceAssembliesNet50Version)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="$(BasicReferenceAssembliesNet80Version)" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
