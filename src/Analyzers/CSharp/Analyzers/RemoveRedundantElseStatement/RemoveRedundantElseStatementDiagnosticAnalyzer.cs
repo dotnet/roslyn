@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
 {
     /// <summary>
     /// Looks for code like:
-    ///
-    ///     ```c#
+    /// <code>
     ///     if (a == b)
     ///     {
     ///         return c;
@@ -29,22 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantElseStatement
     ///     {
     ///         return d;
     ///     }
-    ///     ```
+    /// </code>
     /// 
     /// And offers to convert it to:
     ///
-    ///     ```c#
+    /// <code>
     ///     if (a == b)
     ///     {
     ///         return c;
     ///     }
     ///     
     ///     return d;
-    ///     ```
+    /// </code>
     ///
-    /// For this conversion to make sense statement(s) in each `if` and `else if`
-    /// must end with a jump (return, break, continue or throw) 
-    /// in order to preserve the program's correctness.
+    /// For this conversion to make sense statement(s) in each <c>if</c> and <c>else if</c> must end with a jump
+    /// (return, break, continue or throw) in order to preserve the program's correctness.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class RemoveRedundantElseStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
