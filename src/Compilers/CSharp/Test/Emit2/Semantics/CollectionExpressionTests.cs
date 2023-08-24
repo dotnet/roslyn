@@ -1107,7 +1107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var builder = ArrayBuilder<string>.GetInstance();
                 builder.Add(source);
                 builder.Add(s_collectionExtensions);
-                builder.Add(CollectionBuilderAttributeDefinition);
                 if (additionalSources is { }) builder.AddRange(additionalSources);
                 return builder.ToArrayAndFree();
             }
