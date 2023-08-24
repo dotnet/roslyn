@@ -77,6 +77,83 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void FeatureFlag_Granular_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace NS1
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
+            //     [InterceptsLocation("Program.cs", 5, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 5, 3)").WithLocation(17, 6));
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1;NS2"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace NS1.NS2
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS2"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(15, 10));
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS2;NS1.NS2"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void SelfInterception()
     {
         var source = """

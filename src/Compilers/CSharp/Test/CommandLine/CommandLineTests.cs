@@ -40,6 +40,7 @@ using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
+using System.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -12132,6 +12133,88 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
+        }
+
+        [Theory]
+        [InlineData(@"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4")]
+        [InlineData(@"/features:""InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4""")]
+        public void FeaturesInterceptorsPreviewNamespaces_OptionParsing(string features)
+        {
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { features, "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var options = comp.SyntaxTrees[0].Options;
+            Assert.Equal(1, options.Features.Count);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            Assert.Equal(2, previewNamespaces.Length);
+            Assert.Equal(new[] { "NS1", "NS2" }, previewNamespaces[0]);
+            Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[1]);
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewNamespaces_EndToEnd()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs").WriteAllText("""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        C.M1();
+                        C.M2();
+                    }
+                }
+
+                class C
+                {
+                    public static void M1() => throw null!;
+                    public static void M2() => throw null!;
+                }
+
+                namespace NS1.NS2
+                {
+                    class Interceptors
+                    {
+                        [InterceptsLocation("a.cs", 8, 11)]
+                        public static void M1() => Console.Write(1);
+                    }
+                }
+                
+                namespace NS0
+                {
+                    class Interceptors
+                    {
+                        [InterceptsLocation("a.cs", 9, 11)]
+                        public static void M2() => Console.Write(0);
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                    public sealed class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string filePath, int line, int character)
+                        {
+                        }
+                    }
+                }
+                """);
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4", "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            comp.VerifyEmitDiagnostics();
         }
 
         public class QuotedArgumentTests : CommandLineTestBase

@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -961,10 +962,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
 
-            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview"))
+            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview")
+                && !(attributeSyntax.SyntaxTree.Options.Features.TryGetValue("InterceptorsPreviewNamespaces", out var rawInterceptorsNamespaces) && rawInterceptorsNamespaces.Length != 0))
             {
+                // InterceptorsPreview feature flag wasn't specified, and a non-empty value for InterceptorsPreviewNamespaces wasn't specified.
                 diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax);
                 return;
+            }
+
+
+            if (attributeSyntax.SyntaxTree.Options is CSharpParseOptions { InterceptorsPreviewNamespaces: { IsEmpty: false } interceptorNamespaces })
+            {
+                // when InterceptorsPreviewNamespaces are present, ensure the interceptor is within one of the indicated namespaces
+                var namespaceSymbols = ArrayBuilder<NamespaceSymbol>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceSymbols.Add(containingNamespace);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceSymbols.ReverseContents();
+
+                var foundAnyMatch = false;
+                if (namespaceSymbols.Count != 0)
+                {
+                    foreach (var segments in interceptorNamespaces)
+                    {
+                        Debug.Assert(segments.Length > 0);
+                        if (segments.Length > namespaceSymbols.Count)
+                        {
+                            // this NS has more components than interceptor's NS, so it will never match.
+                            continue;
+                        }
+
+                        // 'segments' must be a prefix of 'namespaceSymbols.Select(ns=>ns.Name)'
+                        var foundMatch = true;
+                        for (var i = 0; i < segments.Length; i++)
+                        {
+                            if (segments[i] != namespaceSymbols[i].Name)
+                            {
+                                foundMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (foundMatch)
+                        {
+                            foundAnyMatch = true;
+                            break;
+                        }
+                    }
+                }
+
+                namespaceSymbols.Free();
+                if (!foundAnyMatch)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeLocation);
+                    return;
+                }
             }
 
             var attributeFilePath = (string?)attributeArguments[0].Value;

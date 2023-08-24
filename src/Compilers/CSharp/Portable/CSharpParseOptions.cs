@@ -175,6 +175,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
+        internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
+        {
+            get
+            {
+                if (!_interceptorsPreviewNamespaces.IsDefault)
+                {
+                    return _interceptorsPreviewNamespaces;
+                }
+
+                // e.g. [["System", "Threading"], ["System", "Collections"]]
+                ImmutableArray<ImmutableArray<string>> previewNamespaces;
+                if (Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces))
+                {
+                    previewNamespaces = namespaces
+                        .Split(';')
+                        .SelectAsArray(segment => segment.Split('.').ToImmutableArray());
+                }
+                else
+                {
+                    previewNamespaces = ImmutableArray<ImmutableArray<string>>.Empty;
+                }
+                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
+                return previewNamespaces;
+            }
+        }
+
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
             ValidateOptions(builder, MessageProvider.Instance);
