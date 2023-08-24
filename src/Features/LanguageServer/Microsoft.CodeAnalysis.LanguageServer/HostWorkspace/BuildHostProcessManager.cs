@@ -48,28 +48,29 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         }
     }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods: We're responding to Process.Exited, so an async void event handler is all we can do
-    private async void BuildHostProcess_Disconnected(object? sender, EventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+    private void BuildHostProcess_Disconnected(object? sender, EventArgs e)
     {
         Contract.ThrowIfNull(sender, $"{nameof(BuildHostProcess)}.{nameof(BuildHostProcess.Disconnected)} was raised with a null sender.");
 
-        BuildHostProcess? processToDispose = null;
-
-        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+        Task.Run(async () =>
         {
-            // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
-            var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
-            if (existingProcess.HasValue)
-            {
-                processToDispose = existingProcess.Value.Value;
-                _processes.Remove(existingProcess.Value.Key);
-            }
-        }
+            BuildHostProcess? processToDispose = null;
 
-        // Dispose outside of the lock (even though we don't expect much to happen at this point)
-        if (processToDispose != null)
-            await processToDispose.DisposeAsync();
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
+                var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
+                if (existingProcess.HasValue)
+                {
+                    processToDispose = existingProcess.Value.Value;
+                    _processes.Remove(existingProcess.Value.Key);
+                }
+            }
+
+            // Dispose outside of the lock (even though we don't expect much to happen at this point)
+            if (processToDispose != null)
+                await processToDispose.DisposeAsync();
+        });
     }
 
     public async ValueTask DisposeAsync()
