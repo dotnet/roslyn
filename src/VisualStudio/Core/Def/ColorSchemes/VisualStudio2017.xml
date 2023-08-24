@@ -531,6 +531,9 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF3F3F3F" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
        </Category>
     </Theme>
     <Theme Name="Dark" GUID="{1ded0138-47ce-435e-84ef-9ec1f439b749}">
