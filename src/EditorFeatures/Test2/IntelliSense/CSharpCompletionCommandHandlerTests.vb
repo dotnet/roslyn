@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -11579,6 +11580,43 @@ public class C1
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
                 Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
+            End Using
+        End Function
+
+        <InlineData("""text""u8")>
+        <InlineData("""""""text""""""u8")>
+        <InlineData("""""""
+        text
+        """"""u8")>
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68704")>
+        Public Async Function TriggerCompletionAtEndOfUtf8StringLiteral(stringText As String) As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="C#" AssemblyName="TestAssembly" CommonReferencesPortable="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        var channel = <%= stringText %>$$
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+                Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
+                                                                   Return d.CursorPosition.HasValue
+                                                               End Function)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
+
+                ' This should not throw
+                Dim list = Await completionService.GetCompletionsAsync(
+                    document, caretPosition:=cursorPosition, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
             End Using
         End Function
 
