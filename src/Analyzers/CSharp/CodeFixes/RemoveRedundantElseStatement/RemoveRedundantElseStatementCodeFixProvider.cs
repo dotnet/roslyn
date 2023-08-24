@@ -95,7 +95,6 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
              globalStatement ?? (SyntaxNode)ifStatement,
              WrapWithGlobalStatements(rewrittenStatements));
 
-
         // Finally, if we have `if () { } else { }` then trim the trailing whitespace at the end of the if's block.
         var elseToken = elseClause.ElseKeyword;
         var beforeElseToken = elseToken.GetPreviousToken();
