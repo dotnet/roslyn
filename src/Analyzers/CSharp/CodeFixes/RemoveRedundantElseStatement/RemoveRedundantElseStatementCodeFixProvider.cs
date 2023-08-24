@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -48,6 +49,13 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         if (!RemoveRedundantElseStatementDiagnosticAnalyzer.CanSimplify(semanticModel, ifStatement, out var elseClause, cancellationToken))
             return;
 
+        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = options.GetFormattingOptions(CSharpSyntaxFormatting.Instance);
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var ifIndentation = GetIndentationStringForPosition(ifStatement.IfKeyword.SpanStart);
+        var globalStatement = ifStatement.Parent as GlobalStatementSyntax;
+
         // Cases to consider:
         // 
         //  1. No block.  Embedded statement on same line
@@ -69,8 +77,171 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         //      {
         //          ...
         //      }
-        if (ifStatement)
+        editor.RemoveNode(elseClause);
+        if (elseClause.Statement is BlockSyntax elseBlock)
+        {
+            editor.InsertAfter(
+                globalStatement ?? (SyntaxNode)ifStatement,
+                WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation)));
+        }
+        else
+        {
+            // One of the following forms:
+            //
+            //  if ... else ...
+            //
+            //  if ...
+            //  else ...
+            //
+            //  if
+            //      ...
+            //  else
+            //      ...
+
+            var elseStatement = elseClause.Statement;
+            var elseStatementFirstToken = elseStatement.GetFirstToken();
+
+            StatementSyntax newStatement;
+            if (text.AreOnSameLine(elseStatementFirstToken.GetPreviousToken(), elseStatementFirstToken))
+            {
+                newStatement = elseStatement.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine), Whitespace(ifIndentation));
+            }
+            else
+            {
+                newStatement = AdjustIndentation(elseStatement, ifIndentation);
+            }
+
+            editor.InsertAfter(
+                globalStatement ?? (SyntaxNode)ifStatement,
+                WrapWithGlobalStatement(newStatement));
+        }
+
+        return;
+
+        IEnumerable<SyntaxNode> WrapWithGlobalStatements(IEnumerable<StatementSyntax> statements)
+            => statements.Select(WrapWithGlobalStatement);
+
+        SyntaxNode WrapWithGlobalStatement(StatementSyntax statement)
+            => globalStatement != null ? GlobalStatement(statement) : statement;
+
+        IEnumerable<StatementSyntax> UpdateIndentation(SyntaxList<StatementSyntax> statements, string ifIndentation)
+        {
+            for (var i =0; i < statements.Count; i++)
+            {
+                var statement = statements[i];
+
+                var statementFirstToken = statement.GetFirstToken();
+                var onSameLineAsPrevious = text.AreOnSameLine(statementFirstToken.GetPreviousToken(), statementFirstToken);
+
+                if (onSameLineAsPrevious)
+                {
+                    // else { EmbeddedStatement(); }
+                    //
+                    // Place on new line at the appropriate indentation.
+                    if (i == 0)
+                    {
+                        yield return statement.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine), Whitespace(ifIndentation));
+                    }
+                    else
+                    {
+                        // else { X(); Y(); }
+                        //
+                        // For successive statements, don't touch.  We want to preserve where it is in the outer scope.
+                        yield return statement;
+                    }
+                }
+                else
+                {
+                    AdjustIndentation(statement, ifIndentation);
+                }
+            }
+        }
+
+        StatementSyntax AdjustIndentation(StatementSyntax statement, string ifIndentation)
+        {
+            var firstTokenOnLineIndentationString = GetIndentationStringForToken(statement.GetFirstToken());
+            if (!firstTokenOnLineIndentationString.StartsWith(ifIndentation))
+                return statement;
+
+            var indentationToTrim = firstTokenOnLineIndentationString.Substring(ifIndentation.Length);
+            if (indentationToTrim.Length == 0)
+                return statement;
+
+            var statementFirstToken = statement.GetFirstToken();
+            var updatedStatement = statement.ReplaceTokens(
+                statement.DescendantTokens(),
+                (currentToken, _) =>
+                {
+                    // Ensure the first token has the indentation we're moving the entire node to
+                    return DedentToken(currentToken, indentationToTrim, force: currentToken == statementFirstToken);
+                });
+
+            return updatedStatement;
+        }
+
+
+
+        SyntaxToken DedentToken(
+            SyntaxToken token,
+            string indentationToTrim,
+            bool force)
+        {
+            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+            // otherwise always consumed as trailing trivia if it comes after a token.
+            if (!force && token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                return token;
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+
+            // Walk all trivia (except the final whitespace).  If we hit any comments within at the start of a line
+            // dedent them as well.
+            for (int i = 0, n = token.LeadingTrivia.Count - 1; i < n; i++)
+            {
+                var currentTrivia = token.LeadingTrivia[i];
+                var nextTrivia = token.LeadingTrivia[i + 1];
+
+                var afterNewLine = i == 0 || token.LeadingTrivia[i - 1].IsEndOfLine();
+                if (afterNewLine &&
+                    currentTrivia.IsWhitespace() &&
+                    nextTrivia.IsSingleOrMultiLineComment())
+                {
+                    result.Add(GetIndentedWhitespaceTrivia(indentationToTrim, nextTrivia.SpanStart));
+                }
+                else
+                {
+                    result.Add(currentTrivia);
+                }
+            }
+
+            // Finally, figure out how much this token is indented, and if that indent includes the amount we want to
+            // dedent.  If so, dedent accordingly.
+            result.Add(GetIndentedWhitespaceTrivia(indentationToTrim, token.SpanStart));
+
+            return token.WithLeadingTrivia(TriviaList(result));
+        }
+
+        SyntaxTrivia GetIndentedWhitespaceTrivia(string indentationToTrim, int pos)
+        {
+            var positionIndentation = GetIndentationStringForPosition(pos);
+            if (positionIndentation.EndsWith(indentationToTrim))
+                return Whitespace(positionIndentation[0..indentationToTrim.Length]);
+            else
+                return Whitespace(positionIndentation);
+        }
+
+        string GetIndentationStringForToken(SyntaxToken token)
+            => GetIndentationStringForPosition(token.SpanStart);
+
+        string GetIndentationStringForPosition(int position)
+        {
+            var lineContainingPosition = text.Lines.GetLineFromPosition(position);
+            var lineText = lineContainingPosition.ToString();
+            var indentation = lineText.ConvertTabToSpace(formattingOptions.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
+            return indentation.CreateIndentationString(formattingOptions.UseTabs, formattingOptions.TabSize);
+        }
     }
+
+
 #if false
     protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
