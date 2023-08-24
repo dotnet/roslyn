@@ -43,26 +43,23 @@ namespace CSharpSyntaxGenerator
         private void WriteInternal()
         {
             WriteFileHeader();
-
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             WriteLine();
+
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            CloseBlock();
         }
 
         private void WriteSyntax()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine();
+
             this.WriteRedTypes();
-            CloseBlock();
         }
 
         private void WriteMain()
@@ -142,7 +139,7 @@ namespace CSharpSyntaxGenerator
                         if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
-                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} {{ get; }}");
+                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                         }
                         else
                         {
