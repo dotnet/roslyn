@@ -900,4 +900,206 @@ public sealed class RemoveRedundantElseStatementTests
                 """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestFormatting1()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|] { return Fib(n - 1) + Fib(n - 2); }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+
+                    return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|] return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+
+                    return Fib(n - 1) + Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting3()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|]
+                    {
+                        return Fib(n - 1) +
+                            Fib(n - 2);
+                    }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+
+                    return Fib(n - 1) +
+                        Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting4()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|]
+                    {
+                        // leading comment 1
+                        /* leading comment 2 */
+                        return Fib(n - 1) +
+                            Fib(n - 2);
+                    }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+            
+                    // leading comment 1
+                    /* leading comment 2 */
+                    return Fib(n - 1) +
+                        Fib(n - 2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFormatting5()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+                    [|else|]
+                    {
+                        int i = 0;
+
+                        // leading comment 1
+                        /* leading comment 2 */
+                        return Fib(n - 1) +
+                            Fib(n - 2);
+                    }
+                }
+            }
+            """, """
+            using System;
+                
+            class C
+            {
+                int Fib(int n) 
+                {
+                    if (n <= 2)
+                    {
+                        return 1;
+                    }
+
+                    int i = 0;
+            
+                    // leading comment 1
+                    /* leading comment 2 */
+                    return Fib(n - 1) +
+                        Fib(n - 2);
+                }
+            }
+            """);
+    }
 }
