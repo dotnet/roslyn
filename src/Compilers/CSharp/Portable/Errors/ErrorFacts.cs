@@ -2399,6 +2399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion12:
+                case ErrorCode.ERR_CollectionExpressionEscape:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

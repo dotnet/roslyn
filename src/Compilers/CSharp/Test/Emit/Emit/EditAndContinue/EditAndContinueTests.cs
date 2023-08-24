@@ -16959,7 +16959,7 @@ file class C
                     source: commonSource + """
                         class C
                         {
-                            static MyCollection<int> F() => [0, 1, 2];
+                            static MyCollection<object> F() => [0, 1, 2];
                         }
                         """,
                     validator: g =>
@@ -16990,7 +16990,7 @@ file class C
                     commonSource + """
                         class C
                         {
-                            static MyCollection<int> F() => [0, 1, 2, 3];
+                            static MyCollection<object> F() => [0, 1, 2, 3];
                         }
                         """,
                     edits: new[]
@@ -17061,7 +17061,7 @@ file class C
                     commonSource + """
                         class C
                         {
-                            static MyCollection<int> F() => [0, 10, 20, 30];
+                            static MyCollection<object> F() => [0, 10, 20, 30];
                         }
                         """,
                     edits: new[]
