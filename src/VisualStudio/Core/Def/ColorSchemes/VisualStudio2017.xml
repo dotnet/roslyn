@@ -882,6 +882,9 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_SYSCOLOR" Source="00000005" />
+            </Color>
             <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
