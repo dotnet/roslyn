@@ -492,7 +492,6 @@ public sealed class RemoveRedundantElseStatementTests
                             }
 
                             return 1;
-
                         default:
                             return 2;
                     }
@@ -539,7 +538,7 @@ public sealed class RemoveRedundantElseStatementTests
                     {
                         case 0:
                             return 2;
-                
+
                         default:
                             if (true)
                             {

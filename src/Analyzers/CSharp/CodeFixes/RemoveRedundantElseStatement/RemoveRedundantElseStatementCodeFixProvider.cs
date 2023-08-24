@@ -82,7 +82,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         {
             editor.InsertAfter(
                 globalStatement ?? (SyntaxNode)ifStatement,
-                AddBlankLine(WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation))));
+                AddBlankLineIfMissing(WrapWithGlobalStatements(UpdateIndentation(elseBlock.Statements, ifIndentation))));
         }
         else
         {
@@ -99,7 +99,7 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
             //      ...
             editor.InsertAfter(
                 globalStatement ?? (SyntaxNode)ifStatement,
-                AddBlankLine(WrapWithGlobalStatements(UpdateIndentation(SingletonList(elseClause.Statement), ifIndentation))));
+                AddBlankLineIfMissing(WrapWithGlobalStatements(UpdateIndentation(SingletonList(elseClause.Statement), ifIndentation))));
         }
 
         return;
@@ -110,12 +110,14 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
         SyntaxNode WrapWithGlobalStatement(StatementSyntax statement)
             => globalStatement != null ? GlobalStatement(statement) : statement;
 
-        IEnumerable<SyntaxNode> AddBlankLine(IEnumerable<SyntaxNode> nodes)
+        IEnumerable<SyntaxNode> AddBlankLineIfMissing(IEnumerable<SyntaxNode> nodes)
         {
             var first = true;
             foreach (var node in nodes)
             {
-                if (first && ifStatement.Statement is BlockSyntax)
+                if (first &&
+                    ifStatement.Statement is BlockSyntax &&
+                    node.GetLeadingTrivia() is not [(kind: SyntaxKind.EndOfLineTrivia), ..])
                 {
                     yield return node.WithPrependedLeadingTrivia(EndOfLine(formattingOptions.NewLine));
                 }
@@ -182,8 +184,6 @@ internal sealed class RemoveRedundantElseStatementCodeFixProvider()
 
             return updatedStatement;
         }
-
-
 
         SyntaxToken DedentToken(
             SyntaxToken token,
