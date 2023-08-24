@@ -2515,4 +2515,114 @@ public class SwitchExpressionParsingTests : ParsingTests
         }
         EOF();
     }
+
+    [Fact]
+    public void RefSwitchExpression_01()
+    {
+        const string source =
+            """
+            ref int a = ref axis switch
+            {
+                Axis.X => ref x,
+                Axis.Y => ref y,
+            };
+            """;
+
+        UsingStatement(source);
+
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.SwitchExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "axis");
+                                }
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Axis");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "X");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.RefExpression);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SwitchExpressionArm);
+                                {
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Axis");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Y");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.RefExpression);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
 }

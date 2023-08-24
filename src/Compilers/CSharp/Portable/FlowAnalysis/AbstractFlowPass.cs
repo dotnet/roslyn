@@ -608,6 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitLvalue(access);
                         break;
                     }
+
                 default:
                     VisitRvalue(node);
                     break;

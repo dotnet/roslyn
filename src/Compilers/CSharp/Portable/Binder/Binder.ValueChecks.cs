@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -494,6 +495,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (expr.Kind == BoundKind.UnconvertedSwitchExpression &&
+                expr.Type is not null &&
+                valueKind is BindValueKind.RValue or BindValueKind.Assignable)
+            {
+                var switchExpression = (BoundUnconvertedSwitchExpression)expr;
+                if (switchExpression.IsRef)
+                {
+                    expr = ConvertSwitchExpression(switchExpression, expr.Type, null, diagnostics);
+                }
+            }
+
             if (!hasResolutionErrors && CheckValueKind(expr.Syntax, expr, valueKind, checkingReceiver: false, diagnostics: diagnostics) ||
                 expr.HasAnyErrors && valueKind == BindValueKind.RValueOrMethodGroup)
             {
@@ -551,6 +563,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
+
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
+                    bool check = CheckSwitchExpressionValueKind((BoundSwitchExpression)expr, valueKind, diagnostics);
+                    if (!check)
+                        return false;
+
+                    break;
             }
 
             // easy out for a very common RValue case.
@@ -566,6 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
                 return false;
             }
+
+            var errorSpan = node.Span;
 
             switch (expr.Kind)
             {
@@ -790,13 +812,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Strict RValue
                     break;
 
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
+                    var switchExpression = (BoundSwitchExpression)expr;
+
+                    var switchExpressionNode = (CSharp.Syntax.SwitchExpressionSyntax)switchExpression.Syntax;
+                    errorSpan = TextSpan.FromBounds(switchExpressionNode.SpanStart, switchExpressionNode.SwitchKeyword.Span.End);
+
+                    if (switchExpression.IsRef)
+                    {
+                        Debug.Assert(switchExpression.SwitchArms.Length > 0, "By-ref switch expressions must always have at least one switch arm");
+
+                        // defer check to the switch arms' values
+                        bool check = true;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            // Specially handle throw expressions in arms because they are not treated the same elsewhere
+                            if (arm.Value is BoundThrowExpression or BoundConversion { Operand: BoundThrowExpression })
+                                continue;
+
+                            check &= CheckValueKind(arm.Value.Syntax, arm.Value, valueKind, checkingReceiver: false, diagnostics: diagnostics);
+                        }
+                        if (check)
+                            return true;
+                        break;
+                    }
+                    else
+                    {
+                        if (RequiresReferenceToLocation(valueKind))
+                        {
+                            // We use a different error to better hint the user about the feature
+                            var switchExpressionErrorLocation = Location.Create(node.SyntaxTree, errorSpan);
+                            Error(diagnostics, ErrorCode.ERR_RefOnNonRefSwitchExpression, switchExpressionErrorLocation);
+                            return false;
+                        }
+                    }
+
+                    return true;
+
                 default:
                     Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
                     break;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
-            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+            var errorLocation = Location.Create(node.SyntaxTree, errorSpan);
+            Error(diagnostics, GetStandardLvalueError(valueKind), errorLocation);
             return false;
 
             bool checkArrayAccessValueKind(SyntaxNode node, BindValueKind valueKind, ImmutableArray<BoundExpression> indices, BindingDiagnosticBag diagnostics)
@@ -1129,14 +1190,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter2, parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope)        => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope)        => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  node),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter,  node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope)        => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope)        => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter,        node)
                 };
@@ -1354,6 +1415,61 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateRefSwitchExpression(SyntaxNode node, ImmutableArray<BoundSwitchExpressionArm> arms, BindingDiagnosticBag diagnostics)
+        {
+            var currentScope = _localScopeDepth;
+
+            var expressionEscapes = PooledHashSet<(BoundExpression expression, uint escape)>.GetInstance();
+
+            bool hasSameEscapes = true;
+            uint minEscape = uint.MaxValue;
+
+            // val-escape must agree on all arms
+            foreach (var arm in arms)
+            {
+                var expression = arm.Value;
+
+                if (expression is BoundConversion conversion)
+                {
+                    Debug.Assert(conversion is { Operand: BoundThrowExpression });
+                    continue;
+                }
+
+                uint expressionEscape = GetValEscape(expression, currentScope);
+                if (expressionEscapes.Count > 0)
+                {
+                    if (minEscape != expressionEscape)
+                    {
+                        hasSameEscapes = false;
+                    }
+                }
+                minEscape = Math.Min(minEscape, expressionEscape);
+                expressionEscapes.Add((expression, expressionEscape));
+            }
+
+            if (!hasSameEscapes)
+            {
+                // pass through all the expressions whose value escape was calculated
+                // ask the ones with narrower escape, for the wider
+                foreach (var expressionEscape in expressionEscapes)
+                {
+                    var (expression, escape) = expressionEscape;
+                    if (escape != minEscape)
+                    {
+                        Debug.Assert(escape > minEscape);
+                        CheckValEscape(expression.Syntax, expression, currentScope, minEscape, checkingReceiver: false, diagnostics: diagnostics);
+                    }
+                }
+
+                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression : ErrorCode.ERR_MismatchedRefEscapeInSwitchExpression, node.Location);
+            }
+
+            expressionEscapes.Free();
+        }
+    }
+
     internal partial class Binder
     {
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
@@ -1494,6 +1610,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
 
+        }
+
+        private bool CheckSwitchExpressionValueKind(BoundSwitchExpression expression, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(expression is not null);
+
+            switch (valueKind)
+            {
+                case BindValueKind.CompoundAssignment:
+                    if (!expression.IsRef)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RequiresRefReturningSwitchExpression, expression.Syntax);
+                        return false;
+                    }
+                    return true;
+                case BindValueKind.RValue:
+                    if (expression.IsRef)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_UnusedSwitchExpressionRef, expression.Syntax);
+                        return false;
+                    }
+                    return true;
+            }
+
+            return true;
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
@@ -3048,6 +3189,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // otherwise it is an RValue
                     break;
 
+                case BoundKind.UnconvertedSwitchExpression:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+
+                case BoundKind.ConvertedSwitchExpression:
+                    var switchExpression = (BoundConvertedSwitchExpression)expr;
+
+                    if (switchExpression.IsRef)
+                    {
+                        uint maxScope = uint.MinValue;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            if (arm.Value is BoundConversion boundConversion)
+                            {
+                                Debug.Assert(boundConversion is { Operand: BoundThrowExpression });
+                                continue;
+                            }
+
+                            maxScope = Math.Max(GetRefEscape(arm.Value, scopeOfTheContainingExpression), maxScope);
+                        }
+                        return maxScope;
+                    }
+
+                    break;
+
                 case BoundKind.FieldAccess:
                     return GetFieldRefEscape((BoundFieldAccess)expr, scopeOfTheContainingExpression);
 
@@ -3573,6 +3738,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ThrowExpression:
+                    return true;
+
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpression = (BoundSwitchExpression)expr;
+                    foreach (var arm in switchExpression.SwitchArms)
+                    {
+                        bool canEscape = CheckRefEscape(node, arm.Value, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+                        if (!canEscape)
+                            return false;
+                    }
                     return true;
             }
 

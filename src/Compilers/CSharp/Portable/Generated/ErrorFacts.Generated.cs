@@ -334,6 +334,7 @@
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_MismatchedRefEscapeInSwitchExpression:
                     return true;
                 default:
                     return false;

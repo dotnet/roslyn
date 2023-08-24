@@ -43,9 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
-            BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+
+            var bindValueKind = BindValueKind.RValue;
+            var unwrappedExpression = node.Expression.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+
+            if (refKind is not RefKind.None)
+            {
+                var refExpression = node.Expression as RefExpressionSyntax;
+                Debug.Assert(refExpression is not null);
+                var refKeywordLocation = Location.Create(node.SyntaxTree, refExpression!.RefKeyword.Span);
+                MessageID.IDS_FeatureRefInSwitchExpressionArm.CheckFeatureAvailability(diagnostics, node, refKeywordLocation);
+
+                bindValueKind |= BindValueKind.RefersToLocation;
+            }
+
+            BoundExpression armResult = armBinder.BindValue(unwrappedExpression, diagnostics, bindValueKind);
             var label = new GeneratedLabelSymbol("arm");
-            return new BoundSwitchExpressionArm(node, locals, pattern, whenClause, armResult, label, hasErrors | pattern.HasErrors);
+            return new BoundSwitchExpressionArm(node, locals, pattern, whenClause, armResult, label, refKind, hasErrors | pattern.HasErrors);
         }
     }
 }

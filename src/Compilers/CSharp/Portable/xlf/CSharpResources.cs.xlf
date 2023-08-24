@@ -1237,6 +1237,11 @@
         <target state="translated">Žádná přetížená metoda {0} neodpovídá ukazateli na funkci {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MismatchedRefEscapeInSwitchExpression">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">Neočekávané klíčové slovo record. Měli jste na mysli record struct nebo record class?</target>
@@ -1260,6 +1265,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Chybějící vzor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingRefInSwitchExpressionArm">
+        <source>The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</source>
+        <target state="new">The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1617,6 +1627,11 @@
         <target state="translated">Levá strana přiřazení odkazu musí být parametr Ref.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefOnNonRefSwitchExpression">
+        <source>The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?</source>
+        <target state="new">The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
         <target state="new">'readonly' modifier must be specified after 'ref'.</target>
@@ -1715,6 +1730,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">Typy a aliasy nemůžou mít název required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiresRefReturningSwitchExpression">
+        <source>The switch expression in the left side of a compound assignment must return a by-ref expression</source>
+        <target state="new">The switch expression in the left side of a compound assignment must return a by-ref expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2042,6 +2062,11 @@
         <target state="translated">Neukončený literál nezpracovaného řetězce.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnusedSwitchExpressionRef">
+        <source>The reference of a ref-returning switch expression may not be discarded</source>
+        <target state="new">The reference of a ref-returning switch expression may not be discarded</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
         <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">Použití potenciálně nepřiřazeného pole {0}. Zvažte aktualizaci jazykové verze {1} na automatické výchozí nastavení pole.</target>
@@ -2220,6 +2245,11 @@
       <trans-unit id="IDS_FeatureRefFields">
         <source>ref fields</source>
         <target state="translated">pole ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefInSwitchExpressionArm">
+        <source>ref in switch expression arms</source>
+        <target state="new">ref in switch expression arms</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
@@ -2650,6 +2680,16 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">Převádí se skupina metod na nedelegující typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInSwitchExpression">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInSwitchExpression_Title">
+        <source>The branches of the ref switch expression refer to variables with incompatible declaration scopes</source>
+        <target state="new">The branches of the ref switch expression refer to variables with incompatible declaration scopes</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MismatchedRefEscapeInTernary">

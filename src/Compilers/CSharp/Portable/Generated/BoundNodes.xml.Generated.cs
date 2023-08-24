@@ -4772,7 +4772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundSwitchExpression : BoundExpression
     {
-        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, RefKind refKind, TypeSymbol? type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
@@ -4785,6 +4785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReachabilityDecisionDag = reachabilityDecisionDag;
             this.DefaultLabel = defaultLabel;
             this.ReportedNotExhaustive = reportedNotExhaustive;
+            this.RefKind = refKind;
         }
 
         public BoundExpression Expression { get; }
@@ -4792,11 +4793,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDag ReachabilityDecisionDag { get; }
         public LabelSymbol? DefaultLabel { get; }
         public bool ReportedNotExhaustive { get; }
+        public RefKind RefKind { get; }
     }
 
     internal sealed partial class BoundSwitchExpressionArm : BoundNode
     {
-        public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression? whenClause, BoundExpression value, LabelSymbol label, bool hasErrors = false)
+        public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression? whenClause, BoundExpression value, LabelSymbol label, RefKind refKind, bool hasErrors = false)
             : base(BoundKind.SwitchExpressionArm, syntax, hasErrors || pattern.HasErrors() || whenClause.HasErrors() || value.HasErrors())
         {
 
@@ -4810,6 +4812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WhenClause = whenClause;
             this.Value = value;
             this.Label = label;
+            this.RefKind = refKind;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
@@ -4817,15 +4820,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? WhenClause { get; }
         public BoundExpression Value { get; }
         public LabelSymbol Label { get; }
+        public RefKind RefKind { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
 
-        public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression? whenClause, BoundExpression value, LabelSymbol label)
+        public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression? whenClause, BoundExpression value, LabelSymbol label, RefKind refKind)
         {
-            if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
+            if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || refKind != this.RefKind)
             {
-                var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, whenClause, value, label, this.HasErrors);
+                var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, whenClause, value, label, refKind, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4835,8 +4839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedSwitchExpression : BoundSwitchExpression
     {
-        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.UnconvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
+        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, RefKind refKind, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, refKind, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4849,11 +4853,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedSwitchExpression(this);
 
-        public BoundUnconvertedSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type)
+        public BoundUnconvertedSwitchExpression Update(BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, RefKind refKind, TypeSymbol? type)
         {
-            if (expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || refKind != this.RefKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, refKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4863,8 +4867,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
     {
-        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, RefKind refKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, refKind, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4883,11 +4887,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedSwitchExpression(this);
 
-        public BoundConvertedSwitchExpression Update(TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
+        public BoundConvertedSwitchExpression Update(TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, RefKind refKind, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || refKind != this.RefKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, wasTargetTyped, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, wasTargetTyped, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, refKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11322,7 +11326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
+            return node.Update(node.Locals, pattern, whenClause, value, node.Label, node.RefKind);
         }
         public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
@@ -11330,7 +11334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+            return node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, type);
         }
         public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
@@ -11339,7 +11343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag reachabilityDecisionDag = node.ReachabilityDecisionDag;
             TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+            return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, type);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
         {
@@ -13387,7 +13391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression? whenClause = (BoundExpression?)this.Visit(node.WhenClause);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(locals, pattern, whenClause, value, node.Label);
+            return node.Update(locals, pattern, whenClause, value, node.Label, node.RefKind);
         }
 
         public override BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
@@ -13399,12 +13403,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode = node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+                updatedNode = node.Update(expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, node.Type);
             }
             return updatedNode;
         }
@@ -13419,12 +13423,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type!);
+                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.RefKind, node.Type);
             }
             return updatedNode;
         }
@@ -15811,6 +15815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15821,6 +15826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("reachabilityDecisionDag", null, new TreeDumperNode[] { Visit(node.ReachabilityDecisionDag, null) }),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
             new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -15835,6 +15841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("reachabilityDecisionDag", null, new TreeDumperNode[] { Visit(node.ReachabilityDecisionDag, null) }),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
             new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

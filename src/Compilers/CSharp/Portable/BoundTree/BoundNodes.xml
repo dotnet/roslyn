@@ -1481,6 +1481,7 @@
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol?"/>
     <Field Name="ReportedNotExhaustive" Type="bool"/>
+    <Field Name="RefKind" Type="RefKind" />
   </AbstractNode>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1488,6 +1489,7 @@
     <Field Name="WhenClause" Type="BoundExpression?"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="RefKind" Type="RefKind"/>
   </Node>
 
   <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression">

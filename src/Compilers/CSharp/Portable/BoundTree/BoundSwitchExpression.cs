@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundSwitchExpression
     {
+        public bool IsRef => RefKind is not RefKind.None;
+
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation, out LabelSymbol? defaultLabel)
         {
             defaultLabel = this.DefaultLabel;

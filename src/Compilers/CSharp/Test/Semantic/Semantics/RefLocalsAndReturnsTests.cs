@@ -4907,5 +4907,877 @@ void M(out int x) => throw null;
                 Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
             }
         }
+
+        #region Ref switch expressions
+
+        [Theory]
+        [InlineData("North")]
+        [InlineData("South")]
+        [InlineData("East")]
+        [InlineData("West")]
+        public void RefSwitchExpression_DirectReturnMethod(string direction)
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public ref int GetDirectionField(Direction direction) => ref direction switch
+                    {
+                        Direction.North => ref NorthField,
+                        Direction.South => ref SouthField,
+                        Direction.East => ref EastField,
+                        Direction.West => ref WestField,
+                        _ => throw null!,
+                    };
+
+                    public ref int GetDirectionField_Target(Direction direction)
+                    {
+                        switch (direction)
+                        {
+                            case Direction.North:
+                                return ref NorthField;
+                            case Direction.South:
+                                return ref SouthField;
+                            case Direction.East:
+                                return ref EastField;
+                            case Direction.West:
+                                return ref WestField;
+                            default:
+                                throw null!;
+                        }
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+
+                public class Program
+                {
+                    static void Main()
+                    {
+                        const int otherValue = 3412;
+
+                        var c = new C();
+                        ref var directionField = ref c.GetDirectionField(Direction.{{direction}});
+                        directionField = otherValue;
+                        ref var directionField1 = ref c.GetDirectionField(Direction.{{direction}});
+                        System.Console.Write($"{directionField1 is otherValue} {directionField} {directionField1}");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            // Skipped verification because of method returning by ref int
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "True 3412 3412");
+
+            const string targetIL =
+                """
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  1
+                  .locals init (Direction V_0,
+                                Direction V_1,
+                                int& V_2)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: switch (direction)
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.1
+                  // sequence point: <hidden>
+                  IL_0003:  ldloc.1
+                  IL_0004:  stloc.0
+                  // sequence point: <hidden>
+                  IL_0005:  ldloc.0
+                  IL_0006:  switch    (
+                        IL_001d,
+                        IL_0026,
+                        IL_002f,
+                        IL_0038)
+                  IL_001b:  br.s       IL_0041
+                  // sequence point: return ref NorthField;
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldflda     "int C.NorthField"
+                  IL_0023:  stloc.2
+                  IL_0024:  br.s       IL_0043
+                  // sequence point: return ref SouthField;
+                  IL_0026:  ldarg.0
+                  IL_0027:  ldflda     "int C.SouthField"
+                  IL_002c:  stloc.2
+                  IL_002d:  br.s       IL_0043
+                  // sequence point: return ref EastField;
+                  IL_002f:  ldarg.0
+                  IL_0030:  ldflda     "int C.EastField"
+                  IL_0035:  stloc.2
+                  IL_0036:  br.s       IL_0043
+                  // sequence point: return ref WestField;
+                  IL_0038:  ldarg.0
+                  IL_0039:  ldflda     "int C.WestField"
+                  IL_003e:  stloc.2
+                  IL_003f:  br.s       IL_0043
+                  // sequence point: throw null!;
+                  IL_0041:  ldnull
+                  IL_0042:  throw
+                  // sequence point: }
+                  IL_0043:  ldloc.2
+                  IL_0044:  ret
+                }
+                """;
+
+            const string expressionIL =
+                """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  1
+                  .locals init (int& V_0)
+                  // sequence point: direction sw ...     }
+                  IL_0000:  ldarg.1
+                  IL_0001:  switch    (
+                        IL_0018,
+                        IL_0021,
+                        IL_002a,
+                        IL_0033)
+                  IL_0016:  br.s       IL_003c
+                  IL_0018:  ldarg.0
+                  IL_0019:  ldflda     "int C.NorthField"
+                  IL_001e:  stloc.0
+                  IL_001f:  br.s       IL_003e
+                  IL_0021:  ldarg.0
+                  IL_0022:  ldflda     "int C.SouthField"
+                  IL_0027:  stloc.0
+                  IL_0028:  br.s       IL_003e
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldflda     "int C.EastField"
+                  IL_0030:  stloc.0
+                  IL_0031:  br.s       IL_003e
+                  IL_0033:  ldarg.0
+                  IL_0034:  ldflda     "int C.WestField"
+                  IL_0039:  stloc.0
+                  IL_003a:  br.s       IL_003e
+                  IL_003c:  ldnull
+                  IL_003d:  throw
+                  IL_003e:  ldloc.0
+                  IL_003f:  ret
+                }
+                """;
+
+            verifier.VerifyMethodBody("C.GetDirectionField_Target", targetIL);
+            verifier.VerifyMethodBody("C.GetDirectionField", expressionIL);
+        }
+
+        [Theory]
+        [InlineData("North")]
+        [InlineData("South")]
+        [InlineData("East")]
+        [InlineData("West")]
+        public void RefSwitchExpression_LocalRefVariable(string direction)
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public ref int GetDirectionField(Direction direction)
+                    {
+                        ref int directionVar = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                            _ => throw null!,
+                        };
+
+                        return ref directionVar;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+
+                public class Program
+                {
+                    static void Main()
+                    {
+                        const int otherValue = 3412;
+
+                        var c = new C();
+                        ref var directionField = ref c.GetDirectionField(Direction.{{direction}});
+                        directionField = otherValue;
+                        ref var directionField1 = ref c.GetDirectionField(Direction.{{direction}});
+                        System.Console.Write($"{directionField1 is otherValue} {directionField} {directionField1}");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // Skipped verification because of method returning by ref int
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "True 3412 3412");
+
+            const string expressionIL =
+                """
+                {
+                  // Code size       71 (0x47)
+                  .maxstack  1
+                  .locals init (int& V_0, //directionVar
+                                int& V_1,
+                                int& V_2)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: ref int dire ...         };
+                  IL_0001:  ldarg.1
+                  IL_0002:  switch    (
+                        IL_0019,
+                        IL_0022,
+                        IL_002b,
+                        IL_0034)
+                  IL_0017:  br.s       IL_003d
+                  IL_0019:  ldarg.0
+                  IL_001a:  ldflda     "int C.NorthField"
+                  IL_001f:  stloc.1
+                  IL_0020:  br.s       IL_003f
+                  IL_0022:  ldarg.0
+                  IL_0023:  ldflda     "int C.SouthField"
+                  IL_0028:  stloc.1
+                  IL_0029:  br.s       IL_003f
+                  IL_002b:  ldarg.0
+                  IL_002c:  ldflda     "int C.EastField"
+                  IL_0031:  stloc.1
+                  IL_0032:  br.s       IL_003f
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldflda     "int C.WestField"
+                  IL_003a:  stloc.1
+                  IL_003b:  br.s       IL_003f
+                  IL_003d:  ldnull
+                  IL_003e:  throw
+                  IL_003f:  ldloc.1
+                  IL_0040:  stloc.0
+                  // sequence point: return ref directionVar;
+                  IL_0041:  ldloc.0
+                  IL_0042:  stloc.2
+                  IL_0043:  br.s       IL_0045
+                  // sequence point: }
+                  IL_0045:  ldloc.2
+                  IL_0046:  ret
+                }
+                """;
+
+            verifier.VerifyMethodBody("C.GetDirectionField", expressionIL);
+        }
+
+        [Theory]
+        [InlineData("North")]
+        [InlineData("South")]
+        [InlineData("East")]
+        [InlineData("West")]
+        public void RefSwitchExpression_DirectAssignment(string direction)
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public void SetDirectionField(Direction direction, int value)
+                    {
+                        direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                            _ => throw null!,
+                        } = value;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+
+                public class Program
+                {
+                    static void Main()
+                    {
+                        const int otherValue = 3412;
+
+                        var c = new C();
+                        c.SetDirectionField(Direction.{{direction}}, otherValue);
+                        var value = c.{{direction}}Field;
+                        System.Console.Write($"{value is otherValue} {value}");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            // Skipped verification because of method returning by ref int
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "True 3412");
+
+            const string expressionIL =
+                """
+                {
+                  // Code size       67 (0x43)
+                  .maxstack  2
+                  .locals init (int& V_0)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: direction sw ...    } = value
+                  IL_0001:  ldarg.1
+                  IL_0002:  switch    (
+                        IL_0019,
+                        IL_0022,
+                        IL_002b,
+                        IL_0034)
+                  IL_0017:  br.s       IL_003d
+                  IL_0019:  ldarg.0
+                  IL_001a:  ldflda     "int C.NorthField"
+                  IL_001f:  stloc.0
+                  IL_0020:  br.s       IL_003f
+                  IL_0022:  ldarg.0
+                  IL_0023:  ldflda     "int C.SouthField"
+                  IL_0028:  stloc.0
+                  IL_0029:  br.s       IL_003f
+                  IL_002b:  ldarg.0
+                  IL_002c:  ldflda     "int C.EastField"
+                  IL_0031:  stloc.0
+                  IL_0032:  br.s       IL_003f
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldflda     "int C.WestField"
+                  IL_003a:  stloc.0
+                  IL_003b:  br.s       IL_003f
+                  IL_003d:  ldnull
+                  IL_003e:  throw
+                  IL_003f:  ldloc.0
+                  IL_0040:  ldarg.2
+                  IL_0041:  stind.i4
+                  // sequence point: }
+                  IL_0042:  ret
+                }
+                """;
+
+            verifier.VerifyMethodBody("C.SetDirectionField", expressionIL);
+        }
+
+        [Theory]
+        [InlineData("North")]
+        [InlineData("South")]
+        [InlineData("East")]
+        [InlineData("West")]
+        public void RefSwitchExpression_DirectCompoundAssignment(string direction)
+        {
+            string source =
+                $$"""
+                public class C
+                {
+                    public int NorthField = 5;
+                    public int SouthField = 6;
+                    public int EastField = 10;
+                    public int WestField = 12;
+
+                    public void IncrementDirectionField(Direction direction, int value)
+                    {
+                        direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                            _ => throw null!,
+                        } += value;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+
+                public class Program
+                {
+                    static void Main()
+                    {
+                        const int otherValue = 3412;
+
+                        var c = new C();
+                        var oldValue = c.{{direction}}Field;
+                        c.IncrementDirectionField(Direction.{{direction}}, otherValue);
+                        var expectedValue = oldValue + otherValue;
+                        var value = c.{{direction}}Field;
+                        System.Console.Write(value == expectedValue);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            // Skipped verification because of method returning by ref int
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "True");
+
+            const string expressionIL =
+                """
+                {
+                  // Code size       72 (0x48)
+                  .maxstack  3
+                  .locals init (int& V_0,
+                                int& V_1)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: direction sw ...   } += value
+                  IL_0001:  ldarg.1
+                  IL_0002:  switch    (
+                        IL_0019,
+                        IL_0022,
+                        IL_002b,
+                        IL_0034)
+                  IL_0017:  br.s       IL_003d
+                  IL_0019:  ldarg.0
+                  IL_001a:  ldflda     "int C.NorthField"
+                  IL_001f:  stloc.0
+                  IL_0020:  br.s       IL_003f
+                  IL_0022:  ldarg.0
+                  IL_0023:  ldflda     "int C.SouthField"
+                  IL_0028:  stloc.0
+                  IL_0029:  br.s       IL_003f
+                  IL_002b:  ldarg.0
+                  IL_002c:  ldflda     "int C.EastField"
+                  IL_0031:  stloc.0
+                  IL_0032:  br.s       IL_003f
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldflda     "int C.WestField"
+                  IL_003a:  stloc.0
+                  IL_003b:  br.s       IL_003f
+                  IL_003d:  ldnull
+                  IL_003e:  throw
+                  IL_003f:  ldloc.0
+                  IL_0040:  stloc.1
+                  IL_0041:  ldloc.1
+                  IL_0042:  ldloc.1
+                  IL_0043:  ldind.i4
+                  IL_0044:  ldarg.2
+                  IL_0045:  add
+                  IL_0046:  stind.i4
+                  // sequence point: }
+                  IL_0047:  ret
+                }
+                """;
+
+            verifier.VerifyMethodBody("C.IncrementDirectionField", expressionIL);
+        }
+
+        [Fact]
+        public void RefSwitchExpression_RefEscapeWithStackalloc()
+        {
+            const string source = """
+                using System;
+
+                public class C
+                {
+                    public unsafe ref int M(Axis axis, int index)
+                    {
+                        const int size = 5;
+                        Span<int> x = stackalloc int[size];
+                        Span<int> y = stackalloc int[size];
+
+                        return ref axis switch
+                        {
+                            Axis.X => ref x[index],
+                            Axis.Y => ref y[index],
+                        };
+                    }
+                }
+
+                public enum Axis
+                {
+                    X,
+                    Y,
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (11,25): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Axis)2' is not covered.
+                //         return ref axis switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Axis)2").WithLocation(11, 25),
+                // (13,27): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+                //             Axis.X => ref x[index],
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(13, 27),
+                // (14,27): warning CS9080: Use of variable 'y' in this context may expose referenced variables outside of their declaration scope
+                //             Axis.Y => ref y[index],
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("y").WithLocation(14, 27)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_RefOverScopedVariables()
+        {
+            const string source = """
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public unsafe ref int M(Direction direction, ref int input)
+                    {
+                        input = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                            _ => throw null!,
+                        };
+
+                        int outer = 10;
+                        input = ref outer;
+                        {
+                            int inner = 10;
+                            input = ref inner;
+                        }
+
+                        return ref input;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (20,9): warning CS9085: This ref-assigns 'outer' to 'input' but 'outer' has a narrower escape scope than 'input'.
+                //         input = ref outer;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "input = ref outer").WithArguments("input", "outer").WithLocation(20, 9),
+                // (23,13): warning CS9085: This ref-assigns 'inner' to 'input' but 'inner' has a narrower escape scope than 'input'.
+                //             input = ref inner;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "input = ref inner").WithArguments("input", "inner").WithLocation(23, 13)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_Readonly01()
+        {
+            const string source = """
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public unsafe ref int M(Direction direction, in int south, in int west)
+                    {
+                        const int east = 431;
+
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref EastField,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+
+                        ref int xx = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref east,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+
+                        ref readonly int y = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref south,
+                            Direction.East => ref east,
+                            Direction.West => ref west,
+                            _ => throw null!,
+                        };
+
+                        return ref y;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (12,25): error CS1510: A ref or out value must be an assignable variable
+                //         ref int x = ref direction switch
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "direction switch").WithLocation(12, 25),
+                // (15,36): error CS8329: Cannot use variable 'south' as a ref or out value because it is a readonly variable
+                //             Direction.South => ref south,
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "south").WithArguments("variable", "south").WithLocation(15, 36),
+                // (17,35): error CS8329: Cannot use variable 'west' as a ref or out value because it is a readonly variable
+                //             Direction.West => ref west,
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "west").WithArguments("variable", "west").WithLocation(17, 35),
+                // (25,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             Direction.East => ref east,
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "east").WithLocation(25, 35),
+                // (34,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             Direction.East => ref east,
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "east").WithLocation(34, 35),
+                // (39,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "y").WithLocation(39, 20)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_UnusedRef()
+        {
+            const string source = """
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        int x = direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                        };
+
+                        // Method invocation
+                        A(direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => ref EastField,
+                            Direction.West => ref WestField,
+                        });
+
+                        return x;
+                    }
+
+                    private static void A(int x) { }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS9304: The reference of a ref-returning switch expression may not be discarded
+                //         int x = direction switch
+                Diagnostic(ErrorCode.ERR_UnusedSwitchExpressionRef, @"direction switch
+        {
+            Direction.North => ref NorthField,
+            Direction.South => ref SouthField,
+            Direction.East => ref EastField,
+            Direction.West => ref WestField,
+        }").WithLocation(10, 17),
+                // (10,27): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Direction)4' is not covered.
+                //         int x = direction switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Direction)4").WithLocation(10, 27),
+                // (19,11): error CS9304: The reference of a ref-returning switch expression may not be discarded
+                //         A(direction switch
+                Diagnostic(ErrorCode.ERR_UnusedSwitchExpressionRef, @"direction switch
+        {
+            Direction.North => ref NorthField,
+            Direction.South => ref SouthField,
+            Direction.East => ref EastField,
+            Direction.West => ref WestField,
+        }").WithLocation(19, 11),
+                // (19,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Direction)4' is not covered.
+                //         A(direction switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Direction)4").WithLocation(19, 21)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_MissingRefInArms()
+        {
+            const string source = """
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => ref NorthField,
+                            Direction.South => ref SouthField,
+                            Direction.East => EastField,
+                            Direction.West => WestField,
+                            _ => throw null!,
+                        };
+
+                        return x;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (14,28): error CS9303: The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression
+                //             Direction.East => EastField,
+                Diagnostic(ErrorCode.ERR_MissingRefInSwitchExpressionArm, "=>").WithLocation(14, 28),
+                // (15,28): error CS9303: The switch expression arm must return a by-ref expression, if at least one arm returns a by-ref expression
+                //             Direction.West => WestField,
+                Diagnostic(ErrorCode.ERR_MissingRefInSwitchExpressionArm, "=>").WithLocation(15, 28)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_RefInNonRefSwitch()
+        {
+            const string source = """
+                public class C
+                {
+                    public int NorthField;
+                    public int SouthField;
+                    public int EastField;
+                    public int WestField;
+
+                    public int M(Direction direction)
+                    {
+                        ref int x = ref direction switch
+                        {
+                            Direction.North => NorthField,
+                            Direction.South => SouthField,
+                            Direction.East => EastField,
+                            Direction.West => WestField,
+                            _ => throw null!,
+                        };
+
+                        return x;
+                    }
+                }
+
+                public enum Direction
+                {
+                    North,
+                    South,
+                    East,
+                    West,
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,25): error CS9305: The arms of the switch expression do not return a by-ref expression; did you mean to return the expressions by ref?
+                //         ref int x = ref direction switch
+                Diagnostic(ErrorCode.ERR_RefOnNonRefSwitchExpression, "direction switch").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void RefSwitchExpression_UnavailableFeature()
+        {
+            const string source = """
+                class C
+                {
+                    public void M(int input)
+                    {
+                        int _1 = 1;
+                        int _2 = 1;
+                        int _3 = 1;
+                        int _4 = 1;
+
+                        ref int x = ref input switch
+                        {
+                            1 => ref _1,
+                            2 => ref _2,
+                            3 => ref _3,
+                            4 => ref _4,
+                            _ => throw null!,
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (12,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             1 => ref _1,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(12, 18),
+                // (13,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             2 => ref _2,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(13, 18),
+                // (14,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             3 => ref _3,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(14, 18),
+                // (15,18): error CS8652: The feature 'ref in switch expression arms' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             4 => ref _4,
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref in switch expression arms").WithLocation(15, 18)
+                );
+        }
+
+        #endregion
     }
 }

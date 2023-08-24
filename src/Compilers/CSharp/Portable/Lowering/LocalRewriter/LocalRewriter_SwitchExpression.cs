@@ -26,9 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
+            // HACK: We avoid generating instrumentation in the case of a ref-returning switch expression to prevent
+            // local value copies of the refs to fields
+            // This hack deviates from the standard behavior of including instrumentation in whatever scenario requests it
+            // We probably need to enable partial instrumentation in other aspects of the switch expression, or even handle
+            // this specific scenario of indirect field access
             private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax),
-                      generateInstrumentation: !node.WasCompilerGenerated && localRewriter.Instrument)
+                      generateInstrumentation: !node.WasCompilerGenerated && localRewriter.Instrument && !node.IsRef)
             {
             }
 
@@ -86,7 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // decision tree, so the code in result is unreachable at this point.
 
                 // Lower each switch expression arm
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
+
+                bool isRef = node.IsRef;
+                var localKind = isRef ? SynthesizedLocalKind.SwitchExpressionRef : SynthesizedLocalKind.LoweringTemp;
+                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: localKind, refKind: node.RefKind);
                 LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
                 foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
                 {
@@ -98,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (GenerateInstrumentation)
                         loweredValue = this._localRewriter.Instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
 
-                    sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
+                    sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue, isRef));
                     sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
                     var statements = sectionBuilder.ToImmutableAndFree();
                     if (arm.Locals.IsEmpty)
