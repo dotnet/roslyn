@@ -197,7 +197,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseCollectionExpressionForStackAllocDiagnosticId = "IDE0302";
         public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
         public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
-        public const string RemoveRedundantElseStatementDiagnosticId = "IDE0305";
+        public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+
+        public const string RemoveRedundantElseStatementDiagnosticId = "IDE0310";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

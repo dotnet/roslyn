@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             OnInitialized();
             return Task.CompletedTask;

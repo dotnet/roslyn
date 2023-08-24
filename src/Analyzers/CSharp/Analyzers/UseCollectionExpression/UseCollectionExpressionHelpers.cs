@@ -91,7 +91,12 @@ internal static class UseCollectionExpressionHelpers
         // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
         // (for example, we're trying to replace an expression that is converted to something that isn't even a
         // collection type).
+        //
+        // Note: an identity conversion is always legal without needing any more checks.
         var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (conversion.IsIdentity)
+            return true;
+
         if (!conversion.IsCollectionExpression)
             return false;
 
@@ -177,6 +182,7 @@ internal static class UseCollectionExpressionHelpers
             // Similar rules for switches.
             SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm),
             InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression),
+            CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
@@ -218,6 +224,17 @@ internal static class UseCollectionExpressionHelpers
 
             // All arms do not have a type, this is target typed if the switch itself is target typed.
             return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedCollectionElement(CollectionElementSyntax collectionElement)
+        {
+            // We do not currently target type spread expressions in a collection expression.
+            if (collectionElement is not ExpressionElementSyntax)
+                return false;
+
+            // The element it target typed if the parent collection is itself target typed.
+            var collectionExpression = (CollectionExpressionSyntax)collectionElement.GetRequiredParent();
+            return IsInTargetTypedLocation(semanticModel, collectionExpression, cancellationToken);
         }
 
         bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
@@ -471,8 +488,10 @@ internal static class UseCollectionExpressionHelpers
     {
         const string CreateName = nameof(ImmutableArray.Create);
         const string CreateRangeName = nameof(ImmutableArray.CreateRange);
+
         unwrapArgument = false;
         memberAccess = null;
+
         // Looking for `XXX.Create(...)`
         if (invocationExpression.Expression is not MemberAccessExpressionSyntax
             {
@@ -482,14 +501,18 @@ internal static class UseCollectionExpressionHelpers
         {
             return false;
         }
+
         memberAccess = memberAccessExpression;
         var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol as IMethodSymbol;
         if (createMethod is not { IsStatic: true })
             return false;
+
         var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
         if (factoryType is null)
             return false;
+
         var compilation = semanticModel.Compilation;
+
         // The pattern is a type like `ImmutableArray` (non-generic), returning an instance of `ImmutableArray<T>`.  The
         // actual collection type (`ImmutableArray<T>`) has to have a `[CollectionBuilder(...)]` attribute on it that
         // then points at the factory type.
@@ -599,13 +622,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
@@ -734,12 +757,15 @@ internal static class UseCollectionExpressionHelpers
     public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
     {
         var arguments = invocationExpression.ArgumentList.Arguments;
+
         // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
         // expressions the user wrote out.
         if (!unwrapArgument)
             return arguments;
+
         Contract.ThrowIfTrue(arguments.Count != 1);
         var expression = arguments.Single().Expression;
+
         var initializer = expression switch
         {
             ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
@@ -750,6 +776,7 @@ internal static class UseCollectionExpressionHelpers
             ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
             _ => throw ExceptionUtilities.Unreachable(),
         };
+
         return initializer is null
             ? default
             : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(

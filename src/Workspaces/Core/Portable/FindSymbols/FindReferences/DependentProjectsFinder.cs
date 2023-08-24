@@ -104,7 +104,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
 
                 if (!result.TryGetValue(assembly, out var projectAndVisibility))
-                    projectAndVisibility = (solution.GetProject(assembly, cancellationToken), symbol.GetResultantVisibility());
+                {
+                    // First, if this was a source-symbol try to get the original project for this assembly
+                    // (GetOriginatingProject).  If this is a metadata symbol, also see if we can find the original
+                    // source-project for it (GetProject) which happens in cross language P2P references.
+                    var project = assembly.Locations.Any(static loc => loc.IsInMetadata)
+                        ? solution.GetProject(assembly, cancellationToken)
+                        : solution.GetOriginatingProject(assembly);
+                    projectAndVisibility = (project, symbol.GetResultantVisibility());
+                }
 
                 // Visibility enum has higher visibility as a lower number, so choose the minimum of both.
                 projectAndVisibility.visibility = (SymbolVisibility)Math.Min((int)projectAndVisibility.visibility, (int)symbol.GetResultantVisibility());

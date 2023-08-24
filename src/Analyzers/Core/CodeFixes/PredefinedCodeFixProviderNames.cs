@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseCollectionExpressionForBuilder = nameof(UseCollectionExpressionForBuilder);
         public const string UseCollectionExpressionForCreate = nameof(UseCollectionExpressionForCreate);
         public const string UseCollectionExpressionForEmpty = nameof(UseCollectionExpressionForEmpty);
+        public const string UseCollectionExpressionForFluent = nameof(UseCollectionExpressionForFluent);
         public const string UseCollectionExpressionForStackAlloc = nameof(UseCollectionExpressionForStackAlloc);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
         public const string UseCompoundAssignment = nameof(UseCompoundAssignment);
