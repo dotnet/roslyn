@@ -2,21 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString.CSharpConvertConcatenationToInterpolatedStringRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertConcatenationToInterpolatedStringRefactoringProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
     public class ConvertConcatenationToInterpolatedStringTests
     {
@@ -365,7 +363,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-        public async Task TestWithMultipleStringConcatinations()
+        public async Task TestWithMultipleStringConcatenations()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"public class C
@@ -385,7 +383,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-        public async Task TestWithMultipleStringConcatinations2()
+        public async Task TestWithMultipleStringConcatenations2()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"public class C
@@ -405,7 +403,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-        public async Task TestWithMultipleStringConcatinations3()
+        public async Task TestWithMultipleStringConcatenations3()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"public class C
@@ -425,7 +423,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
-        public async Task TestWithMultipleStringConcatinations4()
+        public async Task TestWithMultipleStringConcatenations4()
         {
             var code = @"public class C
 {
@@ -912,14 +910,14 @@ class C
 
             await new VerifyCS.Test
             {
-                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
 
             await new VerifyCS.Test
             {
-                LanguageVersion = CSharpLanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.Preview,
                 TestCode = code,
                 FixedCode = fixedCode,
             }.RunAsync();
@@ -949,14 +947,14 @@ class C
 
             await new VerifyCS.Test
             {
-                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
 
             await new VerifyCS.Test
             {
-                LanguageVersion = CSharpLanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.Preview,
                 TestCode = code,
                 FixedCode = fixedCode,
             }.RunAsync();
@@ -1081,6 +1079,130 @@ class C
     }}
 }}";
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+        }
+
+        [Fact]
+        public async Task TestToString1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+
+                    public override string ToString()
+                    {
+                        return [||]"(" + Item1.ToString() + ", " + Item2.ToString() + ")";
+                    }
+                }
+                """,
+                FixedCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+                
+                    public override string ToString()
+                    {
+                        return $"({Item1.ToString()}, {Item2.ToString()})";
+                    }
+                }
+                """,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestToString1_Net6()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+
+                    public override string ToString()
+                    {
+                        return [||]"(" + Item1.ToString() + ", " + Item2.ToString() + ")";
+                    }
+                }
+                """,
+                FixedCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+                
+                    public override string ToString()
+                    {
+                        return $"({Item1}, {Item2})";
+                    }
+                }
+                """,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestToString2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                struct ValueTuple<T>
+                {
+                    public override string ToString()
+                    {
+                        return [||]"(" + (1 + 1).ToString() + ", " + (2 + 2).ToString() + ")";
+                    }
+                }
+                """,
+                FixedCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+                
+                    public override string ToString()
+                    {
+                        return $"({(1 + 1).ToString()}, {(1 + 1).ToString()})";
+                    }
+                }
+                """,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestToString2_Net6()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                struct ValueTuple<T>
+                {
+                    public override string ToString()
+                    {
+                        return [||]"(" + (1 + 1).ToString() + ", " + (2 + 2).ToString() + ")";
+                    }
+                }
+                """,
+                FixedCode = """
+                struct ValueTuple<T>
+                {
+                    public T Item1;
+                    public T Item2;
+                
+                    public override string ToString()
+                    {
+                        return $"({1 + 1}, {2 + 2})";
+                    }
+                }
+                """,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
         }
     }
 }
