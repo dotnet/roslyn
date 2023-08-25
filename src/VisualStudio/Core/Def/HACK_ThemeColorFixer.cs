@@ -73,19 +73,21 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // No better option (According to DPugh) than bubble sorting this classification backwards to the start of
             // the list.  Use a batch-update though to make this only do updates once.
+            var classificationType = _classificationTypeRegistryService.GetClassificationType(typeName);
+            if (classificationType is null)
+                return;
+
+            var index = formatMap.CurrentPriorityOrder.IndexOf(classificationType);
+            if (index <= 1)
+                return;
 
             formatMap.BeginBatchUpdate();
             try
             {
-                var classificationType = _classificationTypeRegistryService.GetClassificationType(typeName);
-                if (classificationType != null)
+                while (index - 1 >= 0)
                 {
-                    var index = formatMap.CurrentPriorityOrder.IndexOf(classificationType);
-                    while (index - 1 >= 0)
-                    {
-                        index--;
-                        formatMap.SwapPriorities(classificationType, formatMap.CurrentPriorityOrder[index]);
-                    }
+                    index--;
+                    formatMap.SwapPriorities(classificationType, formatMap.CurrentPriorityOrder[index]);
                 }
             }
             finally
