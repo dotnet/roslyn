@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -172,17 +174,35 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         }
     }
 
-    internal abstract class AbstractLanguageDetector<TOptions, TTree> :
+    internal abstract class AbstractLanguageDetector<TOptions, TTree, TDetector> :
         AbstractLanguageDetector<TOptions>
         where TOptions : struct, Enum
         where TTree : class
+        where TDetector : AbstractLanguageDetector<TOptions, TTree, TDetector>
     {
+        /// <summary>
+        /// Cache so that we can reuse the same <see cref="TDetector"/> when analyzing a particular compilation model.
+        /// This saves the time from having to recreate this for every string literal that features examine for a
+        /// particular compilation.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Compilation, TDetector> s_compilationToDetector = new();
+
         protected AbstractLanguageDetector(
             EmbeddedLanguageInfo info,
             ImmutableArray<string> languageIdentifiers,
             EmbeddedLanguageCommentDetector commentDetector)
             : base(info, languageIdentifiers, commentDetector)
         {
+        }
+
+        protected static TDetector GetOrCreate(
+            Compilation compilation, EmbeddedLanguageInfo info, Func<Compilation, EmbeddedLanguageInfo, TDetector> create)
+        {
+            // Do a quick non-allocating check first.
+            if (s_compilationToDetector.TryGetValue(compilation, out var detector))
+                return detector;
+
+            return s_compilationToDetector.GetValue(compilation, _ => create(compilation, info));
         }
 
         /// <summary>
