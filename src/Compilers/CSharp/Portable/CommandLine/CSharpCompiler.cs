@@ -377,13 +377,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
             // <Metalama>
-            out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins
+            out ImmutableArray<ISourceTransformer> transformers
             // </Metalama>
             )
         {
             // <Metalama>
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
             // </Metalama>
         }
 
@@ -428,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
-            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+            AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
             if (transformers.IsEmpty)
@@ -492,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
-            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
+            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions,
                 analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
@@ -504,7 +503,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Compilation inputCompilation,
             ImmutableArray<ISourceTransformer> transformers,
             SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions,
-            ImmutableArray<object> plugins,
             AnalyzerConfigOptionsProvider analyzerConfigProvider,
             TransformerOptions? transformerOptions,
             DiagnosticBag diagnostics,
@@ -524,11 +522,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
-            
-            AnalyzerConfigOptionsProvider GetMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider) 
-                => CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees( 
+
+            AnalyzerConfigOptionsProvider getMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
+                => CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(
                     optionsProvider,
-                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)) );
+                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)));
 
             var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
             List<ManagedResource> addedResources = new();
@@ -543,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var tree in inputCompilation.SyntaxTrees)
                 {
                     SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(cancellationToken)), tree.Options);
-                    
+
                     SyntaxTreeHistory.Update(tree, annotatedTree );
                     annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, annotatedTree);
                     oldTreeToNewTrees[tree] = (annotatedTree,false);
@@ -559,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Map the options provider to the annotated syntax trees.
                 var mappedOptionProvider =
-                    GetMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
+                    getMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
                         .AnalyzerConfigOptionsProvider);
                 var mappedOptions = new AnalyzerOptions(sourceOnlyAnalyzersOptions.AnalyzerOptions.AdditionalFiles,
                     mappedOptionProvider);
@@ -583,7 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var transformerDiagnostics = new DiagnosticBag();
 
                     var context = new TransformerContext(outputCompilation,
-                        plugins,
                         analyzerConfigProvider,
                         transformerOptions,
                         inputResources.AddRange(addedResources),
@@ -695,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
+                getMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
         }
         // </Metalama>
 

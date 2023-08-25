@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Extensions<ISourceGenerator> _generators;
         // <Metalama>
         private readonly Extensions<ISourceTransformer> _transformers;
-        private readonly Extensions<object>? _plugins;
         // </Metalama>
 
         private string? _lazyDisplay;
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // <Metalama>
             AttributeLanguagesFunc supportedLanguages = (_, _) => ImmutableArray.Create(LanguageNames.CSharp);
             _transformers = new(this, typeof(TransformerAttribute), supportedLanguages, allowNetFramework: false);
-             _plugins = new(this, typeof(MetalamaPlugInAttribute), supportedLanguages, allowNetFramework: false);
             // </Metalama>
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
@@ -148,11 +146,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<ISourceTransformer> GetTransformers()
         {
             return _transformers.GetExtensions(LanguageNames.CSharp);
-        }
-
-        public override ImmutableArray<object> GetPlugins()
-        {
-            return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
         }
         // </Metalama>
 
@@ -242,11 +235,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         throw ExceptionUtilities.Unreachable();
                 }
             }
-        }
-
-        internal void AddCompilerPlugins(ImmutableArray<object>.Builder builder, string language)
-        {
-            _plugins?.AddExtensions(builder, language);
         }
         // </Metalama>
 

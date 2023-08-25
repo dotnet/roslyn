@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // <Metalama>
         public virtual ImmutableArray<ISourceTransformer> GetTransformers() => ImmutableArray<ISourceTransformer>.Empty;
-
-        public virtual ImmutableArray<object> GetPlugins() => ImmutableArray<object>.Empty;
         // </Metalama>
     }
 }
