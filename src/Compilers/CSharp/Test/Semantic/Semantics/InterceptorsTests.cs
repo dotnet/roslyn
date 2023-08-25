@@ -106,6 +106,12 @@ public class InterceptorsTests : CSharpTestBase
             //         [InterceptsLocation("Program.cs", 4, 3)]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
 
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
@@ -137,20 +143,30 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS2"));
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>' to your project.
-            //         [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+        sadCase("NS2");
+        sadCase("true");
+        sadCase(" NS1");
+        sadCase(";");
+        sadCase("NS1 ;");
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
-        verifier.VerifyDiagnostics();
+        happyCase("NS1");
+        happyCase("NS1.NS2");
+        happyCase("NS2;NS1.NS2");
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"), expectedOutput: "1");
-        verifier.VerifyDiagnostics();
+        void sadCase(string featureValue)
+        {
+            var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue));
+            comp.VerifyEmitDiagnostics(
+                // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>' to your project.
+                //         [InterceptsLocation("Program.cs", 4, 3)]
+                Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+        }
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS2;NS1.NS2"), expectedOutput: "1");
-        verifier.VerifyDiagnostics();
+        void happyCase(string featureValue)
+        {
+            var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue), expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
     }
 
     [Fact]

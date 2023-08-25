@@ -962,8 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
 
-            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview")
-                && !(attributeSyntax.SyntaxTree.Options.Features.TryGetValue("InterceptorsPreviewNamespaces", out var rawInterceptorsNamespaces) && rawInterceptorsNamespaces.Length != 0))
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview") && interceptorsNamespaces.IsEmpty)
             {
                 // InterceptorsPreview feature flag wasn't specified, and a non-empty value for InterceptorsPreviewNamespaces wasn't specified.
                 var namespaceNames = getNamespaceNames();
@@ -972,48 +972,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (attributeSyntax.SyntaxTree.Options is CSharpParseOptions { InterceptorsPreviewNamespaces: { IsEmpty: false } interceptorNamespaces })
+            if (!interceptorsNamespaces.IsEmpty)
             {
                 // when InterceptorsPreviewNamespaces are present, ensure the interceptor is within one of the indicated namespaces
-                var namespaceNames = getNamespaceNames();
-                var foundAnyMatch = false;
-                if (namespaceNames.Count != 0)
-                {
-                    foreach (var segments in interceptorNamespaces)
-                    {
-                        Debug.Assert(segments.Length > 0);
-                        if (segments.Length > namespaceNames.Count)
-                        {
-                            // this NS has more components than interceptor's NS, so it will never match.
-                            continue;
-                        }
-
-                        // 'segments' must be a prefix of 'namespaceNames'
-                        var foundMatch = true;
-                        for (var i = 0; i < segments.Length; i++)
-                        {
-                            if (segments[i] != namespaceNames[i])
-                            {
-                                foundMatch = false;
-                                break;
-                            }
-                        }
-
-                        if (foundMatch)
-                        {
-                            foundAnyMatch = true;
-                            break;
-                        }
-                    }
-                }
-
+                var thisNamespaceNames = getNamespaceNames();
+                var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
                 if (!foundAnyMatch)
                 {
-                    reportFeatureNotEnabled(diagnostics, attributeSyntax, namespaceNames);
-                    namespaceNames.Free();
+                    reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                    thisNamespaceNames.Free();
                     return;
                 }
-                namespaceNames.Free();
+                thisNamespaceNames.Free();
             }
 
             var attributeFilePath = (string?)attributeArguments[0].Value;
@@ -1165,6 +1135,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
                 namespaceNames.ReverseContents();
                 return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)

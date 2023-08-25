@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
+        private ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -175,7 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
         internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
         {
             get
