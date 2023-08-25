@@ -95,10 +95,12 @@ public class A
     }
 
     [Theory, CombinatorialData]
-    public async Task TestImportCompletion(bool mutatingLspWorkspace)
+    [WorkItem("https://github.com/dotnet/roslyn/issues/68791")]
+    public async Task TestImportCompletionForType(bool mutatingLspWorkspace, bool isInUsingStatement)
     {
-        var markup =
-@"
+        var markup = isInUsingStatement
+            ? @"global using static Task{|caret:|}"
+            : @"
 class A
 {
     void M()
@@ -146,7 +148,10 @@ class A
         Assert.Equal("~Task  System.Threading.Tasks", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
 
-        var expectedAdditionalEdit = new TextEdit() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        TextEdit expectedAdditionalEdit = isInUsingStatement
+            ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(0, 20), End = new(0, 24) } }
+            : new() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+
         AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
@@ -160,6 +165,88 @@ class A
         {
             Kind = LSP.MarkupKind.PlainText,
             Value = "(awaitable) class System.Threading.Tasks.Task"
+        };
+        AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/69576")]
+    public async Task TestImportCompletionForExtensionMethod(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+namespace NS2
+{
+    public static class ExtensionClass
+    {
+        public static bool ExtensionMethod(this object o) => true;
+    }
+}
+
+namespace NS1
+{
+    class Program
+    {
+        void M(object o)
+        {
+            o.{|caret:|}
+        }
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+            triggerCharacter: "\0",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        // Make sure the import completion option is on.
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, true);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        Assert.NotNull(completionResult.ItemDefaults.EditRange);
+        Assert.NotNull(completionResult.ItemDefaults.Data);
+        Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
+
+        var actualItem = completionResult.Items.First(i => i.Label == "ExtensionMethod");
+        Assert.Equal("NS2", actualItem.LabelDetails.Description);
+        Assert.Equal("~ExtensionMethod NS2", actualItem.SortText);
+        Assert.Equal(CompletionItemKind.Method, actualItem.Kind);
+        Assert.Null(actualItem.LabelDetails.Detail);
+        Assert.Null(actualItem.FilterText);
+        Assert.Null(actualItem.TextEdit);
+        Assert.Null(actualItem.TextEditText);
+        Assert.Null(actualItem.AdditionalTextEdits);
+        Assert.Null(actualItem.Command);
+        Assert.Null(actualItem.CommitCharacters);
+        Assert.Null(actualItem.Data);
+        Assert.Null(actualItem.Detail);
+        Assert.Null(actualItem.Documentation);
+
+        actualItem.Data = completionResult.ItemDefaults.Data;
+
+        var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
+        Assert.Equal("NS2", resolvedItem.LabelDetails.Description);
+        Assert.Equal("~ExtensionMethod NS2", resolvedItem.SortText);
+        Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
+
+        var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
+
+        Assert.Null(resolvedItem.LabelDetails.Detail);
+        Assert.Null(resolvedItem.FilterText);
+        Assert.Null(resolvedItem.TextEdit);
+        Assert.Null(resolvedItem.TextEditText);
+        Assert.Null(resolvedItem.Command);
+        Assert.Null(resolvedItem.Detail);
+
+        var expectedDocumentation = new MarkupContent()
+        {
+            Kind = LSP.MarkupKind.PlainText,
+            Value = "(extension) bool object.ExtensionMethod()"
         };
         AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
