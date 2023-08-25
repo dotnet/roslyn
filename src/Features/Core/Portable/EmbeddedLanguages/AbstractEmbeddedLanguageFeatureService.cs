@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -72,8 +75,8 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
             kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree(), StringComparer.OrdinalIgnoreCase);
 
         Info = info;
-        var languageIdentifiers = _identifierToServices.Keys.OrderBy(a => a).ToImmutableArray();
-        _detector = new EmbeddedLanguageDetector(info, languageIdentifiers, new EmbeddedLanguageCommentDetector(languageIdentifiers));
+        var languageIdentifiers = _identifierToServices.Keys.ToImmutableArray();
+        _detector = new EmbeddedLanguageDetector(info, languageIdentifiers, GetCommentDetector(languageIdentifiers));
 
         SyntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
         SyntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
@@ -84,6 +87,22 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
         SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8StringLiteralToken);
         SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8SingleLineRawStringLiteralToken);
         SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8MultiLineRawStringLiteralToken);
+    }
+
+    private static EmbeddedLanguageCommentDetector GetCommentDetector(ImmutableArray<string> languageIdentifiers)
+    {
+        // Well known language detectors we can cache.
+
+        if (languageIdentifiers.SetEquals(JsonLanguageDetector.LanguageIdentifiers, StringComparer.OrdinalIgnoreCase))
+            return JsonLanguageDetector.CommentDetector;
+
+        if (languageIdentifiers.SetEquals(RegexLanguageDetector.LanguageIdentifiers, StringComparer.OrdinalIgnoreCase))
+            return RegexLanguageDetector.CommentDetector;
+
+        if (languageIdentifiers.SetEquals(DateAndTimeLanguageDetector.LanguageIdentifiers, StringComparer.OrdinalIgnoreCase))
+            return DateAndTimeLanguageDetector.CommentDetector;
+
+        return new EmbeddedLanguageCommentDetector(languageIdentifiers);
     }
 
     protected ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> GetServices(

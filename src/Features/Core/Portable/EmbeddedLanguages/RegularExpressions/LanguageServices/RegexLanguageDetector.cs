@@ -24,10 +24,10 @@ internal sealed class RegexLanguageDetector(
     EmbeddedLanguageInfo info,
     INamedTypeSymbol? regexType,
     HashSet<string> methodNamesOfInterest)
-    : AbstractLanguageDetector<RegexOptions, RegexTree, RegexLanguageDetector>(info, s_languageIdentifiers, CommentDetector)
+    : AbstractLanguageDetector<RegexOptions, RegexTree, RegexLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
 {
-    private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
-    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(s_languageIdentifiers);
+    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
+    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
 
     private const string _patternName = "pattern";
 

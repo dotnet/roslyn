@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 /// <summary>
 /// Helper class to detect json in string tokens in a document efficiently.
 /// </summary>
-internal class JsonLanguageDetector(
+internal sealed class JsonLanguageDetector(
     EmbeddedLanguageInfo info,
     ISet<INamedTypeSymbol> typesOfInterest)
-    : AbstractLanguageDetector<JsonOptions, JsonTree, JsonLanguageDetector>(info, s_languageIdentifiers, CommentDetector)
+    : AbstractLanguageDetector<JsonOptions, JsonTree, JsonLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
 {
-    private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Json");
-    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(s_languageIdentifiers);
+    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
+    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
 
     private const string JsonParameterName = "json";
     private const string ParseMethodName = "Parse";

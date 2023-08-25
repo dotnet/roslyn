@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -23,10 +21,10 @@ internal sealed class DateAndTimeLanguageDetector(
     EmbeddedLanguageInfo info,
     INamedTypeSymbol? dateTimeType,
     INamedTypeSymbol? dateTimeOffsetType)
-    : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree, DateAndTimeLanguageDetector>(info, s_languageIdentifiers, s_commentDetector)
+    : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree, DateAndTimeLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
 {
-    private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
-    private static readonly EmbeddedLanguageCommentDetector s_commentDetector = new(s_languageIdentifiers);
+    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
+    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
 
     private const string FormatName = "format";
 
