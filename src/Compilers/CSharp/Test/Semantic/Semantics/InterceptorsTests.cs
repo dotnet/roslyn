@@ -148,8 +148,14 @@ public class InterceptorsTests : CSharpTestBase
         sadCase(" NS1");
         sadCase(";");
         sadCase("NS1 ;");
+        sadCase("NS1..NS2;");
+        sadCase("ns1");
+        sadCase("NS2.NS1");
+        sadCase("$NS1&");
 
         happyCase("NS1");
+        happyCase("NS1;");
+        happyCase(";NS1");
         happyCase("NS1.NS2");
         happyCase("NS2;NS1.NS2");
 

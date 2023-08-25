@@ -12156,66 +12156,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[1]);
         }
 
-        [Fact]
-        public void FeaturesInterceptorsPreviewNamespaces_EndToEnd()
-        {
-            var tempDir = Temp.CreateDirectory();
-            var workingDir = Temp.CreateDirectory();
-            workingDir.CreateFile("a.cs").WriteAllText("""
-                using System;
-                using System.Runtime.CompilerServices;
-
-                class Program
-                {
-                    static void Main()
-                    {
-                        C.M1();
-                        C.M2();
-                    }
-                }
-
-                class C
-                {
-                    public static void M1() => throw null!;
-                    public static void M2() => throw null!;
-                }
-
-                namespace NS1.NS2
-                {
-                    class Interceptors
-                    {
-                        [InterceptsLocation("a.cs", 8, 11)]
-                        public static void M1() => Console.Write(1);
-                    }
-                }
-                
-                namespace NS0
-                {
-                    class Interceptors
-                    {
-                        [InterceptsLocation("a.cs", 9, 11)]
-                        public static void M2() => Console.Write(0);
-                    }
-                }
-
-                namespace System.Runtime.CompilerServices
-                {
-                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-                    public sealed class InterceptsLocationAttribute : Attribute
-                    {
-                        public InterceptsLocationAttribute(string filePath, int line, int character)
-                        {
-                        }
-                    }
-                }
-                """);
-
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
-            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4", "a.cs" });
-            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
-            comp.VerifyEmitDiagnostics();
-        }
-
         public class QuotedArgumentTests : CommandLineTestBase
         {
             private static readonly string s_rootPath = ExecutionConditionUtil.IsWindows
