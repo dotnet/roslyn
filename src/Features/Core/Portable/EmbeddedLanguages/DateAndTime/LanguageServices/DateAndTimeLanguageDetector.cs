@@ -14,17 +14,27 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
 
 /// <summary>
-/// Helper class to detect <see cref="System.DateTime"/> and <see cref="DateTimeOffset"/> format
-/// strings in a document efficiently.
+/// Helper class to detect <see cref="DateTime"/> and <see cref="DateTimeOffset"/> format strings in a document efficiently.
 /// </summary>
 internal sealed class DateAndTimeLanguageDetector(
     EmbeddedLanguageInfo info,
     INamedTypeSymbol? dateTimeType,
     INamedTypeSymbol? dateTimeOffsetType)
-    : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree, DateAndTimeLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
+    : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree, DateAndTimeLanguageDetector, DateAndTimeLanguageDetector.DateAndTimeInfo>(
+        info, LanguageIdentifiers, CommentDetector)
 {
-    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
-    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
+    internal readonly struct DateAndTimeInfo : ILanguageDetectorInfo<DateAndTimeLanguageDetector>
+    {
+        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
+
+        public DateAndTimeLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
+        {
+            var dateTimeType = compilation.GetTypeByMetadataName(typeof(DateTime).FullName!);
+            var dateTimeOffsetType = compilation.GetTypeByMetadataName(typeof(DateTimeOffset).FullName!);
+
+            return new DateAndTimeLanguageDetector(info, dateTimeType, dateTimeOffsetType);
+        }
+    }
 
     private const string FormatName = "format";
 
@@ -44,15 +54,6 @@ internal sealed class DateAndTimeLanguageDetector(
         // instance to satisfy the detector requirements.
         return DateTimeTree.Instance;
     }
-
-    public static DateAndTimeLanguageDetector GetOrCreate(Compilation compilation, EmbeddedLanguageInfo info)
-        => GetOrCreate(compilation, info, static (compilation, info) =>
-        {
-            var dateTimeType = compilation.GetTypeByMetadataName(typeof(DateTime).FullName!);
-            var dateTimeOffsetType = compilation.GetTypeByMetadataName(typeof(DateTimeOffset).FullName!);
-
-            return new DateAndTimeLanguageDetector(info, dateTimeType, dateTimeOffsetType);
-        });
 
     protected override bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
     {

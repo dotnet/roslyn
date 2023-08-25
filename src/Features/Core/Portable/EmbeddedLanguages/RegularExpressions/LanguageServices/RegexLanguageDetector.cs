@@ -24,23 +24,25 @@ internal sealed class RegexLanguageDetector(
     EmbeddedLanguageInfo info,
     INamedTypeSymbol? regexType,
     HashSet<string> methodNamesOfInterest)
-    : AbstractLanguageDetector<RegexOptions, RegexTree, RegexLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
+    : AbstractLanguageDetector<RegexOptions, RegexTree, RegexLanguageDetector, RegexLanguageDetector.RegexInfo>(
+        info, LanguageIdentifiers, CommentDetector)
 {
-    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
-    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
+    internal readonly struct RegexInfo : ILanguageDetectorInfo<RegexLanguageDetector>
+    {
+        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Regex", "Regexp");
+
+        public RegexLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
+        {
+            var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName!);
+            var methodNamesOfInterest = GetMethodNamesOfInterest(regexType, info.SyntaxFacts);
+            return new RegexLanguageDetector(info, regexType, methodNamesOfInterest);
+        }
+    }
 
     private const string _patternName = "pattern";
 
     private readonly INamedTypeSymbol? _regexType = regexType;
     private readonly HashSet<string> _methodNamesOfInterest = methodNamesOfInterest;
-
-    public static RegexLanguageDetector GetOrCreate(Compilation compilation, EmbeddedLanguageInfo info)
-        => GetOrCreate(compilation, info, static (compilation, info) =>
-        {
-            var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName!);
-            var methodNamesOfInterest = GetMethodNamesOfInterest(regexType, info.SyntaxFacts);
-            return new RegexLanguageDetector(info, regexType, methodNamesOfInterest);
-        });
 
     /// <summary>
     /// Finds public, static methods in <see cref="Regex"/> that have a parameter called

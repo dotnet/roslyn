@@ -174,16 +174,26 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         }
     }
 
-    internal abstract class AbstractLanguageDetector<TOptions, TTree, TDetector> :
+    internal interface ILanguageDetectorInfo<TDetector>
+    {
+        ImmutableArray<string> LanguageIdentifiers { get; }
+        TDetector Create(Compilation compilation, EmbeddedLanguageInfo info);
+    }
+
+    internal abstract class AbstractLanguageDetector<TOptions, TTree, TDetector, TDetectorInfo> :
         AbstractLanguageDetector<TOptions>
         where TOptions : struct, Enum
         where TTree : class
-        where TDetector : AbstractLanguageDetector<TOptions, TTree, TDetector>
+        where TDetector : AbstractLanguageDetector<TOptions, TTree, TDetector, TDetectorInfo>
+        where TDetectorInfo : struct, ILanguageDetectorInfo<TDetector>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = default(TDetectorInfo).LanguageIdentifiers;
+        public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
+
         /// <summary>
-        /// Cache so that we can reuse the same <see cref="TDetector"/> when analyzing a particular compilation model.
-        /// This saves the time from having to recreate this for every string literal that features examine for a
-        /// particular compilation.
+        /// Cache so that we can reuse the same TDetector when analyzing a particular compilation model. This saves the
+        /// time from having to recreate this for every string literal that features examine for a particular
+        /// compilation.
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, TDetector> s_compilationToDetector = new();
 
@@ -195,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         {
         }
 
-        protected static TDetector GetOrCreate(
-            Compilation compilation, EmbeddedLanguageInfo info, Func<Compilation, EmbeddedLanguageInfo, TDetector> create)
+        public static TDetector GetOrCreate(
+            Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
             if (s_compilationToDetector.TryGetValue(compilation, out var detector))
                 return detector;
 
-            return s_compilationToDetector.GetValue(compilation, _ => create(compilation, info));
+            return s_compilationToDetector.GetValue(compilation, _ => default(TDetectorInfo).Create(compilation, info));
         }
 
         /// <summary>

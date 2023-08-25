@@ -22,10 +22,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 internal sealed class JsonLanguageDetector(
     EmbeddedLanguageInfo info,
     ISet<INamedTypeSymbol> typesOfInterest)
-    : AbstractLanguageDetector<JsonOptions, JsonTree, JsonLanguageDetector>(info, LanguageIdentifiers, CommentDetector)
+    : AbstractLanguageDetector<JsonOptions, JsonTree, JsonLanguageDetector, JsonLanguageDetector.JsonInfo>(
+        info, LanguageIdentifiers, CommentDetector)
 {
-    public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
-    public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
+    internal readonly struct JsonInfo : ILanguageDetectorInfo<JsonLanguageDetector>
+    {
+        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Json");
+
+        public JsonLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
+        {
+            var types = s_typeNamesOfInterest.Select(compilation.GetTypeByMetadataName).WhereNotNull().ToSet();
+            return new JsonLanguageDetector(info, types);
+        }
+    }
 
     private const string JsonParameterName = "json";
     private const string ParseMethodName = "Parse";
@@ -39,13 +48,6 @@ internal sealed class JsonLanguageDetector(
     };
 
     private readonly ISet<INamedTypeSymbol> _typesOfInterest = typesOfInterest;
-
-    public static JsonLanguageDetector GetOrCreate(Compilation compilation, EmbeddedLanguageInfo info)
-        => GetOrCreate(compilation, info, static (compilation, info) =>
-        {
-            var types = s_typeNamesOfInterest.Select(compilation.GetTypeByMetadataName).WhereNotNull().ToSet();
-            return new JsonLanguageDetector(info, types);
-        });
 
     /// <summary>
     /// [StringSyntax(Json)] means we're targetting .net, which means we're strict by default if we don't see any
