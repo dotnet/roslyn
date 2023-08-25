@@ -16,7 +16,7 @@ internal sealed class AspNetCoreCSharpRouteSyntaxDetector
     public static readonly AspNetCoreCSharpRouteSyntaxDetector Instance = new();
 
     private static readonly EmbeddedLanguageDetector s_detector;
-    
+
     static AspNetCoreCSharpRouteSyntaxDetector()
     {
         var identifiers = ImmutableArray.Create("Route");
