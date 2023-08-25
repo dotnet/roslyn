@@ -22,11 +22,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     {
         private readonly Regex _regex;
 
+        private const int MaxRegexCacheSize = 11;
+        private static readonly Dictionary<string, Regex> s_regexes = new(MaxRegexCacheSize);
+        private static readonly object s_lock = new();
+
         public EmbeddedLanguageCommentDetector(ImmutableArray<string> identifiers)
         {
             var namePortion = string.Join("|", identifiers.Select(n => $"({Regex.Escape(n)})"));
-            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
-                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            lock (s_lock)
+            {
+                if (!s_regexes.TryGetValue(namePortion, out var regex))
+                {
+                    // Cap number of cached regular expressions to ensure we don't have unbounded growth
+                    if (s_regexes.Count == MaxRegexCacheSize)
+                        s_regexes.Clear();
+
+                    regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+                        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                    s_regexes.Add(namePortion, regex);
+                }
+
+                _regex = regex;
+            }
         }
 
         public bool TryMatch(
