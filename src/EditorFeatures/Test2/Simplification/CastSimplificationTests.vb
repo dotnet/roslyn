@@ -5284,7 +5284,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5314")>
-        Public Async Function TestCSharp_DontRemove_NecessaryCastToObjectInConditionalExpression() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastToObjectInConditionalExpression() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5317,7 +5317,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6490")>
-        Public Async Function TestCSharp_DontRemove_NecessaryCastOfLambdaToDelegateWithDynamic() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastOfLambdaToDelegateWithDynamic() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5356,7 +5356,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6966")>
-        Public Async Function TestCSharp_DontRemove_NecessaryCastToNullInImplicitlyTypedArray() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastToNullInImplicitlyTypedArray() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5395,7 +5395,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7861")>
-        Public Async Function TestCSharp_DontRemove_NecessaryCastOnNullableAssignedToDynamic() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastOnNullableAssignedToDynamic() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5438,7 +5438,7 @@ static void Main(string[] args)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10311")>
-        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean1() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryUnboxingCastFromObjectToBoolean1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5473,7 +5473,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10311")>
-        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean2() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryUnboxingCastFromObjectToBoolean2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5508,7 +5508,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10311")>
-        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean1_ExpressionBody() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryUnboxingCastFromObjectToBoolean1_ExpressionBody() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5535,7 +5535,7 @@ class C
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10311")>
-        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean2_ExpressionBody() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryUnboxingCastFromObjectToBoolean2_ExpressionBody() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -5688,7 +5688,7 @@ class Program
 #Region "Visual Basic tests"
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemove_IntToObj_Overloads1() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntToObj_Overloads1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -5726,7 +5726,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemove_IntToLng_Overloads2() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntToLng_Overloads2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -5955,7 +5955,7 @@ End Class
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/2761")>
-        Public Async Function TestVisualBasic_DontRemove_InsideThrowStatement2() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_InsideThrowStatement2() As Task
             ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
 <Workspace>
@@ -8534,7 +8534,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995855")>
-        Public Async Function TestVisualBasic_DontRemove_NecessaryCastInTernaryExpression1() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastInTernaryExpression1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -8567,7 +8567,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995855")>
-        Public Async Function TestVisualBasic_DontRemove_NecessaryCastInTernaryExpression2() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastInTernaryExpression2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -8995,7 +8995,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5314")>
-        Public Async Function TestVisualBasic_DontRemove_NecessaryCastToObjectInConditionalExpression() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastToObjectInConditionalExpression() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -9024,7 +9024,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5685")>
-        Public Async Function TestVisualBasic_DontRemove_NecessaryCastToNullable1() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastToNullable1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -9171,7 +9171,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2560")>
-        Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn1() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntegerToByte_OptionStrictOn1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -9202,7 +9202,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2560")>
-        Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn2() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntegerToByte_OptionStrictOn2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -9235,7 +9235,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2560")>
-        Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn3() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntegerToByte_OptionStrictOn3() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -9268,7 +9268,7 @@ End Class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2560")>
-        Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn4() As Task
+        Public Async Function TestVisualBasic_DoNotRemove_IntegerToByte_OptionStrictOn4() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">

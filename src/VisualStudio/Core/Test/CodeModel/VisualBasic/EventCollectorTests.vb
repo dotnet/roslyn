@@ -1975,7 +1975,7 @@ End Class
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575666")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function TestDontFireEventsForGarbage1() As Task
+        Public Async Function TestDoNotFireEventsForGarbage1() As Task
             Dim code =
 <Code>
 Class C
@@ -2001,7 +2001,7 @@ End Class
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578249")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function TestDontFireEventsForGarbage2() As Task
+        Public Async Function TestDoNotFireEventsForGarbage2() As Task
             Dim code =
 <Code>
 Partial Class SomeClass
@@ -2265,7 +2265,7 @@ End Class
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
+        Public Async Function DoNotCrashOnDuplicatedMethodsInNamespace() As Task
             Dim code =
 <Code>
 Namespace N
@@ -2290,7 +2290,7 @@ End Namespace
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
+        Public Async Function DoNotCrashOnDuplicatedPropertiesInNamespace() As Task
             Dim code =
 <Code>
 Namespace N
@@ -2311,7 +2311,7 @@ End Namespace
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
+        Public Async Function DoNotCrashOnDuplicatedEventsInNamespace1() As Task
             Dim code =
 <Code>
 Namespace N
@@ -2332,7 +2332,7 @@ End Namespace
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
+        Public Async Function DoNotCrashOnDuplicatedEventsInNamespace2() As Task
             Dim code =
 <Code>
 Namespace N

@@ -84,14 +84,24 @@ namespace Microsoft.CodeAnalysis
                     {
                         var stopwatch = SharedStopwatch.StartNew();
                         var nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
+
+                        if (state != EntryState.Modified || !_filterTable.TryModifyEntries(nodes, Roslyn.Utilities.ReferenceEqualityComparer.Instance, stopwatch.Elapsed, noInputStepsStepInfo, state, out entry))
+                        {
+                            entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
+                        }
                     }
 
                     // now, using the obtained syntax nodes, run the transform
-                    foreach (SyntaxNode node in entry)
+                    for (var i = 0; i < entry.Count; i++)
                     {
+                        if (entry.GetState(i) == EntryState.Removed)
+                        {
+                            _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
+                            continue;
+                        }
+
                         var stopwatch = SharedStopwatch.StartNew();
-                        var value = new GeneratorSyntaxContext(node, model, _owner._syntaxHelper);
+                        var value = new GeneratorSyntaxContext(entry.GetItem(i), model, _owner._syntaxHelper);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
                         // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,

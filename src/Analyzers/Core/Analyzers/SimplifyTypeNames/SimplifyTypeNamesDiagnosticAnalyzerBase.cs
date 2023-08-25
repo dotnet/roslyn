@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
         /// <see cref="AnalyzeSemanticModel"/>.</returns>
         protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
         {
@@ -237,10 +237,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 if (!TryProceedWithInterval(addIfAvailable: false, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
-                var diagnostics = _analyzer.AnalyzeCodeBlock(context);
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+                var diagnostics = _analyzer.AnalyzeCodeBlock(context, root);
 
                 // After this point, cancellation is not allowed due to possible state alteration
-                if (!TryProceedWithInterval(addIfAvailable: true, context.CodeBlock.FullSpan, completed, intervalTree))
+                if (!TryProceedWithInterval(addIfAvailable: root == context.CodeBlock, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
                 foreach (var diagnostic in diagnostics)
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 //   true: the state was initialized on the previous line, and either intervalTree will be null, or
                 //         a previous call to AnalyzeSemanticModel was cancelled and the new one will operate on the
                 //         same interval tree presented during the previous call.
-                if (!completed.Value)
+                if (!completed.Value && !context.FilterSpan.HasValue)
                 {
                     // This lock ensures we do not use intervalTree while it is being updated by a concurrent call to
                     // AnalyzeCodeBlock.
@@ -292,7 +293,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     }
                 }
 
-                var diagnostics = _analyzer.AnalyzeSemanticModel(context, intervalTree);
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+                var diagnostics = _analyzer.AnalyzeSemanticModel(context, root, intervalTree);
 
                 // After this point, cancellation is not allowed due to possible state alteration
                 foreach (var diagnostic in diagnostics)

@@ -50,7 +50,7 @@
     <ItemGroup>
       <CommonMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
       <CommonMetalamaCompilerBinArtifact Include="$(PkgHumanizer_Core)\lib\netstandard1.0\Humanizer.dll"/>
-      <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_DiaSymReader)\lib\netstandard1.1\Microsoft.DiaSymReader.dll"/>
+      <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_DiaSymReader)\lib\netstandard2.0\Microsoft.DiaSymReader.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_CodeAnalysis_Elfie)\lib\netstandard2.0\Microsoft.CodeAnalysis.Elfie.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_CodeAnalysis_AnalyzerUtilities)\lib\netstandard2.0\Microsoft.CodeAnalysis.AnalyzerUtilities.dll"/>
     </ItemGroup>

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, options, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -119,10 +120,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{(int)priority}"))
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
@@ -133,16 +134,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
                         continue;
 
-                    tasks.Add(Task.Run(() =>
+                    tasks.Add(Task.Run(async () =>
                         {
+                            // Log an individual telemetry event for slow code refactoring computations to
+                            // allow targeted trace notifications for further investigation. 500 ms seemed like
+                            // a good value so as to not be too noisy, but if fired, indicates a potential
+                            // area requiring investigation.
+                            const int CodeRefactoringTelemetryDelay = 500;
+
                             var providerName = provider.GetType().Name;
                             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                            using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, $"{providerName}", CodeRefactoringTelemetryDelay))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
-                                    extensionManager, options, isBlocking, cancellationToken);
+                                return await GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
+                                    extensionManager, options, cancellationToken).ConfigureAwait(false);
                             }
                         },
                         cancellationToken));
@@ -160,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -189,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         }
                     },
                     options,
-                    isBlocking,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;

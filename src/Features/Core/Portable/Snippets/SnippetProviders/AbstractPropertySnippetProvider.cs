@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
-    internal abstract class AbstractPropertySnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractPropertySnippetProvider : AbstractSingleChangeSnippetProvider
     {
         /// <summary>
         /// Generates the property syntax.
@@ -20,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// </summary>
         protected abstract Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
-        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var propertyDeclaration = await GenerateSnippetSyntaxAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), propertyDeclaration.NormalizeWhitespace().ToFullString()));
+            return new TextChange(TextSpan.FromBounds(position, position), propertyDeclaration.NormalizeWhitespace().ToFullString());
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)

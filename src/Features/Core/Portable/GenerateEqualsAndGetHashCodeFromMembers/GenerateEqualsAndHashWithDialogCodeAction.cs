@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
             private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions;
 
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
                 GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 ImmutableArray<ISymbol> viableMembers,
                 ImmutableArray<PickMembersOption> pickMembersOptions,
                 CleanCodeGenerationOptionsProvider fallbackOptions,
+                ILegacyGlobalOptionsWorkspaceService globalOptions,
                 bool generateEquals = false,
                 bool generateGetHashCode = false)
             {
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _fallbackOptions = fallbackOptions;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
+                _globalOptions = globalOptions;
             }
 
             public override string EquivalenceKey => Title;
@@ -76,16 +79,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null || implementIEqutableOption != null)
                 {
-                    var globalOptions = solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-
                     if (generateOperatorsOption != null)
                     {
-                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, generateOperatorsOption.Value);
+                        _globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, generateOperatorsOption.Value);
                     }
 
                     if (implementIEqutableOption != null)
                     {
-                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(_document.Project.Language, implementIEqutableOption.Value);
+                        _globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(_document.Project.Language, implementIEqutableOption.Value);
                     }
                 }
 

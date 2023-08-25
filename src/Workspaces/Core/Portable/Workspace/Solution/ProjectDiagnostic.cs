@@ -6,14 +6,8 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    public class ProjectDiagnostic : WorkspaceDiagnostic
+    public class ProjectDiagnostic(WorkspaceDiagnosticKind kind, string message, ProjectId projectId) : WorkspaceDiagnostic(kind, message)
     {
-        public ProjectId ProjectId { get; }
-
-        public ProjectDiagnostic(WorkspaceDiagnosticKind kind, string message, ProjectId projectId)
-            : base(kind, message)
-        {
-            this.ProjectId = projectId;
-        }
+        public ProjectId ProjectId { get; } = projectId;
     }
 }

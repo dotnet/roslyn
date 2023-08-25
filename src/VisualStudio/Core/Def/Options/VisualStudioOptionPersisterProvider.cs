@@ -14,8 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
-using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options
 {
@@ -29,7 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         // maps config name to a read fallback:
         private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
-        private VisualStudioOptionPersister? _lazyPersister;
+        // Use vs-threading's JTF-aware AsyncLazy<T>. Ensure only one persister instance is created (even in the face of
+        // parallel requests for the value) because the constructor registers global event handler callbacks.
+        private readonly Threading.AsyncLazy<IOptionPersister> _lazyPersister;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,14 +45,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             _serviceProvider = serviceProvider;
             _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
+            _lazyPersister = new Threading.AsyncLazy<IOptionPersister>(() => CreatePersisterAsync(threadingContext.DisposalToken), threadingContext.JoinableTaskFactory);
         }
 
-        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
-            => _lazyPersister ??=
-                new VisualStudioOptionPersister(
-                    new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, await TryGetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(true)),
-                    await LocalUserRegistryOptionPersister.CreateAsync(_serviceProvider).ConfigureAwait(false),
-                    new FeatureFlagPersister(await TryGetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false)));
+        public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
+            => new(_lazyPersister.GetValueAsync(cancellationToken));
+
+        private async Task<IOptionPersister> CreatePersisterAsync(CancellationToken cancellationToken)
+        {
+            // Obtain services before creating instances. This avoids state corruption in the event cancellation is
+            // requested (some of the constructors register event handlers that could leak if cancellation occurred
+            // in the middle of construction).
+            var settingsManager = await GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
+            Assumes.Present(settingsManager);
+            var localRegistry = await GetFreeThreadedServiceAsync<SLocalRegistry, ILocalRegistry4>().ConfigureAwait(false);
+            Assumes.Present(localRegistry);
+            var featureFlags = await GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false);
+
+            // Cancellation is not allowed after this point
+            cancellationToken = CancellationToken.None;
+
+            return new VisualStudioOptionPersister(
+                new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
+                LocalUserRegistryOptionPersister.Create(localRegistry),
+                new FeatureFlagPersister(featureFlags));
+        }
 
         private void RefreshOption(OptionKey2 optionKey, object? newValue)
         {
@@ -61,15 +81,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             }
         }
 
-        private async ValueTask<I?> TryGetServiceAsync<T, I>() where I : class
+        /// <summary>
+        /// Returns a service without doing a transition to the UI thread to cast the service to the interface type. This should only be called for services that are
+        /// well-understood to be castable off the UI thread, either because they are managed or free-threaded COM.
+        /// </summary>
+        private async ValueTask<I?> GetFreeThreadedServiceAsync<T, I>() where I : class
         {
             try
             {
                 return (I?)await _serviceProvider.GetServiceAsync(typeof(T)).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                return null;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

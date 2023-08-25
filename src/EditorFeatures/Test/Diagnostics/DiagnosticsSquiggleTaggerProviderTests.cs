@@ -10,15 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -36,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 .AddExcludedPartTypes(typeof(IDiagnosticService), typeof(IDiagnosticAnalyzerService))
                 .AddParts(typeof(MockDiagnosticService), typeof(MockDiagnosticAnalyzerService));
 
-        [WpfTheory, CombinatorialData]
-        public async Task Test_TagSourceDiffer(bool pull)
+        [WpfFact]
+        public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
@@ -46,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
 
@@ -74,11 +70,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task MultipleTaggersAndDispose(bool pull)
+        [WpfFact]
+        public async Task MultipleTaggersAndDispose()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -98,11 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(spans.IsEmpty());
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported(bool pull)
+        [WpfFact]
+        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false);
             // First, make sure all diagnostics have been reported.
@@ -124,11 +118,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         [WpfTheory]
-        [InlineData(DiagnosticKind.CompilerSyntax)]
-        [InlineData(DiagnosticKind.CompilerSemantic)]
-        [InlineData(DiagnosticKind.AnalyzerSyntax)]
-        [InlineData(DiagnosticKind.AnalyzerSemantic)]
-        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedBeforeInitialDiagnosticsReported(DiagnosticKind diagnosticKind)
+        [InlineData(DiagnosticKind.CompilerSyntax, false)]
+        [InlineData(DiagnosticKind.CompilerSemantic, false)]
+        [InlineData(DiagnosticKind.AnalyzerSyntax, false)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic, false)]
+        // Test no tags for suppressed analyzer diagnostics. NOTE: Compiler errors cannot be suppressed.
+        [InlineData(DiagnosticKind.AnalyzerSyntax, true)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic, true)]
+        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedBeforeInitialDiagnosticsReported(DiagnosticKind diagnosticKind, bool isSuppressed)
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
             // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
@@ -155,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Now product the first diagnostic and fire the events.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
-            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind);
+            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind, isSuppressed);
 
             using var disposable = tagger as IDisposable;
             await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
@@ -163,16 +160,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(1, spans.Count);
-            Assert.Equal(span.ToSpan(), spans[0].Span.Span);
+            if (isSuppressed)
+            {
+                Assert.Empty(spans);
+            }
+            else
+            {
+                Assert.Equal(1, spans.Count);
+                Assert.Equal(span.ToSpan(), spans[0].Span.Span);
+            }
         }
 
         [WpfTheory]
-        [InlineData(DiagnosticKind.CompilerSyntax)]
-        [InlineData(DiagnosticKind.CompilerSemantic)]
-        [InlineData(DiagnosticKind.AnalyzerSyntax)]
-        [InlineData(DiagnosticKind.AnalyzerSemantic)]
-        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedAfterInitialDiagnosticsReported(DiagnosticKind diagnosticKind)
+        [InlineData(DiagnosticKind.CompilerSyntax, false)]
+        [InlineData(DiagnosticKind.CompilerSemantic, false)]
+        [InlineData(DiagnosticKind.AnalyzerSyntax, false)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic, false)]
+        // Test no tags for suppressed analyzer diagnostics. NOTE: Compiler errors cannot be suppressed.
+        [InlineData(DiagnosticKind.AnalyzerSyntax, true)]
+        [InlineData(DiagnosticKind.AnalyzerSemantic, true)]
+        internal async Task TestWithMockDiagnosticService_TaggerProviderCreatedAfterInitialDiagnosticsReported(DiagnosticKind diagnosticKind, bool isSuppressed)
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
             // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
@@ -194,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Create and fire the diagnostic events before the tagger is even made.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
-            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind);
+            diagnosticService.CreateDiagnosticAndFireEvents(workspace, analyzerService, Location.Create(tree, span), diagnosticKind, isSuppressed);
 
             var firstDocument = workspace.Documents.First();
             var tagger = provider.CreateTagger<IErrorTag>(firstDocument.GetTextBuffer());
@@ -206,8 +213,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(1, spans.Count);
-            Assert.Equal(span.ToSpan(), spans[0].Span.Span);
+            if (isSuppressed)
+            {
+                Assert.Empty(spans);
+            }
+            else
+            {
+                Assert.Equal(1, spans.Count);
+                Assert.Equal(span.ToSpan(), spans[0].Span.Span);
+            }
         }
 
         private class Analyzer : DiagnosticAnalyzer

@@ -33,8 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
             ' ignoreByRefLikeMarker := False, since VB does not support ref-like types
-            ' https://github.com/dotnet/roslyn/issues/61435: Determine what support will be added for VB
-            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=False)
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False, ignoreRequiredMemberMarker:=True)
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
         End Function

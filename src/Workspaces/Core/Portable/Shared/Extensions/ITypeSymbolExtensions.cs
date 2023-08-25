@@ -232,5 +232,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
+
+        public static bool CanBeEnumerated(this ITypeSymbol type)
+            => type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+
     }
 }

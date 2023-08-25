@@ -43,20 +43,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// Sets and persists the value of a global option.
         /// Sets the value of a global option.
         /// Invokes registered option persisters.
-        /// Triggers <see cref="OptionChanged"/>.
+        /// Triggers option changed event for handlers registered with <see cref="AddOptionChangedHandler"/>.
         /// </summary>
         void SetGlobalOption(OptionKey2 optionKey, object? value);
 
         /// <summary>
         /// Atomically sets the values of specified global options. The option values are persisted.
-        /// Triggers <see cref="OptionChanged"/>.
+        /// Triggers option changed event for handlers registered with <see cref="AddOptionChangedHandler"/>.
         /// </summary>
         /// <remarks>
         /// Returns true if any option changed its value stored in the global options.
         /// </remarks>
         bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options);
-
-        event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
         /// <summary>
         /// Refreshes the stored value of an option. This should only be called from persisters.
@@ -66,5 +64,9 @@ namespace Microsoft.CodeAnalysis.Options
         /// Returns true if the option changed its value stored in the global options.
         /// </remarks>
         bool RefreshOption(OptionKey2 optionKey, object? newValue);
+
+        void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
+
+        void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
     }
 }

@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
@@ -68,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
+            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr);
+
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
@@ -99,13 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp);
             BindToOption(AddUsingsOnPaste, AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp);
-
-            // Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptionsStorage.Asynchronous, () =>
-            {
-                // If the option has not been set by the user, check if the option is disabled from experimentation.
-                return !optionStore.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag);
-            });
 
             // Highlighting
             BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.CSharp);
@@ -165,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme);
 
             // Extract Method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.CSharp);
 
             // Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
@@ -201,7 +195,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
 
             // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline);
+            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline, () =>
+            {
+                // If the option has not been set by the user, check if the option is disabled from experimentation. If
+                // so, default to reflect that.
+                return !optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
+            });
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -331,6 +330,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Collapse_usings_on_file_open.IsEnabled = false;
             Collapse_metadata_signature_files_on_open.IsEnabled = false;
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = false;
+        }
+
+        private void Run_code_analysis_in_separate_process_Checked(object sender, RoutedEventArgs e)
+        {
+            Run_code_analysis_on_dotnet.IsEnabled = true;
+        }
+
+        private void Run_code_analysis_in_separate_process_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Run_code_analysis_on_dotnet.IsEnabled = false;
         }
     }
 }

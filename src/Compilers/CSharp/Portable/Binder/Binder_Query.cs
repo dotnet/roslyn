@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindQuery(QueryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureQueryExpression.CheckFeatureAvailability(diagnostics, node, node.FromClause.FromKeyword.GetLocation());
+            MessageID.IDS_FeatureQueryExpression.CheckFeatureAvailability(diagnostics, node.FromClause.FromKeyword);
 
             var fromClause = node.FromClause;
             var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, diagnostics);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = this.GetDeclaredLocalsForScope(expression);
             if (locals.Any())
             {
-                CheckFeatureAvailability(expression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics, locals[0].Locations[0]);
+                CheckFeatureAvailability(expression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics, locals[0].GetFirstLocation());
             }
 
             return this.CreateBlockFromExpression(expression, locals, RefKind.None, result, expression, diagnostics);

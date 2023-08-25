@@ -5,8 +5,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -16,14 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal interface IDocumentChangeTracker
 {
-    ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, CancellationToken cancellationToken);
+    ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken);
     void UpdateTrackedDocument(Uri documentUri, SourceText text);
     ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken);
 }
 
 internal class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
-    public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, CancellationToken cancellationToken)
+    public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -35,11 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
-
-        protected override Task<ImmutableArray<string>> GetImportedNamespacesAsync(
-            SyntaxContext syntaxContext,
-            CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.GetImportedNamespacesAsync(syntaxContext, cancellationToken);
 
         protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {

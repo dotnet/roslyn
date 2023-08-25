@@ -279,12 +279,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private uint GetLabelId(ILabelSymbol symbol)
         {
-            if (_labelIdMap.ContainsKey(symbol))
+            if (_labelIdMap.TryGetValue(symbol, out var id))
             {
-                return _labelIdMap[symbol];
+                return id;
             }
 
-            var id = _currentLabelId++;
+            id = _currentLabelId++;
             _labelIdMap[symbol] = id;
             return id;
         }
@@ -956,6 +956,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.IndexerSymbol, $"{nameof(operation.IndexerSymbol)}");
             LogNewLine();
             Unindent();
+        }
+
+        public override void VisitInlineArrayAccess(IInlineArrayAccessOperation operation)
+        {
+            LogString(nameof(IInlineArrayAccessOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Instance, "Instance");
+            Visit(operation.Argument, "Argument");
         }
 
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)

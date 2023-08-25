@@ -5512,14 +5512,18 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_PrefixUnary()
         {
-            var test = UsingTree(@"
-class C
-{
-    void Goo(int i)
-    {
-        [A]++i;
-    }
-}");
+            var test = UsingTree("""
+                class C
+                {
+                    void Goo(int i)
+                    {
+                        [A]++i;
+                    }
+                }
+                """,
+                // (5,14): error CS1002: ; expected
+                //         [A]++i;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(5, 14));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5553,25 +5557,29 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.AttributeList);
+                                N(SyntaxKind.PostIncrementExpression);
                                 {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
+                                    N(SyntaxKind.CollectionExpression);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "A");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
                                         }
+                                        N(SyntaxKind.CloseBracketToken);
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.PreIncrementExpression);
-                                {
                                     N(SyntaxKind.PlusPlusToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "i");
-                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "i");
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
@@ -5585,9 +5593,18 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (6,9): error CS7014: Attributes are not valid in this context.
+                // (5,9): error CS8652: The feature 'collection literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [A]++i;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection literals").WithLocation(5, 9),
+                // (5,10): error CS0103: The name 'A' does not exist in the current context
+                //         [A]++i;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(5, 10),
+                // (5,14): error CS1002: ; expected
+                //         [A]++i;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(5, 14),
+                // (5,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [A]++i;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i").WithLocation(5, 14));
         }
 
         [Fact]

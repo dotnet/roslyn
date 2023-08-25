@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             string name,
             SyntaxReference syntax,
-            Location location)
-            : base(containingType, name, syntax, location)
+            TextSpan locationSpan)
+            : base(containingType, name, syntax, locationSpan)
         {
             _modifiers = modifiers;
         }
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.GetFirstLocation());
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
             else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var modifier in modifiers)
                 {
                     if (modifier.IsKind(SyntaxKind.FixedKeyword))
-                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier);
                 }
 
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool modifierErrors,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.Span)
         {
             _hasInitializer = declarator.Initializer != null;
 
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
-        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (this.SyntaxTree == tree)
             {

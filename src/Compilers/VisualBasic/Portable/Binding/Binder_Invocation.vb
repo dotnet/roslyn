@@ -841,9 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberTypeAccessibility(diagnostics, node, methodOrProperty)
             End If
 
-            If bestResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
-            End If
+            diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
 
             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node, bestResult, boundArguments, diagnostics)
             boundArguments = argumentInfo.Arguments
@@ -2196,9 +2194,7 @@ ProduceBoundNode:
                 Next
 
                 ' Check whether type inference failed
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                    diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
-                End If
+                diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
 
                 If candidate.IsGeneric AndAlso candidateAnalysisResult.State = OverloadResolution.CandidateAnalysisResultState.TypeInferenceFailed Then
                     ' Bug 122092: AddressOf doesn't want detailed info on which parameters could not be
@@ -2253,8 +2249,7 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
-                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
                             ' Already reported some errors, let's not report a general inference error
                             Return
                         End If
@@ -2284,8 +2279,7 @@ ProduceBoundNode:
                     Return
                 End If
 
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                   candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
+                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
                     Return
                 End If
 
@@ -3177,7 +3171,7 @@ ProduceBoundNode:
 
                         If callerInfoValue IsNot Nothing Then
                             ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                             Dim literal As BoundLiteral
 
                             If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then

@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public object? GetDebuggerDisplay()
                 => (!Tokens.IsDefault) ? string.Join(",", Tokens.Select(token => token.ToString("X8"))) :
+                   (Object is ImmutableArray<string> array) ? string.Join(",", array) :
                    (Object is null) ? Int32 :
                    (Object is StrongBox<EnumType> { Value: var enumType }) ? enumType switch
                    {
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(ModuleUpdateStatus value) => new((int)value, s_ModuleUpdateStatus);
             public static implicit operator Arg(EditAndContinueCapabilities value) => new((int)value, s_EditAndContinueCapabilities);
             public static implicit operator Arg(ImmutableArray<int> tokens) => new(tokens);
+            public static implicit operator Arg(ImmutableArray<string> items) => new(items);
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = MakeSourceFileLogPath(document, fileNameSuffix, updateId, generation);
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write | FileShare.Delete);
                     using var writer = new StreamWriter(file, text.Encoding ?? Encoding.UTF8);
                     text.Write(writer, cancellationToken);

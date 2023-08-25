@@ -224,6 +224,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
+
+            Public Overrides ReadOnly Property IsRequired As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
         End Class
 
     End Class

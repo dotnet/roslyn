@@ -68,6 +68,10 @@
       </Group>
 
       <Group guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+
+      <Group guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" priority="0x0100">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbar" />
+      </Group>
     </Groups>
 
     <Buttons>
@@ -533,6 +537,71 @@
           <LocCanonicalName>ClearStackTraceExplorer</LocCanonicalName>
         </Strings>
       </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineExpandAll" priority="0x0101" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="ExpandAll" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineExpandAll</LocCanonicalName>
+          <ButtonText>Expand All</ButtonText>
+          <MenuText>Expand All</MenuText>
+          <ToolTipText>Expand All</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineCollapseAll" priority="0x0102" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="CollapseAll" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineCollapseAll</LocCanonicalName>
+          <ButtonText>Collapse All</ButtonText>
+          <MenuText>Collapse All</MenuText>
+          <ToolTipText>Collapse All</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByName" priority="0x0103" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortAscending" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByName</LocCanonicalName>
+          <ButtonText>Sort By Name</ButtonText>
+          <MenuText>Sort By Name</MenuText>
+          <ToolTipText>Sort By Name</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByOrder" priority="0x0104" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortByNamespace" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByOrder</LocCanonicalName>
+          <ButtonText>Sort By Order</ButtonText>
+          <MenuText>Sort By Order</MenuText>
+          <ToolTipText>Sort By Order</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidDocumentOutlineSortByType" priority="0x0105" type="Button">
+        <Parent guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="SortByType" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>DocumentOutlineSortByType</LocCanonicalName>
+          <ButtonText>Sort By Type</ButtonText>
+          <MenuText>Sort By Type</MenuText>
+          <ToolTipText>Sort By Type</ToolTipText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -616,6 +685,15 @@
         <Strings>
           <MenuText>StackTrace Explorer</MenuText>
           <ButtonText>StackTrace Explorer</ButtonText>
+        </Strings>
+      </Menu>
+
+      <!-- Document Outline toolbar -->
+      <Menu guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbar" type="Toolbar">
+        <CommandFlag>NotInTBList</CommandFlag>
+        <Strings>
+          <LocCanonicalName>RoslynDocumentOutlineToolbar</LocCanonicalName>
+          <ButtonText>Document Outline</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -780,6 +858,14 @@
       <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
 
       <IDSymbol name="cmdidSyncNamespaces" value="0x204" />
+
+      <IDSymbol name="cmdidDocumentOutlineToolbar" value="0x300" />
+      <IDSymbol name="cmdidDocumentOutlineExpandAll" value="0x311"/>
+      <IDSymbol name="cmdidDocumentOutlineCollapseAll" value="0x312"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByName" value="0x313"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByOrder" value="0x314"/>
+      <IDSymbol name="cmdidDocumentOutlineSortByType" value="0x315"/>
+      <IDSymbol name="cmdidDocumentOutlineToolbarGroup" value="0x350" />
     </GuidSymbol>
 
     <GuidSymbol name="guidEditorCommands" value="{160961B3-909D-4B28-9353-A1BEF587B4A6}">

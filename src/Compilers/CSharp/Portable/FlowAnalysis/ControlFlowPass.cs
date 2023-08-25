@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!_labelsUsed.Contains(label))
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.Locations[0]);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.GetFirstLocation());
                 }
             }
 
@@ -340,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check for illegal jumps across using declarations
             var sourceLocation = node.Syntax.Location;
             var sourceStart = sourceLocation.SourceSpan.Start;
-            var targetStart = node.Label.Locations[0].SourceSpan.Start;
+            var targetStart = node.Label.GetFirstLocation().SourceSpan.Start;
 
             foreach (var usingDecl in _usingDeclarations)
             {
-                var usingStart = usingDecl.symbol.Locations[0].SourceSpan.Start;
+                var usingStart = usingDecl.symbol.GetFirstLocation().SourceSpan.Start;
                 if (sourceStart < usingStart && targetStart > usingStart)
                 {
                     // No forward jumps

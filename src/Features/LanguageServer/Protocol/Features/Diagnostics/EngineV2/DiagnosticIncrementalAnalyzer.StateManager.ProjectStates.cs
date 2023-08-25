@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // check if the analyzer references have changed since the last time we updated the map:
                 if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry) &&
-                    entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
+                    entry.AnalyzerReferences.SequenceEqual(project.AnalyzerReferences))
                 {
                     return entry;
                 }
