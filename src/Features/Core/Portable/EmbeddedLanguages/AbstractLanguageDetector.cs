@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -208,11 +207,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         public static TDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
-            // Do a quick non-allocating check first.
-            if (s_compilationToDetector.TryGetValue(compilation, out var detector))
-                return detector;
+            // Do a quick non-allocating check first.  If not already created, go the path that will have to allocate
+            // the lambda closure.
+            return s_compilationToDetector.TryGetValue(compilation, out var detector)
+                ? detector
+                : Create(compilation, info);
 
-            return s_compilationToDetector.GetValue(compilation, _ => default(TDetectorInfo).Create(compilation, info));
+            static TDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
+                => s_compilationToDetector.GetValue(compilation, _ => default(TDetectorInfo).Create(compilation, info));
         }
 
         /// <summary>
