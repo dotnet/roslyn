@@ -27,10 +27,6 @@ internal static class Program
         var parsedArguments = command.Parse(args);
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
 
-        // We'll locate MSBuild right away before any other methods try to load any MSBuild types and fail in the process.
-        // TODO: we should pick the appropriate instance via a command line switch.
-        MSBuildLocator.RegisterInstance(MSBuildLocator.QueryVisualStudioInstances().First());
-
         // Create a MEF container so we can create our SolutionServices to use for discovering language services; we'll include our own assembly in since that contains the services used
         // for actually loading MSBuild projects.
         var thisAssembly = typeof(Program).Assembly;
@@ -53,9 +49,6 @@ internal static class Program
 
 #endif
 
-        var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Append(thisAssembly));
-        var solutionServices = new AdhocWorkspace(hostServices).Services.SolutionServices;
-
         var messageHandler = new HeaderDelimitedMessageHandler(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput(), new JsonMessageFormatter());
 
         var jsonRpc = new JsonRpc(messageHandler)
@@ -63,7 +56,7 @@ internal static class Program
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        jsonRpc.AddLocalRpcTarget(new BuildHost(jsonRpc, solutionServices, binaryLogPath));
+        jsonRpc.AddLocalRpcTarget(new BuildHost(jsonRpc, binaryLogPath));
         jsonRpc.StartListening();
 
         await jsonRpc.Completion.ConfigureAwait(false);
