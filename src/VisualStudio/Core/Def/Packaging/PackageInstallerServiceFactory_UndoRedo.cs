@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageInstallerService
     {
         private async Task<bool> TryInstallAndAddUndoActionAsync(
-            string source, string packageName, string? version, bool includePrerelease,
+            string? source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
