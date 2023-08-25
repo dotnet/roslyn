@@ -191,7 +191,13 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=InterceptorsPreview` on the command line or `<Features>InterceptorsPreview</Features>` in msbuild.
+To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+```xml
+<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;System.Text.RegularExpressions.Generated</InterceptorsPreviewNamespaces>
+```
+Note that `RegularExpressions`` is only provided as an example here, and is not intended to imply that a interceptors-based regex generator is forthcoming in .NET 8.
+
+It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
 
 ### Implementation strategy
 
