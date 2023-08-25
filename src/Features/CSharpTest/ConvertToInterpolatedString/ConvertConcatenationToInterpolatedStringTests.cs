@@ -1196,33 +1196,33 @@ class C
     [InlineData("""
         "\t" [|+|] 1
         """,
-               """
-               $"\t{1}"
-               """)]
+        """
+        $"\t{1}"
+        """)]
     [InlineData("""
         "😀" [|+|] 1
         """,
-               """
-               $"😀{1}"
-               """)]
+        """
+        $"😀{1}"
+        """)]
     [InlineData("""
         "\u2764" [|+|] 1
         """,
-               """
-               $"\u2764{1}"
-               """)]
+        """
+        $"\u2764{1}"
+        """)]
     [InlineData("""
         "\"" [|+|] 1
         """,
-               """
-               $"\"{1}"
-               """)]
+        """
+        $"\"{1}"
+        """)]
     [InlineData("""
         "{}" [|+|] 1
         """,
-               """
-               $"{{}}{1}"
-               """)]
+        """
+        $"{{}}{1}"
+        """)]
     public async Task TestUnicodeAndEscapeHandling(string before, string after)
     {
         var initialMarkup = $@"
@@ -1246,27 +1246,27 @@ class C
     [InlineData("""
         "a" [|+|] (1 + 1)
         """,
-               """
-               $"a{1 + 1}"
-               """)]
+        """
+        $"a{1 + 1}"
+        """)]
     [InlineData("""
         "a" [||]+ (1 + 1) + "b" + (2 + 2)
         """,
-               """
-               $"a{1 + 1}b{2 + 2}"
-               """)]
+        """
+        $"a{1 + 1}b{2 + 2}"
+        """)]
     [InlineData("""
         "a" [|+|] (true ? "t" : "f")
         """,
-               """
-               $"a{(true ? "t" : "f")}"
-               """)]
+        """
+        $"a{(true ? "t" : "f")}"
+        """)]
     [InlineData("""
         "a" [|+|] $"{(1 + 1)}"
         """,
-               """
-               $"a{(1 + 1)}"
-               """)]
+        """
+        $"a{(1 + 1)}"
+        """)]
     public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
     {
         var initialMarkup = $@"
@@ -1286,7 +1286,7 @@ class C
         await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
     public async Task TestToString1()
     {
         await new VerifyCS.Test
@@ -1318,7 +1318,7 @@ class C
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
     public async Task TestToString1_Net6()
     {
         await new VerifyCS.Test
@@ -1351,7 +1351,7 @@ class C
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
     public async Task TestToString2()
     {
         await new VerifyCS.Test
@@ -1368,19 +1368,16 @@ class C
             FixedCode = """
                 struct ValueTuple<T>
                 {
-                    public T Item1;
-                    public T Item2;
-                
                     public override string ToString()
                     {
-                        return $"({(1 + 1).ToString()}, {(1 + 1).ToString()})";
+                        return $"({(1 + 1).ToString()}, {(2 + 2).ToString()})";
                     }
                 }
                 """,
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
     public async Task TestToString2_Net6()
     {
         await new VerifyCS.Test
@@ -1397,9 +1394,6 @@ class C
             FixedCode = """
                 struct ValueTuple<T>
                 {
-                    public T Item1;
-                    public T Item2;
-                
                     public override string ToString()
                     {
                         return $"({1 + 1}, {2 + 2})";

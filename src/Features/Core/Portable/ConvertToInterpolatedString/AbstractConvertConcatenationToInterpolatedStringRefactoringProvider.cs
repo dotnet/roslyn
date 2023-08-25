@@ -90,9 +90,9 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
             // tokens if they're all the same type.
             var firstStringToken = stringLiterals[0].GetFirstToken();
             isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
-            foreach (var literal in stringLiterals)
+            for (int i = 1, n = stringLiterals.Length; i < n; i++)
             {
-                if (isVerbatimStringLiteral != syntaxFacts.IsVerbatimIdentifier(literal.GetFirstToken()))
+                if (isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(stringLiterals[i].GetFirstToken()))
                     return;
             }
         }
