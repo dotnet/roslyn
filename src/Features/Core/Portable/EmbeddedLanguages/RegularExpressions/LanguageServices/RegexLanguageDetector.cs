@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     internal sealed class RegexLanguageDetector(
         EmbeddedLanguageInfo info,
         INamedTypeSymbol? regexType,
-        HashSet<string> methodNamesOfInterest) : AbstractLanguageDetector<RegexOptions, RegexTree>(info, LanguageIdentifiers)
+        HashSet<string> methodNamesOfInterest) : AbstractLanguageDetector<RegexOptions, RegexTree>(info, s_languageIdentifiers, CommentDetector)
     {
-        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
+        private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
+        public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(s_languageIdentifiers);
 
         private const string _patternName = "pattern";
 
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         /// compilation model.  This saves the time from having to recreate this for every string literal that features
         /// examine for a particular compilation.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, RegexLanguageDetector> _modelToDetector = new();
+        private static readonly ConditionalWeakTable<Compilation, RegexLanguageDetector> s_compilationToDetector = new();
 
         private readonly INamedTypeSymbol? _regexType = regexType;
         private readonly HashSet<string> _methodNamesOfInterest = methodNamesOfInterest;
@@ -45,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
-            if (_modelToDetector.TryGetValue(compilation, out var detector))
+            if (s_compilationToDetector.TryGetValue(compilation, out var detector))
                 return detector;
 
-            return _modelToDetector.GetValue(compilation, _ => Create(compilation, info));
+            return s_compilationToDetector.GetValue(compilation, _ => Create(compilation, info));
         }
 
         private static RegexLanguageDetector Create(

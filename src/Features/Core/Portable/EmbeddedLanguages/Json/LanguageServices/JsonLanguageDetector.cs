@@ -22,9 +22,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonLanguageDetector(
         EmbeddedLanguageInfo info,
-        ISet<INamedTypeSymbol> typesOfInterest) : AbstractLanguageDetector<JsonOptions, JsonTree>(info, LanguageIdentifiers)
+        ISet<INamedTypeSymbol> typesOfInterest) : AbstractLanguageDetector<JsonOptions, JsonTree>(info, s_languageIdentifiers, CommentDetector)
     {
-        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
+        private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Json");
+        public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(s_languageIdentifiers);
 
         private const string JsonParameterName = "json";
         private const string ParseMethodName = "Parse";

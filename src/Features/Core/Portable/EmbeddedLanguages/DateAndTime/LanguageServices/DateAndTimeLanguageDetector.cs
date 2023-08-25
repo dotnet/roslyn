@@ -22,9 +22,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
     internal sealed class DateAndTimeLanguageDetector(
         EmbeddedLanguageInfo info,
         INamedTypeSymbol? dateTimeType,
-        INamedTypeSymbol? dateTimeOffsetType) : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>(info, LanguageIdentifiers)
+        INamedTypeSymbol? dateTimeOffsetType) : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>(info, s_languageIdentifiers, s_commentDetector)
     {
-        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
+        private static readonly ImmutableArray<string> s_languageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
+        private static readonly EmbeddedLanguageCommentDetector s_commentDetector = new(s_languageIdentifiers);
 
         private const string FormatName = "format";
 

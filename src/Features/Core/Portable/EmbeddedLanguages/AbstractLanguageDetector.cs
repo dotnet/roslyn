@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         protected AbstractLanguageDetector(
             EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
+            ImmutableArray<string> languageIdentifiers,
+            EmbeddedLanguageCommentDetector commentDetector)
         {
             Info = info;
-            _detector = new EmbeddedLanguageDetector(info, languageIdentifiers);
+            _detector = new EmbeddedLanguageDetector(info, languageIdentifiers, commentDetector);
         }
 
         /// <summary>
@@ -178,8 +179,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     {
         protected AbstractLanguageDetector(
             EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
-            : base(info, languageIdentifiers)
+            ImmutableArray<string> languageIdentifiers,
+            EmbeddedLanguageCommentDetector commentDetector)
+            : base(info, languageIdentifiers, commentDetector)
         {
         }
 
