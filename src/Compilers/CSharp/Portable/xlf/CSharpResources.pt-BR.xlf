@@ -1048,8 +1048,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
-        <target state="translated">O recurso experimental 'interceptors' não está habilitado. Adicione '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' ao seu projeto.</target>
+        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">

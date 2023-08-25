@@ -966,38 +966,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && !(attributeSyntax.SyntaxTree.Options.Features.TryGetValue("InterceptorsPreviewNamespaces", out var rawInterceptorsNamespaces) && rawInterceptorsNamespaces.Length != 0))
             {
                 // InterceptorsPreview feature flag wasn't specified, and a non-empty value for InterceptorsPreviewNamespaces wasn't specified.
-                diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax);
+                var namespaceNames = getNamespaceNames();
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, namespaceNames);
+                namespaceNames.Free();
                 return;
             }
-
 
             if (attributeSyntax.SyntaxTree.Options is CSharpParseOptions { InterceptorsPreviewNamespaces: { IsEmpty: false } interceptorNamespaces })
             {
                 // when InterceptorsPreviewNamespaces are present, ensure the interceptor is within one of the indicated namespaces
-                var namespaceSymbols = ArrayBuilder<NamespaceSymbol>.GetInstance();
-                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
-                    namespaceSymbols.Add(containingNamespace);
-                // order outermost->innermost
-                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
-                namespaceSymbols.ReverseContents();
-
+                var namespaceNames = getNamespaceNames();
                 var foundAnyMatch = false;
-                if (namespaceSymbols.Count != 0)
+                if (namespaceNames.Count != 0)
                 {
                     foreach (var segments in interceptorNamespaces)
                     {
                         Debug.Assert(segments.Length > 0);
-                        if (segments.Length > namespaceSymbols.Count)
+                        if (segments.Length > namespaceNames.Count)
                         {
                             // this NS has more components than interceptor's NS, so it will never match.
                             continue;
                         }
 
-                        // 'segments' must be a prefix of 'namespaceSymbols.Select(ns=>ns.Name)'
+                        // 'segments' must be a prefix of 'namespaceNames'
                         var foundMatch = true;
                         for (var i = 0; i < segments.Length; i++)
                         {
-                            if (segments[i] != namespaceSymbols[i].Name)
+                            if (segments[i] != namespaceNames[i])
                             {
                                 foundMatch = false;
                                 break;
@@ -1012,12 +1007,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                namespaceSymbols.Free();
                 if (!foundAnyMatch)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeLocation);
+                    reportFeatureNotEnabled(diagnostics, attributeSyntax, namespaceNames);
+                    namespaceNames.Free();
                     return;
                 }
+                namespaceNames.Free();
             }
 
             var attributeFilePath = (string?)attributeArguments[0].Value;
@@ -1157,6 +1153,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static string mapPath(SourceReferenceResolver? referenceResolver, SyntaxTree tree)
             {
                 return referenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+            }
+
+            // Caller must free the returned builder.
+            ArrayBuilder<string> getNamespaceNames()
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            {
+                var suggestedProperty = namespaceNames.Count == 0
+                    ? "<Features>$(Features);InterceptorsPreview</Features>"
+                    : $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, suggestedProperty);
             }
         }
 
