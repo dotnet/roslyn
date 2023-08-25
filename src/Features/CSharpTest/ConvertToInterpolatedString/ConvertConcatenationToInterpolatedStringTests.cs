@@ -1225,20 +1225,22 @@ class C
         """)]
     public async Task TestUnicodeAndEscapeHandling(string before, string after)
     {
-        var initialMarkup = $@"
-class C
-{{
-    void M() {{
-        _ = {before};
-    }}
-}}";
-        var expected = $@"
-class C
-{{
-    void M() {{
-        _ = {after};
-    }}
-}}";
+        var initialMarkup = $$"""
+            class C
+            {
+                void M() {
+                    _ = {{before}};
+                }
+            }
+            """;
+        var expected = $$"""
+            class C
+            {
+                void M() {
+                    _ = {{after}};
+                }
+            }
+            """;
         await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
     }
 
@@ -1269,20 +1271,22 @@ class C
         """)]
     public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
     {
-        var initialMarkup = $@"
-class C
-{{
-    void M() {{
-        _ = {before};
-    }}
-}}";
-        var expected = $@"
-class C
-{{
-    void M() {{
-        _ = {after};
-    }}
-}}";
+        var initialMarkup = $$"""
+            class C
+            {
+                void M() {
+                    _ = {{before}};
+                }
+            }
+            """;
+        var expected = $$"""
+            class C
+            {
+                void M() {
+                    _ = {{after}};
+                }
+            }
+            """;
         await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
     }
 
