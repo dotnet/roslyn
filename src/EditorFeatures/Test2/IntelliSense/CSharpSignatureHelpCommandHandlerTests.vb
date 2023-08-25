@@ -871,7 +871,7 @@ class C
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/5174")>
         <WpfTheory, CombinatorialData>
-        Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function DoNotShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C

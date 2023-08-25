@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // have, we wait 50ms before continuing.  These constants are just what we defined from
             // legacy, and otherwise have no special meaning.
             const int MaxTimeSlice = 15;
-            var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+            var delayBetweenProcessing = DelayTimeSpan.NearImmediate;
 
             Debug.Assert(!_threadingContext.JoinableTaskContext.IsOnMainThread, "The following context switch is not expected to cause runtime overhead.");
             await TaskScheduler.Default;

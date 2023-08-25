@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 lock (_trackingSpans)
                 {

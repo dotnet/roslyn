@@ -131,7 +131,7 @@ internal class SemanticTokensRefreshQueue :
         {
             if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
             {
-                return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+                return notificationManager.SendRequestAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
             }
         }
 

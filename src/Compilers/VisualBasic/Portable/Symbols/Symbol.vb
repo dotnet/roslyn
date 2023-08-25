@@ -834,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
-        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolInternal.IsDefinedInSourceTree
             Dim declaringReferences = Me.DeclaringSyntaxReferences
             If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
                 Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)

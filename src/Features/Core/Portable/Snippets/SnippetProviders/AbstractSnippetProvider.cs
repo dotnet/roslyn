@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -28,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
-        protected readonly SyntaxAnnotation _cursorAnnotation = new();
-        protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
+        protected readonly SyntaxAnnotation CursorAnnotation = new();
+        protected readonly SyntaxAnnotation FindSnippetAnnotation = new();
 
         /// <summary>
         /// Implemented by each SnippetProvider to determine if that particular position is a valid
@@ -87,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            // Generates the snippet as a list of textchanges
+            // Generates the snippet as a list of text changes
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            // Applies the snippet textchanges to the document 
+            // Applies the snippet text changes to the document 
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
             // Finds the inserted snippet and replaces the node in the document with a node that has added trivia
@@ -104,11 +103,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
             // Finds the added snippet and adds indentation where necessary (braces).
-            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
-            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+            var caretTarget = reformattedRoot.GetAnnotatedNodes(CursorAnnotation).FirstOrDefault();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
 
             Contract.ThrowIfNull(caretTarget);
             Contract.ThrowIfNull(mainChangeNode);
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // All the changes from the original document to the most updated. Will later be
             // collapsed into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
-            var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await annotatedReformattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             return new SnippetChange(
                 textChanges: changesArray,
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Skips the first and last token since
             // those do not need elastic trivia added to them.
             var nodeWithTrivia = node.ReplaceTokens(allTokens.Skip(1).Take(allTokens.Count - 2),
-                (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                (oldToken, _) => oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
 
@@ -166,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Snippets
                 var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, _findSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, FindSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Simplifier.ReduceAsync(document, FindSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, FindSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
                 document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         }
 
         /// <summary>
-        /// Locates the snippet that was inserted. Generates trivia for every token in that syntaxnode.
+        /// Locates the snippet that was inserted. Generates trivia for every token in that SyntaxNode.
         /// Replaces the SyntaxNodes and gets back the new document.
         /// </summary>
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private static async Task<Document> GetDocumentWithSnippetAsync(Document document, ImmutableArray<TextChange> snippets, CancellationToken cancellationToken)
         {
-            var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             originalText = originalText.WithChanges(snippets);
             var snippetDocument = document.WithText(originalText);
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private async Task<Document> AddFormatAnnotationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
+            var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, FindSnippetAnnotation, CursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
         }
@@ -246,14 +245,6 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the if statement.
-            if (closestNode.SpanStart != position)
-            {
-                return null;
-            }
-
             return closestNode;
         }
 
@@ -262,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
         /// We need to manually add that spacing to snippets containing blocks.
         /// </summary>
-        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             return await Task.FromResult(document).ConfigureAwait(false);
         }

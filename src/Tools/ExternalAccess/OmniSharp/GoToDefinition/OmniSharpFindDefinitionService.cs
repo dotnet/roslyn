@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition
         {
             var service = document.GetRequiredLanguageService<IFindDefinitionService>();
             var result = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return result.NullToEmpty().SelectAsArray(original => new OmniSharpNavigableItem(original.DisplayTaggedParts, original.Document, original.SourceSpan));
+            return await result.NullToEmpty().SelectAsArrayAsync(
+                async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
+                document.Project.Solution,
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

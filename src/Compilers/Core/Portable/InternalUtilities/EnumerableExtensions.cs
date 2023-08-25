@@ -513,7 +513,11 @@ namespace Roslyn.Utilities
             return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
+#if NET7_0_OR_GREATER
+        public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
+#else
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
+#endif
         {
             return source.OrderBy(Comparisons<T>.Comparer);
         }

@@ -1453,7 +1453,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
 
             // Change workspace options through primary workspace
             primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
@@ -1465,7 +1465,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Block, primaryWorkspace.Options.GetOption(optionKey));
             Assert.Equal(FormattingOptions2.IndentStyle.Block, secondaryWorkspace.Options.GetOption(optionKey));
 
-            primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.RemoveOptionChangedHandler(this, OptionService_OptionChanged);
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)

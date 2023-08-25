@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var collectionVariableToken = generator.Identifier(collectionVariable.ToString()).WithAdditionalAnnotations(RenameAnnotation.Create());
 
             // this expression is from user code. don't simplify this.
-            var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+            var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
             var collectionStatement = generator.LocalDeclarationStatement(
                 type,
                 collectionVariableToken,
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             }
         }
 
-        private IOperation RemoveImplicitConversion(IOperation collection)
+        private static IOperation RemoveImplicitConversion(IOperation collection)
         {
             return (collection is IConversionOperation conversion && conversion.IsImplicit)
                 ? RemoveImplicitConversion(conversion.Operand) : collection;

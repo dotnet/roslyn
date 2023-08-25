@@ -7629,6 +7629,89 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")>
+        Public Sub DiagnosticFormatting_UrlFormat_ObsoleteAttribute()
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(<![CDATA[
+Imports System
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        Dim c2 = New C2()
+        Dim c3 = New C3()
+        Dim c4 = New C4()
+    End Sub
+
+    <Obsolete("Do not use C1", UrlFormat:="https://example.org/{0}")>
+    Public Class C1
+    End Class
+
+    <Obsolete("Do not use C2", True, UrlFormat:="https://example.org/2/{0}")>
+    Public Class C2
+    End Class
+
+    <Obsolete("Do not use C3", True, DiagnosticId:="OBSOLETEC3", UrlFormat:="https://example.org/3/{0}")>
+    Public Class C3
+    End Class
+
+    <Obsolete("Do not use C4", DiagnosticId:="OBSOLETEC4", UrlFormat:="https://example.org/4")>
+    Public Class C4
+    End Class
+End Module
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+
+        Public Sub New()
+        End Sub
+
+        Public Sub New(ByVal message As String)
+        End Sub
+
+        Public Sub New(ByVal message As String, ByVal [error] As Boolean)
+        End Sub
+
+        Public Property DiagnosticId As String
+        Public Property UrlFormat As String
+    End Class
+End Namespace
+]]>.Value)
+
+            Dim output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                expectedWarningCount:=2,
+                expectedErrorCount:=2,
+                additionalFlags:={"/t:exe"}).Trim()
+
+            Assert.Contains("warning BC40000: 'Program.C1' is obsolete: 'Do not use C1'. (https://example.org/BC40000)", output)
+            Assert.Contains("error BC30668: 'Program.C2' is obsolete: 'Do not use C2'. (https://example.org/2/BC30668)", output)
+            Assert.Contains("error OBSOLETEC3: 'Program.C3' is obsolete: 'Do not use C3'. (https://example.org/3/OBSOLETEC3)", output)
+            Assert.Contains("warning OBSOLETEC4: 'Program.C4' is obsolete: 'Do not use C4'. (https://example.org/4)", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47310")>
+        Public Sub DiagnosticFormatting_DiagnosticAnalyzer()
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText("
+Class C
+End Class
+")
+
+            Dim output = VerifyOutput(dir, file,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                expectedWarningCount:=1,
+                analyzers:={New WarningWithUrlDiagnosticAnalyzer()}).Trim()
+
+            Assert.Contains("warning Warning04: Throwing a diagnostic for types declared (https://example.org/analyzer)", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
         <Fact>
         Public Sub ParseFeatures()
             Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
@@ -10678,6 +10761,29 @@ End Class
         Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             context.ReportDiagnostic(Diagnostic.Create(Warning01, context.Symbol.Locations.First()))
             context.ReportDiagnostic(Diagnostic.Create(Warning03, context.Symbol.Locations.First()))
+        End Sub
+    End Class
+
+    Friend Class WarningWithUrlDiagnosticAnalyzer
+        Inherits MockAbstractDiagnosticAnalyzer
+
+        Friend Shared ReadOnly Warning04 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning04", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True, helpLinkUri:="https://example.org/analyzer")
+
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
+        End Sub
+
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Warning04)
+            End Get
+        End Property
+
+        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+            context.ReportDiagnostic(Diagnostic.Create(Warning04, context.Symbol.Locations.First()))
         End Sub
     End Class
 

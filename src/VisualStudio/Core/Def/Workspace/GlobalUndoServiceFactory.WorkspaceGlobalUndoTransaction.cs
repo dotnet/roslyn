@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (visualStudioWorkspace.IsDocumentOpen(id))
                 {
-                    var container = document.GetTextAsync().WaitAndGetResult(CancellationToken.None).Container;
+                    var container = document.GetTextSynchronously(CancellationToken.None).Container;
                     var textBuffer = container.TryGetTextBuffer();
                     var undoHistory = _undoHistoryRegistry.RegisterHistory(textBuffer);
 

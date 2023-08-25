@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
 #if CODE_STYLE
             var info = new CSharpCodeGenerationContextInfo(
-                CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.Services), root.SyntaxTree.Options.LanguageVersion());
+                CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
 #else
             var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif

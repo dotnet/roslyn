@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
             private readonly INamedTypeSymbol _iCustomMarshaler;
+            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 INamedTypeSymbol eventArgsTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
                 DeserializationConstructorCheck deserializationConstructorCheck,
-                INamedTypeSymbol iCustomMarshaler)
+                INamedTypeSymbol iCustomMarshaler,
+                SymbolStartAnalysisContext symbolStartAnalysisContext)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
                 _iCustomMarshaler = iCustomMarshaler;
+                _symbolStartAnalysisContext = symbolStartAnalysisContext;
             }
 
             public static void CreateAndRegisterActions(
@@ -77,7 +80,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                     // for unrelated named types.
-                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck, iCustomMarshaler);
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore,
+                        deserializationConstructorCheck, iCustomMarshaler, symbolStartContext);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
 

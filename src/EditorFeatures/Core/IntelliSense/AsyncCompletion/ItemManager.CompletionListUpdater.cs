@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Determine the list of items to be included in the completion list.
                     // This is computed based on the filter text as well as the current
                     // selection of filters and expander.
-                    AddCompletionItems(itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationToken);
+                    await AddCompletionItemsAsync(itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationToken).ConfigureAwait(false);
 
                     // Decide if we want to dismiss an empty completion list based on CompletionRules and filter usage.
                     if (itemsToBeIncluded.Count == 0)
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return false;
             }
 
-            private void AddCompletionItems(List<MatchResult> list, ThreadLocal<PatternMatchHelper> threadLocalPatternMatchHelper, CancellationToken cancellationToken)
+            private async Task AddCompletionItemsAsync(List<MatchResult> list, ThreadLocal<PatternMatchHelper> threadLocalPatternMatchHelper, CancellationToken cancellationToken)
             {
                 // Convert initial and update trigger reasons to corresponding Roslyn type so 
                 // we can interact with Roslyn's completion system
@@ -249,6 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var includedPreferredItems = new ConcurrentSet<string>();
                 var includedDefaults = new ConcurrentDictionary<string, MatchResult>();
 
+                // Make sure we are on threadpool thread before running PLinq query to avoid sync waiting on the special high-pri thread of async-completion.
+                await TaskScheduler.Default;
+
                 Enumerable.Range(0, _snapshotData.InitialSortedItemList.Count)
                     .AsParallel()
                     .WithCancellation(cancellationToken)
@@ -258,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 void CreateMatchResultAndProcessMatchingDefaults(int index)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var item = _snapshotData.InitialSortedItemList[index];
 
                     // All items passed in should contain a CompletionItemData object in the property bag,

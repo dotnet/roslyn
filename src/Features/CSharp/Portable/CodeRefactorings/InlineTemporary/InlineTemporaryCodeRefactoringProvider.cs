@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
 

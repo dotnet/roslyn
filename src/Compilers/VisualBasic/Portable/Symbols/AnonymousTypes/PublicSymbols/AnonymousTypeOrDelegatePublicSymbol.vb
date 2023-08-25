@@ -328,7 +328,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public NotOverridable Overrides Function GetHashCode() As Integer
                 Return Hash.Combine(Me.TypeDescriptor.GetHashCode(), TypeKind)
             End Function
-        End Class
 
+            Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+        End Class
     End Class
 End Namespace

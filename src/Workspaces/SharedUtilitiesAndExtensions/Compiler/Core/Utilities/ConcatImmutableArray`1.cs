@@ -11,27 +11,18 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    internal readonly struct ConcatImmutableArray<T> : IEnumerable<T>
+    internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerable<T>
     {
-        private readonly ImmutableArray<T> _first;
-        private readonly ImmutableArray<T> _second;
-
-        public ConcatImmutableArray(ImmutableArray<T> first, ImmutableArray<T> second)
-        {
-            _first = first;
-            _second = second;
-        }
-
-        public int Length => _first.Length + _second.Length;
+        public int Length => first.Length + second.Length;
 
         public bool Any(Func<T, bool> predicate)
-            => _first.Any(predicate) || _second.Any(predicate);
+            => first.Any(predicate) || second.Any(predicate);
 
         public Enumerator GetEnumerator()
-            => new(_first, _second);
+            => new(first, second);
 
         public ImmutableArray<T> ToImmutableArray()
-            => _first.NullToEmpty().AddRange(_second.NullToEmpty());
+            => first.NullToEmpty().AddRange(second.NullToEmpty());
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
             => GetEnumerator();
@@ -39,16 +30,10 @@ namespace Roslyn.Utilities
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        public struct Enumerator : IEnumerator<T>
+        public struct Enumerator(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerator<T>
         {
-            private ImmutableArray<T>.Enumerator _current;
-            private ImmutableArray<T> _next;
-
-            public Enumerator(ImmutableArray<T> first, ImmutableArray<T> second)
-            {
-                _current = first.NullToEmpty().GetEnumerator();
-                _next = second.NullToEmpty();
-            }
+            private ImmutableArray<T>.Enumerator _current = first.NullToEmpty().GetEnumerator();
+            private ImmutableArray<T> _next = second.NullToEmpty();
 
             public T Current => _current.Current;
             object? IEnumerator.Current => Current;

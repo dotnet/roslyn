@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregator.BatchedTagsChanged += OnTagsChanged;
             _textView.LayoutChanged += OnLayoutChanged;
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
-            _globalOptions.OptionChanged += OnGlobalOptionChanged;
+            _globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
 
             UpdateMarginVisibility();
         }
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
                 _textView.LayoutChanged -= OnLayoutChanged;
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
-                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
                 _tagAggregator.Dispose();
                 ((IDisposable)_glyphManager).Dispose();
             }

@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -4429,7 +4429,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", GetResource("Lambda")))
         End Sub
 #End Region
 
@@ -5378,7 +5378,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5460,7 +5461,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             ' No rude edit since the AS is within the nested function.
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5592,7 +5594,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -5619,7 +5622,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 #End Region
 

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// <summary>
         /// Calculate the inheritance distance between baseType and derivedType.
         /// </summary>
-        private int GetInheritanceDistanceRecursive(ITypeSymbol baseType, ITypeSymbol? derivedType)
+        private static int GetInheritanceDistanceRecursive(ITypeSymbol baseType, ITypeSymbol? derivedType)
         {
             if (derivedType == null)
                 return int.MaxValue;

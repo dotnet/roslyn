@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return ImmutableArray<IntentSource>.Empty;
             }
 
-            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var selectionTextSpan = intentRequestContext.PriorSelection;

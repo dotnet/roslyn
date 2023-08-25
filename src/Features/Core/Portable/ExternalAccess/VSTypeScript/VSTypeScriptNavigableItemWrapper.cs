@@ -12,10 +12,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     internal sealed class VSTypeScriptNavigableItemWrapper : INavigableItem
     {
         private readonly IVSTypeScriptNavigableItem _navigableItem;
+        private readonly INavigableItem.NavigableDocument _navigableDocument;
 
         public VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem)
         {
             _navigableItem = navigableItem;
+            _navigableDocument = INavigableItem.NavigableDocument.FromDocument(navigableItem.Document);
         }
 
         public Glyph Glyph => _navigableItem.Glyph;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
 
-        public Document Document => _navigableItem.Document;
+        public INavigableItem.NavigableDocument Document => _navigableDocument;
 
         public TextSpan SourceSpan => _navigableItem.SourceSpan;
 

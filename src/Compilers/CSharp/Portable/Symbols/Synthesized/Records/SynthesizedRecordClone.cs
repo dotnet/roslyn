@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -22,33 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordClone(
             SourceMemberContainerTypeSymbol containingType,
-            int memberOffset,
-            BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.CloneMethodName, isReadOnly: false, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
+            int memberOffset)
+            : base(containingType, WellKnownMemberNames.CloneMethodName, memberOffset, MakeDeclarationModifiers(containingType))
         {
             Debug.Assert(!containingType.IsRecordStruct);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        private static DeclarationModifiers MakeDeclarationModifiers(SourceMemberContainerTypeSymbol containingType)
         {
             DeclarationModifiers result = DeclarationModifiers.Public;
 
-            if (VirtualCloneInBase() is object)
+            if (VirtualCloneInBase(containingType) is object)
             {
                 result |= DeclarationModifiers.Override;
             }
             else
             {
-                result |= ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
+                result |= containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
             }
 
-            if (ContainingType.IsAbstract)
+            if (containingType.IsAbstract)
             {
                 result &= ~DeclarationModifiers.Virtual;
                 result |= DeclarationModifiers.Abstract;
             }
 
-            Debug.Assert((result & ~allowedModifiers) == 0);
 #if DEBUG
             Debug.Assert(modifiersAreValid(result));
 #endif 
@@ -83,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         }
 
-        private MethodSymbol? VirtualCloneInBase()
+        private static MethodSymbol? VirtualCloneInBase(NamedTypeSymbol containingType)
         {
-            NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             if (!baseType.IsObjectType())
             {
@@ -96,14 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
-            return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase() is { } baseClone ?
+            return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase(ContainingType) is { } baseClone ?
                                      baseClone.ReturnTypeWithAnnotations :
                                      TypeWithAnnotations.Create(isNullableEnabled: true, ContainingType),
-                    Parameters: ImmutableArray<ParameterSymbol>.Empty,
-                    IsVararg: false,
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                    Parameters: ImmutableArray<ParameterSymbol>.Empty);
         }
 
         protected override int GetParameterCountFromSyntax() => 0;

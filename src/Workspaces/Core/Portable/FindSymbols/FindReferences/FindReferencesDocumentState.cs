@@ -8,38 +8,24 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class FindReferencesDocumentState
+    internal class FindReferencesDocumentState(
+        Document document,
+        SemanticModel semanticModel,
+        SyntaxNode root,
+        FindReferenceCache cache,
+        HashSet<string>? globalAliases)
     {
         private static readonly HashSet<string> s_empty = new();
 
-        public readonly Document Document;
-        public readonly SemanticModel SemanticModel;
-        public readonly SyntaxNode Root;
-        public readonly FindReferenceCache Cache;
-        public readonly HashSet<string> GlobalAliases;
+        public readonly Document Document = document;
+        public readonly SemanticModel SemanticModel = semanticModel;
+        public readonly SyntaxNode Root = root;
+        public readonly FindReferenceCache Cache = cache;
+        public readonly HashSet<string> GlobalAliases = globalAliases ?? s_empty;
 
-        public readonly Solution Solution;
-        public readonly SyntaxTree SyntaxTree;
-        public readonly ISyntaxFactsService SyntaxFacts;
-        public readonly ISemanticFactsService SemanticFacts;
-
-        public FindReferencesDocumentState(
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxNode root,
-            FindReferenceCache cache,
-            HashSet<string>? globalAliases)
-        {
-            Document = document;
-            SemanticModel = semanticModel;
-            Root = root;
-            Cache = cache;
-            GlobalAliases = globalAliases ?? s_empty;
-
-            Solution = document.Project.Solution;
-            SyntaxTree = semanticModel.SyntaxTree;
-            SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            SemanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-        }
+        public readonly Solution Solution = document.Project.Solution;
+        public readonly SyntaxTree SyntaxTree = semanticModel.SyntaxTree;
+        public readonly ISyntaxFactsService SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        public readonly ISemanticFactsService SemanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
     }
 }

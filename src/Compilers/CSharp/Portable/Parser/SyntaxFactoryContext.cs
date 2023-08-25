@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         internal bool IsInAsync;
 
+        /// <summary>
+        /// If we are forcing that ?[ is parsed as a conditional-access-expression, and not a conditional-expression
+        /// with a collection-expression in it.
+        /// </summary>
+        internal bool ForceConditionalAccessExpression;
+
         internal int QueryDepth;
 
         /// <summary>

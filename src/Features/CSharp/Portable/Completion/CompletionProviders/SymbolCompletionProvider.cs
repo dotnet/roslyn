@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
         private static async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (!CompletionUtilities.IsArgumentListCharacter(text[characterPosition]))
             {
                 return null;

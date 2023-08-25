@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     using var _ = PooledObjects.ArrayBuilder<(ITextBuffer, SnapshotSpan)>.GetInstance(out var buffersAndSpans);
                     foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
-                        var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
 
                         if (textSnapshot != null)
