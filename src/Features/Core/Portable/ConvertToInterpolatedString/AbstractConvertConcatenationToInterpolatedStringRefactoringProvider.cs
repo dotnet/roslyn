@@ -101,12 +101,12 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_interpolated_string,
-                cancellationToken => UpdateStringAsync(document, top, isVerbatimStringLiteral, piecesArray, cancellationToken),
+                cancellationToken => UpdateDocumentAsync(document, top, isVerbatimStringLiteral, piecesArray, cancellationToken),
                 nameof(FeaturesResources.Convert_to_interpolated_string)),
             top.Span);
     }
 
-    private async Task<Document> UpdateStringAsync(
+    private async Task<Document> UpdateDocumentAsync(
         Document document, SyntaxNode top, bool isVerbatimStringLiteral, ImmutableArray<SyntaxNode> pieces, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
