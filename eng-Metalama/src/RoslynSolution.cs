@@ -64,12 +64,14 @@ namespace Build
 
         public override bool Test(BuildContext context, BuildSettings settings)
         {
-            var filter = "";
+            var testAll = settings.Properties.ContainsKey("TestAll");
 
-            if (!settings.Properties.ContainsKey("TestAll"))
+            if (testAll && !string.IsNullOrEmpty(settings.TestsFilter))
             {
-                filter = "Category!=OuterLoop";
+                context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
             }
+
+            var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
 
             var binaryLogFilePath = Path.Combine(
                context.RepoDirectory,
