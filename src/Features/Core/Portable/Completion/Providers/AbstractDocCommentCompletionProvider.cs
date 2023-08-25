@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
             var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var itemSpan = item.Span;
             var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, itemSpan.End);

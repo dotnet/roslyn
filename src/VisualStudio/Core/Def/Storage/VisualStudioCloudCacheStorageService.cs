@@ -7,13 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
@@ -24,34 +22,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), ServiceLayer.Host), Shared]
         internal class ServiceFactory : IWorkspaceServiceFactory
         {
-            private readonly IAsyncServiceProvider _serviceProvider;
-            private readonly IThreadingContext _threadingContext;
+            private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public ServiceFactory(SVsServiceProvider serviceProvider, IThreadingContext threadingContext)
+            public ServiceFactory(IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
             {
-                _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-                _threadingContext = threadingContext;
+                _brokeredServiceContainer = brokeredServiceContainer;
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new VisualStudioCloudCacheStorageService(_serviceProvider, _threadingContext, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
+                => new VisualStudioCloudCacheStorageService(_brokeredServiceContainer, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
         }
 
-        private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly IThreadingContext _threadingContext;
+        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IThreadingContext threadingContext, IPersistentStorageConfiguration configuration)
+        public VisualStudioCloudCacheStorageService(IVsService<IBrokeredServiceContainer> brokeredServiceContainer, IPersistentStorageConfiguration configuration)
             : base(configuration)
         {
-            _serviceProvider = serviceProvider;
-            _threadingContext = threadingContext;
+            _brokeredServiceContainer = brokeredServiceContainer;
         }
 
         protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
-            var serviceContainer = await _serviceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var serviceContainer = await _brokeredServiceContainer.GetValueAsync(cancellationToken).ConfigureAwait(false);
             var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
 
 #pragma warning disable ISB001 // Dispose of proxies

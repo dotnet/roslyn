@@ -2308,7 +2308,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
         }
 
         [Fact]
-        public async Task DontInsertLineBreaksInSingleLineEnum()
+        public async Task DoNotInsertLineBreaksInSingleLineEnum()
             => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
         [Fact]
@@ -2602,7 +2602,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddLineBreakBeforeWhere1_Bug2582()
+        public async Task DoNotAddLineBreakBeforeWhere1_Bug2582()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2618,7 +2618,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddLineBreakBeforeWhere2_Bug2582()
+        public async Task DoNotAddLineBreakBeforeWhere2_Bug2582()
         {
             await AssertFormatAsync(@"class C<T> where T : I
 {
@@ -2628,7 +2628,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddSpaceAfterUnaryMinus()
+        public async Task DoNotAddSpaceAfterUnaryMinus()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2646,7 +2646,7 @@ goto Goo;
         }
 
         [Fact]
-        public async Task DontAddSpaceAfterUnaryPlus()
+        public async Task DoNotAddSpaceAfterUnaryPlus()
         {
             await AssertFormatAsync(@"class C
 {
@@ -2664,7 +2664,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceAfterIncrement()
+        public async Task DoNotAddSpaceAfterIncrement()
         {
             var code = @"class C
 {
@@ -2677,7 +2677,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceBeforeIncrement()
+        public async Task DoNotAddSpaceBeforeIncrement()
         {
             var code = @"class C
 {
@@ -2690,7 +2690,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceAfterDecrement()
+        public async Task DoNotAddSpaceAfterDecrement()
         {
             var code = @"class C
 {
@@ -2703,7 +2703,7 @@ goto Goo;
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
-        public async Task DontAddSpaceBeforeDecrement()
+        public async Task DoNotAddSpaceBeforeDecrement()
         {
             var code = @"class C
 {
@@ -7409,7 +7409,7 @@ class C
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991547")]
-        public async Task DontWrappingTryCatchFinallyIfOnSingleLine()
+        public async Task DoNotWrappingTryCatchFinallyIfOnSingleLine()
         {
             var code = @"
 class C
@@ -8105,7 +8105,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1118")]
-        public void DontAssumeCertainNodeAreAlwaysParented()
+        public void DoNotAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
             Formatter.Format(block, new AdhocWorkspace().Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
@@ -8187,7 +8187,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1298")]
-        public async Task DontforceAccessorsToNewLineWithPropertyInitializers()
+        public async Task DoNotforceAccessorsToNewLineWithPropertyInitializers()
         {
             var code = @"using System.Collections.Generic;
 
@@ -8216,7 +8216,7 @@ public class ExcludeValidation
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1339")]
-        public async Task DontFormatAutoPropertyInitializerIfNotDifferentLine()
+        public async Task DoNotFormatAutoPropertyInitializerIfNotDifferentLine()
         {
             var code = @"class Program
 {
@@ -8396,7 +8396,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/939")]
-        public async Task DontFormatInsideArrayInitializers()
+        public async Task DoNotFormatInsideArrayInitializers()
         {
             var code = @"class Program
 {

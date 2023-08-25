@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// </summary>
         public static async Task<ITextBuffer> CloneTextBufferAsync(this Document document, CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return CloneTextBuffer(document, sourceText);
         }
     }

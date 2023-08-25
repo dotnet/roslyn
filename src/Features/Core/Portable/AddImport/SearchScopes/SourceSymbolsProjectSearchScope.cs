@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.AddImport
             public SourceSymbolsProjectSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
-                Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+                Project project, bool ignoreCase)
+                : base(provider, project, ignoreCase)
             {
                 _projectToAssembly = projectToAssembly;
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
                 var service = _project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
                 var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+                    searchQuery, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                            {
                                var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
                                return compilation.Assembly;
-                           }, cacheResult: true);
+                           });
             }
         }
     }

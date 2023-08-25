@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             // Create SourceText from binary representation of the document, retrieve encoding from the request and checksum algorithm from the project.
             var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
 
-            await context.StartTrackingAsync(request.TextDocument.Uri, sourceText, cancellationToken).ConfigureAwait(false);
+            await context.StartTrackingAsync(request.TextDocument.Uri, sourceText, request.TextDocument.LanguageId, cancellationToken).ConfigureAwait(false);
         }
     }
 }

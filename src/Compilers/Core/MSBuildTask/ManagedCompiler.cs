@@ -477,6 +477,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(LangVersion)]; }
         }
 
+        public bool ReportIVTs
+        {
+            set { _store[nameof(ReportIVTs)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
+        }
+
         #endregion
 
         // ToolExe delegates back to ToolName if the override is not
@@ -913,6 +919,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
 
+            commandLine.AppendWhenTrue("/reportivts", _store, nameof(ReportIVTs));
+
             commandLine.AppendSwitchWithInteger("/filealign:", _store, nameof(FileAlignment));
             commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendSwitchIfNotNull("/keycontainer:", KeyContainer);
@@ -1146,7 +1154,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// support a particular parameter or variation on a parameter.  So we log a comment,
         /// and set our state so we know not to call the host object to do the actual compilation.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected void CheckHostObjectSupport
             (
             string parameterName,
@@ -1176,7 +1183,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Checks to see whether all of the passed-in references exist on disk before we launch the compiler.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected bool CheckAllReferencesExistOnDisk()
         {
             if (null == References)

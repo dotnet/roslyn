@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// This sets the max list size we will return in response to a completion request.
         /// If there are more than this many items, we will set the isIncomplete flag on the returned completion list.
+        /// If set to negative value, we will always return the full list.
         /// </summary>
         public static readonly Option2<int> MaxCompletionListSize = new("dotnet_lsp_max_completion_list_size", defaultValue: 1000);
 

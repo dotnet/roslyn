@@ -93,17 +93,6 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
-        var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
-        if (entryPointMethod is null)
-            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
-        var notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.NotificationEntryPointAsync));
-        if (notificationMethod is null)
-            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.NotificationEntryPointAsync)}");
-
-        var parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ParameterlessNotificationEntryPointAsync));
-        if (parameterlessNotificationMethod is null)
-            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.ParameterlessNotificationEntryPointAsync)}");
-
         foreach (var metadata in handlerProvider.GetRegisteredMethods())
         {
             // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
@@ -113,31 +102,17 @@ public abstract class AbstractLanguageServer<TRequestContext>
             //
             // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
             // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
+
+            var method = DelegatingEntryPoint.GetMethodInstantiation(metadata.RequestType, metadata.ResponseType);
+
             var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
 
-            MethodInfo genericEntryPointMethod;
-            if (metadata.RequestType is not null && metadata.ResponseType is not null)
-            {
-                genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
-            }
-            else if (metadata.RequestType is not null && metadata.ResponseType is null)
-            {
-                genericEntryPointMethod = notificationMethod.MakeGenericMethod(metadata.RequestType);
-            }
-            else if (metadata.RequestType is null && metadata.ResponseType is null)
-            {
-                // No need to genericize
-                genericEntryPointMethod = parameterlessNotificationMethod;
-            }
-            else
-            {
-                throw new NotImplementedException($"An unrecognized {nameof(RequestHandlerMetadata)} situation has occured");
-            }
             var methodAttribute = new JsonRpcMethodAttribute(metadata.MethodName)
             {
                 UseSingleObjectParameterDeserialization = true,
             };
-            _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, methodAttribute);
+
+            _jsonRpc.AddLocalRpcMethod(method, delegatingEntryPoint, methodAttribute);
         }
     }
 
@@ -171,10 +146,15 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// Wrapper class to hold the method and properties from the <see cref="AbstractLanguageServer{RequestContextType}"/>
     /// that the method info passed to StreamJsonRpc is created from.
     /// </summary>
-    private class DelegatingEntryPoint
+    private sealed class DelegatingEntryPoint
     {
         private readonly string _method;
         private readonly AbstractLanguageServer<TRequestContext> _target;
+
+        private static readonly MethodInfo s_entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(EntryPointAsync));
+        private static readonly MethodInfo s_parameterlessEntryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessEntryPointAsync));
+        private static readonly MethodInfo s_notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(NotificationEntryPointAsync));
+        private static readonly MethodInfo s_parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessNotificationEntryPointAsync));
 
         public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target)
         {
@@ -182,12 +162,21 @@ public abstract class AbstractLanguageServer<TRequestContext>
             _target = target;
         }
 
+        public static MethodInfo GetMethodInstantiation(Type? requestType, Type? responseType)
+            => (requestType, responseType) switch
+            {
+                (requestType: not null, responseType: not null) => s_entryPointMethod.MakeGenericMethod(requestType, responseType),
+                (requestType: null, responseType: not null) => s_parameterlessEntryPointMethod.MakeGenericMethod(responseType),
+                (requestType: not null, responseType: null) => s_notificationMethod.MakeGenericMethod(requestType),
+                (requestType: null, responseType: null) => s_parameterlessNotificationMethod,
+            };
+
         public async Task NotificationEntryPointAsync<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
-            _ = await queue.ExecuteAsync<TRequest, VoidReturn>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
+            _ = await queue.ExecuteAsync<TRequest, NoValue>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
@@ -195,7 +184,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
-            _ = await queue.ExecuteAsync<VoidReturn, VoidReturn>(VoidReturn.Instance, _method, lspServices, cancellationToken).ConfigureAwait(false);
+            _ = await queue.ExecuteAsync<NoValue, NoValue>(NoValue.Instance, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<TResponse?> EntryPointAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest : class
@@ -204,6 +193,16 @@ public abstract class AbstractLanguageServer<TRequestContext>
             var lspServices = _target.GetLspServices();
 
             var result = await queue.ExecuteAsync<TRequest, TResponse>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
+
+            return result;
+        }
+
+        public async Task<TResponse?> ParameterlessEntryPointAsync<TResponse>(CancellationToken cancellationToken)
+        {
+            var queue = _target.GetRequestExecutionQueue();
+            var lspServices = _target.GetLspServices();
+
+            var result = await queue.ExecuteAsync<NoValue, TResponse>(NoValue.Instance, _method, lspServices, cancellationToken).ConfigureAwait(false);
 
             return result;
         }

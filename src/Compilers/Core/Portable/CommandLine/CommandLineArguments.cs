@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
 
+        /// <summary>
+        /// Report additional information related to InternalsVisibleToAttributes for all assemblies the compiler sees in this compilation.
+        /// </summary>
+        public bool ReportInternalsVisibleToAttributes { get; internal set; }
+
         /// <value>
         /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
         /// </value>
@@ -467,6 +472,7 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             // <Metalama>
             ImmutableArray<string?> transformerOrder,
@@ -522,7 +528,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
-                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
+                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, compilationOptions);
 
                 if (diagnostic != null)
                 {

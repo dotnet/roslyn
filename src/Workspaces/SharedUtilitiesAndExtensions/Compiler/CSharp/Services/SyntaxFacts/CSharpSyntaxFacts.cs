@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return constructors;
         }
 
-        private void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
+        private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
         {
             foreach (var member in members)
             {
@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 

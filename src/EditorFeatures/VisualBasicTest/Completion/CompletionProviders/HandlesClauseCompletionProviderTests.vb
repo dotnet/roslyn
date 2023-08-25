@@ -220,7 +220,7 @@ End Class</text>.Value
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8307")>
-        Public Async Function DontCrashOnDotAfterCompleteHandlesClause() As Task
+        Public Async Function DoNotCrashOnDotAfterCompleteHandlesClause() As Task
             Dim text = "
 Imports System
 

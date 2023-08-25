@@ -83,7 +83,7 @@ class Program
             var classifiers = service.GetDefaultSyntaxClassifiers();
             var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
 
-            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = Classifier.GetPooledList(out var results);
 
             await service.AddSemanticClassificationsAsync(
                 document,
@@ -94,7 +94,7 @@ class Program
                 results,
                 CancellationToken.None);
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutableArray();
         }
     }
 }

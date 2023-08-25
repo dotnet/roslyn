@@ -7,7 +7,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-
+using Roslyn.Utilities;
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 using FormattingProvider = Microsoft.CodeAnalysis.Formatting.ISyntaxFormatting;
 
@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var cancellationToken = context.CancellationToken;
 
             var oldText = tree.GetText(cancellationToken);
-
-            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), formattingProvider, options, cancellationToken);
+            var root = tree.GetRoot(cancellationToken);
+            var span = context.FilterSpan.HasValue ? context.FilterSpan.GetValueOrDefault() : root.FullSpan;
+            var spans = SpecializedCollections.SingletonEnumerable(span);
+            var formattingChanges = Formatter.GetFormattedTextChanges(root, spans, formattingProvider, options, rules: null, cancellationToken);
 
             // formattingChanges could include changes that impact a larger section of the original document than
             // necessary. Before reporting diagnostics, process the changes to minimize the span of individual

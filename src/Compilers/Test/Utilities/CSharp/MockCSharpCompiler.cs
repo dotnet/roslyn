@@ -24,26 +24,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // <Metalama>
         private readonly ImmutableArray<ISourceTransformer> _transformers;
         // </Metalama>
+        private readonly ImmutableArray<MetadataReference> _additionalReferences;
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
 
         // <Metalama>
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, bool bypassLicensing = true)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, bypassLicensing)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ImmutableArray<MetadataReference> additionalReferences = default, bool bypassLicensing = true)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, additionalReferences, bypassLicensing)
         // </Metalama>
         {
         }
 
         // <Metalama>
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, bool bypassLicensing = true)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ImmutableArray<MetadataReference> additionalReferences = default, bool bypassLicensing = true)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         // </Metalama>
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
             // <Metalama>
-            _bypassLicensing = bypassLicensing;
             _transformers = transformers.NullToEmpty();
+            // </Metalama>
+            _additionalReferences = additionalReferences.NullToEmpty();
+            // <Metalama>
+            _bypassLicensing = bypassLicensing;
             // </Metalama>
         }
 
@@ -52,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             // <Metalama>
             ImmutableArray<string> transformerOrder,
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             )
         {
             // <Metalama>
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, compilationOptions, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
             // </Metalama>
             if (!_analyzers.IsDefaultOrEmpty)
             {
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             )
         {
             diagnostics = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, TestOptions.DebugDll, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
         }
 
         public void ResolveAnalyzersFromArguments(
@@ -103,9 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             out ImmutableArray<ISourceGenerator> generators
         )
         {
-            // <Metalama>
             ResolveAnalyzersFromArguments(skipAnalyzers, out diagnostics, ImmutableArray<string>.Empty, out analyzers, out generators, out _);
-            // </Metalama>
         }
         // </Metalama>
 
@@ -123,6 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
         {
             Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
+
+            if (!_additionalReferences.IsEmpty)
+            {
+                Compilation = Compilation.AddReferences(_additionalReferences);
+            }
+
             return Compilation;
         }
 

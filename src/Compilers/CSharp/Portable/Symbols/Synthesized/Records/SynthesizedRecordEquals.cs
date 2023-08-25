@@ -18,21 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly PropertySymbol? _equalityContract;
 
-        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: containingType.IsRecordStruct, hasBody: true, memberOffset, diagnostics)
+        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset,
+                   DeclarationModifiers.Public |
+                   (containingType.IsSealed ? 0 : DeclarationModifiers.Virtual) |
+                   (containingType.IsRecordStruct ? DeclarationModifiers.ReadOnly : 0))
         {
             Debug.Assert(equalityContract is null == containingType.IsRecordStruct);
             _equalityContract = equalityContract;
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-        {
-            DeclarationModifiers result = DeclarationModifiers.Public | (ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual);
-            Debug.Assert((result & ~allowedModifiers) == 0);
-            return result;
-        }
-
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters)
             MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
@@ -42,9 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "other", Locations)),
-                    IsVararg: false,
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "other", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
@@ -142,9 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields.Add(f);
 
                         var parameterType = f.Type;
-                        if (parameterType.IsUnsafe())
+                        if (parameterType.IsPointerOrFunctionPointer())
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations.FirstOrNone(), parameterType);
+                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.GetFirstLocationOrNone(), parameterType);
                             foundBadField = true;
                         }
                         else if (parameterType.IsRestrictedType())

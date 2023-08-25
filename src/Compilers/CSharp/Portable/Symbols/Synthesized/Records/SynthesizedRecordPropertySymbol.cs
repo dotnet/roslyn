@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                backingParameter.Locations[0],
+                backingParameter.GetFirstLocation(),
                 diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;

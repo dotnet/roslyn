@@ -64,11 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _perLanguageOptions = perLanguageOptions;
 
             _optionChangedWorkQueue = new AsyncBatchingWorkQueue(
-                TimeSpan.FromMilliseconds(500),
+                DelayTimeSpan.Medium,
                 ProcessOptionChangesAsync,
                 listenerProvider.GetListener(FeatureAttribute.Workspace),
                 this.DisposalToken);
-            _globalOptions.OptionChanged += OnOptionChanged;
+            _globalOptions.AddOptionChangedHandler(this, OnOptionChanged);
         }
 
         protected abstract Task EnableServiceAsync(CancellationToken cancellationToken);
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // We were enabled for some language.  Kick off the work for this service now. Since we're now enabled, we
             // no longer need to listen for option changes.
             _enabled = true;
-            _globalOptions.OptionChanged -= OnOptionChanged;
+            _globalOptions.RemoveOptionChangedHandler(this, OnOptionChanged);
 
             // Don't both kicking off delay-started services prior to the actual workspace being fully loaded.  We don't
             // want them using CPU/memory in the BG while we're loading things for the user.

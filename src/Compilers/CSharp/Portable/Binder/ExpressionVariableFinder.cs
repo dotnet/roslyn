@@ -65,15 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesBuilder = save;
         }
 
-        public override void Visit(SyntaxNode node)
-        {
-            if (node != null)
-            {
-                // no stackguard
-                ((CSharpSyntaxNode)node).Accept(this);
-            }
-        }
-
         public override void VisitSwitchExpression(SwitchExpressionSyntax node)
         {
             Visit(node.GoverningExpression);
@@ -346,6 +337,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             operands.Free();
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (receiverIsInvocation(node, out InvocationExpressionSyntax nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                Visit(node.Expression);
+
+                do
+                {
+                    Visit(node.ArgumentList);
+                }
+                while (invocations.TryPop(out node));
+
+                invocations.Free();
+            }
+            else
+            {
+                Visit(node.Expression);
+                Visit(node.ArgumentList);
+            }
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, out InvocationExpressionSyntax nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver })
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
         }
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
@@ -649,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return designation == null ? null : GlobalExpressionVariable.Create(
                 _containingType, _modifiers, type,
-                designation.Identifier.ValueText, designation, designation.GetLocation(),
+                designation.Identifier.ValueText, designation, designation.Span,
                 _containingFieldOpt, nodeToBind);
         }
 
@@ -657,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,
-                designation.Identifier.ValueText, designation, designation.Identifier.GetLocation(),
+                designation.Identifier.ValueText, designation, designation.Identifier.Span,
                 _containingFieldOpt, nodeToBind);
         }
 
@@ -672,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                       typeSyntax: closestTypeSyntax,
                       name: designation.Identifier.ValueText,
                       syntax: designation,
-                      location: designation.Location,
+                      locationSpan: designation.Span,
                       containingFieldOpt: null,
                       nodeToBind: deconstruction);
         }

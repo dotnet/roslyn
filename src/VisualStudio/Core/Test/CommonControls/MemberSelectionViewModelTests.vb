@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
         End Function
 
         <Fact>
-        Public Async Function TestMemberSelectionViewModelDont_PullDisableItem() As Task
+        Public Async Function TestMemberSelectionViewModelDoNot_PullDisableItem() As Task
             Dim markUp = <Text><![CDATA[
         interface Level2Interface
         {

@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static Location GetLocation(Symbol symbol)
-        {
-            var locations = symbol.Locations;
-            return locations.Length != 0 ? locations[0] : symbol.ContainingSymbol.Locations[0];
-        }
+            => symbol.TryGetFirstLocation() ?? symbol.ContainingSymbol.GetFirstLocation();
 
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,

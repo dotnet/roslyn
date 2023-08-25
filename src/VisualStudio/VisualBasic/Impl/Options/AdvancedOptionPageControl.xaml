@@ -51,8 +51,16 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
                     </StackPanel>
+
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
+                              Checked="Run_code_analysis_in_separate_process_Checked"
+                              Unchecked="Run_code_analysis_in_separate_process_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Name="Run_code_analysis_on_dotnet"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
+                    </StackPanel>
+
                     <CheckBox x:Name="Analyze_source_generated_files"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
@@ -111,15 +119,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_imports_on_paste}" />
                 </StackPanel>
             </GroupBox>
-            
-            <GroupBox x:Uid="QuickActionsBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
-                <StackPanel>
-                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
-                </StackPanel>
-            </GroupBox>
-            
+
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>

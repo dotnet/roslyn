@@ -15,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -105,7 +104,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 else
                 {
                     Contract.ThrowIfNull(binLog);
-                    await LocateAndRegisterMSBuild(logFile, binLog.Directory);
+
+                    // If we're loading a binlog, we don't need to discover an MSBuild that matches the SDK or source that we're processing, since we're not running
+                    // any MSBuild builds or tasks/targets in our process. Since we're reading a binlog, simply none of the SDK will be loaded. We might load analyzers
+                    // or source generators from the SDK or user-built, but those must generally target netstandard2.0 so we don't really expect them to have problems loading
+                    // on one version of the runtime versus another.
+                    await LocateAndRegisterMSBuild(logFile, sourceDirectory: null);
                     await GenerateFromBinaryLogAsync(binLog, lsifWriter, logFile, cancellationToken);
                 }
             }
@@ -122,13 +126,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task LocateAndRegisterMSBuild(TextWriter logFile, DirectoryInfo? workingDirectory)
+        private static async Task LocateAndRegisterMSBuild(TextWriter logFile, DirectoryInfo? sourceDirectory)
         {
             // Make sure we pick the highest version
             var options = VisualStudioInstanceQueryOptions.Default;
 
-            if (workingDirectory != null)
-                options.WorkingDirectory = workingDirectory.FullName;
+            if (sourceDirectory != null)
+                options.WorkingDirectory = sourceDirectory.FullName;
 
             var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances(options).OrderByDescending(i => i.Version).FirstOrDefault();
             if (msBuildInstance == null)
@@ -245,15 +249,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {
-                // Convert from the MSBuild "CompilerInvocation" type to our type that we use for our JSON-input mode already.
-                var invocationInfo = new CompilerInvocation.CompilerInvocationInfo
-                {
-                    Arguments = msbuildInvocation.CommandLineArguments,
-                    ProjectFilePath = msbuildInvocation.ProjectFilePath,
-                    Tool = msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? "csc" : "vbc"
-                };
+                var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
-                var project = await CompilerInvocation.CreateFromInvocationInfoAsync(invocationInfo);
+                var projectInfo = CommandLineProject.CreateProjectInfo(
+                    Path.GetFileNameWithoutExtension(msbuildInvocation.ProjectFilePath),
+                    msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? LanguageNames.CSharp : LanguageNames.VisualBasic,
+                    msbuildInvocation.CommandLineArguments,
+                    msbuildInvocation.ProjectDirectory,
+                    workspace)
+                    .WithFilePath(msbuildInvocation.ProjectFilePath);
+
+                workspace.OnProjectAdded(projectInfo);
+
+                var project = workspace.CurrentSolution.Projects.Single();
 
                 var generationStopwatch = Stopwatch.StartNew();
                 await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
