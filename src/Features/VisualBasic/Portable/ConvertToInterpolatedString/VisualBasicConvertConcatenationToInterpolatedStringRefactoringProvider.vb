@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         End Sub
 
         Protected Overrides Function SupportsInterpolatedStringHandler(compilation As Compilation) As Boolean
+            ' VB does not support interpolated string handlers at all.
             Return False
         End Function
 
