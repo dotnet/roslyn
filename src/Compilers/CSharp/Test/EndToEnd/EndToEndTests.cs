@@ -516,7 +516,7 @@ $@"        if (F({i}))
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
-        public void NestedLambdas(bool localFunctions, bool concurrentBuild)
+        public void NestedLambdas(bool localFunctions)
         {
             const int overloads1Number = 20;
             const int overloads2Number = 10;
@@ -627,9 +627,12 @@ $@"        if (F({i}))
                 """;
             RunInThread(() =>
             {
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(concurrentBuild));
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                var data = new LambdaBindingData();
+                comp.TestOnlyCompilationData = data;
                 comp.VerifyDiagnostics();
-            }, timeout: TimeSpan.FromSeconds(10));
+                Assert.Equal(localFunctions ? 20 : 220, data.LambdaBindingCount);
+            }, timeout: TimeSpan.FromSeconds(20));
         }
     }
 }
