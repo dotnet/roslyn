@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using PostSharp.Engineering.BuildTools;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
@@ -21,8 +22,11 @@ namespace Build;
 
 internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 {
-    // This record represents data from project.nuget.cache files. 
-    private record ProjectNuGetCache(string[] ExpectedPackageFiles);
+    // This record represents data from project.assets.json files.
+    private record ProjectAssetsPackage(string Type, Dictionary<string, string>? Dependencies);
+
+    // This record represents data from project.assets.json files.
+    private record ProjectAssets(Dictionary<string, Dictionary<string, ProjectAssetsPackage>> Targets);
 
     // This record represents data from .nupkg.metadata files.
     private record NuGetPackageMetadata(string Source);
@@ -118,38 +122,63 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
             }
 
             var packagePathsToCheck = new HashSet<string>();
-            
+
+            static string GetPackagePath(string name, string version)
+            {
+                var lowerName = name.ToLowerInvariant();
+                return Environment.ExpandEnvironmentVariables(Path.Combine("%UserProfile%", ".nuget",
+                    "packages", lowerName, version, $"{lowerName}.{version}.nupkg"));
+            }
+
             // List all packages restored from projects.
-            foreach (var cachePath in Directory.EnumerateFiles(context.RepoDirectory, "project.nuget.cache",
+            foreach (var projectAssetsPath in Directory.EnumerateFiles(context.RepoDirectory, "project.assets.json",
                          SearchOption.AllDirectories))
             {
-                context.Console.WriteMessage($"Processing {cachePath}.");
+                context.Console.WriteMessage($"Processing {projectAssetsPath}.");
             
-                var cacheJson = File.ReadAllText(cachePath);
-                var cache = JsonSerializer.Deserialize<ProjectNuGetCache>(cacheJson, jsonSerializerOptions)!;
-            
-                foreach (var packageHashPath in cache.ExpectedPackageFiles)
+                var projectAssetsJson = File.ReadAllText(projectAssetsPath);
+                var projectAssets = JsonSerializer.Deserialize<ProjectAssets>(projectAssetsJson, jsonSerializerOptions)!;
+
+                foreach (var assetsPackage in projectAssets.Targets.SelectMany(t => t.Value)
+                             .Where(x => x.Value.Type == "package"))
                 {
-                    if (!packageHashPathsVisited.Add(packageHashPath))
+                    // Eg. "Microsoft.ServiceHub.Framework/4.3.48"
+                    var assetsPackageKeyParts = assetsPackage.Key.Split('/');
+
+                    if (assetsPackageKeyParts.Length != 2)
                     {
-                        continue;
-                    }
-            
-                    const string nupkgSuffix = ".nupkg";
-                    const string hashSuffix = ".sha512";
-                    const string hashFileSuffix = nupkgSuffix + hashSuffix;
-            
-                    if (!packageHashPath.EndsWith(hashFileSuffix))
-                    {
-                        context.Console.WriteError($"Invalid path '{packageHashPath}' in '{cachePath}'.");
+                        context.Console.WriteError(
+                            $"Package '{assetsPackage.Key}' from '{projectAssetsPath}' has invalid key.");
                         success = false;
-            
                         continue;
                     }
-            
-                    var packagePath = packageHashPath.Substring(0, packageHashPath.Length - hashSuffix.Length);
-            
-                    packagePathsToCheck.Add(packagePath);
+
+                    void AddIfExists(string name, string version, string origin)
+                    {
+                        var packagePath = GetPackagePath(name, version);
+
+                        if (File.Exists(packagePath))
+                        {
+                            packagePathsToCheck.Add(packagePath);
+                        }
+                        else
+                        {
+                            context.Console.WriteImportantMessage(
+                                $"'{packagePath}' doesn't exist. Origin: {origin}");
+                        }
+                    }
+
+                    AddIfExists(assetsPackageKeyParts[0], assetsPackageKeyParts[1],
+                        $"Package in '{projectAssetsPath}'");
+
+                    if (assetsPackage.Value.Dependencies != null)
+                    {
+                        foreach (var dependency in assetsPackage.Value.Dependencies)
+                        {
+                            AddIfExists(dependency.Key, dependency.Value,
+                                $"Dependency of '{assetsPackage.Key}' package in '{projectAssetsPath}'");
+                        }
+                    }
                 }
             }
 
@@ -162,8 +191,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
             {
                 var packageName = tool.Key.ToLowerInvariant();
                 var packageVersion = tool.Value.Version;
-                var toolPackagePath = Environment.ExpandEnvironmentVariables(Path.Combine("%UserProfile%", ".nuget",
-                    "packages", packageName, packageVersion, $"{packageName}.{packageVersion}.nupkg"));
+                var toolPackagePath = GetPackagePath(packageName, packageVersion);
             
                 packagePathsToCheck.Add(toolPackagePath);
             }
@@ -172,15 +200,74 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
             var globalJsonPath = Path.Combine(context.RepoDirectory, "global.json");
             var globalJsonJson = File.ReadAllText(globalJsonPath);
             var globalJson = JsonSerializer.Deserialize<JsonDocument>(globalJsonJson, jsonSerializerOptions)!;
-            const string arcadePackageName = "Microsoft.DotNet.Arcade.Sdk";
-            var arcadePackageNameLowerCase = arcadePackageName.ToLowerInvariant();
+            const string ArcadePackageName = "Microsoft.DotNet.Arcade.Sdk";
             var arcadePackageVersion = globalJson.RootElement.EnumerateObject().Single(e => e.Name == "msbuild-sdks")
-                .Value.EnumerateObject().Single(e => e.Name == arcadePackageName).Value.GetString()!;
-            var arcadePackagePath = Environment.ExpandEnvironmentVariables(Path.Combine("%UserProfile%", ".nuget",
-                "packages", arcadePackageNameLowerCase, arcadePackageVersion,
-                $"{arcadePackageNameLowerCase}.{arcadePackageVersion}.nupkg"));
+                .Value.EnumerateObject().Single(e => e.Name == ArcadePackageName).Value.GetString()!;
+            var arcadePackagePath = GetPackagePath(ArcadePackageName, arcadePackageVersion);
             packagePathsToCheck.Add(arcadePackagePath);
             
+            // Collect dependencies recursively.
+            var nextPackagesToListDependencies = packagePathsToCheck.ToHashSet();
+            var packagesWithListedDependencies = new HashSet<string>();
+
+            while (nextPackagesToListDependencies.Count > 0)
+            {
+                var currentPackagesToListDependencies = nextPackagesToListDependencies;
+                nextPackagesToListDependencies = new();
+
+                foreach (var packagePath in currentPackagesToListDependencies)
+                {
+                    if (!packagesWithListedDependencies.Add(packagePath))
+                    {
+                        continue;
+                    }
+                    
+                    var packageDirectory = Path.GetDirectoryName(packagePath)!;
+                    var nuspecFiles = Directory.GetFiles(packageDirectory, "*.nuspec");
+
+                    if (nuspecFiles.Length != 1)
+                    {
+                        context.Console.WriteError(
+                            $"There's {nuspecFiles.Length} nuspec files instead of one for '{packagePath}' package.");
+
+                        success = false;
+
+                        continue;
+                    }
+
+                    context.Console.WriteMessage($"Processing '{nuspecFiles[0]}' of '{packagePath}'.");
+
+                    var nuspec = XDocument.Load(nuspecFiles[0]).Root!;
+                    XNamespace ns = nuspec.Attribute("xmlns")!.Value;
+                    var dependenciesElement = nuspec.Element(ns + "metadata")!.Element(ns + "dependencies");
+
+                    if (dependenciesElement == null)
+                    {
+                        continue;
+                    }
+
+                    var dependenciesWithoutGroups = dependenciesElement.Elements(ns + "dependency");
+                    var dependenciesWithGroups = dependenciesElement.Elements(ns + "group").Elements(ns + "dependency");
+                    var dependencyPackagePaths = dependenciesWithoutGroups.Concat(dependenciesWithGroups).Select(d =>
+                        GetPackagePath(d.Attribute("id")!.Value, d.Attribute("version")!.Value)).ToArray();
+
+                    foreach (var dependencyPackagePath in dependencyPackagePaths)
+                    {
+                        if (File.Exists(dependencyPackagePath))
+                        {
+                            nextPackagesToListDependencies.Add(dependencyPackagePath);
+                            packagePathsToCheck.Add(dependencyPackagePath);
+                        }
+                        else
+                        {
+                            context.Console.WriteImportantMessage(
+                                $"'{dependencyPackagePath}' doesn't exist. Origin: {nuspecFiles[0]}");
+                        }
+                    }
+                }
+            }
+            
+            // Filter out packages that are present at nuget.org.
             foreach (var packagePath in packagePathsToCheck)
             {
                 // ReSharper disable once CoVariantArrayConversion
