@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //  not so large as to be wasteful when not in use.
         private const int CachedTokenArraySize = 4096;
 
+        // Maximum index where a value has been written in _lexedTokens. This will allow Dispose
+        //   to limit the range needed to clear when releasing the lexed token array back to the pool.
+        private int _maxWrittenLexedTokenIndex = -1;
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -107,7 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Put lexedTokens back into the pool if it's correctly sized.
                 if (lexedTokens.Length == CachedTokenArraySize)
                 {
-                    Array.Clear(lexedTokens, 0, _tokenCount);
+                    // Clear all written indexes in lexedTokens before releasing back to the pool
+                    Array.Clear(lexedTokens, 0, _maxWrittenLexedTokenIndex + 1);
+
                     s_lexedTokensPool.Free(lexedTokens);
                 }
             }
@@ -386,6 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AddLexedTokenSlot();
             }
 
+            if (_tokenCount > _maxWrittenLexedTokenIndex)
+            {
+                _maxWrittenLexedTokenIndex = _tokenCount;
+            }
+
             _lexedTokens[_tokenCount].Value = token;
             _tokenCount++;
         }
@@ -431,9 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (shiftCount > 0)
                 {
                     Array.Copy(_lexedTokens, shiftOffset, _lexedTokens, 0, shiftCount);
-
-                    // Clear out the cached tokens from shiftCount to the end of the token array
-                    Array.Clear(_lexedTokens, shiftCount, shiftOffset);
                 }
 
                 _firstToken += shiftOffset;
@@ -449,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Put lexedTokens back into the pool if it's correctly sized.
                 if (lexedTokens.Length == CachedTokenArraySize)
                 {
+                    // Fully clear out lexedTokens before releasing back to pool.
                     Array.Clear(lexedTokens, 0, lexedTokens.Length);
                     s_lexedTokensPool.Free(lexedTokens);
                 }
