@@ -146,6 +146,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static BuildHostProcessKind GetKindForProject(string projectFilePath)
     {
+        // At the moment we don't have mono support here, so if we're not on Windows, we'll always force to .NET Core.
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return BuildHostProcessKind.NetCore;
+
         // This implements the algorithm as stated in https://github.com/dotnet/project-system/blob/9a761848e0f330a45e349685a266fea00ac3d9c5/docs/opening-with-new-project-system.md;
         // we'll load the XML of the project directly, and inspect for certain elements.
         XDocument document;
