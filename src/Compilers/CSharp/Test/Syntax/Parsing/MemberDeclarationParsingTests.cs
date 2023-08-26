@@ -776,17 +776,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 UsingDeclaration("async Task<SomeNamespace.SomeType Method();", options: options,
-                    // (1,1): error CS1073: Unexpected token '('
+                    // (1,35): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
-                    // (1,35): error CS1003: Syntax error, ',' expected
-                    // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 35),
-                    // (1,41): error CS1003: Syntax error, '>' expected
-                    // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 41)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(">").WithLocation(1, 35)
                     );
-                N(SyntaxKind.IncompleteMember);
+
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.AsyncKeyword);
                     N(SyntaxKind.GenericName);
@@ -807,14 +802,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.IdentifierToken, "SomeType");
                                 }
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
                             M(SyntaxKind.GreaterThanToken);
                         }
                     }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -827,17 +824,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 UsingDeclaration("public Task<SomeNamespace.SomeType Method();", options: options,
-                    // (1,1): error CS1073: Unexpected token '('
+                    // (1,36): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
-                    // (1,36): error CS1003: Syntax error, ',' expected
-                    // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 36),
-                    // (1,42): error CS1003: Syntax error, '>' expected
-                    // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 42)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(">").WithLocation(1, 36)
                     );
-                N(SyntaxKind.IncompleteMember);
+
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.GenericName);
@@ -858,14 +850,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.IdentifierToken, "SomeType");
                                 }
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
                             M(SyntaxKind.GreaterThanToken);
                         }
                     }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -1052,81 +1046,263 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.InitOnlySetters)]
-        public void InitAccessor()
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void TupleReturningEnumerable_01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
-                UsingDeclaration("string Property { get; init; }", options: options);
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
+                const string source =
+                    """
+                    static IEnumerable<(string Value, string Description) GetAllValues(Type t)
                     {
-                        N(SyntaxKind.StringKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Property");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.InitAccessorDeclaration);
-                        {
-                            N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                EOF();
-            }
-        }
+                        if (!t.IsEnum)
+                            throw new ArgumentException("no good");
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.InitOnlySetters)]
-        public void InitSetAccessor()
-        {
-            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
-            {
-                UsingDeclaration("string Property { init set; }", options: options,
-                    // (1,24): error CS8180: { or ; or => expected
-                    // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24),
-                    // (1,30): error CS1513: } expected
-                    // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30)
-                    );
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.StringKeyword);
+                        return Enum.GetValues(t).Cast<Enum>().Select(e => (e.ToString(), e.ToString()));
                     }
-                    N(SyntaxKind.IdentifierToken, "Property");
-                    N(SyntaxKind.AccessorList);
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,55): error CS1003: Syntax error, '>' expected
+                    // static IEnumerable<(string Value, string Description) GetAllValues(Type t)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "GetAllValues").WithArguments(">").WithLocation(1, 55)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Value");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Description");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "GetAllValues");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.InitAccessorDeclaration);
+                        N(SyntaxKind.IfStatement);
                         {
-                            N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.Block);
+                            N(SyntaxKind.IfKeyword);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.LogicalNotExpression);
                             {
-                                M(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.ExpressionStatement);
+                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "set");
+                                        N(SyntaxKind.IdentifierToken, "t");
                                     }
-                                    N(SyntaxKind.SemicolonToken);
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "IsEnum");
+                                    }
                                 }
-                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.ThrowStatement);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.ObjectCreationExpression);
+                                {
+                                    N(SyntaxKind.NewKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ArgumentException");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"no good\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Enum");
+                                                    }
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "GetValues");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.Argument);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "t");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Cast");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Enum");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Select");
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.SimpleLambdaExpression);
+                                        {
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "e");
+                                            }
+                                            N(SyntaxKind.EqualsGreaterThanToken);
+                                            N(SyntaxKind.TupleExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "e");
+                                                            }
+                                                            N(SyntaxKind.DotToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "ToString");
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "e");
+                                                            }
+                                                            N(SyntaxKind.DotToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "ToString");
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 EOF();

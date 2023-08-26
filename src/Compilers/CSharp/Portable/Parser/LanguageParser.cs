@@ -5928,6 +5928,17 @@ parse_member_name:;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
+                    if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                    {
+                        // if we see ( or { or ; or = we expect a method, a property, a field or a local declaration respectively
+                        if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken &&
+                            this.PeekToken(1).Kind is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken)
+                        {
+                            // do not eat the current token as a possible type argument/param
+                            break;
+                        }
+                    }
+
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
                 }
