@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -678,47 +677,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithMultiLineRawString()
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString1(string suffix)
         {
             await new VerifyCS.Test
             {
-                TestCode = """"
+                TestCode = $$""""
                 [|namespace N|]
                 {
                     class C
                     {
                         void M()
                         {
-                            System.Console.WriteLine("""
+                            WriteLine("""
                     a
                         b
                             c
                                 d
                                     e
-                    """);
+                    """{{suffix}});
                         }
+
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
                 }
                 """",
-                FixedCode = """"
+                FixedCode = $$""""
                 namespace $$N;
 
                 class C
                 {
                     void M()
                     {
-                        System.Console.WriteLine("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """);
+                        WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
                     }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
                 }
                 """",
                 LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -726,48 +732,105 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithUtf8MultiLineRawString()
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString2(string suffix)
         {
             await new VerifyCS.Test
             {
-                TestCode = """"
+                TestCode = $$""""
                 [|namespace N|]
                 {
                     class C
                     {
                         void M()
                         {
-                            M2("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """u8);
+                            WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
                         }
-
-                        void M2(System.ReadOnlySpan<byte> x) {}
+                
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
                 }
                 """",
-                FixedCode = """"
+                FixedCode = $$""""
                 namespace $$N;
 
                 class C
                 {
                     void M()
                     {
-                        M2("""
-                    a
+                        WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
+                    }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString3(string suffix)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$""""
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine("""
+                {|CS8999:|}a // error
                         b
                             c
                                 d
                                     e
-                    """u8);
+                    """{{suffix}});
+                        }
+                
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
+                }
+                """",
+                FixedCode = $$""""
+                namespace $$N;
 
-                    void M2(System.ReadOnlySpan<byte> x) {}
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("""
+                {|CS8999:|}a // error
+                        b
+                            c
+                                d
+                                    e
+                    """{{suffix}});
+                    }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
                 }
                 """",
                 LanguageVersion = LanguageVersion.CSharp12,

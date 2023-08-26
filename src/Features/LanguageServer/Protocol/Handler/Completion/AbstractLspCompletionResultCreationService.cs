@@ -395,7 +395,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             Debug.Assert(selectedItem.Flags.IsExpanded());
-            selectedItem = ImportCompletionItem.MarkItemToAlwaysAddMissingImport(selectedItem);
             var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
