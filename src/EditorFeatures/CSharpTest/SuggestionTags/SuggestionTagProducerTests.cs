@@ -31,12 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
             var pragmaText = isSuppressed ? $@"#pragma warning disable {IDEDiagnosticIds.UseObjectInitializerDiagnosticId}
 " : string.Empty;
             var (spans, selection) = await GetTagSpansAndSelectionAsync(
-pragmaText + @"class C {
+pragmaText + """
+class C {
     void M() {
         var v = [|ne|]w X();
         v.Y = 1;
     }
-}");
+}
+""");
             if (isSuppressed)
             {
                 Assert.Empty(spans);
