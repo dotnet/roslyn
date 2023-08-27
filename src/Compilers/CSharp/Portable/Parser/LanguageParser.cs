@@ -5922,7 +5922,10 @@ parse_member_name:;
             // remaining types & commas
             while (true)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
+                // Those token kinds are our terminator token kinds that break type argument parsing
+                // It is more useful to report fewer redundant and cryptic errors than to hint using
+                // tuples as possible types
+                if (tokenKindBreaksArgumentList(this.CurrentToken.Kind))
                 {
                     break;
                 }
@@ -5931,13 +5934,7 @@ parse_member_name:;
                     if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
                     {
                         // if we see ( or ) or { or ; or = or => we expect being in a method, property, field or local declaration
-                        if (this.PeekToken(1).Kind
-                            is SyntaxKind.OpenParenToken
-                            or SyntaxKind.CloseParenToken
-                            or SyntaxKind.OpenBracketToken
-                            or SyntaxKind.SemicolonToken
-                            or SyntaxKind.EqualsToken
-                            or SyntaxKind.EqualsGreaterThanToken)
+                        if (tokenKindBreaksArgumentList(this.PeekToken(1).Kind))
                         {
                             // do not eat the current token as a possible type argument/param
                             break;
@@ -5954,6 +5951,18 @@ parse_member_name:;
             }
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
+
+            bool tokenKindBreaksArgumentList(SyntaxKind kind)
+            {
+                return kind
+                    is SyntaxKind.GreaterThanToken
+                    or SyntaxKind.OpenParenToken
+                    or SyntaxKind.CloseParenToken
+                    or SyntaxKind.SemicolonToken
+                    or SyntaxKind.OpenBraceToken
+                    or SyntaxKind.EqualsToken
+                    or SyntaxKind.EqualsGreaterThanToken;
+            }
         }
 
         private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
