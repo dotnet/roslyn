@@ -1517,64 +1517,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """;
 
                 UsingStatement(source, options,
-                    // (1,1): error CS1073: Unexpected token 'values'
+                    // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) values;
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "IEnumerable<(string Value, string Description) ").WithArguments("values").WithLocation(1, 1),
-                    // (1,48): error CS1002: ; expected
-                    // IEnumerable<(string Value, string Description) values;
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "values").WithLocation(1, 48)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48)
                     );
 
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.GenericName);
                         {
                             N(SyntaxKind.IdentifierToken, "IEnumerable");
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TupleExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.TypeArgumentList);
                             {
-                                N(SyntaxKind.DeclarationExpression);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.TupleType);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Value");
                                     }
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Description");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
+                                M(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "values");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
-
-                // TODO: Perhaps discover the issue about this bug
-                AssertEx.Fail("Locals are not supported well -- tuple deconstruction inside generic arguments is somehow being parsed as such");
             }
         }
 
@@ -1590,59 +1580,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """;
 
                 UsingStatement(source, options,
-                    // (1,1): error CS1073: Unexpected token 'values'
+                    // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) values = null;
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "IEnumerable<(string Value, string Description) ").WithArguments("values").WithLocation(1, 1),
-                    // (1,48): error CS1002: ; expected
-                    // IEnumerable<(string Value, string Description) values = null;
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "values").WithLocation(1, 48)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48)
                     );
 
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.GenericName);
                         {
                             N(SyntaxKind.IdentifierToken, "IEnumerable");
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TupleExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.TypeArgumentList);
                             {
-                                N(SyntaxKind.DeclarationExpression);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.TupleType);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Value");
                                     }
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Description");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "values");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
                                 }
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -1664,60 +1655,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """;
 
                 UsingStatement(source, options,
-                    // (1,1): error CS1073: Unexpected token 'values'
+                    // (1,47): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description)
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, @"IEnumerable<(string Value, string Description)
-").WithArguments("values").WithLocation(1, 1),
-                    // (1,47): error CS1002: ; expected
-                    // IEnumerable<(string Value, string Description)
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 47)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 47)
                     );
 
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.LessThanExpression);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.GenericName);
                         {
                             N(SyntaxKind.IdentifierToken, "IEnumerable");
-                        }
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TupleExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.TypeArgumentList);
                             {
-                                N(SyntaxKind.DeclarationExpression);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.TupleType);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Value");
                                     }
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
                                     {
-                                        N(SyntaxKind.StringKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
                                         N(SyntaxKind.IdentifierToken, "Description");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "values");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
                                 }
                             }
-                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "otherValues");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "moreValues");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -2223,6 +2224,311 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
+        public void MissingClosingAngleBracket_MethodInvocation01()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    Invoke<ImmutableArray<(string a, string b)(31, default(ImmutableArray<int));
+                    """;
+
+                UsingStatement(source, options,
+                    // (1,43): error CS1003: Syntax error, '>' expected
+                    // Invoke<ImmutableArray<(string a, string b)(31, default(ImmutableArray<int));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 43),
+                    // (1,74): error CS1003: Syntax error, '>' expected
+                    // Invoke<ImmutableArray<(string a, string b)(31, default(ImmutableArray<int));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 74)
+                    );
+
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.LessThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Invoke");
+                        }
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.TupleType);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "31");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DefaultExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                M(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
+        public void MissingClosingAngleBracket_MethodInvocation02()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    Invoke<ImmutableArray<(string a, string b)>(31, default(ImmutableArray<int));
+                    """;
+
+                UsingStatement(source, options,
+                    // (1,75): error CS1003: Syntax error, '>' expected
+                    // Invoke<ImmutableArray<(string a, string b)>(31, default(ImmutableArray<int));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 75)
+                    );
+
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.LessThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Invoke");
+                        }
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.TupleType);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "31");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DefaultExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                M(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
+        public void MissingClosingAngleBracket_MethodInvocation03()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    Invoke<ImmutableArray<(string a, string b)>(31, default(ImmutableArray<int>));
+                    """;
+
+                UsingStatement(source, options);
+
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.LessThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Invoke");
+                        }
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.TupleType);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.StringKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "31");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DefaultExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
         public void MissingClosingAngleBracket_RecordPrimaryConstructorArgumentList01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2345,6 +2651,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         : Other<T((ImmutableArray<T)Array);
                     """;
 
+                // the ',' expected error is attempting to parse the code above as
+                // ((ImmutableArray < T), Array)
+                // we are fine with this for now
+
                 UsingDeclaration(source, options,
                     // (1,18): error CS1003: Syntax error, '>' expected
                     // public record M<T(ImmutableArray<T Array)
@@ -2452,8 +2762,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
-
-                AssertEx.Fail("Bad combination of diagnostics");
             }
         }
 

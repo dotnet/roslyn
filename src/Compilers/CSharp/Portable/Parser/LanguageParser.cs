@@ -5759,6 +5759,7 @@ parse_member_name:;
             }
 
             ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+            ScanTypeFlags lastScannedType = ScanTypeFlags.NotType;
 
             do
             {
@@ -5777,7 +5778,7 @@ parse_member_name:;
                     return result;
                 }
 
-                switch (this.ScanType(out _))
+                switch (lastScannedType = this.ScanType(out _))
                 {
                     case ScanTypeFlags.NotType:
                         greaterThanToken = null;
@@ -5876,6 +5877,15 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
+                // for identifiers we assume that there could be a missing > token
+                // for tuples, we do not expect direct invocation right after the parenthesis
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken ||
+                    (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken))
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
                 greaterThanToken = null;
                 return ScanTypeFlags.NotType;
             }
