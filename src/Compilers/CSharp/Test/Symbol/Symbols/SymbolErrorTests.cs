@@ -3469,7 +3469,8 @@ class BAttribute : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nada").WithArguments("Nada")
                 );
         }
-        
+
+        [WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound07()
         {
