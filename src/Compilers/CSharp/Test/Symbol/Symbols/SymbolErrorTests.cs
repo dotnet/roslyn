@@ -3470,8 +3470,7 @@ class BAttribute : System.Attribute { }
                 );
         }
 
-        [WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
-        [Fact]
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
         public void CS0246ERR_SingleTypeNameNotFound07()
         {
             var text =
