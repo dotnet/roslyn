@@ -5928,11 +5928,16 @@ parse_member_name:;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
-                    if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
                     {
-                        // if we see ( or { or ; or = we expect a method, a property, a field or a local declaration respectively
-                        if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken &&
-                            this.PeekToken(1).Kind is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken)
+                        // if we see ( or ) or { or ; or = or => we expect being in a method, property, field or local declaration
+                        if (this.PeekToken(1).Kind
+                            is SyntaxKind.OpenParenToken
+                            or SyntaxKind.CloseParenToken
+                            or SyntaxKind.OpenBracketToken
+                            or SyntaxKind.SemicolonToken
+                            or SyntaxKind.EqualsToken
+                            or SyntaxKind.EqualsGreaterThanToken)
                         {
                             // do not eat the current token as a possible type argument/param
                             break;
