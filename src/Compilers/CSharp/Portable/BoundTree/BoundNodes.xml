@@ -1892,6 +1892,8 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Conversion from construct method return type to collection type. -->
+    <Field Name="CollectionBuilderReturnTypeConversion" Type="Conversion"/>
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
