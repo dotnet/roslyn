@@ -3469,6 +3469,25 @@ class BAttribute : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nada").WithArguments("Nada")
                 );
         }
+        
+        [Fact]
+        public void CS0246ERR_SingleTypeNameNotFound07()
+        {
+            var text =
+@"class C
+{
+    [SomeAttribute<int>] // Error should occur here
+    static void Foo()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttributeAttribute<>"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttribute<>")
+                );
+        }
 
         [Fact]
         public void CS0249ERR_OverrideFinalizeDeprecated()
