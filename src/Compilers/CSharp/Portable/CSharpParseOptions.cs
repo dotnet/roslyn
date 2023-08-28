@@ -257,6 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (InterceptorsPreviewNamespaces != other.InterceptorsPreviewNamespaces)
+            {
+                return false;
+            }
+
             return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion;
         }
 
@@ -264,7 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 Hash.Combine(base.GetHashCodeHelper(),
-                Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
+                Hash.Combine(InterceptorsPreviewNamespaces.GetHashCode(),
+                Hash.Combine((int)this.SpecifiedLanguageVersion, 0)));
         }
     }
 }
