@@ -33,7 +33,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 """;
 
-    private const string DefaultHelpLinkUri = "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9203)";
+    private const string DefaultHelpLinkUri = "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)";
 
     [Theory, CombinatorialData]
     public void Simple(bool inSource)
@@ -1387,7 +1387,7 @@ C.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error CS9203: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
             Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
@@ -1464,7 +1464,7 @@ C.M();
             : CreateCompilation((src, "0.cs"), references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error CS9203: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
             Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
@@ -1516,7 +1516,7 @@ namespace System.Diagnostics.CodeAnalysis
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,1): error CS9203: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
             Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
