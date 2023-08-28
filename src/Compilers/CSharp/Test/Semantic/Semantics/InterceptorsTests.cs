@@ -147,6 +147,7 @@ public class InterceptorsTests : CSharpTestBase
         sadCase("true");
         sadCase(" NS1");
         sadCase(";");
+        sadCase("");
         sadCase("NS1 ;");
         sadCase("NS1..NS2;");
         sadCase("ns1");
@@ -173,6 +174,34 @@ public class InterceptorsTests : CSharpTestBase
             var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue), expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_03()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", ""));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>$(Features);InterceptorsPreview</Features>' to your project.
+            //     [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<Features>$(Features);InterceptorsPreview</Features>").WithLocation(13, 6));
     }
 
     [Fact]
