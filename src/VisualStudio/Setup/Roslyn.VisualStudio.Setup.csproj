@@ -10,6 +10,7 @@
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <AreDependenciesSetOnPackage>true</AreDependenciesSetOnPackage>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
