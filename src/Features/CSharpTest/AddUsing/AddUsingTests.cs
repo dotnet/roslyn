@@ -6527,5 +6527,29 @@ class Program
                 index: 0,
                 parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        public async Task TestAddUsingWithMalformedGeneric(TestHost testHost)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                class Class
+                {
+                    [|List<Y|] x;
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class Class
+                {
+                    List<Y x;
+                }
+                """,
+                index: 0,
+                parameters: new TestParameters(testHost: testHost));
+        }
     }
 }

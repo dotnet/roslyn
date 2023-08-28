@@ -5943,7 +5943,6 @@ parse_member_name:;
                 {
                     if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
                     {
-                        // if we see ( or ) or { or ; or = or => we expect being in a method, property, field or local declaration
                         if (tokenKindBreaksArgumentList(this.PeekToken(1).Kind))
                         {
                             // do not eat the current token as a possible type argument/param
@@ -5962,7 +5961,7 @@ parse_member_name:;
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
 
-            bool tokenKindBreaksArgumentList(SyntaxKind kind)
+            static bool tokenKindBreaksArgumentList(SyntaxKind kind)
             {
                 return kind
                     is SyntaxKind.GreaterThanToken
@@ -5970,6 +5969,7 @@ parse_member_name:;
                     or SyntaxKind.CloseParenToken
                     or SyntaxKind.SemicolonToken
                     or SyntaxKind.OpenBraceToken
+                    or SyntaxKind.CloseBraceToken
                     or SyntaxKind.EqualsToken
                     or SyntaxKind.EqualsGreaterThanToken;
             }

@@ -145,16 +145,6 @@ class Class
 class Class
 {
     List< }");
-
-            await TestInRegularAndScriptAsync(
-@"class Class
-{
-    [|List<Y x;|] }",
-@"using System.Collections.Generic;
-
-class Class
-{
-    List<Y x; }");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
