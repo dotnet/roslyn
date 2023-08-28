@@ -5037,6 +5037,16 @@
         <target state="translated">Использование локальной переменной, которой не присвоено значение</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">В этом месте нельзя использовать символы "{0}".</target>
@@ -12599,13 +12609,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">Тип предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">Тип предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">

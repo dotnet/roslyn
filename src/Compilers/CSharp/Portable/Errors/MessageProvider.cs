@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasPragmaSuppression;
             return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                               true,
+                                                              diagnosticInfo.Code,
                                                               diagnosticInfo.MessageIdentifier,
                                                               diagnosticInfo.WarningLevel,
                                                               Location.None,

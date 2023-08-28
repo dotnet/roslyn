@@ -5037,6 +5037,16 @@
         <target state="translated">Utilisation d'une variable locale non assignée</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">Impossible d'utiliser le(s) caractère(s) '{0}' à cet emplacement.</target>
@@ -12599,13 +12609,13 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">'{0}' est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">Le type est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">Le type est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
