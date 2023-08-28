@@ -2268,7 +2268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationRefField = 9201,
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
-        WRN_Experimental = 9203,
+        ERR_CollectionExpressionEscape = 9203,
+        WRN_Experimental = 9204,
 
         #endregion
 

@@ -1287,4 +1287,104 @@ public partial class UseCollectionExpressionForBuilderTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestGlobalStatement1(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                {{pattern}}
+                [|builder.Add(|]0);
+                ImmutableArray<int> array = builder.ToImmutable();
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                ImmutableArray<int> array = [0];
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestGlobalStatement2(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                {{pattern}}
+                [|builder.Add(|]0);
+                [|builder.Add(|]1 +
+                    2);
+                [|builder.Add(|]3 +
+                    4);
+                ImmutableArray<int> array = builder.ToImmutable();
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                ImmutableArray<int> array =
+                [
+                    0,
+                    1 +
+                        2,
+                    3 +
+                        4,
+                ];
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNested1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<ImmutableArray<int>> M()
+                    {
+                        var builder1 = ImmutableArray.CreateBuilder<ImmutableArray<int>>();
+                        [|var builder2 = ImmutableArray.[|CreateBuilder|]<int>();|]
+                        [|builder2.Add(|]0);
+                        builder1.Add(builder2.ToImmutable());
+                        return builder1.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<ImmutableArray<int>> M()
+                    {
+                        return [[0]];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
 }

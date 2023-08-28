@@ -2403,6 +2403,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This is used by other binding APIs to invoke the right binder API
         internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.TestOnlyCompilationData is MemberSemanticModel.MemberSemanticBindingCounter counter)
+            {
+                counter.BindCount++;
+            }
+
             switch (node)
             {
                 case ExpressionSyntax expression:

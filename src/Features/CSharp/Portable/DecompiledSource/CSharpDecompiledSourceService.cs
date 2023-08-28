@@ -7,16 +7,8 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.CSharp.Transforms;
-using ICSharpCode.Decompiler.Metadata;
-using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -25,16 +17,13 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
+namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
 {
     [ExportLanguageService(typeof(IDecompiledSourceService), LanguageNames.CSharp), Shared]
     internal class CSharpDecompiledSourceService : IDecompiledSourceService
     {
-        private static readonly FileVersionInfo s_decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDecompiledSourceService()
@@ -48,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var fullName = GetFullReflectionName(containingOrThis);
 
             // Decompile
-            var decompiledDocument = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
+            var decompilationService = document.GetRequiredLanguageService<IDecompilationService>();
+            var decompiledDocument = decompilationService.PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
 
             if (decompiledDocument is null)
                 return null;
 
             document = decompiledDocument;
 
-            document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+            document = await AddAssemblyInfoRegionAsync(document, symbol, decompilationService, cancellationToken).ConfigureAwait(false);
 
             // Convert XML doc comments to regular comments, just like MAS
             var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
@@ -79,48 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return formattedDoc;
         }
 
-        private static Document? PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference? metadataReference, string? assemblyLocation)
-        {
-            var logger = new StringBuilder();
-            var resolver = new AssemblyResolver(compilation, logger);
-
-            // Load the assembly.
-            PEFile? file = null;
-            if (metadataReference is not null)
-                file = resolver.TryResolve(metadataReference, PEStreamOptions.PrefetchEntireImage);
-
-            if (file is null && assemblyLocation is not null)
-                file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
-
-            if (file is null)
-                return null;
-
-            // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(file, resolver, new DecompilerSettings());
-            // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
-            // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
-            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
-
-            var fullTypeName = new FullTypeName(fullName);
-
-            // ILSpy only allows decompiling a type that comes from the 'Main Module'.  They will throw on anything
-            // else.  Prevent this by doing this quick check corresponding to:
-            // https://github.com/icsharpcode/ILSpy/blob/4ebe075e5859939463ae420446f024f10c3bf077/ICSharpCode.Decompiler/CSharp/CSharpDecompiler.cs#L978
-            var type = decompiler.TypeSystem.MainModule.GetTypeDefinition(fullTypeName);
-            if (type is null)
-                return null;
-
-            // Try to decompile; if an exception is thrown the caller will handle it
-            var text = decompiler.DecompileTypeAsString(fullTypeName);
-
-            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
-            text += logger.ToString();
-            text += "#endif" + Environment.NewLine;
-
-            return document.WithText(SourceText.From(text, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default));
-        }
-
-        private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, IDecompilationService decompilationService, CancellationToken cancellationToken)
         {
             var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -129,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
 
+            var decompilerVersion = decompilationService.GetDecompilerVersion();
+
             var oldRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = oldRoot.WithLeadingTrivia(new[]
                 {
@@ -136,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.Comment("// " + assemblyPath),
                     SyntaxFactory.CarriageReturnLineFeed,
-                    SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {s_decompilerVersion.FileVersion}"),
+                    SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}"),
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
                     SyntaxFactory.CarriageReturnLineFeed,
