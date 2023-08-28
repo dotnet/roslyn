@@ -99,16 +99,14 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
             .Where(d => !d.IsGenerated)
             .SelectAsArray(d => d.FilePath);
         var allFiles = contentFiles.Concat(sourceFiles);
-        var hashedFileCounts = new Dictionary<string, int>();
+        var fileCounts = new Dictionary<string, int>();
         foreach (var file in allFiles)
         {
             var fileExtension = Path.GetExtension(file);
-            var hashedFileExtension = VsTfmAndFileExtHashingAlgorithm.HashInput(fileExtension);
-            var currentCount = hashedFileCounts.GetOrAdd(hashedFileExtension, 0);
-            hashedFileCounts[hashedFileExtension] = currentCount++;
+            fileCounts[fileExtension] = fileCounts.GetOrAdd(fileExtension, 0) + 1;
         }
 
-        return hashedFileCounts.ToImmutableDictionary();
+        return fileCounts.ToImmutableDictionary(kvp => VsTfmAndFileExtHashingAlgorithm.HashInput(kvp.Key), kvp => kvp.Value);
     }
 
     private static ImmutableArray<string> GetHashedReferences(ImmutableArray<CommandLineReference> metadataReferences)

@@ -255,7 +255,7 @@ internal sealed class LanguageServerProjectSystem
                     if (existingProject != null)
                     {
 
-                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _projectLoadTelemetryReporter, cancellationToken);
+                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                     else
                     {
@@ -272,7 +272,7 @@ internal sealed class LanguageServerProjectSystem
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
                         existingProjects.Add(loadedProject);
 
-                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _projectLoadTelemetryReporter, cancellationToken);
+                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                 }
 

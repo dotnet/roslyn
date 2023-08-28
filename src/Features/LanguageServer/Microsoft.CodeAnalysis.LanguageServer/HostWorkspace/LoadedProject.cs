@@ -74,7 +74,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ProjectToLoad projectToLoad, ProjectLoadTelemetryReporter reporter, CancellationToken cancellationToken)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
     {
         if (_mostRecentFileInfo != null)
         {
