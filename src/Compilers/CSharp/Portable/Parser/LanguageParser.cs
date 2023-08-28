@@ -5935,7 +5935,7 @@ parse_member_name:;
                 // Those token kinds are our terminator token kinds that break type argument parsing
                 // It is more useful to report fewer redundant and cryptic errors than to hint using
                 // tuples as possible types
-                if (tokenKindBreaksArgumentList(this.CurrentToken.Kind))
+                if (tokenKindBreaksArgumentList(this.CurrentToken.Kind) || this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
                 {
                     break;
                 }
@@ -5964,7 +5964,7 @@ parse_member_name:;
             static bool tokenKindBreaksArgumentList(SyntaxKind kind)
             {
                 return kind
-                    is SyntaxKind.GreaterThanToken
+                    is SyntaxKind.LessThanToken
                     or SyntaxKind.OpenParenToken
                     or SyntaxKind.CloseParenToken
                     or SyntaxKind.SemicolonToken
