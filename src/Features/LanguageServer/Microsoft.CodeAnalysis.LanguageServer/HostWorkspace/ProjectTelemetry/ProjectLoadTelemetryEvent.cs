@@ -14,14 +14,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 
 [DataContract]
 internal record ProjectLoadTelemetryEvent(
+    // The project guid (if it came from a solution), or a hash representing the file path and contents.
     [property: DataMember(Name = "ProjectId")] string ProjectId,
     [property: DataMember(Name = "SessionId")] string SessionId,
     [property: DataMember(Name = "OutputKind")] int OutputKind,
-    [property: DataMember(Name = "ProjectCapabilities")] string[] ProjectCapabilities,
-    [property: DataMember(Name = "TargetFrameworks")] string[] TargetFrameworks,
-    [property: DataMember(Name = "References")] string[] References,
-    [property: DataMember(Name = "FileExtensions")] string[] FileExtensions,
-    [property: DataMember(Name = "FileCounts")] int[] FileCounts,
+    [property: DataMember(Name = "ProjectCapabilities")] IEnumerable<string> ProjectCapabilities,
+    [property: DataMember(Name = "TargetFrameworks")] IEnumerable<string> TargetFrameworks,
+    [property: DataMember(Name = "References")] IEnumerable<string> References,
+    [property: DataMember(Name = "FileExtensions")] IEnumerable<string> FileExtensions,
+    [property: DataMember(Name = "FileCounts")] IEnumerable<int> FileCounts,
     [property: DataMember(Name = "SdkStyleProject")] bool SdkStyleProject)
 {
 }

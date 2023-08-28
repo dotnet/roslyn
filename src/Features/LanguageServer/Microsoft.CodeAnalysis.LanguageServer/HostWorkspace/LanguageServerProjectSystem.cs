@@ -12,6 +12,7 @@ using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Options;
@@ -53,6 +54,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly IFileChangeWatcher _fileChangeWatcher;
     private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
+    private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -69,12 +71,14 @@ internal sealed class LanguageServerProjectSystem
         IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
-        IAsynchronousOperationListenerProvider listenerProvider)
+        IAsynchronousOperationListenerProvider listenerProvider,
+        ProjectLoadTelemetryReporter projectLoadTelemetry)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
         _globalOptionService = globalOptionService;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
+        _projectLoadTelemetryReporter = projectLoadTelemetry;
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
         _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
@@ -242,6 +246,7 @@ internal sealed class LanguageServerProjectSystem
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
+                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos = new();
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
                     // If we already have the project, just update it
@@ -249,7 +254,8 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-                        await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _logger, cancellationToken);
+
+                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _projectLoadTelemetryReporter, cancellationToken);
                     }
                     else
                     {
@@ -266,9 +272,11 @@ internal sealed class LanguageServerProjectSystem
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
                         existingProjects.Add(loadedProject);
 
-                        await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _logger, cancellationToken);
+                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, projectToLoad, _projectLoadTelemetryReporter, cancellationToken);
                     }
                 }
+
+                await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
 
                 if (loadedFile.Log.Any())
                 {

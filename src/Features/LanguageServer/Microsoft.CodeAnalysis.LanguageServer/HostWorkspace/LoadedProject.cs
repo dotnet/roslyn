@@ -74,7 +74,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ProjectToLoad projectToLoad, ILogger logger, CancellationToken cancellationToken)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ProjectToLoad projectToLoad, ProjectLoadTelemetryReporter reporter, CancellationToken cancellationToken)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -144,10 +144,9 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileInfo = newProjectInfo;
 
-        var outputKind = _projectSystemProject.CompilationOptions?.OutputKind;
-        var metadataReferencesStr = metadataReferences.SelectAsArray(m => m.Reference);
-        await ProjectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(metadataReferencesStr, outputKind, newProjectInfo, projectToLoad, logger, cancellationToken);
-        return;
+        Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
+        var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
+        return (metadataReferences, outputKind);
 
         static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
         {

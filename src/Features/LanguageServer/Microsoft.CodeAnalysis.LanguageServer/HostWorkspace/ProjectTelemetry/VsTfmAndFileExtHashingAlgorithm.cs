@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 /// <summary>
 /// Defines a tfm and file ext hashing algorithm for telemetry
 /// This is the same algorithm used for O# and VS, so must not change.
-/// See https://github.com/OmniSharp/omnisharp-roslyn/blob/master/src/OmniSharp.MSBuild/VsTfmAndFileExtHashingAlgorithm.cs
+/// See https://github.com/OmniSharp/omnisharp-roslyn/blob/b2e64c6006beed49460f063117793f42ab2a8a5c/src/OmniSharp.MSBuild/VsTfmAndFileExtHashingAlgorithm.cs
 /// </summary>
-internal class VsTfmAndFileExtHashingAlgorithm
+internal static class VsTfmAndFileExtHashingAlgorithm
 {
     private static readonly long[] s_cr3tab =  /* CRC polynomial 0xedb88320 */
     {
@@ -53,11 +53,11 @@ internal class VsTfmAndFileExtHashingAlgorithm
         0xb3667a2eL, 0xc4614ab8L, 0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL
     };
 
-    public static HashedString HashInput(string cleartext)
+    public static string HashInput(string cleartext)
     {
         if (cleartext is null)
         {
-            return new HashedString(string.Empty);
+            return string.Empty;
         }
 
         long lHash = 0;
@@ -68,6 +68,6 @@ internal class VsTfmAndFileExtHashingAlgorithm
         }
 
         var result = (int)lHash; // need to cast it to a DWORD
-        return new HashedString(result.ToString());
+        return result.ToString();
     }
 }

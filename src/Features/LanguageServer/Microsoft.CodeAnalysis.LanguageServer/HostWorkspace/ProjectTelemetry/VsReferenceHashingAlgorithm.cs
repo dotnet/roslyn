@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 /// This is the same algorithm used for O# and VS, so must not change.
 /// See https://github.com/OmniSharp/omnisharp-roslyn/blob/master/src/OmniSharp.MSBuild/VsReferenceHashingAlgorithm.cs
 /// </summary>
-internal class VsReferenceHashingAlgorithm
+internal static class VsReferenceHashingAlgorithm
 {
-    private static readonly ulong[] _hashText =
+    private static readonly ulong[] s_hashText =
     {
         0x0000000000000000, 0x0809e8a2969451e9, 0x1013d1452d28a3d2, 0x181a39e7bbbcf23b,
         0x2027a28a5a5147a4, 0x282e4a28ccc5164d, 0x303473cf7779e476, 0x383d9b6de1edb59f,
@@ -106,7 +106,7 @@ internal class VsReferenceHashingAlgorithm
     {
         for (var j = 0; j < inputstream.Length; j++)
         {
-            crc = _hashText[(byte)(crc ^ inputstream[j])] ^ (crc >> 8);
+            crc = s_hashText[(byte)(crc ^ inputstream[j])] ^ (crc >> 8);
         }
 
         return crc;
@@ -118,11 +118,11 @@ internal class VsReferenceHashingAlgorithm
     /// </summary>
     /// <param name="cleartext">The value that should be hashed</param>
     /// <returns>A string representation of the hash value</returns>
-    public static HashedString HashInput(string cleartext)
+    public static string HashInput(string cleartext)
     {
         var hashedBytes = ComputeHash(EncodeBytes(cleartext), Mask);
 
-        return new HashedString(hashedBytes.ToString("x"));
+        return hashedBytes.ToString("x");
 
     }
 }

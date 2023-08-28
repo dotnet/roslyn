@@ -164,8 +164,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
             var isSdkStyle = IsSdkStyleProject(loadedProject);
-            var outputKind = project.ReadPropertyString(PropertyNames.OutputType);
-            var projectTelemetryMetadata = new ProjectTelemetryMetadata(projectCapabilities, contentFileInfo, isSdkStyle);
 
             return ProjectFileInfo.Create(
                 Language,
@@ -181,7 +179,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
-                projectTelemetryMetadata,
+                projectCapabilities,
+                contentFileInfo,
+                isSdkStyle,
                 Log);
         }
 
