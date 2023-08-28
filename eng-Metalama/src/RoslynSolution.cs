@@ -65,17 +65,26 @@ namespace Build
         // We run Metalama's unit tests.
         public override bool Test(BuildContext context, BuildSettings settings)
         {
-            var filter = "";
+            var testAll = settings.Properties.ContainsKey("TestAll");
 
-            if (!settings.Properties.ContainsKey("TestAll"))
+            if (testAll && !string.IsNullOrEmpty(settings.TestsFilter))
             {
-                filter = "Category!=OuterLoop";
+                context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
             }
             
             var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
             var additionalArguments = $"--no-restore --filter \"{filter}\"";
 
-            return DotNetHelper.RunTests(context, settings, project, this.EnvironmentVariables, additionalArguments);
+            var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
+
+            var binaryLogFilePath = Path.Combine(
+               context.RepoDirectory,
+               context.Product.LogsDirectory.ToString(),
+               $"{this.Name}.test.binlog");
+
+            // We run Metalama's unit tests.
+            var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
+            return DotNetHelper.Run(context, settings, project, "test", $"--no-restore --filter \"{filter}\" -bl:{binaryLogFilePath}");
         }
     }
 }
