@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
         /// each target framework.
         /// </summary>
-        Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
+        Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(ImmutableArray<string> targets, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the corresponding extension for a source file of a given kind.

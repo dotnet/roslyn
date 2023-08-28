@@ -141,8 +141,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
         /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-        public async Task<SolutionInfo> LoadSolutionInfoAsync(
+        public Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
+            CancellationToken cancellationToken = default)
+            => LoadSolutionInfoAsync(solutionFilePath, Targets.Default, progress, msbuildLogger, cancellationToken);
+
+        /// <summary>
+        /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and
+        /// all the projects referenced by the project files.
+        /// </summary>
+        /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="targets">The set of targets to execute on all projects in the solution</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public async Task<SolutionInfo> LoadSolutionInfoAsync(
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+            string solutionFilePath,
+            ImmutableArray<string> targets,
             IProgress<ProjectLoadProgress>? progress = null,
             ILogger? msbuildLogger = null,
             CancellationToken cancellationToken = default)
@@ -209,6 +229,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
                 Properties,
+                targets,
                 projectMap: null,
                 progress,
                 requestedProjectOptions: reportingOptions,
@@ -236,8 +257,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
         /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-        public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
+        public Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
+            ProjectMap? projectMap = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
+            CancellationToken cancellationToken = default)
+            => LoadProjectInfoAsync(projectFilePath, Targets.Default, projectMap, progress, msbuildLogger, cancellationToken);
+
+        /// <summary>
+        /// Loads the <see cref="ProjectInfo"/> from the specified project file and all referenced projects.
+        /// The first <see cref="ProjectInfo"/> in the result corresponds to the specified project file.
+        /// </summary>
+        /// <param name="projectFilePath">The path to the project file to be loaded. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="targets">The set of targets to execute on all projects in the solution</param>
+        /// <param name="projectMap">An optional <see cref="ProjectMap"/> that will be used to resolve project references to existing projects.
+        /// This is useful when populating a custom <see cref="Workspace"/>.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+            string projectFilePath,
+            ImmutableArray<string> targets,
             ProjectMap? projectMap = null,
             IProgress<ProjectLoadProgress>? progress = null,
             ILogger? msbuildLogger = null,
@@ -267,6 +311,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: Properties,
+                targets,
                 projectMap,
                 progress,
                 requestedProjectOptions,
