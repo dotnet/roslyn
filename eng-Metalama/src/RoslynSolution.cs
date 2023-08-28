@@ -71,9 +71,6 @@ namespace Build
             {
                 context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
             }
-            
-            var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
-            var additionalArguments = $"--no-restore --filter \"{filter}\"";
 
             var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
 
