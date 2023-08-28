@@ -60,23 +60,6 @@ class C
 }");
         }
 
-        [Fact]
-        public async Task TestOutsideOfMethodWithMalformedGenericParameters()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class Program
-{
-    Func<[|FlowControl|] x }",
-@"using System;
-using System.Reflection.Emit;
-
-class Program
-{
-    Func<FlowControl x }");
-        }
-
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
         public async Task TestUnknownIdentifierWithSyntaxError()
         {

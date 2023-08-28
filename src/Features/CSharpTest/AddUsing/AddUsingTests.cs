@@ -6551,5 +6551,29 @@ class Program
                 index: 0,
                 parameters: new TestParameters(testHost: testHost));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+                
+                class Program
+                {
+                    Func<[|FlowControl|] x }
+                """,
+                """
+                using System;
+                using System.Reflection.Emit;
+                
+                class Program
+                {
+                    Func<FlowControl x }
+                """,
+                index: 0,
+                parameters: new TestParameters(testHost: testHost));
+        }
     }
 }
