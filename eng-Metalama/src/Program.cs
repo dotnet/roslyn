@@ -34,7 +34,8 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     ExportedProperties = new[] { "RoslynVersion" },
     KeepEditorConfig = true,
-    Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, c => c with { ExportsToTeamCityBuild = true })
+    Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, c => c with { ExportsToTeamCityBuild = true }),
+    DefaultTestsFilter = "Category!=OuterLoop"
 };
 
 product.BuildCompleted += OnBuildCompleted;
