@@ -40,21 +40,9 @@ class C
     A<T U,,> a8;
 }
 ",
-                // (7,9): error CS1003: Syntax error, '>' expected
+                // (7,9): error CS1003: Syntax error, ',' expected
                 //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(">").WithLocation(7, 9),
-                // (7,10): error CS1003: Syntax error, ',' expected
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(7, 10),
-                // (7,12): error CS1002: ; expected
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a4").WithLocation(7, 12),
-                // (7,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 14),
-                // (7,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(7, 9),
                 // (9,9): error CS1031: Type expected
                 //     A<T,> a6;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 9),
@@ -169,22 +157,20 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "T");
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
+                                    M(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "U");
+                                N(SyntaxKind.IdentifierToken, "a4");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "a4");
-                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
