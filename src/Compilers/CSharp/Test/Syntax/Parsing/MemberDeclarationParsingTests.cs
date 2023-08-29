@@ -1389,6 +1389,1162 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment01()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T()
+                    {
+                        Action<T t = Method<T;
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,21): error CS1003: Syntax error, '>' expected
+                    // static void Method<T()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21),
+                    // (3,14): error CS1003: Syntax error, '>' expected
+                    //     Action<T t = Method<T;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 14)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "T");
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment02()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T()
+                    {
+                        Action<ImmutableArray<T t = Method<ImmutableArray<T;
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,21): error CS1003: Syntax error, '>' expected
+                    // static void Method<T()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21),
+                    // (3,29): error CS1003: Syntax error, '>' expected
+                    //     Action<ImmutableArray<T t = Method<ImmutableArray<T;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 29),
+                    // (3,29): error CS1003: Syntax error, '>' expected
+                    //     Action<ImmutableArray<T t = Method<ImmutableArray<T;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 29)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "T");
+                                                }
+                                                M(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Method");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment03()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T()
+                    {
+                        var (t, u) = ((Action<T>)Method<T>, (Action<T>)Method<T);
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,21): error CS1003: Syntax error, '>' expected
+                    // static void Method<T()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.ParenthesizedVariableDesignation);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "t");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "u");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.CastExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Action");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.CastExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Action");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "T");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Method");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment04()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T()
+                    {
+                        var (t, u) = ((Action<T>)Method<T>, (Action<ImmutableArray<T>>)Method<ImmutableArray<T);
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,21): error CS1003: Syntax error, '>' expected
+                    // static void Method<T()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.ParenthesizedVariableDesignation);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "t");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "u");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.CastExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Action");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.CastExpression);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.GenericName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Action");
+                                                        N(SyntaxKind.TypeArgumentList);
+                                                        {
+                                                            N(SyntaxKind.LessThanToken);
+                                                            N(SyntaxKind.GenericName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                                N(SyntaxKind.TypeArgumentList);
+                                                                {
+                                                                    N(SyntaxKind.LessThanToken);
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                                    }
+                                                                    N(SyntaxKind.GreaterThanToken);
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.GreaterThanToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Method");
+                                                    }
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment05()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T, U()
+                    {
+                        Action<T, U t = Method<T, U;
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,24): error CS1003: Syntax error, '>' expected
+                    // static void Method<T, U()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24),
+                    // (3,17): error CS1003: Syntax error, '>' expected
+                    //     Action<T, U t = Method<T, U;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 17)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "T");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "U");
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "U");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment06()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T, U()
+                    {
+                        Action<ImmutableArray<T, U t = Method<ImmutableArray<T, U;
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,24): error CS1003: Syntax error, '>' expected
+                    // static void Method<T, U()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24),
+                    // (3,32): error CS1003: Syntax error, '>' expected
+                    //     Action<ImmutableArray<T, U t = Method<ImmutableArray<T, U;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 32),
+                    // (3,32): error CS1003: Syntax error, '>' expected
+                    //     Action<ImmutableArray<T, U t = Method<ImmutableArray<T, U;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 32)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "T");
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "U");
+                                                }
+                                                M(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Method");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "U");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment07()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T, U()
+                    {
+                        var (t, u) = ((Action<T, U>)Method<T, U>, (Action<T, U>)Method<T, U);
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,24): error CS1003: Syntax error, '>' expected
+                    // static void Method<T, U()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.ParenthesizedVariableDesignation);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "t");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "u");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.CastExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Action");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "U");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "U");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.CastExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Action");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "T");
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "U");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Method");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "U");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_GenericDelegateAssignment08()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    static void Method<T, U()
+                    {
+                        var (t, u) = ((Action<T, U>)Method<T, U>, (Action<ImmutableArray<T, U>>)Method<ImmutableArray<T, U);
+                    }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,24): error CS1003: Syntax error, '>' expected
+                    // static void Method<T, U()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.ParenthesizedVariableDesignation);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "t");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "u");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.CastExpression);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Action");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "U");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Method");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "U");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.CastExpression);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.GenericName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Action");
+                                                        N(SyntaxKind.TypeArgumentList);
+                                                        {
+                                                            N(SyntaxKind.LessThanToken);
+                                                            N(SyntaxKind.GenericName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                                N(SyntaxKind.TypeArgumentList);
+                                                                {
+                                                                    N(SyntaxKind.LessThanToken);
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                                    }
+                                                                    N(SyntaxKind.CommaToken);
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "U");
+                                                                    }
+                                                                    N(SyntaxKind.GreaterThanToken);
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.GreaterThanToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Method");
+                                                    }
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "ImmutableArray");
+                                                }
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "U");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
         public void MissingClosingAngleBracket_Property01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -1399,9 +2555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """;
 
                 UsingDeclaration(source, options,
-                    // (1,48): error CS1003: Syntax error, '>' expected
-                    // IEnumerable<(string Value, string Description) Values { get; set; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48)
+                    // (1,24): error CS1003: Syntax error, '>' expected
+                    // static void Method<T, U()
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
                     );
 
                 N(SyntaxKind.PropertyDeclaration);
