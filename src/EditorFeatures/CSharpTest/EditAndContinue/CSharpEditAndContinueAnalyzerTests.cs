@@ -134,132 +134,132 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ErrorSpans_TopLevel()
         {
-            var source = """
-                /*<span>*/extern alias A;/*</span>*/
-                /*<span>*/using Z = Goo.Bar;/*</span>*/
+            var source = @"
+/*<span>*/extern alias A;/*</span>*/
+/*<span>*/using Z = Goo.Bar;/*</span>*/
 
-                [assembly: /*<span>*/A(1,2,3,4)/*</span>*/, /*<span>*/B/*</span>*/]
+[assembly: /*<span>*/A(1,2,3,4)/*</span>*/, /*<span>*/B/*</span>*/]
 
-                /*<span>*/namespace N.M/*</span>*/ { }
+/*<span>*/namespace N.M/*</span>*/ { }
 
-                [A, B]
-                /*<span>*/struct S<[A]T>/*</span>*/ : B 
-                    /*<span>*/where T : new, struct/*</span>*/ { }
+[A, B]
+/*<span>*/struct S<[A]T>/*</span>*/ : B 
+    /*<span>*/where T : new, struct/*</span>*/ { }
 
-                [A, B]
-                /*<span>*/public abstract partial class C/*</span>*/ { }
+[A, B]
+/*<span>*/public abstract partial class C/*</span>*/ { }
 
-                [A, B]
-                /*<span>*/public abstract partial record R/*</span>*/ { }
+[A, B]
+/*<span>*/public abstract partial record R/*</span>*/ { }
 
-                [A, B]
-                /*<span>*/public abstract partial record struct R/*</span>*/ { }
+[A, B]
+/*<span>*/public abstract partial record struct R/*</span>*/ { }
 
-                /*<span>*/interface I/*</span>*/ : J, K, L { }
+/*<span>*/interface I/*</span>*/ : J, K, L { }
 
-                [A]
-                /*<span>*/enum E1/*</span>*/ { }
+[A]
+/*<span>*/enum E1/*</span>*/ { }
 
-                /*<span>*/enum E2/*</span>*/ : uint { }
+/*<span>*/enum E2/*</span>*/ : uint { }
 
-                /*<span>*/public enum E3/*</span>*/
-                { 
-                    Q,
-                    [A]R = 3
-                }
+/*<span>*/public enum E3/*</span>*/
+{ 
+    Q,
+    [A]R = 3
+}
 
-                [A]
-                /*<span>*/public delegate void D1<T>()/*</span>*/ where T : struct;
+[A]
+/*<span>*/public delegate void D1<T>()/*</span>*/ where T : struct;
 
-                /*<span>*/delegate C<T> D2()/*</span>*/;
+/*<span>*/delegate C<T> D2()/*</span>*/;
 
-                [Attrib]
-                /*<span>*/public class Z/*</span>*/
-                {
-                    /*<span>*/int f/*</span>*/;
-                    [A]/*<span>*/int f = 1/*</span>*/;
-                    /*<span>*/public static readonly int f/*</span>*/;
+[Attrib]
+/*<span>*/public class Z/*</span>*/
+{
+    /*<span>*/int f/*</span>*/;
+    [A]/*<span>*/int f = 1/*</span>*/;
+    /*<span>*/public static readonly int f/*</span>*/;
 
-                    /*<span>*/int M1()/*</span>*/ { }
-                    [A]/*<span>*/int M2()/*</span>*/ { }
-                    [A]/*<span>*/int M3<T1, T2>()/*</span>*/ where T1 : bar where T2 : baz { }
+    /*<span>*/int M1()/*</span>*/ { }
+    [A]/*<span>*/int M2()/*</span>*/ { }
+    [A]/*<span>*/int M3<T1, T2>()/*</span>*/ where T1 : bar where T2 : baz { }
 
-                    [A]/*<span>*/abstract C<T> M4()/*</span>*/;
-                    int M5([A]/*<span>*/Z d = 2345/*</span>*/, /*<span>*/ref int x/*</span>*/, /*<span>*/params int[] x/*</span>*/) { return 1; }
+    [A]/*<span>*/abstract C<T> M4()/*</span>*/;
+    int M5([A]/*<span>*/Z d = 2345/*</span>*/, /*<span>*/ref int x/*</span>*/, /*<span>*/params int[] x/*</span>*/) { return 1; }
 
-                    [A]/*<span>*/event A E1/*</span>*/;
-                    [A]/*<span>*/public event A E2/*</span>*/;
+    [A]/*<span>*/event A E1/*</span>*/;
+    [A]/*<span>*/public event A E2/*</span>*/;
 
-                    [A]/*<span>*/public abstract event A E3/*</span>*/ { /*<span>*/add/*</span>*/; /*<span>*/remove/*</span>*/; }
-                    [A]/*<span>*/public abstract event A E4/*</span>*/ { [A, B]/*<span>*/add/*</span>*/ { } [A]/*<span>*/internal remove/*</span>*/ { } }
+    [A]/*<span>*/public abstract event A E3/*</span>*/ { /*<span>*/add/*</span>*/; /*<span>*/remove/*</span>*/; }
+    [A]/*<span>*/public abstract event A E4/*</span>*/ { [A, B]/*<span>*/add/*</span>*/ { } [A]/*<span>*/internal remove/*</span>*/ { } }
 
-                    [A]/*<span>*/int P/*</span>*/ { get; set; }
-                    [A]/*<span>*/internal string P/*</span>*/ { /*<span>*/internal get/*</span>*/ { } [A]/*<span>*/set/*</span>*/ { }}
+    [A]/*<span>*/int P/*</span>*/ { get; set; }
+    [A]/*<span>*/internal string P/*</span>*/ { /*<span>*/internal get/*</span>*/ { } [A]/*<span>*/set/*</span>*/ { }}
+    
+    [A]/*<span>*/internal string this[int a, int b]/*</span>*/ { /*<span>*/get/*</span>*/ { } /*<span>*/set/*</span>*/ { } }
+    [A]/*<span>*/string this[[A]int a = 123]/*</span>*/ { get { } set { } }
 
-                    [A]/*<span>*/internal string this[int a, int b]/*</span>*/ { /*<span>*/get/*</span>*/ { } /*<span>*/set/*</span>*/ { } }
-                    [A]/*<span>*/string this[[A]int a = 123]/*</span>*/ { get { } set { } }
+    [A]/*<span>*/public static explicit operator int(Z d)/*</span>*/ { return 1; }
+    [A]/*<span>*/operator double(Z d)/*</span>*/ { return 1; }
 
-                    [A]/*<span>*/public static explicit operator int(Z d)/*</span>*/ { return 1; }
-                    [A]/*<span>*/operator double(Z d)/*</span>*/ { return 1; }
-
-                    [A]/*<span>*/public static operator +(Z d, int x)/*</span>*/ { return 1; }
-                    [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
-
-                }
-                """;
+    [A]/*<span>*/public static operator +(Z d, int x)/*</span>*/ { return 1; }
+    [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
+    
+}
+";
             TestSpans(source, SyntaxComparer.TopLevel.HasLabel);
         }
 
         [Fact]
         public void ErrorSpans_StatementLevel_Update()
         {
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        /*<span>*/{/*</span>*/}
-                        /*<span>*/using (expr)/*</span>*/ {}
-                        /*<span>*/fixed (int* a = expr)/*</span>*/ {}
-                        /*<span>*/lock (expr)/*</span>*/ {}
-                        /*<span>*/yield break;/*</span>*/
-                        /*<span>*/yield return 1;/*</span>*/
-                        /*<span>*/try/*</span>*/ {} catch { };
-                        try {} /*<span>*/catch/*</span>*/ { };
-                        try {} /*<span>*/finally/*</span>*/ { };
-                        /*<span>*/if (expr)/*</span>*/ { };
-                        if (expr) { } /*<span>*/else/*</span>*/ { };
-                        /*<span>*/while (expr)/*</span>*/ { };
-                        /*<span>*/do/*</span>*/ {} while (expr);
-                        /*<span>*/for (;;)/*</span>*/ { };
-                        /*<span>*/foreach (var a in b)/*</span>*/ { };
-                        /*<span>*/switch (expr)/*</span>*/ { case 1: break; };
-                        switch (expr) { case 1: /*<span>*/goto case 1;/*</span>*/ };
-                        switch (expr) { case 1: /*<span>*/goto case default;/*</span>*/ };
-                        /*<span>*/label/*</span>*/: Goo();
-                        /*<span>*/checked/*</span>*/ { };
-                        /*<span>*/unchecked/*</span>*/ { };
-                        /*<span>*/unsafe/*</span>*/ { };
-                        /*<span>*/return expr;/*</span>*/
-                        /*<span>*/throw expr;/*</span>*/
-                        /*<span>*/break;/*</span>*/
-                        /*<span>*/continue;/*</span>*/
-                        /*<span>*/goto label;/*</span>*/
-                        /*<span>*/expr;/*</span>*/
-                        /*<span>*/int a;/*</span>*/
-                        F(/*<span>*/(x)/*</span>*/ => x);
-                        F(/*<span>*/x/*</span>*/ => x);
-                        F(/*<span>*/delegate/*</span>*/(x) { });
-                        F(from a in b /*<span>*/select/*</span>*/ a.x);
-                        F(from a in b /*<span>*/let/*</span>*/ x = expr select expr);
-                        F(from a in b /*<span>*/where/*</span>*/ expr select expr);
-                        F(from a in b /*<span>*/join/*</span>*/ c in d on e equals f select g);
-                        F(from a in b orderby /*<span>*/a/*</span>*/ select b);
-                        F(from a in b orderby a, /*<span>*/b descending/*</span>*/ select b);
-                        F(from a in b /*<span>*/group/*</span>*/ a by b select d);
-                    }
-                }
-                """;
+            var source = @"
+class C
+{
+    void M()
+    {
+        /*<span>*/{/*</span>*/}
+        /*<span>*/using (expr)/*</span>*/ {}
+        /*<span>*/fixed (int* a = expr)/*</span>*/ {}
+        /*<span>*/lock (expr)/*</span>*/ {}
+        /*<span>*/yield break;/*</span>*/
+        /*<span>*/yield return 1;/*</span>*/
+        /*<span>*/try/*</span>*/ {} catch { };
+        try {} /*<span>*/catch/*</span>*/ { };
+        try {} /*<span>*/finally/*</span>*/ { };
+        /*<span>*/if (expr)/*</span>*/ { };
+        if (expr) { } /*<span>*/else/*</span>*/ { };
+        /*<span>*/while (expr)/*</span>*/ { };
+        /*<span>*/do/*</span>*/ {} while (expr);
+        /*<span>*/for (;;)/*</span>*/ { };
+        /*<span>*/foreach (var a in b)/*</span>*/ { };
+        /*<span>*/switch (expr)/*</span>*/ { case 1: break; };
+        switch (expr) { case 1: /*<span>*/goto case 1;/*</span>*/ };
+        switch (expr) { case 1: /*<span>*/goto case default;/*</span>*/ };
+        /*<span>*/label/*</span>*/: Goo();
+        /*<span>*/checked/*</span>*/ { };
+        /*<span>*/unchecked/*</span>*/ { };
+        /*<span>*/unsafe/*</span>*/ { };
+        /*<span>*/return expr;/*</span>*/
+        /*<span>*/throw expr;/*</span>*/
+        /*<span>*/break;/*</span>*/
+        /*<span>*/continue;/*</span>*/
+        /*<span>*/goto label;/*</span>*/
+        /*<span>*/expr;/*</span>*/
+        /*<span>*/int a;/*</span>*/
+        F(/*<span>*/(x)/*</span>*/ => x);
+        F(/*<span>*/x/*</span>*/ => x);
+        F(/*<span>*/delegate/*</span>*/(x) { });
+        F(from a in b /*<span>*/select/*</span>*/ a.x);
+        F(from a in b /*<span>*/let/*</span>*/ x = expr select expr);
+        F(from a in b /*<span>*/where/*</span>*/ expr select expr);
+        F(from a in b /*<span>*/join/*</span>*/ c in d on e equals f select g);
+        F(from a in b orderby /*<span>*/a/*</span>*/ select b);
+        F(from a in b orderby a, /*<span>*/b descending/*</span>*/ select b);
+        F(from a in b /*<span>*/group/*</span>*/ a by b select d);
+    }
+}
+";
             // TODO: test
             // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
             // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
@@ -279,24 +279,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_InsignificantChangesInMethodBody()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        /* comment */ System.Console.WriteLine(1);
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1);
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        /* comment */ System.Console.WriteLine(1);
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -346,24 +346,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_Change()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1) // syntax error
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(2) // syntax error
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1) // syntax error
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2) // syntax error
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -382,15 +382,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange()
         {
-            var source = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1) // syntax error
-                    }
-                }
-                """;
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1) // syntax error
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source);
@@ -407,24 +407,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_SyntaxError_NoChange2()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1) // syntax error
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1) // syntax error
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1) // syntax error
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1) // syntax error
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -444,15 +444,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_Features_NoChange()
         {
-            var source = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1);
-                    }
-                }
-                """;
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
             var root = SyntaxFactory.ParseCompilationUnit(source, options: experimental);
@@ -484,24 +484,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             foreach (var feature in experimentalFeatures)
             {
-                var source1 = """
-                    class C
-                    {
-                        public static void Main()
-                        {
-                            System.Console.WriteLine(1);
-                        }
-                    }
-                    """;
-                var source2 = """
-                    class C
-                    {
-                        public static void Main()
-                        {
-                            System.Console.WriteLine(2);
-                        }
-                    }
-                    """;
+                var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+                var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
 
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
@@ -528,16 +528,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_SemanticError_NoChange()
         {
-            var source = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1);
-                        Bar(); // semantic error
-                    }
-                }
-                """;
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+        Bar(); // semantic error
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source);
@@ -556,26 +556,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1);
-                        Bar(); // semantic error
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(2);
-                        Bar(); // semantic error
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+        Bar(); // semantic error
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2);
+        Bar(); // semantic error
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -597,24 +597,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main(Bar x)
-                    {
-                        System.Console.WriteLine(1);
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main(Bar x)
-                    {
-                        System.Console.WriteLine(2);
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -637,25 +637,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFileHavingRudeEdits()
         {
-            var source1 = """
-                namespace N
-                {
-                    class C
-                    {
-                        public static void Main()
-                        {
-                        }
-                    }
-                }
-                """;
-            var source2 = """
-                namespace N
-                {
-                    public class D
-                    {
-                    }
-                }
-                """;
+            var source1 = @"
+namespace N
+{
+    class C
+    {
+        public static void Main()
+        {
+        }
+    }
+}
+";
+            var source2 = @"
+namespace N
+{
+    public class D
+    {
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -687,22 +687,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_AddingNewFile()
         {
-            var source1 = """
-                namespace N
-                {
-                    class C
-                    {
-                        public static void Main()
-                        {
-                        }
-                    }
-                }
-                """;
-            var source2 = """
-                class D
-                {
-                }
-                """;
+            var source1 = @"
+namespace N
+{
+    class C
+    {
+        public static void Main()
+        {
+        }
+    }
+}
+";
+            var source2 = @"
+class D
+{
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
@@ -764,9 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 ? $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}"
                 // Because the error message that is formatted into this template string includes a stacktrace with newlines, we need to replicate that behavior
                 // here so that any trailing punctuation is removed from the translated template string.
-                : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, """
-                System.NullReferenceException: NullRef!
-                """)}".Split('\n').First();
+                : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
@@ -775,24 +773,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public async Task AnalyzeDocumentAsync_NotSupportedByRuntime()
         {
-            var source1 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(1);
-                    }
-                }
-                """;
-            var source2 = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        System.Console.WriteLine(2);
-                    }
-                }
-                """;
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
 
             using var workspace = CreateWorkspace();
             var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
