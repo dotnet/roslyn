@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         //       and that would break users who have saved a non-default scope for the option.
 
         /// <summary>
-        /// Analyzers are executed only for currently active document.
+        /// Analyzers are computed for visible documents
+        /// and open documents which had errors/warnings in the prior solution snapshot.
         /// </summary>
-        ActiveFile = 0,
+        VisibleFilesAndFilesWithPreviouslyReportedDiagnostics = 0,
 
         /// <summary>
         /// Analyzers are executed for all open documents.
@@ -30,6 +31,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         None = 3,
 
         Minimal = None,
-        Default = ActiveFile,
+        Default = VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
     }
 }

@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BackgroundAnalysisScope.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
-            BackgroundAnalysisScope.ActiveFile
+            BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.OpenFiles
