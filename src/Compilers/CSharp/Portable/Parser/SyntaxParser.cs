@@ -457,8 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Put lexedTokens back into the pool if it's correctly sized.
                 if (lexedTokens.Length == CachedTokenArraySize)
                 {
-                    // Fully clear out lexedTokens before releasing back to pool.
-                    Array.Clear(lexedTokens, 0, lexedTokens.Length);
+                    // Clear all written indexes in lexedTokens before releasing back to the pool
+                    Array.Clear(lexedTokens, 0, _maxWrittenLexedTokenIndex + 1);
+
                     s_lexedTokensPool.Free(lexedTokens);
                 }
             }
