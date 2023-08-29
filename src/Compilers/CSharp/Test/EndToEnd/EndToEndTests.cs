@@ -16,6 +16,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         /// is a consistent stack size for them to execute in. 
         /// </summary>
         /// <param name="action"></param>
-        private static void RunInThread(Action action)
+        private static void RunInThread(Action action, TimeSpan? timeout = null)
         {
             Exception exception = null;
             var thread = new System.Threading.Thread(() =>
@@ -43,7 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             }, 0);
 
             thread.Start();
-            thread.Join();
+            if (timeout is { } t && !Debugger.IsAttached)
+            {
+                if (!thread.Join(t))
+                {
+                    throw new TimeoutException(t.ToString());
+                }
+            }
+            else
+            {
+                thread.Join();
+            }
 
             if (exception is object)
             {
@@ -235,6 +246,83 @@ public class Test
             }
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69515")]
+        public void GenericInheritanceCascade_CSharp(bool reverse, bool concurrent)
+        {
+            const int number = 17;
+
+            /*
+                class C0<T>;
+                class C1<T> : C0<T>;
+                class C2<T> : C1<T>;
+                ...
+            */
+            var declarations = new string[number];
+            declarations[0] = "class C0<T0> { }";
+            for (int i = 1; i < number; i++)
+            {
+                declarations[i] = $$"""class C{{i}}<T{{i}}> : C{{i - 1}}<T{{i}}> { }""";
+            }
+
+            if (reverse)
+            {
+                Array.Reverse(declarations);
+            }
+
+            var source = string.Join(Environment.NewLine, declarations);
+            var options = TestOptions.DebugDll.WithConcurrentBuild(concurrent);
+
+            RunInThread(() =>
+            {
+                CompileAndVerify(source, options: options).VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69515")]
+        public void GenericInheritanceCascade_VisualBasic(bool reverse, bool concurrent)
+        {
+            const int number = 17;
+
+            /*
+                Class C0(Of T)
+                End Class
+                Class C1(Of T)
+                    Inherits C0(Of T)
+                End Class
+                Class C2(Of T)
+                    Inherits C1(Of T)
+                End Class
+                ...
+            */
+            var declarations = new string[number];
+            declarations[0] = """
+                Class C0(Of T0)
+                End Class
+                """;
+            for (int i = 1; i < number; i++)
+            {
+                declarations[i] = $"""
+                    Class C{i}(Of T{i})
+                        Inherits C{i - 1}(Of T{i})
+                    End Class
+                    """;
+            }
+
+            if (reverse)
+            {
+                Array.Reverse(declarations);
+            }
+
+            var source = string.Join(Environment.NewLine, declarations);
+            var options = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithConcurrentBuild(concurrent);
+
+            RunInThread(() =>
+            {
+                CreateVisualBasicCompilation(source, compilationOptions: options).VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
         [ConditionalFact(typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation))]
         public void NestedIfStatements()
         {
@@ -323,7 +411,7 @@ $@"        if (F({i}))
             }
         }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
+        [ConditionalFact(typeof(WindowsOrMacOSOnly), Reason = "https://github.com/dotnet/roslyn/issues/69210"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
         public void LongInitializerList()
         {
             var sb = new StringBuilder();

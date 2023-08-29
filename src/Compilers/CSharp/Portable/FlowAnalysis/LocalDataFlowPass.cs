@@ -180,6 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (forceContainingSlotsToExist)
                     {
                         containingSlot = GetOrCreateSlot(restField, containingSlot);
+
+                        if (containingSlot < 0)
+                        {
+                            return -1;
+                        }
                     }
                     else
                     {

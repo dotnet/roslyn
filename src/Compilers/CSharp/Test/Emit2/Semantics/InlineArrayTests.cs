@@ -2298,17 +2298,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(18, 27),
-                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(18, 27),
+                // (19,28): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static void M2(C x) => x.F[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(19, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(19, 28)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -5799,17 +5799,17 @@ class Program
   IL_000e:  ret
 }
 ");
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[^10];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(18, 27),
-                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[^10]").WithArguments("inline arrays", "12.0").WithLocation(18, 27),
+                // (19,28): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static void M2(C x) => x.F[^10] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(19, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[^10]").WithArguments("inline arrays", "12.0").WithLocation(19, 28)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -5965,17 +5965,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (20,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (20,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(20, 27),
-                // (21,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(20, 27),
+                // (21,40): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.Span<int> M2(C x) => x.F[..5];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[..5]").WithArguments("inline arrays").WithLocation(21, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[..5]").WithArguments("inline arrays", "12.0").WithLocation(21, 40)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -8121,17 +8121,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (12,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,9): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         c.F[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c.F[0]").WithArguments("inline arrays").WithLocation(12, 9),
-                // (16,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "c.F[0]").WithArguments("inline arrays", "12.0").WithLocation(12, 9),
+                // (16,30): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int? M2(C c) => c?.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ".F[0]").WithArguments("inline arrays").WithLocation(16, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ".F[0]").WithArguments("inline arrays", "12.0").WithLocation(16, 30)
                 );
         }
 
@@ -11821,6 +11821,10 @@ class Program
         C c;
         c.F._element0 = 1;
         _ = c.F;
+
+        Buffer2Ref b;
+        b._element0 = ref (new [] { 1 })[0];
+        _ = b;
     }
 }
 
@@ -11829,13 +11833,25 @@ public struct Buffer2<T>
 {
     public T _element0;
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element0;
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (13,13): error CS0170: Use of possibly unassigned field 'F'
                 //         _ = c.F;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13),
+                // (17,13): error CS0165: Use of unassigned local variable 'b'
+                //         _ = b;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(17, 13),
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
                 );
         }
 
@@ -11855,6 +11871,10 @@ class Program
         C c;
         c.F._element0 = 1;
         _ = c.F;
+
+        Buffer2Ref b;
+        b._element0 = ref (new [] { 1 })[0];
+        _ = b;
     }
 }
 
@@ -11863,10 +11883,20 @@ public struct Buffer1<T>
 {
     public T _element0;
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer2Ref
+{
+    public ref int _element0;
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
+                );
         }
 
         [Fact]
@@ -12822,9 +12852,24 @@ public struct Buffer1
         _element0 = 1;
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer1Ref
+{
+    public ref int _element2;
+
+    public Buffer1Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
+                );
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -12837,11 +12882,36 @@ public struct Buffer1
   IL_0007:  ret
 }
 ");
+
+            verifier.VerifyIL("Buffer1Ref..ctor",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldelema    ""int""
+  IL_0011:  stfld      ""ref int Buffer1Ref._element2""
+  IL_0016:  ret
+}
+");
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
+                // (25,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(25, 12),
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
                 );
         }
 
@@ -12913,9 +12983,23 @@ public struct Buffer1
     {
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer1Ref
+{
+    public ref int _element0;
+
+    public Buffer1Ref()
+    {
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics(
+                // (31,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(31, 20)
+                );
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -12926,6 +13010,19 @@ public struct Buffer1
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("Buffer1Ref..ctor",
+@"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int Buffer1Ref._element0""
+  IL_0008:  ret
 }
 ");
         }
@@ -12944,9 +13041,24 @@ public struct Buffer2
         _element0 = 1;
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element2;
+
+    public Buffer2Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20)
+                );
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -12962,11 +13074,41 @@ public struct Buffer2
 }
 ");
 
+            verifier.VerifyIL("Buffer2Ref..ctor",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2Ref""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     ""int""
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldelema    ""int""
+  IL_0018:  stfld      ""ref int Buffer2Ref._element2""
+  IL_001d:  ret
+}
+");
+
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
                 //     public Buffer2()
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12),
+                // (16,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(16, 12),
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20),
+                // (18,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2Ref()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2Ref").WithArguments("this").WithLocation(18, 12)
                 );
         }
 
@@ -13057,9 +13199,25 @@ public struct Buffer2
         _ = this[0];
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element2;
+
+    public Buffer2Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+        _ = this;
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20)
+                );
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -13078,17 +13236,50 @@ public struct Buffer2
 }
 ");
 
+            verifier.VerifyIL("Buffer2Ref..ctor",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2Ref""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     ""int""
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldelema    ""int""
+  IL_0018:  stfld      ""ref int Buffer2Ref._element2""
+  IL_001d:  ret
+}
+");
+
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
                 //     public Buffer2()
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12),
-                // (10,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(10, 13),
                 // (10,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13),
+                // (17,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(17, 12),
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20),
+                // (19,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2Ref()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2Ref").WithArguments("this").WithLocation(19, 12),
+                // (22,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
+                //         _ = this;
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(22, 13)
                 );
         }
 
@@ -13137,12 +13328,12 @@ public struct Buffer1
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
-                // (19,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
+                // (19,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(19, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(19, 13)
                 );
         }
 
@@ -13198,24 +13389,24 @@ public struct Buffer1
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
-                // (9,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
+                // (9,9): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         f[0] = 1; 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(9, 9),
-                // (11,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(9, 9),
+                // (11,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(11, 30),
-                // (15,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(11, 30),
+                // (15,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(15, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(15, 30),
                 // (24,12): error CS0171: Field 'Buffer1._element0' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public Buffer1()
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Buffer1").WithArguments("Buffer1._element0", "11.0").WithLocation(24, 12),
-                // (26,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (26,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(26, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(26, 13),
                 // (26,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this[0];
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(26, 13)
@@ -14785,17 +14976,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,48): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,48): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.ReadOnlySpan<int> M1(C x) => x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(18, 48),
-                // (19,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F").WithArguments("inline arrays", "12.0").WithLocation(18, 48),
+                // (19,40): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.Span<int> M2(C x) => x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(19, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F").WithArguments("inline arrays", "12.0").WithLocation(19, 40)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -16566,17 +16757,17 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (14,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,9): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         b[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b[0]").WithArguments("inline arrays").WithLocation(14, 9),
-                // (15,34): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "b[0]").WithArguments("inline arrays", "12.0").WithLocation(14, 9),
+                // (15,34): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(((C)b).F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b").WithArguments("inline arrays").WithLocation(15, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "b").WithArguments("inline arrays", "12.0").WithLocation(15, 34)
                 );
         }
 
@@ -17141,6 +17332,50 @@ public struct Buffer10<T>
   IL_000e:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ElementAccess_IndexerIsIgnored_02()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Buffer10<int> f = default;
+        _ = f[0];
+        f[0] = 2;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public ref struct Buffer10<T>
+{
+    private ref T _element0;
+
+    public T this[int i]
+    {
+        get => _element0;
+        set => _element0 = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                //         _ = f[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "f[0]").WithArguments("Buffer10<int>").WithLocation(7, 13),
+                // (8,9): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+                //         f[0] = 2;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "f[0]").WithArguments("Buffer10<int>").WithLocation(8, 9),
+                // (15,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private ref T _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(15, 19),
+                // (17,14): warning CS9181: Inline array indexer will not be used for element access expression.
+                //     public T this[int i]
+                Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(17, 14)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -18345,14 +18580,14 @@ class Program
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         foreach (var y in x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("inline arrays").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("inline arrays", "12.0").WithLocation(6, 27)
                 );
         }
 
@@ -19051,12 +19286,9 @@ static class Ext
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1061: 'Buffer4<int>' does not contain a definition for 'GetEnumerator' and no accessible extension method 'GetEnumerator' accepting a first argument of type 'Buffer4<int>' could be found (are you missing a using directive or an assembly reference?)
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26),
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
-                //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26),
                 // (21,62): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
                 //     public static Enumerator<T> GetEnumerator<T>(this System.Span<T> f) => default;
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(21, 62)
@@ -19095,9 +19327,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19133,9 +19365,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19171,9 +19403,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19209,9 +19441,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19246,9 +19478,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19275,9 +19507,9 @@ namespace System
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1579: foreach statement cannot operate on variables of type 'Buffer4<int>' because 'Buffer4<int>' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
                 //         foreach(var s in x)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("Buffer4<int>", "GetEnumerator").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(6, 26)
                 );
         }
 
@@ -19319,7 +19551,7 @@ namespace System
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void Foreach_NotEnumerableSpan_03_Fallback()
         {
             var src = @"
@@ -19372,49 +19604,15 @@ namespace System
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test",
-@"
-{
-  // Code size       56 (0x38)
-  .maxstack  2
-  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
-                Buffer4<int> V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""Buffer4<int> C.F""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  call       ""System.Collections.Generic.IEnumerator<int> Buffer4<int>.GetEnumerator()""
-  IL_000e:  stloc.0
-  .try
-  {
-    IL_000f:  br.s       IL_0023
-    IL_0011:  ldloc.0
-    IL_0012:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
-    IL_0017:  ldc.i4.s   32
-    IL_0019:  call       ""void System.Console.Write(char)""
-    IL_001e:  call       ""void System.Console.Write(int)""
-    IL_0023:  ldloc.0
-    IL_0024:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0029:  brtrue.s   IL_0011
-    IL_002b:  leave.s    IL_0037
-  }
-  finally
-  {
-    IL_002d:  ldloc.0
-    IL_002e:  brfalse.s  IL_0036
-    IL_0030:  ldloc.0
-    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0036:  endfinally
-  }
-  IL_0037:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (21,27): error CS9185: foreach statement on an inline array of type 'Buffer4<int>' is not supported
+                //         foreach (var y in x.F)
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x.F").WithArguments("Buffer4<int>").WithLocation(21, 27)
+                );
         }
 
         [Fact]
-        public void Foreach_UnsupportedElementType()
+        public void Foreach_UnsupportedElementType_01()
         {
             var src = @"
 class Program
@@ -19433,6 +19631,14 @@ class Program
 unsafe struct Buffer
 {
     private void* _element0;
+
+    public Enumerator GetEnumerator() => throw null;
+
+    public class Enumerator
+    {
+        public bool MoveNext() => false;
+        public int Current => throw null;
+    }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
@@ -19443,6 +19649,47 @@ unsafe struct Buffer
                 // (17,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
                 //     private void* _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(17, 19)
+                );
+        }
+
+        [Fact]
+        public void Foreach_UnsupportedElementType_02()
+        {
+            var src = @"
+class Program
+{
+    public void M()
+    {
+        foreach(var s in GetBuffer())
+        {
+        }
+    }
+
+    static Buffer GetBuffer() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+ref struct Buffer
+{
+    private ref int _element0;
+
+    public Enumerator GetEnumerator() => throw null;
+
+    public class Enumerator
+    {
+        public bool MoveNext() => false;
+        public int Current => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyEmitDiagnostics(
+                // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer' is not supported
+                //         foreach(var s in GetBuffer())
+                Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "GetBuffer()").WithArguments("Buffer").WithLocation(6, 26),
+                // (17,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(17, 21)
                 );
         }
 
@@ -21278,7 +21525,7 @@ struct Buffer4
             CompileAndVerify(comp, expectedOutput: "nint").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void UserDefinedIndexer_Warning_05()
         {
             var src = @"
@@ -21294,10 +21541,16 @@ ref struct Buffer4
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
+                // (3,26): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer4'
+                // System.Console.WriteLine(b[0]);
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer4").WithLocation(3, 26),
                 // (8,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
                 //     private ref int _element0;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(8, 21)
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(8, 21),
+                // (10,19): warning CS9181: Inline array indexer will not be used for element access expression.
+                //     public string this[int i] => "int";
+                Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(10, 19)
                 );
         }
 

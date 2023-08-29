@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -211,6 +212,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // for the completion list itself.
                 if (roslynItem.Flags.IsCached())
                     roslynItem.Span = completionListSpan;
+
+                // Adding import is not allowed in debugger view
+                if (_textView is IDebuggerTextView)
+                    roslynItem = ImportCompletionItem.MarkItemToAlwaysFullyQualify(roslynItem);
 
                 change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }

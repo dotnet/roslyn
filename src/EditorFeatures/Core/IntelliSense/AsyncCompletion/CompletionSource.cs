@@ -392,7 +392,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 options = options with
                 {
                     FilterOutOfScopeLocals = false,
-                    ShowXmlDocCommentCompletion = false
+                    ShowXmlDocCommentCompletion = false,
+                    // Adding import is not allowed in debugger view
+                    CanAddImportStatement = false,
                 };
             }
 

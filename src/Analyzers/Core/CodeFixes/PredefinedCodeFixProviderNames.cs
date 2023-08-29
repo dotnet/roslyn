@@ -130,6 +130,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseCoalesceExpressionForIfNullStatementCheck = nameof(UseCoalesceExpressionForIfNullStatementCheck);
         public const string UseCoalesceExpressionForNullableTernaryConditionalCheck = nameof(UseCoalesceExpressionForNullableTernaryConditionalCheck);
         public const string UseCoalesceExpressionForTernaryConditionalCheck = nameof(UseCoalesceExpressionForTernaryConditionalCheck);
+        public const string UseCollectionExpressionForArray = nameof(UseCollectionExpressionForArray);
+        public const string UseCollectionExpressionForBuilder = nameof(UseCollectionExpressionForBuilder);
+        public const string UseCollectionExpressionForCreate = nameof(UseCollectionExpressionForCreate);
+        public const string UseCollectionExpressionForEmpty = nameof(UseCollectionExpressionForEmpty);
+        public const string UseCollectionExpressionForFluent = nameof(UseCollectionExpressionForFluent);
+        public const string UseCollectionExpressionForStackAlloc = nameof(UseCollectionExpressionForStackAlloc);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
         public const string UseCompoundAssignment = nameof(UseCompoundAssignment);
         public const string UseCompoundCoalesceAssignment = nameof(UseCompoundCoalesceAssignment);
