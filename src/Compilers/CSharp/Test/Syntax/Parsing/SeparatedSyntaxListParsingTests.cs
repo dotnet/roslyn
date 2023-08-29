@@ -58,7 +58,6 @@ class C
                 // (11,12): error CS1031: Type expected
                 //     A<T U,,> a8;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(11, 12));
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

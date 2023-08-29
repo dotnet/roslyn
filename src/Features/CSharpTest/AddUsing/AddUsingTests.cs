@@ -6530,7 +6530,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
         public async Task TestAddUsingWithMalformedGeneric(TestHost testHost)
         {
             await TestInRegularAndScript1Async(

@@ -60,6 +60,16 @@ class C
 }");
         }
 
+        [Fact]
+        public async Task TestOutsideOfMethodWithMalformedGenericParameters()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    Func<[|FlowControl|] x }");
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
         public async Task TestUnknownIdentifierWithSyntaxError()
         {
@@ -128,6 +138,11 @@ class Class
 class Class
 {
     List< }");
+
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|List<Y x;|] }");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]

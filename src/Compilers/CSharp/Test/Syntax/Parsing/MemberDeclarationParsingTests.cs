@@ -2886,6 +2886,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        public void InitAccessor()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("string Property { get; init; }", options: options);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Property");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.InitAccessorDeclaration);
+                        {
+                            N(SyntaxKind.InitKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
         public void InitAndSetAccessor()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })

@@ -5778,7 +5778,8 @@ parse_member_name:;
                     return result;
                 }
 
-                switch (lastScannedType = this.ScanType(out _))
+                lastScannedType = this.ScanType(out _);
+                switch (lastScannedType)
                 {
                     case ScanTypeFlags.NotType:
                         greaterThanToken = null;
@@ -5878,7 +5879,12 @@ parse_member_name:;
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
                 // for identifiers we assume that there could be a missing > token
+                // for example, we have reached C in X<A, B C
+
                 // for tuples, we do not expect direct invocation right after the parenthesis
+                // an example is X<(string, string)(), where we imply a missing token between )(
+                // as the user probably wants to invoke X by X<(string, string)>()
+
                 if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken ||
                     (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken))
                 {
@@ -5932,22 +5938,20 @@ parse_member_name:;
             // remaining types & commas
             while (true)
             {
-                // Those token kinds are our terminator token kinds that break type argument parsing
-                // It is more useful to report fewer redundant and cryptic errors than to hint using
-                // tuples as possible types
+                // We prefer parsing as if there was a missing > over parsing as a tuple type for error recovery
                 if (tokenKindBreaksArgumentList(this.CurrentToken.Kind) || this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
                 {
                     break;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
-                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
+                    // we are currently past parsing a type and we encounter an unexpected identifier token
+                    // followed by tokens that are not part of a type argument list
+                    // example: List<(string a, string b) Method() { }
+                    //                 current token:     ^^^^^^
+                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksArgumentList(this.PeekToken(1).Kind))
                     {
-                        if (tokenKindBreaksArgumentList(this.PeekToken(1).Kind))
-                        {
-                            // do not eat the current token as a possible type argument/param
-                            break;
-                        }
+                        break;
                     }
 
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
