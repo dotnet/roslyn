@@ -108,14 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 _lexedTokens = null;
 
-                // Put lexedTokens back into the pool if it's correctly sized.
-                if (lexedTokens.Length == CachedTokenArraySize)
-                {
-                    // Clear all written indexes in lexedTokens before releasing back to the pool
-                    Array.Clear(lexedTokens, 0, _maxWrittenLexedTokenIndex + 1);
-
-                    s_lexedTokensPool.Free(lexedTokens);
-                }
+                ReturnLexedTokensToPool(lexedTokens);
             }
         }
 
@@ -454,14 +447,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Array.Resize(ref _lexedTokens, _lexedTokens.Length * 2);
 
-                // Put lexedTokens back into the pool if it's correctly sized.
-                if (lexedTokens.Length == CachedTokenArraySize)
-                {
-                    // Clear all written indexes in lexedTokens before releasing back to the pool
-                    Array.Clear(lexedTokens, 0, _maxWrittenLexedTokenIndex + 1);
+                ReturnLexedTokensToPool(lexedTokens);
+            }
+        }
 
-                    s_lexedTokensPool.Free(lexedTokens);
-                }
+        private void ReturnLexedTokensToPool(ArrayElement<SyntaxToken>[] lexedTokens)
+        {
+            // Put lexedTokens back into the pool if it's correctly sized.
+            if (lexedTokens.Length == CachedTokenArraySize)
+            {
+                // Clear all written indexes in lexedTokens before releasing back to the pool
+                Array.Clear(lexedTokens, 0, _maxWrittenLexedTokenIndex + 1);
+
+                s_lexedTokensPool.Free(lexedTokens);
             }
         }
 
