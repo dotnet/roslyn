@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
+        private static readonly Dictionary<string, (int, int)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int, int)>();
+        private static readonly Dictionary<string, OneOrMany<(int, int)>> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, OneOrMany<(int, int)>>();
+
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
         /// only one assembly index per type. However, if we found more than one, we
@@ -3647,6 +3650,12 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
+                if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
+                {
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyCaseInsensitiveForwardedTypes;
+                    return;
+                }
+
                 var caseInsensitiveMap = new Dictionary<string, OneOrMany<(int FirstIndex, int SecondIndex)>>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var (key, indexPair) in _lazyForwardedTypesToAssemblyIndexMap)
@@ -3744,7 +3753,14 @@ namespace Microsoft.CodeAnalysis
                 catch (BadImageFormatException)
                 { }
 
-                _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                if (typesToAssemblyIndexMap.Count == 0)
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
+                }
+                else
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                }
             }
         }
 
