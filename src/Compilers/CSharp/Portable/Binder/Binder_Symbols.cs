@@ -2512,10 +2512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for attributes, suggest both, but not for verbatim name
             if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
             {
-                // Check for generic attribute
-                string expectedDiagnostic = arity > 0 ? $"{simpleName}Attribute<>" : $"{simpleName}Attribute";
+                string attributeName = arity > 0 ? $"{simpleName}Attribute<>" : $"{simpleName}Attribute";
 
-                NotFound(where, simpleName, arity, expectedDiagnostic, diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
+                NotFound(where, simpleName, arity, attributeName, diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
             }
 
             if ((object)qualifierOpt != null)

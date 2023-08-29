@@ -3476,7 +3476,7 @@ class BAttribute : System.Attribute { }
             var text =
 @"class C
 {
-    [SomeAttribute<int>] // Error should occur here
+    [SomeAttribute<int>]
     static void Foo()
     {
     }
@@ -3484,7 +3484,11 @@ class BAttribute : System.Attribute { }
 ";
             CreateCompilation(text).
                 VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttributeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttributeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttribute<>")
                 );
         }
