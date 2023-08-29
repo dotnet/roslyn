@@ -1781,6 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 unboundArgument.FunctionType is { } functionType &&
                                 functionType.GetInternalDelegateType() is { } delegateType)
                             {
+                                // Just assume we're not in an expression tree for the purposes of error recovery.
                                 _ = unboundArgument.Bind(delegateType, isExpressionTree: false);
                             }
                             else
