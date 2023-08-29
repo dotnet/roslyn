@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -21,10 +22,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         protected AbstractLanguageDetector(
             EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
+            ImmutableArray<string> languageIdentifiers,
+            EmbeddedLanguageCommentDetector commentDetector)
         {
             Info = info;
-            _detector = new EmbeddedLanguageDetector(info, languageIdentifiers);
+            _detector = new EmbeddedLanguageDetector(info, languageIdentifiers, commentDetector);
         }
 
         /// <summary>
@@ -171,16 +173,48 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         }
     }
 
-    internal abstract class AbstractLanguageDetector<TOptions, TTree> :
+    internal interface ILanguageDetectorInfo<TDetector>
+    {
+        ImmutableArray<string> LanguageIdentifiers { get; }
+        TDetector Create(Compilation compilation, EmbeddedLanguageInfo info);
+    }
+
+    internal abstract class AbstractLanguageDetector<TOptions, TTree, TDetector, TDetectorInfo> :
         AbstractLanguageDetector<TOptions>
         where TOptions : struct, Enum
         where TTree : class
+        where TDetector : AbstractLanguageDetector<TOptions, TTree, TDetector, TDetectorInfo>
+        where TDetectorInfo : struct, ILanguageDetectorInfo<TDetector>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = default(TDetectorInfo).LanguageIdentifiers;
+        public static readonly EmbeddedLanguageCommentDetector CommentDetector = new(LanguageIdentifiers);
+
+        /// <summary>
+        /// Cache so that we can reuse the same TDetector when analyzing a particular compilation model. This saves the
+        /// time from having to recreate this for every string literal that features examine for a particular
+        /// compilation.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Compilation, TDetector> s_compilationToDetector = new();
+
         protected AbstractLanguageDetector(
             EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
-            : base(info, languageIdentifiers)
+            ImmutableArray<string> languageIdentifiers,
+            EmbeddedLanguageCommentDetector commentDetector)
+            : base(info, languageIdentifiers, commentDetector)
         {
+        }
+
+        public static TDetector GetOrCreate(
+            Compilation compilation, EmbeddedLanguageInfo info)
+        {
+            // Do a quick non-allocating check first.  If not already created, go the path that will have to allocate
+            // the lambda closure.
+            return s_compilationToDetector.TryGetValue(compilation, out var detector)
+                ? detector
+                : Create(compilation, info);
+
+            static TDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
+                => s_compilationToDetector.GetValue(compilation, _ => default(TDetectorInfo).Create(compilation, info));
         }
 
         /// <summary>

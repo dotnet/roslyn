@@ -202,10 +202,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
-                if (ImportCompletionItem.ShouldAlwaysAddMissingImport(completionItem))
-                    return false;
+                if (ImportCompletionItem.ShouldAlwaysFullyQualify(completionItem))
+                    return true;
 
-                if (!IsAddingImportsSupported(document))
+                if (!IsAddingImportsSupported(document, completionOptions: null))
                     return true;
 
                 // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
@@ -242,24 +242,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
         }
 
-        protected static bool IsAddingImportsSupported(Document document)
+        protected static bool IsAddingImportsSupported(Document document, CompletionOptions? completionOptions)
         {
-            var solution = document.Project.Solution;
-
-            // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace
-            if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return false;
-            }
-
             // Certain documents, e.g. Razor document, don't support adding imports
-            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
-            if (!documentSupportsFeatureService.SupportsRefactorings(document))
-            {
-                return false;
-            }
-
-            return true;
+            return completionOptions?.CanAddImportStatement != false &&
+                document.Project.Solution.Services.GetRequiredService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
         }
 
         private static SyntaxNode CreateImport(Document document, string namespaceName)

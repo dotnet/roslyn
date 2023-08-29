@@ -192,6 +192,11 @@
         <target state="translated">'{0}' 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="new">Use collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">보간된 축자 문자열 사용</target>

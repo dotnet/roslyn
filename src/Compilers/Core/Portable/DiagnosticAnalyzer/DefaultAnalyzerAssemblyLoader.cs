@@ -9,22 +9,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
-#if NETCOREAPP
-
-        // Called from a netstandard2.0 project, so need to ensure a parameterless constructor is available.
         internal DefaultAnalyzerAssemblyLoader()
-            : this(null)
         {
         }
 
-        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
-            : base(compilerLoadContext)
+#if NETCOREAPP
+
+        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk)
+            : base(compilerLoadContext, loadOption)
         {
         }
 
@@ -36,5 +35,31 @@ namespace Microsoft.CodeAnalysis
         /// <param name="fullPath"></param>
         /// <returns></returns>
         protected override string PreparePathToLoad(string fullPath) => fullPath;
+
+        /// <summary>
+        /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
+        /// most appropriate for the current platform.
+        /// </summary>
+        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
+        /// will be the base directory where shadow copy assemblies are stored. </param>
+        internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string windowsShadowPath)
+        {
+#if NETCOREAPP
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream);
+            }
+#endif
+
+            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+            // effect
+            if (!Path.IsPathRooted(windowsShadowPath))
+            {
+                throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
+            }
+
+            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath);
+        }
     }
 }

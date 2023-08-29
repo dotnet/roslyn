@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -36,9 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (reference == null)
                     {
+                        var documentationProvider = Workspace.Services.GetRequiredService<IDocumentationProviderService>();
                         try
                         {
-                            reference = MetadataReference.CreateFromFile(_filePath);
+                            reference = MetadataReference.CreateFromFile(_filePath, documentation: documentationProvider.GetDocumentationProvider(_filePath));
                         }
                         catch (IOException)
                         {

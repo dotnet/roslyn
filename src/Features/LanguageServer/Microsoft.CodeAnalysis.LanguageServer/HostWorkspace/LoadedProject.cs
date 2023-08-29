@@ -5,9 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -72,7 +74,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -104,7 +106,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.Documents,
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddSourceFile(document.FilePath),
+            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath));
 
         var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences.Distinct();
@@ -142,7 +144,9 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileInfo = newProjectInfo;
 
-        return;
+        Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
+        var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
+        return (metadataReferences, outputKind);
 
         static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
         {

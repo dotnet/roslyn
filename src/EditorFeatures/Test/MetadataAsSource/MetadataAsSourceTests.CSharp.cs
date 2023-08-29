@@ -65,12 +65,12 @@ public class [|C|]
 
     public nuint i2;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -109,12 +109,12 @@ public class [|C|]
 {{
     public int Property {{ get; init; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -151,16 +151,16 @@ public class [|C|]
 {{
     public (int a, int b) t;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.ValueTuple.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")}
+{string.Format(FeaturesResources.Load_from_0, "System.ValueTuple.dll")}
 #endif",
                 };
 
@@ -208,197 +208,196 @@ namespace System
 using System.Collections;
 using System.Runtime.InteropServices;
 
-namespace System
+namespace System;
+
+[StructLayout(LayoutKind.Sequential, Size = 1)]
+public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, ITupleInternal
 {{
-    [StructLayout(LayoutKind.Sequential, Size = 1)]
-    public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, ITupleInternal
+    int ITupleInternal.Size => 0;
+
+    public override bool Equals(object obj)
     {{
-        int ITupleInternal.Size => 0;
+        return obj is ValueTuple;
+    }}
 
-        public override bool Equals(object obj)
+    public bool Equals(ValueTuple other)
+    {{
+        return true;
+    }}
+
+    bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+    {{
+        return other is ValueTuple;
+    }}
+
+    int IComparable.CompareTo(object other)
+    {{
+        if (other == null)
         {{
-            return obj is ValueTuple;
+            return 1;
         }}
 
-        public bool Equals(ValueTuple other)
+        if (!(other is ValueTuple))
         {{
-            return true;
+            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        return 0;
+    }}
+
+    public int CompareTo(ValueTuple other)
+    {{
+        return 0;
+    }}
+
+    int IStructuralComparable.CompareTo(object other, IComparer comparer)
+    {{
+        if (other == null)
         {{
-            return other is ValueTuple;
+            return 1;
         }}
 
-        int IComparable.CompareTo(object other)
+        if (!(other is ValueTuple))
         {{
-            if (other == null)
-            {{
-                return 1;
-            }}
-
-            if (!(other is ValueTuple))
-            {{
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
-            }}
-
-            return 0;
+            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
-        public int CompareTo(ValueTuple other)
-        {{
-            return 0;
-        }}
+        return 0;
+    }}
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
-        {{
-            if (other == null)
-            {{
-                return 1;
-            }}
+    public override int GetHashCode()
+    {{
+        return 0;
+    }}
 
-            if (!(other is ValueTuple))
-            {{
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
-            }}
+    int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
+    {{
+        return 0;
+    }}
 
-            return 0;
-        }}
+    int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+    {{
+        return 0;
+    }}
 
-        public override int GetHashCode()
-        {{
-            return 0;
-        }}
+    public override string ToString()
+    {{
+        return ""()"";
+    }}
 
-        int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
-        {{
-            return 0;
-        }}
+    string ITupleInternal.ToStringEnd()
+    {{
+        return "")"";
+    }}
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
-        {{
-            return 0;
-        }}
+    public static ValueTuple Create()
+    {{
+        return default(ValueTuple);
+    }}
 
-        public override string ToString()
-        {{
-            return ""()"";
-        }}
+    public static ValueTuple<T1> Create<T1>(T1 item1)
+    {{
+        return new ValueTuple<T1>(item1);
+    }}
 
-        string ITupleInternal.ToStringEnd()
-        {{
-            return "")"";
-        }}
+    public static (T1, T2) Create<T1, T2>(T1 item1, T2 item2)
+    {{
+        return (item1, item2);
+    }}
 
-        public static ValueTuple Create()
-        {{
-            return default(ValueTuple);
-        }}
+    public static (T1, T2, T3) Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3)
+    {{
+        return (item1, item2, item3);
+    }}
 
-        public static ValueTuple<T1> Create<T1>(T1 item1)
-        {{
-            return new ValueTuple<T1>(item1);
-        }}
+    public static (T1, T2, T3, T4) Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4)
+    {{
+        return (item1, item2, item3, item4);
+    }}
 
-        public static (T1, T2) Create<T1, T2>(T1 item1, T2 item2)
-        {{
-            return (item1, item2);
-        }}
+    public static (T1, T2, T3, T4, T5) Create<T1, T2, T3, T4, T5>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+    {{
+        return (item1, item2, item3, item4, item5);
+    }}
 
-        public static (T1, T2, T3) Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3)
-        {{
-            return (item1, item2, item3);
-        }}
+    public static (T1, T2, T3, T4, T5, T6) Create<T1, T2, T3, T4, T5, T6>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
+    {{
+        return (item1, item2, item3, item4, item5, item6);
+    }}
 
-        public static (T1, T2, T3, T4) Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4)
-        {{
-            return (item1, item2, item3, item4);
-        }}
+    public static (T1, T2, T3, T4, T5, T6, T7) Create<T1, T2, T3, T4, T5, T6, T7>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
+    {{
+        return (item1, item2, item3, item4, item5, item6, item7);
+    }}
 
-        public static (T1, T2, T3, T4, T5) Create<T1, T2, T3, T4, T5>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
-        {{
-            return (item1, item2, item3, item4, item5);
-        }}
+    public static (T1, T2, T3, T4, T5, T6, T7, T8) Create<T1, T2, T3, T4, T5, T6, T7, T8>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, T8 item8)
+    {{
+        return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>(item1, item2, item3, item4, item5, item6, item7, Create(item8));
+    }}
 
-        public static (T1, T2, T3, T4, T5, T6) Create<T1, T2, T3, T4, T5, T6>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
-        {{
-            return (item1, item2, item3, item4, item5, item6);
-        }}
+    internal static int CombineHashCodes(int h1, int h2)
+    {{
+        return ((h1 << 5) + h1) ^ h2;
+    }}
 
-        public static (T1, T2, T3, T4, T5, T6, T7) Create<T1, T2, T3, T4, T5, T6, T7>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
-        {{
-            return (item1, item2, item3, item4, item5, item6, item7);
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2), h3);
+    }}
 
-        public static (T1, T2, T3, T4, T5, T6, T7, T8) Create<T1, T2, T3, T4, T5, T6, T7, T8>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, T8 item8)
-        {{
-            return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>(item1, item2, item3, item4, item5, item6, item7, Create(item8));
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3, int h4)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2), CombineHashCodes(h3, h4));
+    }}
 
-        internal static int CombineHashCodes(int h1, int h2)
-        {{
-            return ((h1 << 5) + h1) ^ h2;
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), h5);
+    }}
 
-        internal static int CombineHashCodes(int h1, int h2, int h3)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2), h3);
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6));
+    }}
 
-        internal static int CombineHashCodes(int h1, int h2, int h3, int h4)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2), CombineHashCodes(h3, h4));
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7));
+    }}
 
-        internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), h5);
-        }}
-
-        internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6));
-        }}
-
-        internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7));
-        }}
-
-        internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7, int h8)
-        {{
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7, h8));
-        }}
+    internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7, int h8)
+    {{
+        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7, h8));
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System.Runtime, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(CSharpEditorResources.WARN_Version_mismatch_Expected_0_Got_1, "4.0.0.0", "4.0.10.0")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.Runtime.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System.Runtime, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.WARN_Version_mismatch_Expected_0_Got_1, "4.0.0.0", "4.0.10.0")}
+{string.Format(FeaturesResources.Load_from_0, "System.Runtime.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(CSharpEditorResources.Could_not_find_by_name_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.Resolve_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(CSharpEditorResources.Could_not_find_by_name_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.Resolve_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.Core.v4_0_30319_17929.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.Core.v4_0_30319_17929.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Could_not_find_by_name_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Resolve_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 #endif",
                 };
 
@@ -434,12 +433,12 @@ public class [|C|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -556,12 +555,12 @@ public record [|R|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -653,12 +652,12 @@ public class [|C|]
         throw new Exception();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -742,12 +741,12 @@ public class C
         return x;
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 
@@ -818,12 +817,12 @@ public class [|C|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 };
 

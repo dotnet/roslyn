@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
+            public const string CodeActionsUseCollectionExpression = "CodeActions.UseCollectionExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
             public const string CodeActionsUseCompoundAssignment = "CodeActions.UseCompoundAssignment";
             public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";

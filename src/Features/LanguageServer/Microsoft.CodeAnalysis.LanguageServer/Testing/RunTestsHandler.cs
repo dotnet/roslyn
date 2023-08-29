@@ -41,9 +41,11 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
 
         var projectOutputPath = context.Document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
+        var projectOutputDirectory = Path.GetDirectoryName(projectOutputPath);
+        Contract.ThrowIfNull(projectOutputDirectory, $"Could not get project output directory from {projectOutputPath}");
 
         // Find the appropriate vstest.console.dll from the SDK.
-        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(cancellationToken);
+        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
 
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
@@ -60,7 +62,8 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
         if (!testCases.IsEmpty)
         {
-            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
+            var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
+            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, clientLanguageServerManager, cancellationToken);
         }
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
@@ -115,9 +118,12 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         var workingDirectory = Path.GetDirectoryName(document.Project.FilePath);
         Contract.ThrowIfNull(workingDirectory, $"Unable to get working directory for project {document.Project.Name}");
 
+        var projectFileName = Path.GetFileName(document.Project.FilePath);
+        Contract.ThrowIfNull(projectFileName, $"Unable to get project file name for project {document.Project.Name}");
+
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
         // https://github.com/dotnet/vscode-csharp/issues/5725
-        var arguments = "build";
+        var arguments = $"build {projectFileName}";
         using var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
 
         process.OutputDataReceived += (sender, args) => ReportProgress(progress, args.Data);

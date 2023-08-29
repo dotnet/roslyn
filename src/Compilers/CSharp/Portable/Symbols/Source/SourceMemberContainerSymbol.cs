@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
-            var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+            var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
             foreach (var member in this.GetMembersUnordered())
             {
                 member.AfterAddingTypeMembersChecks(conversions, diagnostics);

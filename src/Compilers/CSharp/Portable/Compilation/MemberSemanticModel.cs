@@ -2490,5 +2490,9 @@ foundParent:;
             }
         }
 
+        internal sealed class MemberSemanticBindingCounter
+        {
+            internal int BindCount;
+        }
     }
 }

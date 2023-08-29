@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 var documentIdToDiagnosticsMap = diagnostics
                     .GroupBy(diagnostic => diagnostic.Location.SourceTree)
                     .Where(group => group.Key is not null)
-                    .ToImmutableDictionary(group => solution.GetRequiredDocument(group.Key!).Id, group => group.ToImmutableArray());
+                    .SelectAsArray(group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
 
                 var newSolution = solution;
 
-                progressTracker.AddItems(documentIdToDiagnosticsMap.Count);
+                progressTracker.AddItems(documentIdToDiagnosticsMap.Length);
 
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {

@@ -62,6 +62,9 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
 
         var fullyQualifiedMethodName = methodSymbol.ToDisplayString(s_methodSymbolNoParametersDisplayFormat);
 
+        // Qualified test names use a '+' to separate outer classes from nested classes whereas display strings use '.'.
+        fullyQualifiedTestName = fullyQualifiedTestName.Replace('+', '.');
+
         // The definition of fully qualified name varies depending on the test framework.
         // For example, XUnit will never include parameters in the FQN it gives to us.
         // However NUnit will give us a FQN with the actual parameter values passed in (e.g. if there's an int parameter, it will pass in the value of the int).
