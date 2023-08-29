@@ -54,6 +54,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
 
+        /// <summary>
+        /// Case-insensitive version of <see cref="_lazyForwardedTypesToAssemblyIndexMap"/>, only populated if case-insensitive search is
+        /// requested.
+        /// </summary>
+        private Dictionary<string, OneOrMany<(int FirstIndex, int SecondIndex)>> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
+
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
 
@@ -3613,17 +3619,12 @@ namespace Microsoft.CodeAnalysis
 
             if (ignoreCase)
             {
-                // This linear search is not the optimal way to use a hashmap, but we should only use
-                // this functionality when computing diagnostics.  Note
-                // that we can't store the map case-insensitively, since real metadata name
-                // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
+                ensureCaseInsensitiveDictionary();
+
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var values))
                 {
-                    if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matchedName = pair.Key;
-                        return pair.Value;
-                    }
+                    matchedName = fullName;
+                    return values[0];
                 }
             }
             else
@@ -3638,6 +3639,32 @@ namespace Microsoft.CodeAnalysis
 
             matchedName = null;
             return (FirstIndex: -1, SecondIndex: -1);
+
+            void ensureCaseInsensitiveDictionary()
+            {
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap != null)
+                {
+                    return;
+                }
+
+                var caseInsensitiveMap = new Dictionary<string, OneOrMany<(int FirstIndex, int SecondIndex)>>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (key, indexPair) in _lazyForwardedTypesToAssemblyIndexMap)
+                {
+                    if (caseInsensitiveMap.TryGetValue(key, out var oneOrMany))
+                    {
+                        oneOrMany = oneOrMany.Add(indexPair);
+                        caseInsensitiveMap[key] = oneOrMany;
+                    }
+                    else
+                    {
+                        oneOrMany = new OneOrMany<(int FirstIndex, int SecondIndex)>(indexPair);
+                        caseInsensitiveMap.Add(key, oneOrMany);
+                    }
+                }
+
+                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap;
+            }
         }
 
         internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()
