@@ -214,23 +214,23 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             public static ImmutableArray<ReadOnlyMemory<char>> Split(
-                ReadOnlyMemory<char> s,
+                ReadOnlyMemory<char> source,
                 ReadOnlySpan<char> separator)
             {
                 var result = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
 
-                var index = s.Span.IndexOf(separator);
+                var index = source.Span.IndexOf(separator);
                 while (index >= 0)
                 {
-                    var line = s.Slice(0, index);
+                    var line = source.Slice(0, index);
                     result.Add(line);
 
-                    s = s.Slice(index + separator.Length);
-                    index = s.Span.IndexOf(separator);
+                    source = source.Slice(index + separator.Length);
+                    index = source.Span.IndexOf(separator);
                 }
 
-                if (s.Length > 0)
-                    result.Add(s);
+                if (source.Length > 0)
+                    result.Add(source);
 
                 return result.ToImmutableAndFree();
             }
