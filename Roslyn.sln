@@ -547,13 +547,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Service
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK", "src\Tools\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj", "{A833B11C-5072-4A1F-A32B-2700433B0D3D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.SyntaxRewriterBenchmark", "src\Test\Perf\SyntaxRewriterBenchmark\Roslyn.SyntaxRewriterBenchmark.csproj", "{25050494-5874-470A-856F-36766B821911}"
-	ProjectSection(ProjectDependencies) = postProject
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8} = {88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Baseline", "src\Test\Perf\SyntaxRewriterBenchmark\baseline\Microsoft.CodeAnalysis.Baseline.csproj", "{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1356,14 +1349,6 @@ Global
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{25050494-5874-470A-856F-36766B821911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{25050494-5874-470A-856F-36766B821911}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{25050494-5874-470A-856F-36766B821911}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{25050494-5874-470A-856F-36766B821911}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1613,8 +1598,6 @@ Global
 		{172F3A04-644B-492C-9632-B07B52A5C0C4} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D} = {8977A560-45C2-4EC2-A849-97335B382C74}
-		{25050494-5874-470A-856F-36766B821911} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
-		{88B3A79F-3DEE-4D91-8E40-D4BA9126DCA8} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -16,7 +16,6 @@ The projects that make up the performance testing group are
 * Perf.Runner
 * Perf.Tests
 * Perf.Utilities
-* SyntaxRewriterBenchmark
 
 ## Perf.Runner
 The Runner project produces a binary that runs tests, collects perf traces, and reports collected metrics.
@@ -31,10 +30,6 @@ reduce noise".
 ## Perf.Utilities
 Perf.Utilities produces a `.dll` that is imported by the tests in Perf.Tests and Perf.Runner.   
 
-## SyntaxRewriterBenchmark
-A solution and project that produces a console executable that delivers the results of its side-by-side
-syntax rewriting benchmarks in a table via standard output, with a packaged version of Roslyn as the baseline.
-
 # How to Run Tests
 The binary produced by the runner is the main interface to the performance testing system.  Running the 
 produced binary (`Roslyn.Test.Performance.Runner.exe`) will run all of the perf tests, collect traces, 
@@ -42,10 +37,6 @@ and report those metrics.
 
 In addition, you may run any `.csx` file with csi in order to just run that one test.  `csi hello_world.csx` 
 will just run the hello world test.
-
-For SyntaxRewriterBenchmark, starting the project without debugging
-or running the executable produced by it (`Roslyn.SyntaxRewriterBenchmark.exe`)
-will execute the tests and deliver their results to the console output.
 
 # How to Write Tests
 Since tests are just `.csx` files, writing a new one is as easy as creating a new csharp script, and putting 
