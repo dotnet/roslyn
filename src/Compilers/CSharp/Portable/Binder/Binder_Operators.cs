@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BinaryOperatorKind kind, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
             if (IsTypelessExpressionAllowedInBinaryOperator(kind, left, right) &&
-                ((SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.PlusEqualsToken || (SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.MinusEqualsToken) &&
+                node.OperatorToken.RawKind is (int)SyntaxKind.PlusEqualsToken or (int)SyntaxKind.MinusEqualsToken &&
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
