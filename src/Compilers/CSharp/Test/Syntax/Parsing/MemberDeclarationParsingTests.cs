@@ -2555,9 +2555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """;
 
                 UsingDeclaration(source, options,
-                    // (1,24): error CS1003: Syntax error, '>' expected
-                    // static void Method<T, U()
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
+                    // (1,48): error CS1003: Syntax error, '>' expected
+                    // IEnumerable<(string Value, string Description) Values { get; set; }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48)
                     );
 
                 N(SyntaxKind.PropertyDeclaration);
