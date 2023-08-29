@@ -520,8 +520,6 @@ $@"        if (F({i}))
         {
             const int overloads1Number = 20;
             const int overloads2Number = 10;
-            const int lambdasNumber = 10;
-            const int statementsNumber = 1000;
 
             /*
                 interface I0 { }
@@ -556,60 +554,19 @@ $@"        if (F({i}))
                 builder2.AppendLine($$"""void M2(I{{i}} x, System.Func<string, I{{i}}> f) { }""");
             }
 
-            var builder3 = new StringBuilder();
             // Local functions should be similarly fast as lambdas.
-            if (localFunctions)
-            {
-                /*
-                    M2(x, L0);
-                    static I0 L0(string arg) {
-                        arg = arg + "0";
-                        // ...
-                        arg = arg + "9";
-                        return default;
-                    }
-                    // ...
-                    M2(x, L9);
-                    static I0 L9(string arg) { ... }
-                */
-                for (int i = 0; i < lambdasNumber; i++)
-                {
-                    builder3.AppendLine($"M2(x, L{i});");
-                    builder3.AppendLine($$"""static I0 L{{i}}(string arg) {""");
-                    for (int j = 0; j < statementsNumber; j++)
-                    {
-                        builder3.AppendLine($"""arg = arg + "{j}";""");
-                    }
-                    builder3.AppendLine("return default;");
-                    builder3.AppendLine("}");
+            var inner = localFunctions ? """
+                M2(x, L0);
+                static I0 L0(string arg) {
+                    arg = arg + "0";
+                    return default;
                 }
-            }
-            else
-            {
-                /*
-                    M2(x, static I0 (string arg) => {
-                        arg = arg + "0";
-                        // ...
-                        arg = arg + "9";
-                        return default;
-                    });
-                    // ...
-                    M2(x, static I0 (string arg) => {
-                        // ...
-                        return default;
-                    });
-                */
-                for (int i = 0; i < lambdasNumber; i++)
-                {
-                    builder3.AppendLine("M2(x, static I0 (string arg) => {");
-                    for (int j = 0; j < statementsNumber; j++)
-                    {
-                        builder3.AppendLine($"""arg = arg + "{j}";""");
-                    }
-                    builder3.AppendLine("return default;");
-                    builder3.AppendLine("});");
-                }
-            }
+                """ : """
+                M2(x, static I0 (string arg) => {
+                    arg = arg + "0";
+                    return default;
+                });
+                """;
 
             var source = $$"""
                 {{builder1}}
@@ -620,7 +577,7 @@ $@"        if (F({i}))
                     {
                         M1(x =>
                         {
-                            {{builder3}}
+                            {{inner}}
                         });
                     }
                 }
@@ -631,8 +588,8 @@ $@"        if (F({i}))
                 var data = new LambdaBindingData();
                 comp.TestOnlyCompilationData = data;
                 comp.VerifyDiagnostics();
-                Assert.Equal(localFunctions ? 20 : 220, data.LambdaBindingCount);
-            }, timeout: TimeSpan.FromSeconds(20));
+                Assert.Equal(localFunctions ? 20 : 40, data.LambdaBindingCount);
+            }, timeout: TimeSpan.FromSeconds(5));
         }
     }
 }
