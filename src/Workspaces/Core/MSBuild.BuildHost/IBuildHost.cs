@@ -15,9 +15,9 @@ internal interface IBuildHost
     /// <summary>
     /// Returns whether this project's language is supported.
     /// </summary>
-    Task<bool> IsProjectFileSupportedAsync(string path, CancellationToken cancellationToken);
+    Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken);
 
-    Task<IRemoteProjectFile> LoadProjectFileAsync(string path, CancellationToken cancellationToken);
+    Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken);
 
     Task ShutdownAsync();
 }
