@@ -93,7 +93,6 @@ Microsoft.CodeAnalysis.CSharp.Conversion.Equals(Microsoft.CodeAnalysis.CSharp.Co
 Microsoft.CodeAnalysis.CSharp.Conversion.Exists.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsAnonymousFunction.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsBoxing.get -> bool
-Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsConditionalExpression.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsConstantExpression.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsDefaultLiteral.get -> bool
