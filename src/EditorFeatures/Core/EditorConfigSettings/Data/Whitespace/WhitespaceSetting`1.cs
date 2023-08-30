@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public override Type Type => typeof(T);
         public override string Category => _option.Group.Description;
 
-        public override OptionKey2 Key => new(_option, _option.OptionDefinition.IsPerLanguage ? Language ?? LanguageNames.CSharp : null);
+        public override OptionKey2 Key => new(_option);
 
         private readonly Option2<T> _option;
         private readonly AnalyzerConfigOptions _options;

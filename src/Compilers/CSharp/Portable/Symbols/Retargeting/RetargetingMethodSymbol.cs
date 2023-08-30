@@ -255,6 +255,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             return _lazyUnmanagedAttributeData;
         }
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        {
+            if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))
+            {
+                thisParameter = null;
+                return false;
+            }
+
+            thisParameter = underlyingParameter is { }
+                ? new ThisParameterSymbol(this)
+                : null;
+            return true;
+        }
 #nullable disable
 
         public override AssemblySymbol ContainingAssembly

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Case: public static implicit operator int[](Program p) { return null; }
             // Case: public static implicit operator (int, int)(Program p) { return null; }
             // Case: public static implicit operator Action<int>(Program p) { return null; }
-            if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
+            if ((previousToken.IsKeyword() || previousToken.Kind() is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.CloseBracketToken or SyntaxKind.CloseParenToken or SyntaxKind.GreaterThanToken)
                 && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterMethodDeclarationName));
@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.ParenthesizedPattern) && previousKind == SyntaxKind.OpenParenToken) ||
-                (currentToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.ParenthesizedPattern) && currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.WithinExpressionParentheses));
             }
@@ -206,11 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterCast));
             }
 
+            // List patterns
             if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
             {
-                // is [
-                // and [
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // For the space after the middle comma in ([1, 2], [1, 2])
+                if (previousKind == SyntaxKind.CommaToken)
+                {
+                    return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
+                }
+
+                // For "is [", "and [", but not "(["
+                if (previousKind != SyntaxKind.OpenParenToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // For spacing Before Square Braces
@@ -319,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
                 previousToken.Parent is AssignmentExpressionSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.AndPattern, SyntaxKind.OrPattern, SyntaxKind.RelationalPattern) ||
-                previousToken.Parent.IsKind(SyntaxKind.AndPattern, SyntaxKind.OrPattern, SyntaxKind.RelationalPattern))
+                currentToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern ||
+                previousToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern)
             {
                 switch (_options.SpacingAroundBinaryOperator)
                 {
@@ -591,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.ListPattern);
+            => token.Parent is (kind: SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);

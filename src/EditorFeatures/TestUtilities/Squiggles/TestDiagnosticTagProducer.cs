@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
+            var sourceText = document.GetTextBuffer().CurrentSnapshot.AsText();
+            var linePosSpan = sourceText.Lines.GetLinePositionSpan(span);
             return new DiagnosticData(
                 id: "test",
                 category: "test",
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, span),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
                 language: document.Project.Language);
         }
 

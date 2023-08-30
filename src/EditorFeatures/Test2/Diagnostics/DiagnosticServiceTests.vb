@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -835,13 +836,12 @@ class AnonymousFunctions
                 Dim projectDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id)
                 Assert.Equal(2, projectDiagnostics.Count())
 
-                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) Not d.HasTextSpan)
+                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId Is Nothing)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
-                Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+                Assert.Null(noLocationDiagnostic.DataLocation.DocumentId)
 
-                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.HasTextSpan)
+                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId IsNot Nothing)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
-                Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
 
                 Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
@@ -1209,12 +1209,13 @@ public class B
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
+                Dim text = Await document.GetTextAsync()
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).ToArray
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.getclampedTextSpan(text).Start).ToArray()
 
                 Assert.Equal(3, diagnostics.Count)
                 Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Descriptor.Id))
@@ -1328,8 +1329,9 @@ public class B
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).
                     ToArray()
                 Assert.Equal(4, diagnostics.Length)
                 Assert.Equal(4, diagnostics.Where(Function(d) d.Id = FieldDeclarationAnalyzer.Descriptor1.Id).Count)
@@ -1375,12 +1377,13 @@ public class B
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).
+                    OrderBy(Function(d) d.DataLocation.unmappedfilespan.getclampedTextSpan(text).Start).
                     ToArray()
 
                 For Each diagnostic In diagnostics
-                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.SourceSpan.Value.Start, 0)
+                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.unmappedfilespan.getclampedtextspan(text).Start, 0)
                     Dim otherDiagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, spanAtCaret)).ToArray()
 
                     Assert.Equal(1, otherDiagnostics.Length)
@@ -2222,16 +2225,14 @@ class C
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Dim diagnostic = Assert.Single(diagnostics)
+                Dim t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Dim diagnostic = Assert.Single(t.diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                diagnostics.Clear()
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Assert.Empty(diagnostics)
+                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Assert.Empty(t.diagnostics)
             End Using
         End Function
 
@@ -2321,8 +2322,7 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Try get diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
 
                 ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
                 Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
@@ -2369,7 +2369,7 @@ class MyClass
                 Return _category
             End Function
 
-            Public Function OpenFileOnly(options As OptionSet) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
+            Public Function OpenFileOnly(options As SimplifierOptions) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
                 Return False
             End Function
 

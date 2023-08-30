@@ -1191,6 +1191,7 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
@@ -1280,6 +1281,7 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),

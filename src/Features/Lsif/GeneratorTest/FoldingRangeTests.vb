@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("
 class C{|foldingRange:
 {
-}|}", Nothing)>
+}|}", Nothing, "...")>
         <InlineData("
 class C{|foldingRange:
 {
@@ -30,20 +30,20 @@ class C{|foldingRange:
             M();
         }|}
     }|}
-}|}", Nothing)>
+}|}", Nothing, "...")>
         <InlineData("
 {|foldingRange:#region
-#endregion|}", Nothing)>
+#endregion|}", Nothing, "#region")>
         <InlineData("
 using {|foldingRange:System;
-using System.Linq;|}", FoldingRangeKind.Imports)>
+using System.Linq;|}", "imports", "...")>
         <InlineData("
 using {|foldingRange:S = System.String; 
-using System.Linq;|}", FoldingRangeKind.Imports)>
+using System.Linq;|}", "imports", "...")>
         <InlineData("
 {|foldingRange:// Comment Line 1
-// Comment Line 2|}", Nothing)>
-        Public Async Function TestFoldingRanges(code As String, rangeKind As FoldingRangeKind?) As Task
+// Comment Line 2|}", Nothing, "// Comment Line 1...")>
+        Public Async Function TestFoldingRanges(code As String, rangeKind As String, collapsedText As String) As Task
             Using workspace = TestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
@@ -54,7 +54,7 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
                     </Workspace>)
 
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
-                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range)).OrderBy(Function(range) range.StartLine).ToArray()
+                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderBy(Function(range) range.StartLine).ToArray()
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(workspace)
@@ -64,15 +64,19 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
             End Using
         End Function
 
-        Private Shared Function CreateFoldingRange(kind As FoldingRangeKind?, range As Range) As FoldingRange
-            Return New FoldingRange() With
+        Private Shared Function CreateFoldingRange(kind As String, range As Range, collapsedText As String) As FoldingRange
+            Dim foldingRange As FoldingRange = New FoldingRange() With
             {
-                .Kind = kind,
                 .StartCharacter = range.Start.Character,
                 .EndCharacter = range.End.Character,
                 .StartLine = range.Start.Line,
-                .EndLine = range.End.Line
+                .EndLine = range.End.Line,
+                .CollapsedText = collapsedText
             }
+            If kind IsNot Nothing Then
+                foldingRange.Kind = New FoldingRangeKind(kind)
+            End If
+            Return foldingRange
         End Function
     End Class
 End Namespace

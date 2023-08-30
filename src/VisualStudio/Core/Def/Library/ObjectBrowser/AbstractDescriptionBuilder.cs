@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return;
             }
 
-            var formattingService = _project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var formattingService = _project.Services.GetService<IDocumentationCommentFormattingService>();
             if (formattingService == null)
             {
                 return;

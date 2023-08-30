@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddParameter
@@ -51,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 
         protected override ImmutableArray<string> CannotConvertDiagnosticIds
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
+
+        protected override ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argumentNode).DetermineParameterType(semanticModel, cancellationToken);
 
         protected override RegisterFixData<ArgumentSyntax> TryGetLanguageSpecificFixInfo(
             SemanticModel semanticModel,

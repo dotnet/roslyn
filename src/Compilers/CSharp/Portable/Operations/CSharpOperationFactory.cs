@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.Utf8String:
+                    return CreateBoundUtf8StringOperation((BoundUtf8String)boundNode);
                 case BoundKind.DynamicInvocation:
                     return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
                 case BoundKind.DynamicIndexerAccess:
@@ -446,10 +448,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
-            bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(targetMethod, boundCall.ReceiverOpt);
+            bool isVirtual = constrainedToType is not null || IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
             IOperation? receiver = CreateReceiverOperation(boundCall.ReceiverOpt, targetMethod);
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundCall);
-            return new InvocationOperation(targetMethod.GetPublicSymbol(), receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit);
+            return new InvocationOperation(targetMethod.GetPublicSymbol(), constrainedToType.GetPublicSymbol(), receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit);
+        }
+
+        private static TypeParameterSymbol? GetConstrainedToType(Symbol targetMember, BoundExpression? receiverOpt)
+        {
+            if (targetMember.IsStatic && (targetMember.IsAbstract || targetMember.IsVirtual) &&
+                receiverOpt is BoundTypeExpression { Type: TypeParameterSymbol typeParameter })
+            {
+                return typeParameter;
+            }
+
+            return null;
         }
 
         private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
@@ -579,7 +593,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundPropertyAccess.Syntax;
             ITypeSymbol? type = boundPropertyAccess.GetPublicTypeSymbol();
             bool isImplicit = boundPropertyAccess.WasCompilerGenerated;
-            return new PropertyReferenceOperation(property, arguments, instance, _semanticModel, syntax, type, isImplicit);
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(boundPropertyAccess.PropertySymbol, boundPropertyAccess.ReceiverOpt);
+            return new PropertyReferenceOperation(property, constrainedToType.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
@@ -597,7 +612,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess, isObjectOrCollectionInitializer: false);
             IOperation? instance = CreateReceiverOperation(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.ExpressionSymbol);
-            return new PropertyReferenceOperation(property.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(property, boundIndexerAccess.ReceiverOpt);
+            return new PropertyReferenceOperation(property.GetPublicSymbol(), constrainedToType.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
         }
 
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
@@ -607,7 +623,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundEventAccess.Syntax;
             ITypeSymbol? type = boundEventAccess.GetPublicTypeSymbol();
             bool isImplicit = boundEventAccess.WasCompilerGenerated;
-            return new EventReferenceOperation(@event, instance, _semanticModel, syntax, type, isImplicit);
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(boundEventAccess.EventSymbol, boundEventAccess.ReceiverOpt);
+            return new EventReferenceOperation(@event, constrainedToType.GetPublicSymbol(), instance, _semanticModel, syntax, type, isImplicit);
         }
 
         private IEventAssignmentOperation CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -637,6 +654,14 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundLiteral.ConstantValue;
             bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IUtf8StringOperation CreateBoundUtf8StringOperation(BoundUtf8String boundNode)
+        {
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol? type = boundNode.GetPublicTypeSymbol();
+            bool isImplicit = boundNode.WasCompilerGenerated;
+            return new Utf8StringOperation(boundNode.Value, _semanticModel, syntax, type, isImplicit);
         }
 
         private IAnonymousObjectCreationOperation CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
@@ -820,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration, createReceiver(), _semanticModel, syntax, type, constantValue: null, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)memberSymbol;
-                    return new EventReferenceOperation(eventSymbol.GetPublicSymbol(), createReceiver(), _semanticModel, syntax, type, isImplicit);
+                    return new EventReferenceOperation(eventSymbol.GetPublicSymbol(), constrainedToType: null, createReceiver(), _semanticModel, syntax, type, isImplicit);
                 case SymbolKind.Property:
                     var property = (PropertySymbol)memberSymbol;
 
@@ -843,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         arguments = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    return new PropertyReferenceOperation(property.GetPublicSymbol(), arguments, createReceiver(), _semanticModel, syntax, type, isImplicit);
+                    return new PropertyReferenceOperation(property.GetPublicSymbol(), constrainedToType: null, arguments, createReceiver(), _semanticModel, syntax, type, isImplicit);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(memberSymbol.Kind);
             }
@@ -883,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             bool isVirtual = IsCallVirtual(addMethod, boundCollectionElementInitializer.ImplicitReceiverOpt);
-            return new InvocationOperation(addMethod.GetPublicSymbol(), receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit);
+            return new InvocationOperation(addMethod.GetPublicSymbol(), constrainedToType: null, receiver, isVirtual, arguments, _semanticModel, syntax, type, isImplicit);
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
@@ -1065,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
-                    bool isChecked = conversion.IsNumeric && boundConversion.Checked;
+                    bool isChecked = boundConversion.Checked && (conversion.IsNumeric || (boundConversion.SymbolOpt is not null && SyntaxFacts.IsCheckedOperator(boundConversion.SymbolOpt.Name)));
                     IOperation operand = forceOperandImplicitLiteral
                         ? CreateBoundLiteralOperation((BoundLiteral)correctedConversionNode.Operand, @implicit: true)
                         : Create(correctedConversionNode.Operand);
@@ -1097,12 +1122,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IMethodReferenceOperation CreateBoundMethodGroupSingleMethodOperation(BoundMethodGroup boundMethodGroup, MethodSymbol methodSymbol, bool suppressVirtualCalls)
         {
-            bool isVirtual = (methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls;
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(methodSymbol, boundMethodGroup.ReceiverOpt);
+            bool isVirtual = constrainedToType is not null || ((methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls);
             IOperation? instance = CreateReceiverOperation(boundMethodGroup.ReceiverOpt, methodSymbol);
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
             ITypeSymbol? bindingType = null;
             bool isImplicit = boundMethodGroup.WasCompilerGenerated;
-            return new MethodReferenceOperation(methodSymbol.GetPublicSymbol(), isVirtual, instance, _semanticModel, bindingSyntax, bindingType, boundMethodGroup.WasCompilerGenerated);
+            return new MethodReferenceOperation(methodSymbol.GetPublicSymbol(), constrainedToType.GetPublicSymbol(), isVirtual, instance, _semanticModel, bindingSyntax, bindingType, isImplicit);
         }
 
         private IIsTypeOperation CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
@@ -1236,12 +1262,26 @@ namespace Microsoft.CodeAnalysis.Operations
             Conversion inConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.LeftConversion, boundCompoundAssignmentOperator.LeftPlaceholder);
             Conversion outConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.FinalConversion, boundCompoundAssignmentOperator.FinalPlaceholder);
             bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
-            bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
-            IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method.GetPublicSymbol();
+            var method = boundCompoundAssignmentOperator.Operator.Method;
+            bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked() || (method is not null && SyntaxFacts.IsCheckedOperator(method.Name));
+            IMethodSymbol? operatorMethod = method.GetPublicSymbol();
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
             ITypeSymbol? type = boundCompoundAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
-            return new CompoundAssignmentOperation(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, target, value, _semanticModel, syntax, type, isImplicit);
+            return new CompoundAssignmentOperation(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod,
+                                                   GetConstrainedToTypeForOperator(method, boundCompoundAssignmentOperator.Operator.ConstrainedToTypeOpt).GetPublicSymbol(),
+                                                   target, value, _semanticModel, syntax, type, isImplicit);
+        }
+
+        private static TypeParameterSymbol? GetConstrainedToTypeForOperator(MethodSymbol? operatorMethod, TypeSymbol? constrainedToTypeOpt)
+        {
+            if (operatorMethod is not null && operatorMethod.IsStatic && (operatorMethod.IsAbstract || operatorMethod.IsVirtual) &&
+                constrainedToTypeOpt is TypeParameterSymbol typeParameter)
+            {
+                return typeParameter;
+            }
+
+            return null;
         }
 
         private IIncrementOrDecrementOperation CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
@@ -1249,13 +1289,15 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationKind operationKind = Helper.IsDecrement(boundIncrementOperator.OperatorKind) ? OperationKind.Decrement : OperationKind.Increment;
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);
             bool isLifted = boundIncrementOperator.OperatorKind.IsLifted();
-            bool isChecked = boundIncrementOperator.OperatorKind.IsChecked();
+            bool isChecked = boundIncrementOperator.OperatorKind.IsChecked() || (boundIncrementOperator.MethodOpt is not null && SyntaxFacts.IsCheckedOperator(boundIncrementOperator.MethodOpt.Name));
             IOperation target = Create(boundIncrementOperator.Operand);
             IMethodSymbol? operatorMethod = boundIncrementOperator.MethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundIncrementOperator.Syntax;
             ITypeSymbol? type = boundIncrementOperator.GetPublicTypeSymbol();
             bool isImplicit = boundIncrementOperator.WasCompilerGenerated;
-            return new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, operationKind, _semanticModel, syntax, type, isImplicit);
+            return new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod,
+                                                     GetConstrainedToTypeForOperator(boundIncrementOperator.MethodOpt, boundIncrementOperator.ConstrainedToTypeOpt).GetPublicSymbol(),
+                                                     operationKind, _semanticModel, syntax, type, isImplicit);
         }
 
         private IInvalidOperation CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
@@ -1265,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = syntax.IsMissing ? null : boundBadExpression.GetPublicTypeSymbol();
 
             // if child has syntax node point to same syntax node as bad expression, then this invalid expression is implicit
-            bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(e => e?.Syntax == boundBadExpression.Syntax);
+            bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(static (e, boundBadExpression) => e?.Syntax == boundBadExpression.Syntax, boundBadExpression);
             var children = CreateFromArray<BoundExpression, IOperation>(boundBadExpression.ChildBoundNodes);
             return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
@@ -1297,9 +1339,11 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundUnaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundUnaryOperator.ConstantValue;
             bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundUnaryOperator.OperatorKind.IsChecked();
+            bool isChecked = boundUnaryOperator.OperatorKind.IsChecked() || (boundUnaryOperator.MethodOpt is not null && SyntaxFacts.IsCheckedOperator(boundUnaryOperator.MethodOpt.Name));
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
-            return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod,
+                                      GetConstrainedToTypeForOperator(boundUnaryOperator.MethodOpt, boundUnaryOperator.ConstrainedToTypeOpt).GetPublicSymbol(),
+                                      _semanticModel, syntax, type, constantValue, isImplicit);
         }
         private IOperation CreateBoundBinaryOperatorBase(BoundBinaryOperatorBase boundBinaryOperatorBase)
         {
@@ -1352,7 +1396,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
                 bool isCompareText = false;
                 bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
+                TypeSymbol? constrainedToTypeOpt = GetConstrainedToTypeForOperator(boundBinaryOperator.LogicalOperator, boundBinaryOperator.ConstrainedToTypeOpt) ??
+                                                   GetConstrainedToTypeForOperator(boundBinaryOperator.OperatorKind.Operator() == CSharp.BinaryOperatorKind.And ?
+                                                                                       boundBinaryOperator.FalseOperator :
+                                                                                       boundBinaryOperator.TrueOperator,
+                                                                                   boundBinaryOperator.ConstrainedToTypeOpt);
+                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, constrainedToTypeOpt.GetPublicSymbol(), unaryOperatorMethod,
                                            _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
@@ -1376,10 +1425,13 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
+            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (boundBinaryOperator.Method is not null && SyntaxFacts.IsCheckedOperator(boundBinaryOperator.Method.Name));
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
+            return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText,
+                                       operatorMethod,
+                                       GetConstrainedToTypeForOperator(boundBinaryOperator.Method, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
+                                       unaryOperatorMethod,
                                        _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1897,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundBadStatement.Syntax;
 
             // if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
-            bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(e => e?.Syntax == boundBadStatement.Syntax);
+            bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(static (e, boundBadStatement) => e?.Syntax == boundBadStatement.Syntax, boundBadStatement);
             var children = CreateFromArray<BoundNode, IOperation>(boundBadStatement.ChildBoundNodes);
             return new InvalidOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
         }
@@ -2589,6 +2641,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 isLifted: boundIndex.Type.IsNullableType(),
                 isChecked: false,
                 operatorMethod: null,
+                constrainedToType: null,
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.GetPublicTypeSymbol(),
@@ -2675,7 +2728,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     case PropertySymbol property:
                         {
-                            reference = new PropertyReferenceOperation(property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty,
+                            reference = new PropertyReferenceOperation(property.GetPublicSymbol(), constrainedToType: null, ImmutableArray<IArgumentOperation>.Empty,
                                 createReceiver(), _semanticModel, nameSyntax, type: property.Type.GetPublicSymbol(), isImplicit: false);
                             break;
                         }

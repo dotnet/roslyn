@@ -8,21 +8,20 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class BlockStructureServiceWithProviders : BlockStructureService
     {
-        private readonly Workspace _workspace;
+        private readonly SolutionServices _services;
         private readonly ImmutableArray<BlockStructureProvider> _providers;
 
-        protected BlockStructureServiceWithProviders(Workspace workspace)
+        protected BlockStructureServiceWithProviders(SolutionServices services)
         {
-            _workspace = workspace;
+            _services = services;
             _providers = GetBuiltInProviders().Concat(GetImportedProviders());
         }
 
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Structure
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
             var language = Language;
-            var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+            var mefExporter = _services.ExportProvider;
 
             var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()
                                        .Where(lz => lz.Metadata.Language == language)

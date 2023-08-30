@@ -473,15 +473,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodDefinitionHandle targetMethodDef)
         {
-            Debug.Assert(typeSymbol is PENamedTypeSymbol || typeSymbol is ErrorTypeSymbol);
+            Debug.Assert(typeSymbol.IsDefinition);
 
-            foreach (Symbol member in typeSymbol.GetMembersUnordered())
+            if (typeSymbol is PENamedTypeSymbol peTypeSymbol && ReferenceEquals(peTypeSymbol.ContainingPEModule, moduleSymbol))
             {
-                PEMethodSymbol method = member as PEMethodSymbol;
-                if ((object)method != null && method.Handle == targetMethodDef)
+                foreach (Symbol member in typeSymbol.GetMembersUnordered())
                 {
-                    return method;
+                    PEMethodSymbol method = member as PEMethodSymbol;
+                    if ((object)method != null && method.Handle == targetMethodDef)
+                    {
+                        return method;
+                    }
                 }
+            }
+            else if (typeSymbol is not ErrorTypeSymbol)
+            {
+                // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
+                // (We're not just using a different type - we're also changing the type context.)
+                var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, typeSymbol);
+
+                return (MethodSymbol)memberRefDecoder.FindMember(targetMethodDef, methodsOnly: true);
             }
 
             return null;

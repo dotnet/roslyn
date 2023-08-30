@@ -19,16 +19,28 @@ Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IV
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
-
     Friend Class VisualBasicContainedLanguage
         Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
+        <Obsolete("Use the constructor that omits the IVsHierarchy and UInteger parameters instead.", True)>
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
                 project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
+                languageServiceGuid As Guid)
+
+            Me.New(
+                bufferCoordinator,
+                componentModel,
+                project,
+                languageServiceGuid)
+        End Sub
+
+        Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
+                componentModel As IComponentModel,
+                project As VisualStudioProject,
                 languageServiceGuid As Guid)
 
             MyBase.New(
@@ -37,7 +49,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 componentModel.GetService(Of VisualStudioWorkspace)(),
                 project.Id,
                 project,
-                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
                 languageServiceGuid,
                 VisualBasicHelperFormattingRule.Instance)
         End Sub
@@ -88,6 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
+                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1

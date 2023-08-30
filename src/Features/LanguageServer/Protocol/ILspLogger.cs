@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILspLogger
+    internal interface ILspLogger : ILspService
     {
         void TraceInformation(string message);
         void TraceWarning(string message);

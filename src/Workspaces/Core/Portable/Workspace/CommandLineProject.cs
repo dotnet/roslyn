@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(path, baseFilePath: null));
             }
 
-            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader).Distinct().ToList();
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {

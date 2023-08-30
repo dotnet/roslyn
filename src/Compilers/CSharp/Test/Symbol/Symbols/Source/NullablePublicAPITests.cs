@@ -2574,6 +2574,38 @@ class C
             }
         }
 
+        [Fact]
+        public void GetForeachInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string?[] nullableStrings, string[] strings)
+    {
+        foreach (var o in nullableStrings) {}
+        foreach (var o in strings) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedElementTypeAnnotation)
+            {
+                var foreachInfo = model.GetForEachStatementInfo(foreachStatement);
+                Assert.Equal(expectedElementTypeAnnotation, foreachInfo.ElementType.NullableAnnotation);
+            }
+        }
+
         [InlineData("always")]
         [InlineData("never")]
         [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
@@ -4971,15 +5003,6 @@ namespace System
                 // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
                 // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = 2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)

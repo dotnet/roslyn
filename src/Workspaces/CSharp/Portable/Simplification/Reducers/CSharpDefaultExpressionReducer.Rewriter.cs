@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -24,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 _simplifyDefaultExpression = SimplifyDefaultExpression;
             }
 
-            private readonly Func<DefaultExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> _simplifyDefaultExpression;
+            private readonly Func<DefaultExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> _simplifyDefaultExpression;
 
             private SyntaxNode SimplifyDefaultExpression(
                 DefaultExpressionSyntax node,
                 SemanticModel semanticModel,
-                OptionSet optionSet,
+                CSharpSimplifierOptions options,
                 CancellationToken cancellationToken)
             {
-                var preferSimpleDefaultExpression = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value;
+                var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
 
                 if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
                 {

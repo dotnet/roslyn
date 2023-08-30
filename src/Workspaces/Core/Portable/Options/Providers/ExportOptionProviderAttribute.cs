@@ -31,22 +31,6 @@ namespace Microsoft.CodeAnalysis.Options.Providers
     }
 
     /// <summary>
-    /// Global client-only options.
-    /// </summary>
-    internal sealed class ExportGlobalOptionProviderAttribute : ExportOptionProviderAttribute
-    {
-        public ExportGlobalOptionProviderAttribute()
-            : this(language: string.Empty)
-        {
-        }
-
-        public ExportGlobalOptionProviderAttribute(string language)
-            : base(language, isGlobal: true)
-        {
-        }
-    }
-
-    /// <summary>
     /// Options that are part of the solution snapshot.
     /// Some of these options may be configurable per document via editorconfig.
     /// </summary>

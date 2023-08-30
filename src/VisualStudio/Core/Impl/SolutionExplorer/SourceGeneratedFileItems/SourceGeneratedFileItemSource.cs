@@ -76,8 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
             var sourceGeneratedDocumentsForGeneratorById =
-                sourceGeneratedDocuments.Where(d => d.SourceGeneratorAssemblyName == _parentGeneratorItem.GeneratorAssemblyName &&
-                                                    d.SourceGeneratorTypeName == _parentGeneratorItem.GeneratorTypeName)
+                sourceGeneratedDocuments.Where(d => d.Identity.Generator == _parentGeneratorItem.Identity)
                 .ToDictionary(d => d.Id);
 
             // We must update the list on the UI thread, since the WPF elements bound to our list expect that

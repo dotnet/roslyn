@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public abstract ImmutableArray<ICodeCleanupProvider> GetDefaultProviders();
         protected abstract ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root);
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> IterateAllCodeCleanupProvidersAsync(
             Document originalDocument,
             Document annotatedDocument,
-            SyntaxFormattingOptions options,
+            CodeCleanupOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             SyntaxNode annotatedRoot,
             SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
-            HostWorkspaceServices services,
+            SolutionServices services,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {

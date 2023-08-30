@@ -64,5 +64,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return _lazySpecialTypes[(int)type];
         }
+
+        internal override bool RuntimeSupportsNumericIntPtr
+        {
+            get
+            {
+                // For now we assume that it is not supported by default
+                Debug.Assert((object)CorLibrary == this);
+                return false;
+            }
+            set
+            {
+                Debug.Assert((object)CorLibrary == this);
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal override bool RuntimeSupportsByRefFields
+        {
+            get
+            {
+                // For now we assume that it is not supported by default
+                Debug.Assert((object)CorLibrary == this);
+                return false;
+            }
+            set
+            {
+                Debug.Assert((object)CorLibrary == this);
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
     }
 }

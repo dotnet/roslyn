@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -37,23 +38,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace)
+                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
 
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotEmpty(list.Items)
-                Assert.True(list.Items.Length = 2, "Completion List does not contain exactly two items.")
-                Assert.Equal(String.Format(CompletionItemExclusive, 2), list.Items.First.DisplayText)
-                Assert.Equal(String.Format(CompletionItemExclusive, 3), list.Items.Last.DisplayText)
+                Assert.NotEmpty(list.ItemsList)
+                Assert.True(list.ItemsList.Count = 2, "Completion List does not contain exactly two items.")
+                Assert.Equal(String.Format(CompletionItemExclusive, 2), list.ItemsList.First.DisplayText)
+                Assert.Equal(String.Format(CompletionItemExclusive, 3), list.ItemsList.Last.DisplayText)
             End Using
         End Function
 
         Friend Class TestCompletionService
-            Inherits CompletionServiceWithProviders
+            Inherits CompletionService
 
-            Public Sub New(workspace As Workspace)
-                MyBase.New(workspace)
+            Public Sub New(services As SolutionServices)
+                MyBase.New(services)
             End Sub
 
             Public Overrides ReadOnly Property Language As String

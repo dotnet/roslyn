@@ -2197,6 +2197,192 @@ class Test
             VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
         }
 
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage1()
+        {
+            var text =
+@"#region ""
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage1B()
+        {
+            var text =
+@"#region "" 
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\" ", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage2()
+        {
+            var text =
+@"#region ""goo""
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"goo\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"goo\"", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage2B()
+        {
+            var text =
+@"#region ""goo"" 
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"goo\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"goo\" ", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage3()
+        {
+            var text =
+@"#region """"
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage3B()
+        {
+            var text =
+@"#region """" 
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\" ", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage4()
+        {
+            var text =
+@"#region """"""
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"\"", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage4B()
+        {
+            var text =
+@"#region """""" 
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"\" ", regionText.ToFullString());
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage5()
+        {
+            var text =
+@"#region Region Process Information after the Grid """"""""""""""""""""""""""""""""""""""""""""""""""
+class C
+{
+}
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text, disallowErrors: true);
+
+            // ensure that we don't see those quotes as the start of a raw string that consumes the class decl.
+            var classDeclaration = node.ChildNodes().Single(n => n is ClassDeclarationSyntax);
+        }
+
         #endregion
 
         #region #define/#undefine
@@ -3037,9 +3223,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (10.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (10.0)")]
-        [InlineData(LanguageVersion.Default, "default (10.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (11.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (11.0)")]
+        [InlineData(LanguageVersion.Default, "default (11.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {
@@ -3105,6 +3291,51 @@ class A { }
                 Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
                 );
         }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage1()
+        {
+            var text = @"#error """;
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage2()
+        {
+            var text = @"#error ""goo""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"goo\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage3()
+        {
+            var text = @"#error """"";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage4()
+        {
+            var text = @"#error """"""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
         #endregion
 
         #region #line

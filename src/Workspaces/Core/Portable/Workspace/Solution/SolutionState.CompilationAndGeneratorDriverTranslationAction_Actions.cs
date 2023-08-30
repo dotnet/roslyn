@@ -309,6 +309,38 @@ namespace Microsoft.CodeAnalysis
                     return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
+
+            internal sealed class ReplaceGeneratorDriverAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly GeneratorDriver _oldGeneratorDriver;
+                private readonly ProjectState _newProjectState;
+
+                public ReplaceGeneratorDriverAction(GeneratorDriver oldGeneratorDriver, ProjectState newProjectState)
+                {
+                    _oldGeneratorDriver = oldGeneratorDriver;
+                    _newProjectState = newProjectState;
+                }
+
+                public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver _)
+                {
+                    // The GeneratorDriver that we have here is from a prior version of the Project, it may be missing state changes due
+                    // to changes to the project. We'll update everything here.
+                    var generatorDriver = _oldGeneratorDriver.ReplaceAdditionalTexts(_newProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
+                                                     .WithUpdatedParseOptions(_newProjectState.ParseOptions!)
+                                                     .WithUpdatedAnalyzerConfigOptions(_newProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
+                                                     .ReplaceGenerators(_newProjectState.SourceGenerators);
+
+                    return generatorDriver;
+                }
+
+                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                {
+                    // If the prior action is also a ReplaceGeneratorDriverAction, we'd entirely overwrite it's changes, so we can drop the prior one entirely.
+                    return priorAction is ReplaceGeneratorDriverAction ? this : null;
+                }
+            }
         }
     }
 }

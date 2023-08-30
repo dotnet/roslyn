@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial interface ISemanticFacts
     {
@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
-        bool IsNullChecked(IParameterSymbol parameter, CancellationToken cancellationToken);
-
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
-        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
-        IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
+        IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken);
+        ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
 
 #nullable enable
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);

@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken);
+        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+            Document document,
+            bool workspaceSupportsDocumentChanges,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
+            ITextVersion textVersion,
+            CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
 
         /// <summary>

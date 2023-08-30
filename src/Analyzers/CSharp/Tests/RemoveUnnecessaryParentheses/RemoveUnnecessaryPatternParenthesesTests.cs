@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
     public partial class RemoveUnnecessaryPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper logger)
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
             => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticRequiredForClarity2()
         {
             await TestInRegularAndScript1Async(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalRequiredForClarity1()
         {
             await TestMissingAsync(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
         {
             await TestAsync(
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
         {
             await TestAsync(
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForIsPattern()
         {
             await TestAsync(
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForCasePattern()
         {
             await TestAsync(
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForSwitchArmPattern()
         {
             await TestAsync(
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForSubPattern()
         {
             await TestAsync(
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
         {
             await TestAsync(
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
         {
             await TestAsync(
@@ -253,8 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [WorkItem(52589, "https://github.com/dotnet/roslyn/issues/52589")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact, WorkItem(52589, "https://github.com/dotnet/roslyn/issues/52589")]
         public async Task TestAlwaysNecessaryForDiscard()
         {
             await TestDiagnosticMissingAsync(
@@ -270,7 +270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryForDiscardInSubpattern()
         {
             await TestAsync(

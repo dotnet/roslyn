@@ -2,21 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -66,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -91,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             if (thirdPartyNavigationAllowed)
             {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var factory = solution.Services.GetService<IDefinitionsAndReferencesFactory>();
                 if (factory != null)
                 {
                     var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
@@ -103,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             return definitions.ToImmutable();
         }
 
-        public static bool TryGoToDefinition(
+        public static async Task<bool> TryNavigateToLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -111,11 +106,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            return threadingContext.JoinableTaskFactory.Run(
-                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<bool> TryGoToDefinitionAsync(
+        public static async Task<INavigableLocation?> GetDefinitionLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -128,11 +125,9 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+            return await streamingPresenter.GetStreamingLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable enable
 
         public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -148,7 +143,5 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
             return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable restore
     }
 }

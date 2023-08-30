@@ -13,14 +13,15 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -32,32 +33,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExtractClassOptionsService(
             IThreadingContext threadingContext,
             IGlyphService glyphService,
-            IUIThreadOperationExecutor uiThreadOperationExecutor)
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _glyphService = glyphService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
+            _globalOptions = globalOptions;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember, CancellationToken cancellationToken)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
         {
-            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
 
             var membersInType = selectedType.GetMembers().
-               WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+               WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new MemberSymbolViewModel(member, _glyphService)
                     {
-                        // The member user selected will be checked at the beginning.
-                        IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
+                        // The member(s) user selected will be checked at the beginning.
+                        IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                         IsCheckable = true
@@ -73,12 +77,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
                 notificationService,
+                selectedType,
                 memberViewModels,
                 memberToDependentsMap,
                 defaultTypeName,

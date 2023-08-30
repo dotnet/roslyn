@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
             }
 
-            if (analyzers.Any(a => a == null))
+            if (analyzers.Any(static a => a == null))
             {
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAnalyzersArgumentForStaticApis(analyzers);
 
-            if (analyzers.Any(a => !_analyzers.Contains(a)))
+            if (analyzers.Any(static (a, self) => !self._analyzers.Contains(a), this))
             {
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }
@@ -1338,13 +1338,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// </summary>
         /// <param name="analyzer">Analyzer to be checked for suppression.</param>
         /// <param name="options">Compilation options.</param>
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-        /// </param>
-        /// </summary>
+        /// </param>        
         public static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,

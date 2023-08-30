@@ -162,12 +162,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
-            {
                 return false;
-            }
 
             return this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                navigationService.TryNavigateToLineAndOffsetAsync(workspace, documentId, position.Line, position.Character, options, cancellationToken));
+                navigationService.TryNavigateToLineAndOffsetAsync(
+                    this.ThreadingContext, workspace, documentId, position.Line, position.Character, options, cancellationToken));
         }
 
         protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)
@@ -181,11 +180,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var documentId = item.DocumentId;
             if (documentId is null)
             {
-                if (item is { ProjectId: { } projectId }
-                    && solution.GetProject(projectId) is { } project)
+                if (solution.GetProject(item.ProjectId) is { } project)
                 {
-                    // We couldn't find a document ID when the item was created, so it may be a source generator
-                    // output.
+                    // We couldn't find a document ID when the item was created, so it may be a source generator output.
                     var documents = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
                     var projectDirectory = Path.GetDirectoryName(project.FilePath);
                     documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;

@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,16 +16,22 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
     {
-        private readonly int _minimumLengthForRecoverableTree;
+        private readonly Lazy<int> _minimumLengthForRecoverableTree;
 
-        internal HostLanguageServices LanguageServices { get; }
+        internal SolutionServices SolutionServices { get; }
 
-        public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
+        public AbstractSyntaxTreeFactoryService(SolutionServices services)
         {
-            LanguageServices = languageServices;
+            SolutionServices = services;
 
-            var cacheService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
-            _minimumLengthForRecoverableTree = (cacheService != null) ? cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
+            // Create this lazily; this ultimately needs to read options under the covers, which isn't necessary until
+            // we are actually parsing stuff. This moves some extra loading of MEF parts and services out of the solution load
+            // path.
+            _minimumLengthForRecoverableTree = new Lazy<int>(() =>
+            {
+                var cacheService = SolutionServices.GetService<IProjectCacheHostService>();
+                return (cacheService != null) ? cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
+            });
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
@@ -38,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
-            => root.FullSpan.Length > _minimumLengthForRecoverableTree;
+            => root.FullSpan.Length > _minimumLengthForRecoverableTree.Value;
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
         {

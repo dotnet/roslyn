@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _globalAliasInfo = globalAliasInfo;
         }
 
-        public static Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
-            => PrecalculateAsync(document, CreateIndex, cancellationToken);
-
         public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
             => GetRequiredIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
 

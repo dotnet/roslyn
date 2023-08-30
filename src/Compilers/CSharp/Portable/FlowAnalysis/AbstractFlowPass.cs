@@ -1557,6 +1557,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUtf8String(BoundUtf8String node)
+        {
+            return null;
+        }
+
         protected void SplitIfBooleanConstant(BoundExpression node)
         {
             if (node.ConstantValue is { IsBoolean: true, BooleanValue: bool booleanValue })

@@ -11,11 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.CommentSelection
@@ -30,15 +32,16 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         public ToggleBlockCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService)
+            ITextStructureNavigatorSelectorService navigatorSelectorService,
+            EditorOptionsService editorOptionsService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
         {
         }
 
         /// <summary>
         /// Gets block comments by parsing the text for comment markers.
         /// </summary>
-        protected override Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
+        protected override ImmutableArray<TextSpan> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var allText = snapshot.AsText();
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 openIdx = closeIdx;
             }
 
-            return Task.FromResult(commentedSpans.ToImmutableAndFree());
+            return commentedSpans.ToImmutableAndFree();
         }
     }
 }

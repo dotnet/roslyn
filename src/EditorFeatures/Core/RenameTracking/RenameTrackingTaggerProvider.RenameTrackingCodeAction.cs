@@ -9,8 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private class RenameTrackingCodeAction : CodeAction
         {
             private readonly string _title;
+            private readonly IThreadingContext _threadingContext;
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -29,12 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private RenameTrackingCommitter _renameTrackingCommitter;
 
             public RenameTrackingCodeAction(
+                IThreadingContext threadingContext,
                 Document document,
                 string title,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 IGlobalOptionService globalOptions)
             {
+                _threadingContext = threadingContext;
                 _document = document;
                 _title = title;
                 _refactorNotifyServices = refactorNotifyServices;
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
                 }
 
-                var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter);
+                var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter, _threadingContext);
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(committerOperation as CodeActionOperation));
             }
 
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
-                            _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
+                            _document.Project.Solution.Services.GetService<INotificationService>()
                                 ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
@@ -105,12 +110,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private sealed class RenameTrackingCommitterOperation : CodeActionOperation
             {
                 private readonly RenameTrackingCommitter _committer;
+                private readonly IThreadingContext _threadingContext;
 
-                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer)
-                    => _committer = committer;
+                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext)
+                {
+                    _committer = committer;
+                    _threadingContext = threadingContext;
+                }
 
-                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                    => _committer.Commit(cancellationToken);
+                internal override async Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                {
+                    var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
+                    if (error == null)
+                        return true;
+
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    var notificationService = workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(
+                        error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                    return false;
+                }
             }
         }
     }

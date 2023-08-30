@@ -5,9 +5,12 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Castle.DynamicProxy.Internal;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -294,5 +297,14 @@ class C
             await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results);
         }
+
+        [Theory, MemberData(nameof(ClassificationTypeNamesToMatch))]
+        public void TestGetSemanticTokensRange_AssertCustomTokenTypes(string fieldName)
+            => Assert.True(SemanticTokensHelpers.RoslynCustomTokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");
+
+        public static IEnumerable<object[]> ClassificationTypeNamesToMatch => ClassificationTypeNames.AllTypeNames.Where(
+            type => !SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
+                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Select(field => new object[] { field });
+
     }
 }

@@ -7,6 +7,11 @@
         <target state="translated">Aggiungi Import mancanti dopo operazione Incolla</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">Comprimi importazioni all'apertura del file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">In operatori relazionali:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>

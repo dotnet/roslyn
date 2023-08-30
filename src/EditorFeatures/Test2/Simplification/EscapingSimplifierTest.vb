@@ -5,12 +5,13 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class EscapingSimplifierTest
         Inherits AbstractSimplificationTests
 
 #Region "Visual Basic Escaping Simplification tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -39,7 +40,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -68,7 +69,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -97,7 +98,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -126,7 +127,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierRem() As Task
             Dim input =
 <Workspace>
@@ -156,7 +157,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
@@ -186,7 +187,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
@@ -215,7 +216,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
@@ -244,7 +245,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierMid_1() As Task
             Dim input =
 <Workspace>
@@ -275,7 +276,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierMid_2() As Task
             Dim input =
 <Workspace>
@@ -307,7 +308,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierMid_1() As Task
             Dim input =
 <Workspace>
@@ -337,8 +338,7 @@ End Class
 
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifierMid() As Task
             Dim input =
 <Workspace>
@@ -367,8 +367,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifierMid() As Task
             Dim input =
 <Workspace>
@@ -397,7 +396,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierMid() As Task
             Dim input =
 <Workspace>
@@ -430,7 +429,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierPreserve_1() As Task
             Dim input =
 <Workspace>
@@ -459,7 +458,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierPreserve_2() As Task
             Dim input =
 <Workspace>
@@ -488,7 +487,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierPreserve() As Task
             Dim input =
 <Workspace>
@@ -517,7 +516,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierPreserve_1() As Task
             Dim input =
 <Workspace>
@@ -546,7 +545,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierPreserve_2() As Task
             Dim input =
 <Workspace>
@@ -575,7 +574,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyNameEscapedIdentifierPreserve() As Task
             Dim input =
 <Workspace>
@@ -604,7 +603,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_1() As Task
             Dim input =
 <Workspace>
@@ -644,7 +643,7 @@ End Structure
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_2() As Task
             Dim input =
 <Workspace>
@@ -686,7 +685,7 @@ End Structure
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_3() As Task
             Dim input =
 <Workspace>
@@ -726,7 +725,7 @@ End Structure
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_4() As Task
             Dim input =
 <Workspace>
@@ -764,7 +763,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_1() As Task
             Dim input =
 <Workspace>
@@ -804,7 +803,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_2() As Task
             Dim input =
 <Workspace>
@@ -846,7 +845,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_3() As Task
             Dim input =
 <Workspace>
@@ -895,7 +894,7 @@ End Module
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorInsideOfQuery_1() As Task
             Dim input =
 <Workspace>
@@ -935,7 +934,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_DoNotEscapeIdentifierWithEmptyValueText() As Task
             Dim input =
 <Workspace>
@@ -966,7 +965,7 @@ End Module
 
 #Region "CSharp Escaping Simplification tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -999,7 +998,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1032,7 +1031,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyNameUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1065,7 +1064,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyNameEscapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1098,7 +1097,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedTypenameAsIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1131,7 +1130,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedKeywordAsIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1164,7 +1163,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyNameEscapedTypenameAsIdentifier() As Task
             Dim input =
 <Workspace>
@@ -1197,7 +1196,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierInQuery() As Task
             Dim input =
 <Workspace>
@@ -1238,7 +1237,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierInNestedQuery_1() As Task
             Dim input =
 <Workspace>
@@ -1287,7 +1286,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierOutsideQuery() As Task
             Dim input =
 <Workspace>
@@ -1330,7 +1329,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyUnescapedUnambiguousAttributeName() As Task
             Dim input =
 <Workspace>
@@ -1356,7 +1355,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyUnEscapedUnambiguousAttributeName2() As Task
             Dim input =
 <Workspace>
@@ -1387,7 +1386,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyUnEscapedUnambiguousAttributeName3() As Task
             Dim input =
 <Workspace>
@@ -1412,7 +1411,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyEscapedAmbiguousAttributeName() As Task
             Dim input =
 <Workspace>

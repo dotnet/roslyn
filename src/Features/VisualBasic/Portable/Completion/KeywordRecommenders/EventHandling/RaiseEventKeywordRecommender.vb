@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsSingleLineStatementContext OrElse context.IsMultiLineStatementContext Then
+            If context.IsStatementContext OrElse context.IsMultiLineStatementContext Then
                 Return ImmutableArray.Create(New RecommendedKeyword("RaiseEvent", VBFeaturesResources.Triggers_an_event_declared_at_module_level_within_a_class_form_or_document_RaiseEvent_eventName_bracket_argumentList_bracket))
             ElseIf context.CanDeclareCustomEventAccessor(SyntaxKind.RaiseEventAccessorBlock) Then
                 Return ImmutableArray.Create(New RecommendedKeyword("RaiseEvent", VBFeaturesResources.Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statement_RaiseEvent_delegateSignature_End_RaiseEvent))

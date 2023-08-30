@@ -5,11 +5,13 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -29,9 +31,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
                        editorOperations As IEditorOperationsFactoryService,
-                       globalOptions As IGlobalOptionService)
+                       editorOptionsService As EditorOptionsService)
 
-            MyBase.New(undoRegistry, editorOperations, globalOptions)
+            MyBase.New(undoRegistry, editorOperations, editorOptionsService)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return Nothing
         End Function
 
-        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, cancellationToken As CancellationToken) As Document
+        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Document
             ' vb does automatic line commit
             ' no need to do explicit formatting
             Return document

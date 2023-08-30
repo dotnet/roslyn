@@ -195,10 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            if (_languageServiceProvider == null)
-            {
-                _languageServiceProvider = project.LanguageServiceProvider;
-            }
+            _languageServiceProvider ??= project.LanguageServiceProvider;
         }
 
         private class TestDocumentLoader : TextLoader
@@ -263,26 +260,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // Open (or reopen) any files that were closed in this call. We do this for all linked copies at once.
                 foreach (var linkedId in workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath).Concat(this.Id))
                 {
-                    var testDocument = workspace.GetTestDocument(linkedId);
+                    if (workspace.IsDocumentOpen(linkedId))
+                        continue;
 
-                    if (testDocument != null)
+                    if (workspace.GetTestDocument(linkedId) is { } testDocument)
                     {
-                        if (!workspace.IsDocumentOpen(linkedId))
+                        if (testDocument.IsSourceGenerated)
                         {
-                            if (testDocument.IsSourceGenerated)
-                            {
-                                var threadingContext = workspace.GetService<IThreadingContext>();
-                                var document = threadingContext.JoinableTaskFactory.Run(() => workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(testDocument.Id, CancellationToken.None).AsTask());
-                                Contract.ThrowIfNull(document);
+                            var threadingContext = workspace.GetService<IThreadingContext>();
+                            var document = threadingContext.JoinableTaskFactory.Run(() => workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(testDocument.Id, CancellationToken.None).AsTask());
+                            Contract.ThrowIfNull(document);
 
-                                workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), document);
-                            }
-                            else
-                            {
-                                // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
-                                workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
-                            }
+                            workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), document);
                         }
+                        else
+                        {
+                            // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
+                            workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                        }
+                    }
+                    else if (workspace.GetTestAdditionalDocument(linkedId) is { } testAdditionalDocument)
+                    {
+                        workspace.OnAdditionalDocumentOpened(linkedId, _textBuffer.AsTextContainer());
+                    }
+                    else if (workspace.GetTestAnalyzerConfigDocument(linkedId) is { } testAnalyzerConfigDocument)
+                    {
+                        workspace.OnAnalyzerConfigDocumentOpened(linkedId, _textBuffer.AsTextContainer());
                     }
                 }
             }

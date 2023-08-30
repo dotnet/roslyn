@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
-            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude);
-            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull);
+            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude, "1", "2");
+            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull, "1");
             var ds = new[] { null, d1, d2 };
 
             var filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);

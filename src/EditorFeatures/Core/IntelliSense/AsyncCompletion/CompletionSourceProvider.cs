@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IAsyncCompletionSource? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
                 return null;
 
             return new CompletionSource(textView, _streamingPresenter, _threadingContext, _operationExecutor, _listener, _globalOptions);

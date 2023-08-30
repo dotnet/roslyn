@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
         }
 
         private static readonly Regex s_tags = new Regex(
-            @"[<][/]?[NMCL][:]?[:\.A-Za-z0-9]*[>]",
+            @"[<][/]?[NMCL][:][:\.A-Za-z0-9]*[>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         private static readonly Regex s_markerPattern = new Regex(
@@ -93,7 +93,7 @@ namespace Roslyn.Test.Utilities
                 (?<Id>[0-9]+)                    # The first number after the colon is the Id
                 ([.](?<ParentId>[0-9]+))?        # Digits after a decimal point are the parent Id
                 ([:](?<SyntaxKind>[A-Za-z]+))?   # A second colon separates the syntax kind
-              )?                                 # Close the group for the things after the tag name
+              )                                  # Close the group for the things after the tag name
               [>]                                # Close tag
 
               (                                  # Start a group so that the closing tag is optional

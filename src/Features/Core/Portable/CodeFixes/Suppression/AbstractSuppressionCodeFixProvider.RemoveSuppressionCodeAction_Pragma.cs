@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
                 private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
-                    => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
+                    => Formatter.Format(node, _document.Project.Solution.Services, _options, cancellationToken);
             }
         }
     }

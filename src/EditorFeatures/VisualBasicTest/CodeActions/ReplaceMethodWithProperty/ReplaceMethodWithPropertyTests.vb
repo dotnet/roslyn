@@ -29,8 +29,8 @@ End class",
 End class")
         End Function
 
-        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestMissingParameterList() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -703,8 +703,8 @@ End class",
 index:=1)
         End Function
 
-        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
         Public Async Function TestUpdateChainedGet1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -787,8 +787,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         Public Async Function TestSystemObjectMetadataOverride() As Task
             Await TestMissingAsync(
 "class C
@@ -797,8 +797,8 @@ End Class")
 End class")
         End Function
 
-        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         Public Async Function TestMetadataOverride() As Task
             Await TestInRegularAndScriptAsync(
 "class C

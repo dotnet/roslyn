@@ -14,6 +14,12 @@ namespace Roslyn.Utilities
         internal static T InterlockedStore<T>([NotNull] ref T? target, T value) where T : class
             => Interlocked.CompareExchange(ref target, value, null) ?? value;
 
+        internal static int InterlockedStore(ref int target, int uninitializedValue, int value)
+        {
+            var existingValue = Interlocked.CompareExchange(ref target, value, uninitializedValue);
+            return existingValue == uninitializedValue ? value : existingValue;
+        }
+
         /// <summary>
         /// Ensure that the given target value is initialized (not null) in a thread-safe manner.
         /// </summary>
@@ -39,6 +45,29 @@ namespace Roslyn.Utilities
             where T : class
         {
             return Volatile.Read(ref target!) ?? InterlockedStore(ref target, valueFactory(state));
+        }
+
+        /// <summary>
+        /// Ensure that the given target value is initialized in a thread-safe manner.
+        /// </summary>
+        /// <param name="target">The target to initialize.</param>
+        /// <param name="uninitializedValue">The value indicating <paramref name="target"/> is not yet initialized.</param>
+        /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+        /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+        /// <param name="state">An argument passed to the value factory.</param>
+        /// <typeparam name="U">The type of the <paramref name="state"/> argument passed to the value factory.</typeparam>
+        /// <remarks>
+        /// If <paramref name="valueFactory"/> returns a value equal to <paramref name="uninitializedValue"/>, future
+        /// calls to the same method may recalculate the target value.
+        /// </remarks>
+        /// <returns>The target value.</returns>
+        public static int EnsureInitialized<U>(ref int target, int uninitializedValue, Func<U, int> valueFactory, U state)
+        {
+            var existingValue = Volatile.Read(ref target);
+            if (existingValue != uninitializedValue)
+                return existingValue;
+
+            return InterlockedStore(ref target, uninitializedValue, valueFactory(state));
         }
 
         /// <summary>

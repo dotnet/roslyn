@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
@@ -24,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {

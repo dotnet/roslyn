@@ -2183,6 +2183,18 @@ Namespace n
 End Namespace
 ")
 
+            VerifySyntax(Of CompilationUnitSyntax)(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+"<Assembly:a>
+<Assembly:b>
+Namespace n
+End Namespace
+")
+
             VerifySyntax(Of DelegateStatementSyntax)(
                 Generator.AddAttributes(
                     Generator.DelegateDeclaration("d"),
@@ -2192,8 +2204,7 @@ Delegate Sub d()")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        <Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"))
 
@@ -3205,8 +3216,7 @@ End Interface")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        <Fact, WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C

@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, DeclarationScope.Unscoped, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -434,6 +434,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
 
+        internal override bool HasUnscopedRefAttribute => false;
+
+        internal override bool UseUpdatedEscapeRules => false;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }
@@ -515,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Insert an implicit return statement if necessary.
                 if (body.Kind != BoundKind.ReturnStatement)
                 {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null));
+                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false));
                 }
 
                 var localsSet = PooledHashSet<LocalSymbol>.GetInstance();
@@ -722,5 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IsNullableAnalysisEnabled() => false;
+
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

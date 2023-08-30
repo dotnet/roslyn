@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 extern alias slowautomation;
 
 using System.Collections.Generic;
@@ -45,15 +43,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
         }
 
-        protected override List<AutomationPeer> GetChildrenCore()
+        protected override List<AutomationPeer>? GetChildrenCore()
         {
-            var results = new List<AutomationPeer>();
+            List<AutomationPeer>? results = null;
             var peersToProcess = new Queue<AutomationPeer>(base.GetChildrenCore() ?? SpecializedCollections.EmptyEnumerable<AutomationPeer>());
             while (peersToProcess.Count > 0)
             {
                 var peer = peersToProcess.Dequeue();
                 if (peer is ListBoxItemWrapperAutomationPeer itemWrapperAutomationPeer)
                 {
+                    results ??= new List<AutomationPeer>();
                     results.Add(itemWrapperAutomationPeer);
                 }
                 else
@@ -80,14 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
     internal class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
     {
-        private readonly CheckBoxAutomationPeer checkBoxItem;
-        private readonly RadioButtonAutomationPeer radioButtonItem;
-        private readonly TextBlockAutomationPeer textBlockItem;
+        private readonly CheckBoxAutomationPeer? checkBoxItem;
+        private readonly RadioButtonAutomationPeer? radioButtonItem;
+        private readonly TextBlockAutomationPeer? textBlockItem;
 
         public AutomationDelegatingListViewItemAutomationPeer(AutomationDelegatingListViewItem listViewItem)
             : base(listViewItem)
         {
-            checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
+            checkBoxItem = this.GetChildren()?.OfType<CheckBoxAutomationPeer>().SingleOrDefault();
             if (checkBoxItem != null)
             {
                 var toggleButton = ((CheckBox)checkBoxItem.Owner);
@@ -96,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 return;
             }
 
-            radioButtonItem = this.GetChildren().OfType<RadioButtonAutomationPeer>().SingleOrDefault();
+            radioButtonItem = this.GetChildren()?.OfType<RadioButtonAutomationPeer>().SingleOrDefault();
             if (radioButtonItem != null)
             {
                 var toggleButton = ((RadioButton)radioButtonItem.Owner);
@@ -105,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 return;
             }
 
-            textBlockItem = this.GetChildren().OfType<TextBlockAutomationPeer>().FirstOrDefault();
+            textBlockItem = this.GetChildren()?.OfType<TextBlockAutomationPeer>().FirstOrDefault();
         }
 
         private void Checkbox_CheckChanged(object sender, RoutedEventArgs e)
@@ -153,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
         }
 
-        public override object GetPattern(PatternInterface patternInterface)
+        public override object? GetPattern(PatternInterface patternInterface)
         {
             var automationPeer = GetAutomationPeer();
             return automationPeer != null
@@ -164,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         protected override string GetNameCore()
             => GetAutomationPeer()?.GetName() ?? string.Empty;
 
-        private AutomationPeer GetAutomationPeer()
-            => checkBoxItem ?? radioButtonItem ?? (AutomationPeer)textBlockItem;
+        private AutomationPeer? GetAutomationPeer()
+            => checkBoxItem ?? radioButtonItem ?? (AutomationPeer?)textBlockItem;
     }
 }

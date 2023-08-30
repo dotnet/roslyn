@@ -282,23 +282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CompilationState.ModuleBuilderOpt is { } moduleBuilder)
             {
                 var typeParameters = localFunction.TypeParameters;
-                if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+                if (typeParameters.Any(static typeParameter => typeParameter.HasUnmanagedTypeConstraint))
                 {
                     moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
 
-                if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeInteger()) ||
-                    typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger())))
+                if (_compilation.ShouldEmitNativeIntegerAttributes())
                 {
-                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    if (hasReturnTypeOrParameter(localFunction, static t => t.ContainsNativeIntegerWrapperType()) ||
+                        typeParameters.Any(static t => t.ConstraintTypesNoUseSiteDiagnostics.Any(static t => t.ContainsNativeIntegerWrapperType())))
+                    {
+                        moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    }
                 }
 
                 if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
                 {
                     bool constraintsNeedNullableAttribute = typeParameters.Any(
-                       typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+                       static typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
 
-                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, t => t.NeedsNullableAttribute()))
+                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, static t => t.NeedsNullableAttribute()))
                     {
                         moduleBuilder.EnsureNullableAttributeExists();
                     }
@@ -424,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
         }
 
+#if DEBUG
         [Conditional("DEBUG")]
         private void AssertNoPlaceholderReplacements()
         {
@@ -432,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
             }
         }
+#endif
 
         /// <summary>
         /// Sets substitution used by the rewriter for a placeholder node.
@@ -909,7 +914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
 
                         Debug.Assert(eventAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(eventAccess.ReceiverOpt);
+                        Debug.Assert(eventAccess.ReceiverOpt.Type is { });
+                        return !eventAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(eventAccess.ReceiverOpt);
                     }
 
                     return false;
@@ -919,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
                         Debug.Assert(fieldAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(fieldAccess.ReceiverOpt);
+                        Debug.Assert(fieldAccess.ReceiverOpt.Type is { });
+                        return !fieldAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(fieldAccess.ReceiverOpt);
                     }
 
                     return true;
@@ -972,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckRefReadOnlySymbols(MethodSymbol symbol)
         {
             if (symbol.ReturnsByRefReadonly ||
-                symbol.Parameters.Any(p => p.RefKind == RefKind.In))
+                symbol.Parameters.Any(static p => p.RefKind == RefKind.In))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }

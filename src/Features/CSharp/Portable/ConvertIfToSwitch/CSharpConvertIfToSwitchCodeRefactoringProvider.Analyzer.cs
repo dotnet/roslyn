@@ -6,7 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             //
             // When the 'break' moves into the switch, it will have different flow control impact.
             public override bool CanConvert(IConditionalOperation operation)
-                => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
+                => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).ExitPoints.Any(static n => n.IsKind(SyntaxKind.BreakStatement));
 
             public override bool CanImplicitlyConvert(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol targetType)
             {

@@ -20,9 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentHighlightsHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentHighlightsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentHighlightName)]
-    internal class DocumentHighlightsHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
+    internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {
         private readonly IHighlightingService _highlightingService;
         private readonly IGlobalOptionService _globalOptions;
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)

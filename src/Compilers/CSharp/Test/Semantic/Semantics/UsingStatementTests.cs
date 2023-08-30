@@ -1858,14 +1858,6 @@ class C
 
         #region help method
 
-        private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
-        {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
-            return usingStatements[index - 1];
-        }
-
         private IEnumerable<ILocalSymbol> VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
         {
             var tree = compilation.SyntaxTrees.Single();

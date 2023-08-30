@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             private void SetAppliedColorScheme(ColorSchemeName schemeName)
             {
-                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // The applied color scheme is stored in the configuration registry with the color theme information because
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.

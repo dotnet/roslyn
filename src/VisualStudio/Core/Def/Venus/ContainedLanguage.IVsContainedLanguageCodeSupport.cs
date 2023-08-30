@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 allowCancellation: false,
                 showProgress: false,
                 action: c =>
-                    result = ContainedLanguageCodeSupport.CreateUniqueEventName(GetThisDocument(), pszClassName, pszObjectName, pszNameOfEvent, c.UserCancellationToken));
+                    result = ContainedLanguageCodeSupport.CreateUniqueEventName(GetThisDocument(), GlobalOptions, pszClassName, pszObjectName, pszNameOfEvent, c.UserCancellationToken));
 
             pbstrEventHandlerName = result;
             return VSConstants.S_OK;
@@ -76,7 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     pszEventHandlerName,
                     itemidInsertionPoint,
                     useHandlesClause: false,
-                    additionalFormattingRule: targetDocument.Project.LanguageServices.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
+                    additionalFormattingRule: targetDocument.Project.Services.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
+                    GlobalOptions,
                     cancellationToken: c.UserCancellationToken));
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1;
@@ -156,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 showProgress: false,
                 action: c =>
                 {
-                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.UserCancellationToken))
+                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), GlobalOptions, pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.UserCancellationToken))
                     {
                         succeeded = true;
                         itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);

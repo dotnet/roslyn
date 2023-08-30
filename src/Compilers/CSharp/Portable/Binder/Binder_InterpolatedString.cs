@@ -1016,13 +1016,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver != null);
                         valSafeToEscapeScope = requiresInstanceReceiver
                             ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                            : Binder.ExternalScope;
+                            : Binder.CallingMethodScope;
                         isSuppressed = receiver.IsSuppressed;
                         placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = Binder.ExternalScope;
+                        valSafeToEscapeScope = Binder.CallingMethodScope;
                         isSuppressed = false;
                         break;
                     case >= 0:

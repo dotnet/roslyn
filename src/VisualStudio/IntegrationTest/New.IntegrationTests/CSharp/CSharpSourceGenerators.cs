@@ -6,24 +6,24 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
+    [Trait(Traits.Feature, Traits.Features.SourceGenerators)]
     public class CSharpSourceGenerators : AbstractEditorTest
     {
         private readonly ITestOutputHelper _testOutputHelper;
@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact]
         public async Task GoToDefinitionOpensGeneratedFile()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -62,7 +62,7 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeTheory, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
         {
@@ -79,13 +79,20 @@ internal static class Program
 
             if (invokeFromSourceGeneratedFile)
             {
+                var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+
+                // clear configuration options already read by initialization above, so that the global option update below is effective:
+                var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+                configurationService.Clear();
+
                 var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-                globalOptions.SetGlobalOption(new OptionKey(VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
+                globalOptions.SetGlobalOption(new OptionKey(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
+
                 await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
                 Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             }
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = (await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken)).OrderBy(r => r.GetLine()).ToArray();
 
@@ -114,7 +121,7 @@ internal static class Program
                 });
         }
 
-        [IdeTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeTheory, CombinatorialData]
         public async Task FindReferencesAndNavigateToReferenceInGeneratedFile(bool isPreview)
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -127,7 +134,7 @@ internal static class Program
 }", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
             var referenceInGeneratedFile = results.Single(r => r.GetText()?.Contains("<summary>") ?? false);
@@ -138,12 +145,12 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60477")]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
+            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

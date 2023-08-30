@@ -137,5 +137,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// The name assigned to the UnaryPlus operator.
         /// </summary>
         UnaryPlus,
+
+        /// <summary>
+        /// The name assigned to the UnsignedRightShift operator.
+        /// </summary>
+        UnsignedRightShift,
     }
 }

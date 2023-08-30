@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             string filePath,
             TextLoader textLoader,
             LanguageInformation languageInformation,
-            HostWorkspaceServices services,
+            SolutionServices services,
             ImmutableArray<MetadataReference> metadataReferences)
         {
             var fileExtension = PathUtilities.GetExtension(filePath);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
 
         // Do not inline this to avoid loading Microsoft.CodeAnalysis.Scripting unless a script file is opened in the workspace.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(HostWorkspaceServices services, CompilationOptions compilationOptions, string filePath)
+        private static CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(SolutionServices services, CompilationOptions compilationOptions, string filePath)
         {
             var metadataService = services.GetRequiredService<IMetadataService>();
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 searchPaths: ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory()),
                 baseDirectory: baseDirectory,
-                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
+                fileReferenceProvider: metadataService.GetReference);
 
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)

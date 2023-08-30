@@ -702,10 +702,10 @@ namespace [|N|]
     {
         public class A
         {
-            public static abstract string Property1 { get; }
+            public static string Property1 { get; }
             public virtual string Property { get; }
 
-            public static abstract void Method2();
+            public static void Method2();
             public virtual void Method1();
         }
 
@@ -723,9 +723,9 @@ namespace [|N|]
                 var initialVB = "Namespace [|N|] End Namespace";
                 var expectedVB = @"Namespace N End NamespaceNamespace N
         Public Class A
-            Public Shared MustOverride ReadOnly Property Property1 As String
+            Public Shared ReadOnly Property Property1 As String
             Public Overridable ReadOnly Property [Property] As String
-            Public MustOverride Shared Sub Method2()
+            Public Shared Sub Method2()
             Public Overridable Sub Method1()
         End Class
 
