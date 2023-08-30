@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 

@@ -6,18 +6,17 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
-using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -29,8 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(LanguageServerProjectSystem)), Shared]
 internal sealed class LanguageServerProjectSystem
 {
-    private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
-
     /// <summary>
     /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" /> and modifying <see cref="_msbuildLoaded" />.
     /// This is just we don't have code simultaneously trying to load and unload solutions at once.
@@ -82,9 +79,6 @@ internal sealed class LanguageServerProjectSystem
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
 
-        // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
-        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
-
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
             LoadOrReloadProjectsAsync,
@@ -129,13 +123,6 @@ internal sealed class LanguageServerProjectSystem
         if (!projectFilePaths.Any())
             return;
 
-        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
-            await OpenProjectsCoreAsync(projectFilePaths);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
-    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
-    {
         using (await _gate.DisposableWaitAsync())
         {
             _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null)));
@@ -184,7 +171,15 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory);
+
+        var binaryLogPath = GetMSBuildBinaryLogPath();
+        var runBuildInProcess = _globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadInProcess);
+
+        if (runBuildInProcess)
+            _logger.LogInformation("In-process project loading is enabled.");
+
+        await using var buildHostProcessManager = !runBuildInProcess ? new BuildHostProcessManager(_loggerFactory, binaryLogPath) : null;
+        var inProcessBuildHost = runBuildInProcess ? new BuildHost(_loggerFactory, binaryLogPath) : null;
 
         var displayedToast = 0;
 
@@ -196,7 +191,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, inProcessBuildHost, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -215,6 +210,9 @@ internal sealed class LanguageServerProjectSystem
         finally
         {
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
+
+            if (inProcessBuildHost != null)
+                await inProcessBuildHost.ShutdownAsync();
         }
     }
 
@@ -231,12 +229,14 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager? buildHostProcessManager, BuildHost? inProcessBuildHost, CancellationToken cancellationToken)
     {
         try
         {
             var projectPath = projectToLoad.Path;
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken);
+
+            // If we have a process manager, then get an OOP process; otherwise we're still using in-proc builds so just fetch one in-process
+            var buildHost = inProcessBuildHost ?? await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
             if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {
@@ -261,7 +261,6 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-
                         projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                     else
