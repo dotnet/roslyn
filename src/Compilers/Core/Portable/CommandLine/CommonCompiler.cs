@@ -2187,18 +2187,23 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree reportedSyntaxTree = diagnostic.Location.SourceTree;
             SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(reportedSyntaxTree);
 
+            if (!reportedSyntaxTree.GetRoot().FullSpan.Contains(diagnostic.Location.SourceSpan))
+            {
+                trace?.Log($"Diagnostic passed through because its location is inconsistent: {diagnostic}");
+
+                return (diagnostic, false, false);
+            }
+
             // Find the node in the tree where the diagnostic was reported.
             var reportedSyntaxNode =
                  reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             // Find the start and end token where the diagnostic was reported.
             var reportedSyntaxStartToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
-            var reportedSyntaxEndToken = reportedSyntaxNode.FindToken( Math.Max(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.End - 1 ));
-          
+            var reportedSyntaxEndToken = reportedSyntaxNode.FindToken(Math.Max(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.End - 1));
 
             // Find the node in the source syntax tree.
             var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
-
 
             // If sourceSyntaxNode == null, it means that two conditions are met:
             //   1. The diagnostic is located in generated code AND
