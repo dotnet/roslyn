@@ -688,7 +688,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             {
                 (BackgroundAnalysisScope.None, _) => 0,
                 (BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
-                (BackgroundAnalysisScope.OpenFiles, true) => 2,
+                (BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -704,11 +704,11 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
                     var text = await additionalDoc.GetTextAsync();
-                    if (analysisScope is BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.None)
+                    if (analysisScope is BackgroundAnalysisScope.None)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
-                    else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
+                    else if (analysisScope is BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.OpenFiles &&
                         firstAdditionalDocument != additionalDoc)
                     {
                         Assert.Empty(applicableDiagnostics);
