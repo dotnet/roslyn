@@ -1053,8 +1053,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
-        <target state="translated">Experimentální funkce interceptors není povolená. Do projektu přidejte &lt;Features&gt;InterceptorsPreview&lt;/Features&gt;.</target>
+        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -5040,6 +5040,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Použila se nepřiřazená lokální proměnná</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -12604,13 +12614,13 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">Typ slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změnám nebo odebrání.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">Typ slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změnám nebo odebrání.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">

@@ -5530,11 +5530,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VoidAssignment" xml:space="preserve">
     <value>A value of type 'void' may not be assigned.</value>
   </data>
-  <data name="WRN_Experimental" xml:space="preserve">
+  <data name="WRN_WindowsExperimental" xml:space="preserve">
     <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
-  <data name="WRN_Experimental_Title" xml:space="preserve">
+  <data name="WRN_WindowsExperimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_Experimental" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
+  </data>
+  <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
@@ -7593,7 +7599,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</value>
+    <value>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</value>
   </data>
   <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>

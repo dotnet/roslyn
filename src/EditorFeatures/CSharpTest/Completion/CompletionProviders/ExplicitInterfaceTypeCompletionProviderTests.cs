@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact]
         public async Task TestAtStartOfClass()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int $$
-}
-";
+                class C : IList
+                {
+                    int $$
+                }
+                """;
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
@@ -65,26 +65,26 @@ using System.Collections;
         [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
         public async Task TestInMisplacedUsing()
         {
-            var markup = @"
-class C
-{
-    using ($$)
-}
-";
+            var markup = """
+                class C
+                {
+                    using ($$)
+                }
+                """;
             await VerifyNoItemsExistAsync(markup); // no crash
         }
 
         [Fact]
         public async Task TestAtStartOfStruct()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-struct C : IList
-{
-    int $$
-}
-";
+                struct C : IList
+                {
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -95,15 +95,15 @@ struct C : IList
         [Fact]
         public async Task TestAfterField()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int i;
-    int $$
-}
-";
+                class C : IList
+                {
+                    int i;
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -114,15 +114,15 @@ class C : IList
         [Fact]
         public async Task TestAfterMethod_01()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    void Goo() { }
-    int $$
-}
-";
+                class C : IList
+                {
+                    void Goo() { }
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -133,15 +133,15 @@ class C : IList
         [Fact]
         public async Task TestAfterMethod_02()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-interface C : IList
-{
-    void Goo() { }
-    int $$
-}
-";
+                interface C : IList
+                {
+                    void Goo() { }
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -152,15 +152,15 @@ interface C : IList
         [Fact]
         public async Task TestAfterExpressionBody()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int Goo() => 0;
-    int $$
-}
-";
+                class C : IList
+                {
+                    int Goo() => 0;
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -171,18 +171,18 @@ class C : IList
         [Fact]
         public async Task TestWithAttributeFollowing()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int Goo() => 0;
-    int $$
+                class C : IList
+                {
+                    int Goo() => 0;
+                    int $$
 
-    [Attr]
-    int Bar();
-}
-";
+                    [Attr]
+                    int Bar();
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -193,17 +193,17 @@ class C : IList
         [Fact]
         public async Task TestWithModifierFollowing()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int Goo() => 0;
-    int $$
+                class C : IList
+                {
+                    int Goo() => 0;
+                    int $$
 
-    public int Bar();
-}
-";
+                    public int Bar();
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -214,17 +214,17 @@ class C : IList
         [Fact]
         public async Task TestWithTypeFollowing()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int Goo() => 0;
-    int $$
+                class C : IList
+                {
+                    int Goo() => 0;
+                    int $$
 
-    int Bar();
-}
-";
+                    int Bar();
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -235,17 +235,17 @@ class C : IList
         [Fact]
         public async Task TestWithTypeFollowing2()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    int Goo() => 0;
-    int $$
+                class C : IList
+                {
+                    int Goo() => 0;
+                    int $$
 
-    X Bar();
-}
-";
+                    X Bar();
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -256,17 +256,17 @@ class C : IList
         [Fact]
         public async Task NotInMember()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    void Goo()
-    {
-        int $$
-    }
-}
-";
+                class C : IList
+                {
+                    void Goo()
+                    {
+                        int $$
+                    }
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup);
         }
@@ -274,14 +274,14 @@ class C : IList
         [Fact]
         public async Task NotWithAccessibility()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-class C : IList
-{
-    public int $$
-}
-";
+                class C : IList
+                {
+                    public int $$
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup);
         }
@@ -289,14 +289,14 @@ class C : IList
         [Fact]
         public async Task TestInInterface()
         {
-            var markup = @"
-using System.Collections;
+            var markup = """
+                using System.Collections;
 
-interface I : IList
-{
-    int $$
-}
-";
+                interface I : IList
+                {
+                    int $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
@@ -307,16 +307,17 @@ interface I : IList
         [Fact]
         public async Task TestImplementedAsAsync()
         {
-            var markup = @"
-interface IGoo
-{
-    Task Goo();
-}
+            var markup = """
+                interface IGoo
+                {
+                    Task Goo();
+                }
 
-class MyGoo : IGoo
-{
-     async Task $$
-}";
+                class MyGoo : IGoo
+                {
+                     async Task $$
+                }
+                """;
 
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IGoo");

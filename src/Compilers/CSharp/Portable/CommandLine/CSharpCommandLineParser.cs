@@ -267,7 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            features.Add(value);
+                            // When a features value like "InterceptorsPreviewNamespaces=NS1;NS2" is provided,
+                            // the build system will quote it so that splitting doesn't occur in the wrong layer.
+                            // We need to unquote here so that subsequent layers can properly identify the feature name and value.
+                            features.Add(value.Unquote());
                         }
                         continue;
 

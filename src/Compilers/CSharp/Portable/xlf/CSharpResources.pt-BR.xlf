@@ -1053,8 +1053,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
-        <target state="translated">O recurso experimental 'interceptors' não está habilitado. Adicione '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' ao seu projeto.</target>
+        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -5040,6 +5040,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Uso de variável local não atribuída</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -12604,13 +12614,13 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' é para fins de avaliação somente e está sujeito a alterações ou remoções em atualizações futuras.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">'{0}' é para fins de avaliação somente e está sujeito a alterações ou remoções em atualizações futuras.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">O tipo destina-se somente para fins de avaliação e está sujeito a alterações ou remoções em atualizações futuras.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">O tipo destina-se somente para fins de avaliação e está sujeito a alterações ou remoções em atualizações futuras.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">

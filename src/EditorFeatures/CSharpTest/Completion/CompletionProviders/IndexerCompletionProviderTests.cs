@@ -23,142 +23,142 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDot()
         {
-            await VerifyItemExistsAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
+            await VerifyItemExistsAsync("""
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+                """, "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDotForString()
         {
-            await VerifyItemExistsAsync(@"
-public class Program
-{
-    public static void Main(string s)
-    {
-        s.$$
-    }
-}
-", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
+            await VerifyItemExistsAsync("""
+                public class Program
+                {
+                    public static void Main(string s)
+                    {
+                        s.$$
+                    }
+                }
+                """, "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedOnStaticAccess()
         {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C.$$
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedInNameOfContext()
         {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        var name = nameof(c.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        var name = nameof(c.$$
+                    }
+                }
+                """);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
         {
-            await VerifyCustomCommitProviderAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
+            await VerifyCustomCommitProviderAsync("""
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", @"
-public class C
-{
-    public int this[int i] => i;
-}
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+                """, "this", """
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c[$$]
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[$$]
+                    }
+                }
+                """);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
         {
-            await VerifyCustomCommitProviderAsync(@"
-public class C
-{
-    public int this[int x, int y] => i;
-}
+            await VerifyCustomCommitProviderAsync("""
+                public class C
+                {
+                    public int this[int x, int y] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", @"
-public class C
-{
-    public int this[int x, int y] => i;
-}
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+                """, "this", """
+                public class C
+                {
+                    public int this[int x, int y] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c[$$]
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[$$]
+                    }
+                }
+                """);
         }
 
         [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -262,125 +262,125 @@ public class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
         {
-            await VerifyItemExistsAsync(@"
-public class C
-{
-    /// <summary>
-    /// Returns the index <paramref name=""i""/>
-    /// </summary>
-    /// <param name=""i"">The index</param>
-    /// <returns>Returns the index <paramref name=""i""/></returns>
-    public int this[int i] => i;
+            await VerifyItemExistsAsync("""
+                public class C
+                {
+                    /// <summary>
+                    /// Returns the index <paramref name="i"/>
+                    /// </summary>
+                    /// <param name="i">The index</param>
+                    /// <returns>Returns the index <paramref name="i"/></returns>
+                    public int this[int i] => i;
 
-    /// <summary>
-    /// Returns 1
-    /// </summary>
-    /// <param name=""i"">The index</param>
-    /// <returns>Returns 1</returns>
-    public int this[string s] => 1;
-}
+                    /// <summary>
+                    /// Returns 1
+                    /// </summary>
+                    /// <param name="i">The index</param>
+                    /// <returns>Returns 1</returns>
+                    public int this[string s] => 1;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+                """, "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
 Returns the index i");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
         {
-            await VerifyItemExistsAsync(@"
-public class Base
-{
-    public int this[int i] => i;
-}
-public class Derived : Base
-{
-}
+            await VerifyItemExistsAsync("""
+                public class Base
+                {
+                    public int this[int i] => i;
+                }
+                public class Derived : Base
+                {
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var d = new Derived();
-        d.$$
-    }
-}
-", "this", displayTextSuffix: "[]");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var d = new Derived();
+                        d.$$
+                    }
+                }
+                """, "this", displayTextSuffix: "[]");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
         {
-            await VerifyNoItemsExistAsync(@"
-public class Base
-{
-    protected int this[int i] => i;
-}
-public class Derived : Base
-{
-}
+            await VerifyNoItemsExistAsync("""
+                public class Base
+                {
+                    protected int this[int i] => i;
+                }
+                public class Derived : Base
+                {
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var d = new Derived();
-        d.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var d = new Derived();
+                        d.$$
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedOnString()
         {
-            await VerifyItemExistsAsync(@"
-public class Program
-{
-    public static void Main()
-    {
-        var s = ""Test"";
-        s.$$
-    }
-}
-", "this", displayTextSuffix: "[]");
+            await VerifyItemExistsAsync("""
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var s = "Test";
+                        s.$$
+                    }
+                }
+                """, "this", displayTextSuffix: "[]");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
         {
-            var markup = @"
-namespace N
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+            var markup = """
+                namespace N
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var c = new C();
+                            c.$$
+                        }
+                    }
+                }
+                """;
+            var referencedCode = """
+                using System.ComponentModel;
 
-namespace N
-{
-    public class C
-    {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int this[int i] => i;
-    }
-}
-";
+                namespace N
+                {
+                    public class C
+                    {
+                        [EditorBrowsable(EditorBrowsableState.Never)]
+                        public int this[int i] => i;
+                    }
+                }
+                """;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -395,31 +395,31 @@ namespace N
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateAdvanced()
         {
-            var markup = @"
-namespace N
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+            var markup = """
+                namespace N
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var c = new C();
+                            c.$$
+                        }
+                    }
+                }
+                """;
+            var referencedCode = """
+                using System.ComponentModel;
 
-namespace N
-{
-    public class C
-    {
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public int this[int i] => i;
-    }
-}
-";
+                namespace N
+                {
+                    public class C
+                    {
+                        [EditorBrowsable(EditorBrowsableState.Advanced)]
+                        public int this[int i] => i;
+                    }
+                }
+                """;
             HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
@@ -446,35 +446,35 @@ namespace N
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever_InheritedMember()
         {
-            var markup = @"
-namespace N
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            var d = new Derived();
-            d.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+            var markup = """
+                namespace N
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var d = new Derived();
+                            d.$$
+                        }
+                    }
+                }
+                """;
+            var referencedCode = """
+                using System.ComponentModel;
 
-namespace N
-{
-    public class Base
-    {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int this[int i] => i;
-    }
-    
-    public class Derived: Base
-    {
-    }
-}
-";
+                namespace N
+                {
+                    public class Base
+                    {
+                        [EditorBrowsable(EditorBrowsableState.Never)]
+                        public int this[int i] => i;
+                    }
+
+                    public class Derived: Base
+                    {
+                    }
+                }
+                """;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -489,39 +489,39 @@ namespace N
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerNullForgivingOperatorHandling()
         {
-            await VerifyCustomCommitProviderAsync(@"
-#nullable enable
+            await VerifyCustomCommitProviderAsync("""
+                #nullable enable
 
-public class C
-{
-    public int this[int i] => i;
-}
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var i = c!.$$
-    }
-}
-", "this", @"
-#nullable enable
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C? c = null;
+                        var i = c!.$$
+                    }
+                }
+                """, "this", """
+                #nullable enable
 
-public class C
-{
-    public int this[int i] => i;
-}
+                public class C
+                {
+                    public int this[int i] => i;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var i = c![$$]
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C? c = null;
+                        var i = c![$$]
+                    }
+                }
+                """);
         }
     }
 }

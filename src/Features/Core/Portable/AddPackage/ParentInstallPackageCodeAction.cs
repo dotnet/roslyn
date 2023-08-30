@@ -17,16 +17,18 @@ namespace Microsoft.CodeAnalysis.AddPackage;
 /// 'Install Version 'X' ..., and 'Install with package manager'.
 /// </summary>
 /// <param name="packageSource">The nuget source to use.  Currently this is only <see
-/// cref="PackageSourceHelper.NugetOrgSourceName"/> ("::nuget::")</param>
+/// cref="PackageSourceHelper.NugetOrg"/> ("nuget.org").  Can be <see langword="null"/> to use the users configured
+/// sources.</param>
 /// <param name="packageName">The name of the package to install.</param>
-/// <param name="packageVersionOpt">A preferred version if known.</param>
+/// <param name="packageVersionOpt">A optional preferred version if known. If not present, the user will be given the
+/// option to either install the latest version, or install any version installed locally in another project.</param>
 /// <param name="textChanges">Additional text changes to make to the <see cref="Document"/>.  Generally, this would be
 /// the import to add if not present.</param>
-internal readonly struct InstallPackageData(string packageSource, string packageName, string packageVersionOpt, ImmutableArray<TextChange> textChanges)
+internal readonly struct InstallPackageData(string? packageSource, string packageName, string? packageVersionOpt, ImmutableArray<TextChange> textChanges)
 {
-    public readonly string PackageSource = packageSource;
+    public readonly string? PackageSource = packageSource;
     public readonly string PackageName = packageName;
-    public readonly string PackageVersionOpt = packageVersionOpt;
+    public readonly string? PackageVersionOpt = packageVersionOpt;
 
     public readonly ImmutableArray<TextChange> TextChanges = textChanges;
 }

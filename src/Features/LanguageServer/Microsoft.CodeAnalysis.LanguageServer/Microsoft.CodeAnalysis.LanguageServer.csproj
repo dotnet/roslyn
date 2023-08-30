@@ -126,8 +126,11 @@
         <!--
             We have to run restore first with the PublishReadyToRun flag set to true to ensure that the correct crossgen packages get restored.
             See https://github.com/dotnet/sdk/issues/20701
+
+            We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
+            See https://github.com/NuGet/Home/issues/11968
         -->
-        <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="RestoreWithR2R=true" />
+        <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="RestoreWithR2R=true;RestoreUseStaticGraphEvaluation=false" />
 
         <MSBuild Projects="@(ProjectToPublish)" Targets="Publish" BuildInParallel="true" />
 
