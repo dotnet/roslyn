@@ -34,6 +34,28 @@ pr:
     - release/dev17.2
     - release/dev17.3
 
+parameters:
+- name: poolName
+  displayName: Pool Name
+  type: string
+  default: NetCore-Public
+  values:
+  - NetCore-Public
+  - NetCore-Svc-Public
+- name: queueName
+  displayName: Queue Name
+  type: string
+  default: windows.vs2022preview.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2022.scout.amd64.open
+  - windows.vs2022preview.amd64.open
+  - windows.vs2022preview.scout.amd64.open
+- name: timeout
+  displayName: Timeout in Minutes
+  type: number
+  default: 150
+
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
@@ -41,9 +63,9 @@ variables:
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2022.amd64.open
-  timeoutInMinutes: 135
+    name: ${{ parameters.poolName }}
+    demands: ImageOverride -equals ${{ parameters.queueName }}
+  timeoutInMinutes: ${{ parameters.timeout }}
 
   steps:
     - template: eng/pipelines/test-integration-job.yml

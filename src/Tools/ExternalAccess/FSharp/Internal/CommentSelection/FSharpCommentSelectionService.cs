@@ -10,6 +10,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,19 +26,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
         {
         }
 
-        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(document);
-        }
-
-        public Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(new CommentSelectionInfo(
+        public CommentSelectionInfo GetInfo()
+            => new(
                 supportsSingleLineComment: true,
                 supportsBlockComment: true,
                 singleLineCommentString: "//",
                 blockCommentStartString: "(*",
-                blockCommentEndString: "*)"));
-        }
+                blockCommentEndString: "*)");
     }
 }

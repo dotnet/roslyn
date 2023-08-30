@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
                    EnforceOnBuildValues.AddBraces,
                    CSharpCodeStyleOptions.PreferBraces,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces_to_0_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -48,9 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var statement = context.Node;
-            var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferBraces, statement.SyntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferBraces;
             if (option.Value == PreferBracesPreference.None)
             {
                 return;
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return;
             }
 
-            if (ContainsInterleavedDirective(statement, embeddedStatement, cancellationToken))
+            if (ContainsInterleavedDirective(statement, embeddedStatement, context.CancellationToken))
             {
                 return;
             }
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
-            if (statement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax? ifStatementNode))
+            if (statement is IfStatementSyntax ifStatementNode)
             {
                 var elseNode = ifStatementNode.Else;
                 if (elseNode != null && !embeddedStatement.IsMissing)
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool RequiresBracesToMatchContext(SyntaxNode statement)
         {
-            if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
+            if (statement.Kind() is not (SyntaxKind.IfStatement or SyntaxKind.ElseClause))
             {
                 // 'if' statements are the only statements that can have multiple embedded statements which are
                 // considered relative to each other.

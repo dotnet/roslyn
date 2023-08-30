@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 return token.Parent is PropertyPatternClauseSyntax { Parent: PatternSyntax } propertyPatternClause
                     ? (propertyPatternClause, null)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     memberAccess = (MemberAccessExpressionSyntax)memberAccess.Parent;
                 }
 
-                if (memberAccess is { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } } })
+                if (memberAccess is { Parent.Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } })
                 {
                     propertyPatternClause = found;
                     return true;

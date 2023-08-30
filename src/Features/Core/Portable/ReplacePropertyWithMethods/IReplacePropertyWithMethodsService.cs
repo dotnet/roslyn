@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);

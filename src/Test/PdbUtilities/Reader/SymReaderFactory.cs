@@ -29,20 +29,31 @@ namespace Roslyn.Test.PdbUtilities
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymReader")]
-        private static extern void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+        private static extern void CreateSymReaderAmd64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+        [DllImport("Microsoft.DiaSymReader.Native.arm64.dll", EntryPoint = "CreateSymReader")]
+        private static extern void CreateSymReaderArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+
 
         private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
             object symReader = null;
 
             var guid = default(Guid);
-            if (IntPtr.Size == 4)
+            switch (RuntimeInformation.ProcessArchitecture)
             {
-                CreateSymReader32(ref guid, out symReader);
-            }
-            else
-            {
-                CreateSymReader64(ref guid, out symReader);
+                case Architecture.X86:
+                    CreateSymReader32(ref guid, out symReader);
+                    break;
+                case Architecture.X64:
+                    CreateSymReaderAmd64(ref guid, out symReader);
+                    break;
+                case Architecture.Arm64:
+                    CreateSymReaderArm64(ref guid, out symReader);
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
 
             var reader = (ISymUnmanagedReader5)symReader;

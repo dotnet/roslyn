@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
+            ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingField.RefCustomModifiers);
+
+        bool Cci.IFieldReference.IsByReference => _underlyingField.RefKind != RefKind.None;
+
         Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
             return null;

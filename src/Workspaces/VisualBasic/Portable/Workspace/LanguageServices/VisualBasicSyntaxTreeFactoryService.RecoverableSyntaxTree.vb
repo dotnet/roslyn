@@ -21,28 +21,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Friend NotInheritable Class RecoverableSyntaxTree
                 Inherits VisualBasicSyntaxTree
-                Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax)
+                Implements IRecoverableSyntaxTree(Of VisualBasicSyntaxNode)
                 Implements ICachedObjectOwner
 
-                Private ReadOnly _recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax)
+                Private ReadOnly _recoverableRoot As RecoverableSyntaxRoot(Of VisualBasicSyntaxNode)
                 Private ReadOnly _info As SyntaxTreeInfo
-                Private ReadOnly _projectCacheService As IProjectCacheHostService
+                Private ReadOnly _service As AbstractSyntaxTreeFactoryService
                 Private ReadOnly _cacheKey As ProjectId
 
                 Private Property CachedObject As Object Implements ICachedObjectOwner.CachedObject
+                Public Overrides ReadOnly Property HasCompilationUnitRoot As Boolean
 
-                Private Sub New(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, root As CompilationUnitSyntax, info As SyntaxTreeInfo)
-                    _recoverableRoot = New RecoverableSyntaxRoot(Of CompilationUnitSyntax)(service, root, Me)
+                Private Sub New(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, root As VisualBasicSyntaxNode, info As SyntaxTreeInfo)
+                    _recoverableRoot = New RecoverableSyntaxRoot(Of VisualBasicSyntaxNode)(service, root, Me)
                     _info = info
-                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetService(Of IProjectCacheHostService)
+                    _service = service
                     _cacheKey = cacheKey
+                    HasCompilationUnitRoot = root.IsKind(SyntaxKind.CompilationUnit)
                 End Sub
 
                 Private Sub New(original As RecoverableSyntaxTree, info As SyntaxTreeInfo)
                     _recoverableRoot = original._recoverableRoot.WithSyntaxTree(Me)
                     _info = info
-                    _projectCacheService = original._projectCacheService
+                    _service = original._service
                     _cacheKey = original._cacheKey
+                    HasCompilationUnitRoot = original.HasCompilationUnitRoot
                 End Sub
 
                 Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService,
@@ -51,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              options As ParseOptions,
                                                              text As ValueSource(Of TextAndVersion),
                                                              encoding As Encoding,
-                                                             root As CompilationUnitSyntax) As SyntaxTree
+                                                             root As VisualBasicSyntaxNode) As SyntaxTree
                     Return New RecoverableSyntaxTree(
                         service,
                         cacheKey,
@@ -65,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             root.ContainsDirectives))
                 End Function
 
-                Public Overrides ReadOnly Property FilePath As String Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).FilePath
+                Public Overrides ReadOnly Property FilePath As String Implements IRecoverableSyntaxTree(Of VisualBasicSyntaxNode).FilePath
                     Get
                         Return _info.FilePath
                     End Get
@@ -102,15 +105,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
-                    Dim compilationRoot As CompilationUnitSyntax = Nothing
+                    Dim compilationRoot As VisualBasicSyntaxNode = Nothing
                     Dim status = _recoverableRoot.TryGetValue(compilationRoot)
                     root = compilationRoot
                     CacheRootNode(compilationRoot)
                     Return status
                 End Function
 
-                Private Function CacheRootNode(compilationRoot As CompilationUnitSyntax) As CompilationUnitSyntax
-                    Return _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, Me, compilationRoot)
+                Private Function CacheRootNode(compilationRoot As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+                    Return _service.SolutionServices.GetService(Of IProjectCacheHostService).CacheObjectIfCachingEnabledForKey(_cacheKey, Me, compilationRoot)
                 End Function
 
                 Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
@@ -120,12 +123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides Async Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
                     Return CacheRootNode(Await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(False))
                 End Function
-
-                Public Overrides ReadOnly Property HasCompilationUnitRoot As Boolean
-                    Get
-                        Return True
-                    End Get
-                End Property
 
                 Public Overrides Function GetReference(node As SyntaxNode) As SyntaxReference
                     If node IsNot Nothing Then
@@ -139,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End Function
 
-                Private Function IRecoverableSyntaxTree_CloneNodeAsRoot(root As CompilationUnitSyntax) As CompilationUnitSyntax Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).CloneNodeAsRoot
+                Private Function IRecoverableSyntaxTree_CloneNodeAsRoot(root As VisualBasicSyntaxNode) As VisualBasicSyntaxNode Implements IRecoverableSyntaxTree(Of VisualBasicSyntaxNode).CloneNodeAsRoot
                     Return CloneNodeAsRoot(root)
                 End Function
 
@@ -155,7 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return Me
                     End If
 
-                    Return Create(DirectCast(root, VisualBasicSyntaxNode), Me.Options, _info.FilePath)
+                    Return New RecoverableSyntaxTree(_service, _cacheKey, DirectCast(root, VisualBasicSyntaxNode),
+                        _info.WithOptionsAndLengthAndContainsDirectives(options, root.FullSpan.Length, root.ContainsDirectives))
                 End Function
 
                 Public Overrides Function WithFilePath(path As String) As SyntaxTree

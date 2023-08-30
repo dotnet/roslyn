@@ -5,13 +5,13 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
+    <Trait(Traits.Feature, Traits.Features.Expansion)>
     Public Class NameExpansionTests
         Inherits AbstractExpansionTest
 
 #Region "C# Tests"
 
-        <WorkItem(604392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604392")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem(604392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604392")>
         Public Async Function TestNoExpansionForPropertyNamesOfObjectInitializers() As Task
             Dim input =
 <Workspace>
@@ -54,8 +54,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
@@ -110,8 +109,7 @@ namespace LongNamespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =
 <Workspace>
@@ -152,7 +150,7 @@ namespace NS
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_GenericNameExpansion_DontExpandAnonymousTypes() As Task
             Dim input =
 <Workspace>
@@ -187,7 +185,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes1() As Task
             Dim input =
 <Workspace>
@@ -224,7 +222,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2() As Task
             Dim input =
 <Workspace>
@@ -261,8 +259,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        <WorkItem(11979, "https://github.com/dotnet/roslyn/issues/11979")>
+        <Fact, WorkItem(11979, "https://github.com/dotnet/roslyn/issues/11979")>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2_variation() As Task
             Dim input =
 <Workspace>
@@ -305,8 +302,7 @@ class C
 
 #Region "Visual Basic tests"
 
-        <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
@@ -360,7 +356,7 @@ End Namespace
         End Function
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805")>
         Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =
 <Workspace>

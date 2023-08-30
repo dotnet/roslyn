@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Result of span mapping
     /// </summary>
-    internal struct MappedSpanResult
+    internal readonly struct MappedSpanResult
     {
         /// <summary>
         /// Path to mapped file

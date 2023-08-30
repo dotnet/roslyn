@@ -260,10 +260,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private Fields GetFields()
         {
-            if (_lazyFields == null)
-            {
-                _lazyFields = GetFields(_typeAndInfo, _cardinality, _useRawView);
-            }
+            _lazyFields ??= GetFields(_typeAndInfo, _cardinality, _useRawView);
             return _lazyFields;
         }
 

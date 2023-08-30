@@ -190,6 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
 
@@ -198,6 +205,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.ReadOnlyKeyword);
                     AddSpace();
                 }
+            }
+
+            if (symbol.ScopedKind == ScopedKind.ScopedValue &&
+                format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+            {
+                AddKeyword(SyntaxKind.ScopedKeyword);
+                AddSpace();
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
@@ -292,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(keywordKind)));
         }
 
-        private void AddAccessibilityIfRequired(ISymbol symbol)
+        private void AddAccessibilityIfNeeded(ISymbol symbol)
         {
             INamedTypeSymbol containingType = symbol.ContainingType;
 

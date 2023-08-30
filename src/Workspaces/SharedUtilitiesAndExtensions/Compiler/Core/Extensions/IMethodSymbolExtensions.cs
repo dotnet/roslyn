@@ -3,13 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class IMethodSymbolExtensions
     {
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(!Equals(method.PartialImplementationPart, method));
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
+        }
+
         /// <summary>
         /// Returns true for void returning methods with two parameters, where
         /// the first parameter is of <see cref="object"/> type and the second
@@ -48,29 +72,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static PredefinedOperator GetPredefinedOperator(this IMethodSymbol symbol)
             => symbol.Name switch
             {
-                "op_Addition" or "op_UnaryPlus" => PredefinedOperator.Addition,
-                "op_BitwiseAnd" => PredefinedOperator.BitwiseAnd,
-                "op_BitwiseOr" => PredefinedOperator.BitwiseOr,
-                "op_Concatenate" => PredefinedOperator.Concatenate,
-                "op_Decrement" => PredefinedOperator.Decrement,
-                "op_Division" => PredefinedOperator.Division,
-                "op_Equality" => PredefinedOperator.Equality,
-                "op_ExclusiveOr" => PredefinedOperator.ExclusiveOr,
-                "op_Exponent" => PredefinedOperator.Exponent,
-                "op_GreaterThan" => PredefinedOperator.GreaterThan,
-                "op_GreaterThanOrEqual" => PredefinedOperator.GreaterThanOrEqual,
-                "op_Increment" => PredefinedOperator.Increment,
-                "op_Inequality" => PredefinedOperator.Inequality,
-                "op_IntegerDivision" => PredefinedOperator.IntegerDivision,
-                "op_LeftShift" => PredefinedOperator.LeftShift,
-                "op_LessThan" => PredefinedOperator.LessThan,
-                "op_LessThanOrEqual" => PredefinedOperator.LessThanOrEqual,
-                "op_Like" => PredefinedOperator.Like,
-                "op_LogicalNot" or "op_OnesComplement" => PredefinedOperator.Complement,
-                "op_Modulus" => PredefinedOperator.Modulus,
-                "op_Multiply" => PredefinedOperator.Multiplication,
-                "op_RightShift" => PredefinedOperator.RightShift,
-                "op_Subtraction" or "op_UnaryNegation" => PredefinedOperator.Subtraction,
+                WellKnownMemberNames.AdditionOperatorName or WellKnownMemberNames.CheckedAdditionOperatorName or WellKnownMemberNames.UnaryPlusOperatorName => PredefinedOperator.Addition,
+                WellKnownMemberNames.BitwiseAndOperatorName => PredefinedOperator.BitwiseAnd,
+                WellKnownMemberNames.BitwiseOrOperatorName => PredefinedOperator.BitwiseOr,
+                WellKnownMemberNames.ConcatenateOperatorName => PredefinedOperator.Concatenate,
+                WellKnownMemberNames.DecrementOperatorName or WellKnownMemberNames.CheckedDecrementOperatorName => PredefinedOperator.Decrement,
+                WellKnownMemberNames.DivisionOperatorName or WellKnownMemberNames.CheckedDivisionOperatorName => PredefinedOperator.Division,
+                WellKnownMemberNames.EqualityOperatorName => PredefinedOperator.Equality,
+                WellKnownMemberNames.ExclusiveOrOperatorName => PredefinedOperator.ExclusiveOr,
+                WellKnownMemberNames.ExponentOperatorName => PredefinedOperator.Exponent,
+                WellKnownMemberNames.GreaterThanOperatorName => PredefinedOperator.GreaterThan,
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => PredefinedOperator.GreaterThanOrEqual,
+                WellKnownMemberNames.IncrementOperatorName or WellKnownMemberNames.CheckedIncrementOperatorName => PredefinedOperator.Increment,
+                WellKnownMemberNames.InequalityOperatorName => PredefinedOperator.Inequality,
+                WellKnownMemberNames.IntegerDivisionOperatorName => PredefinedOperator.IntegerDivision,
+                WellKnownMemberNames.LeftShiftOperatorName => PredefinedOperator.LeftShift,
+                WellKnownMemberNames.LessThanOperatorName => PredefinedOperator.LessThan,
+                WellKnownMemberNames.LessThanOrEqualOperatorName => PredefinedOperator.LessThanOrEqual,
+                WellKnownMemberNames.LikeOperatorName => PredefinedOperator.Like,
+                WellKnownMemberNames.LogicalNotOperatorName or WellKnownMemberNames.OnesComplementOperatorName => PredefinedOperator.Complement,
+                WellKnownMemberNames.ModulusOperatorName => PredefinedOperator.Modulus,
+                WellKnownMemberNames.MultiplyOperatorName or WellKnownMemberNames.CheckedMultiplyOperatorName => PredefinedOperator.Multiplication,
+                WellKnownMemberNames.RightShiftOperatorName => PredefinedOperator.RightShift,
+                WellKnownMemberNames.UnsignedRightShiftOperatorName => PredefinedOperator.UnsignedRightShift,
+                WellKnownMemberNames.SubtractionOperatorName or WellKnownMemberNames.CheckedSubtractionOperatorName or WellKnownMemberNames.UnaryNegationOperatorName or WellKnownMemberNames.CheckedUnaryNegationOperatorName => PredefinedOperator.Subtraction,
                 _ => PredefinedOperator.None,
             };
 
@@ -81,5 +106,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
+
+        /// <summary>
+        /// Tells if an async method returns a task-like type, awaiting for which produces <see langword="void"/> result
+        /// </summary>
+        public static bool IsAsyncReturningVoidTask(this IMethodSymbol method, Compilation compilation)
+        {
+            if (!method.IsAsync)
+                return false;
+
+            if (method.ReturnType is not INamedTypeSymbol { Arity: 0 })
+                return false;
+
+            // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
+            return method.ReturnType.Equals(compilation.TaskType()) ||
+                   method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+        }
     }
 }

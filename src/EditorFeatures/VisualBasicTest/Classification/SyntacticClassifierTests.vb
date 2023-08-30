@@ -1792,8 +1792,8 @@ Dim q = From var1 In src Where var1 And True _ ' Test 1 space
                 Punctuation.CloseParen)
         End Function
 
-        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         <Theory, CombinatorialData>
+        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         Public Async Function TestFromInQuery(testHost As TestHost) As Task
             Dim code =
 "Dim From = New List(Of Integer)
@@ -5182,6 +5182,44 @@ end interface"
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function TestConflictMarkers2(testHost As TestHost) As Task
+            Dim code =
+"interface I
+<<<<<<< Start
+    sub Goo()
+||||||| Baseline
+    sub Removed()
+=======
+    sub Bar()
+>>>>>>> End
+end interface"
+
+            Await TestAsync(
+                code,
+                testHost,
+                Keyword("interface"),
+                [Interface]("I"),
+                Comment("<<<<<<< Start"),
+                Keyword("sub"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("||||||| Baseline"),
+                Keyword("sub"),
+                Identifier("Removed"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("======="),
+                Keyword("sub"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment(">>>>>>> End"),
+                Keyword("end"),
+                Keyword("interface"))
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function TestConstField(testHost As TestHost) As Task
             Dim code = "Const Number = 42"
 
@@ -5459,6 +5497,18 @@ End Try"
                 Identifier("Exception"),
                 ControlKeyword("End"),
                 ControlKeyword("Try"))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem(61687, "https://github.com/dotnet/roslyn/issues/61687")>
+        Public Async Function TestThrow(testHost As TestHost) As Task
+            Dim code = "Throw New System.NotImplementedException"
+            Await TestInMethodAsync(code,
+                testHost,
+                ControlKeyword("Throw"),
+                Keyword("New"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("NotImplementedException"))
         End Function
     End Class
 End Namespace

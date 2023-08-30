@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var language = arg.Language;
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
+                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeWorkspacePlaceholderAnalyzers: true);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
                     return new HostAnalyzerStateSets(analyzerMap);
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private sealed class HostAnalyzerStateSets
             {
-                private const int FileContentLoadAnalyzerPriority = -3;
+                private const int FileContentLoadAnalyzerPriority = -4;
+                private const int GeneratorDiagnosticsPlaceholderAnalyzerPriority = -3;
                 private const int BuiltInCompilerPriority = -2;
                 private const int RegularDiagnosticAnalyzerPriority = -1;
 
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return state.Analyzer switch
                     {
                         FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
+                        GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
                         DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                         ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                         _ => RegularDiagnosticAnalyzerPriority,

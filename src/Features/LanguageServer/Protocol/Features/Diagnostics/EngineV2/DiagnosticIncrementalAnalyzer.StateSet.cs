@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
 
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
-                => _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
+                => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
 
             public async Task<bool> OnDocumentOpenedAsync(TextDocument document)
             {

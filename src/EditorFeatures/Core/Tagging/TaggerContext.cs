@@ -86,15 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
             => _spansTagged = spansTagged;
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
-        {
-            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
-            {
-                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
-                           .Where(s => s.Span.Contains(point));
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-        }
+        public bool HasExistingContainingTags(SnapshotPoint point)
+            => _existingTags != null &&
+               _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree) &&
+               tree.HasSpanThatContains(point);
     }
 }

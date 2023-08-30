@@ -42,6 +42,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
         }
 
         [WpfFact]
+        public async Task TestRename_InvalidIdentifierAsync()
+        {
+            var markup =
+@"class A
+{
+    void {|caret:|}{|renamed:M|}()
+    {
+    }
+    void M2()
+    {
+        {|renamed:M|}()
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var renameLocation = testLspServer.GetLocations("caret").First();
+            var renameValue = "$RENAMED$";
+
+            var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+            Assert.Null(results);
+        }
+
+        [WpfFact]
         public async Task TestRename_WithLinkedFilesAsync()
         {
             var markup =

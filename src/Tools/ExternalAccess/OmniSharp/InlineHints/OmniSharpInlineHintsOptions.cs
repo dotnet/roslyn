@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints;
 
@@ -12,9 +12,11 @@ internal readonly record struct OmniSharpInlineHintsOptions(
     OmniSharpInlineTypeHintsOptions TypeOptions)
 {
     internal InlineHintsOptions ToInlineHintsOptions()
-        => new(ParameterOptions.ToInlineParameterHintsOptions(),
-               TypeOptions.ToInlineTypeHintsOptions(),
-               SymbolDescriptionOptions.Default);
+        => new()
+        {
+            ParameterOptions = ParameterOptions.ToInlineParameterHintsOptions(),
+            TypeOptions = TypeOptions.ToInlineTypeHintsOptions(),
+        };
 }
 internal readonly record struct OmniSharpInlineParameterHintsOptions(
     bool EnabledForParameters,
@@ -27,7 +29,17 @@ internal readonly record struct OmniSharpInlineParameterHintsOptions(
     bool SuppressForParametersThatMatchArgumentName)
 {
     internal InlineParameterHintsOptions ToInlineParameterHintsOptions()
-        => new(EnabledForParameters, ForLiteralParameters, ForIndexerParameters, ForObjectCreationParameters, ForOtherParameters, SuppressForParametersThatDifferOnlyBySuffix, SuppressForParametersThatMatchMethodIntent, SuppressForParametersThatMatchArgumentName);
+        => new()
+        {
+            EnabledForParameters = EnabledForParameters,
+            ForLiteralParameters = ForLiteralParameters,
+            ForIndexerParameters = ForIndexerParameters,
+            ForObjectCreationParameters = ForObjectCreationParameters,
+            ForOtherParameters = ForOtherParameters,
+            SuppressForParametersThatDifferOnlyBySuffix = SuppressForParametersThatDifferOnlyBySuffix,
+            SuppressForParametersThatMatchMethodIntent = SuppressForParametersThatMatchMethodIntent,
+            SuppressForParametersThatMatchArgumentName = SuppressForParametersThatMatchArgumentName,
+        };
 }
 
 internal readonly record struct OmniSharpInlineTypeHintsOptions(
@@ -37,5 +49,11 @@ internal readonly record struct OmniSharpInlineTypeHintsOptions(
     bool ForImplicitObjectCreation)
 {
     internal InlineTypeHintsOptions ToInlineTypeHintsOptions()
-        => new(EnabledForTypes, ForImplicitVariableTypes, ForLambdaParameterTypes, ForImplicitObjectCreation);
+        => new()
+        {
+            EnabledForTypes = EnabledForTypes,
+            ForImplicitVariableTypes = ForImplicitVariableTypes,
+            ForLambdaParameterTypes = ForLambdaParameterTypes,
+            ForImplicitObjectCreation = ForImplicitObjectCreation,
+        };
 }

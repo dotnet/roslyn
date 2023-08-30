@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,11 +35,14 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId = projectId;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as SerializableSymbolAndProjectId);
 
-        public bool Equals(SerializableSymbolAndProjectId other)
+        public bool Equals(SerializableSymbolAndProjectId? other)
         {
+            if (other == null)
+                return false;
+
             if (this == other)
                 return true;
 
@@ -50,8 +53,9 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
 
-        public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
+        [return: NotNullIfNotNull("alias")]
+        public static SerializableSymbolAndProjectId? Dehydrate(
+            IAliasSymbol? alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static bool TryCreate(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken,
-            out SerializableSymbolAndProjectId result)
+            [NotNullWhen(true)] out SerializableSymbolAndProjectId? result)
         {
             var project = solution.GetOriginatingProject(symbol);
             if (project == null)
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static bool TryCreate(
             ISymbol symbol, Project project, CancellationToken cancellationToken,
-            out SerializableSymbolAndProjectId result)
+            [NotNullWhen(true)] out SerializableSymbolAndProjectId? result)
         {
             if (!SymbolKey.CanCreate(symbol, cancellationToken))
             {
@@ -98,12 +102,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<ISymbol> TryRehydrateAsync(
+        public async ValueTask<ISymbol?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
-            var project = solution.GetProject(projectId);
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var project = solution.GetRequiredProject(projectId);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly DocumentId Document;
 
         [DataMember(Order = 1)]
-        public readonly SerializableSymbolAndProjectId Alias;
+        public readonly SerializableSymbolAndProjectId? Alias;
 
         [DataMember(Order = 2)]
         public readonly TextSpan Location;
@@ -153,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableReferenceLocation(
             DocumentId document,
-            SerializableSymbolAndProjectId alias,
+            SerializableSymbolAndProjectId? alias,
             TextSpan location,
             bool isImplicit,
             SymbolUsageInfo symbolUsageInfo,
@@ -182,11 +186,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 referenceLocation.CandidateReason);
         }
 
-        public async Task<ReferenceLocation> RehydrateAsync(
+        public async ValueTask<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var document = await solution.GetDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
             var additionalProperties = this.AdditionalProperties;
             return new ReferenceLocation(
@@ -199,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 candidateReason: CandidateReason);
         }
 
-        private async Task<IAliasSymbol> RehydrateAliasAsync(
+        private async Task<IAliasSymbol?> RehydrateAliasAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             if (Alias == null)
@@ -223,15 +227,18 @@ namespace Microsoft.CodeAnalysis.Remote
             Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is SerializableSymbolGroup group && Equals(group);
 
-        public bool Equals(SerializableSymbolGroup other)
+        public bool Equals(SerializableSymbolGroup? other)
         {
+            if (other == null)
+                return false;
+
             if (this == other)
                 return true;
 
-            return other != null && this.Symbols.SetEquals(other.Symbols);
+            return this.Symbols.SetEquals(other.Symbols);
         }
 
         public override int GetHashCode()
@@ -241,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var hashCode = 0;
                 foreach (var symbol in Symbols)
                     hashCode += symbol.SymbolKeyData.GetHashCode();
-                _hashCode = hashCode;
+                _hashCode = hashCode == 0 ? 1 : hashCode;
             }
 
             return _hashCode;

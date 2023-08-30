@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IGlobalOptionService _globalOptions;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,23 +45,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IMetadataAsSourceFileService metadataAsSourceFileService)
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            VisualStudioWorkspace workspace)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _globalOptions = globalOptions;
             _editorAdaptersFactory = editorAdaptersFactory;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _workspace = workspace;
         }
 
-        public async Task<bool> TryNavigateToSymbolAsync(
-            ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetNavigableLocationAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
-            {
-                return false;
-            }
+                return null;
 
+            var solution = project.Solution;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -70,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (sourceLocation != null)
             {
-                var targetDocument = project.Solution.GetDocument(sourceLocation.SourceTree);
+                var targetDocument = solution.GetDocument(sourceLocation.SourceTree);
                 if (targetDocument != null)
                 {
-                    var editorWorkspace = targetDocument.Project.Solution.Workspace;
-                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return await navigationService.TryNavigateToSpanAsync(
-                        editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken).ConfigureAwait(false);
+                    var navigationService = solution.Services.GetRequiredService<IDocumentNavigationService>();
+                    return await navigationService.GetLocationForSpanAsync(
+                        solution.Workspace, targetDocument.Id, sourceLocation.SourceSpan,
+                        allowInvalidSpan: false, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -84,87 +86,101 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                return false;
+                return null;
+            }
+
+            // See if there's another .Net language service that can handle navigating to this metadata symbol (for example, F#).
+            var docCommentId = symbol.GetDocumentationCommentId();
+            if (docCommentId != null)
+            {
+                foreach (var lazyService in solution.Services.ExportProvider.GetExports<ICrossLanguageSymbolNavigationService>())
+                {
+                    var crossLanguageService = lazyService.Value;
+                    var crossLanguageLocation = await crossLanguageService.TryGetNavigableLocationAsync(docCommentId, cancellationToken).ConfigureAwait(false);
+                    if (crossLanguageLocation != null)
+                        return crossLanguageLocation;
+                }
             }
 
             // Should we prefer navigating to the Object Browser over metadata-as-source?
             if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
             {
-                var libraryService = project.LanguageServices.GetService<ILibraryService>();
+                var libraryService = project.Services.GetService<ILibraryService>();
                 if (libraryService == null)
                 {
-                    return false;
+                    return null;
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
-                }
+                navInfo ??= libraryService.NavInfoFactory.CreateForProject(project);
 
                 if (navInfo != null)
                 {
                     var navigationTool = _serviceProvider.GetServiceOnMainThread<SVsObjBrowser, IVsNavigationTool>();
-                    return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
+                    return new NavigableLocation(async (options, cancellationToken) =>
+                    {
+                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
+                    });
                 }
 
                 // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            return await TryNavigateToMetadataAsync(project, symbol, options, cancellationToken).ConfigureAwait(false);
+            return await GetNavigableLocationForMetadataAsync(project, symbol, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
+        private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
+            Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var masOptions = _globalOptions.GetMetadataAsSourceOptions();
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.Services);
 
-            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var vsRunningDocumentTable4 = _serviceProvider.GetServiceOnMainThread<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
-            var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
-
-            var openDocumentService = _serviceProvider.GetServiceOnMainThread<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out var windowFrame);
-
-            var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
-
-            var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
-
-            // Set the buffer to read only, just in case the file isn't
-            ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
-            flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
-            ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
-
-            var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
-
-            if (!fileAlreadyOpen)
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
-                ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_IsProvisional, true));
-                ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, result.DocumentTitle));
-                ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, result.DocumentTooltip));
-            }
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            windowFrame.Show();
+                var vsRunningDocumentTable4 = _serviceProvider.GetServiceOnMainThread<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
+                var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
-            var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-            if (openedDocument != null)
-            {
-                var editorWorkspace = openedDocument.Project.Solution.Workspace;
-                var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
+                var openDocumentService = _serviceProvider.GetServiceOnMainThread<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out var windowFrame);
 
-                return await navigationService.TryNavigateToSpanAsync(
-                    editorWorkspace,
-                    openedDocument.Id,
-                    result.IdentifierLocation.SourceSpan,
-                    options with { PreferProvisionalTab = true },
-                    cancellationToken).ConfigureAwait(false);
-            }
+                var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
-            return true;
+                var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+
+                var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
+
+                if (!fileAlreadyOpen)
+                {
+                    ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_IsProvisional, true));
+                    ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, result.DocumentTitle));
+                    ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, result.DocumentTooltip));
+                }
+
+                windowFrame.Show();
+
+                var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+                if (openedDocument != null)
+                {
+                    var editorWorkspace = openedDocument.Project.Solution.Workspace;
+                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                    await navigationService.TryNavigateToSpanAsync(
+                        this.ThreadingContext,
+                        editorWorkspace,
+                        openedDocument.Id,
+                        result.IdentifierLocation.SourceSpan,
+                        options with { PreferProvisionalTab = true },
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                return true;
+            });
         }
 
         public async Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)

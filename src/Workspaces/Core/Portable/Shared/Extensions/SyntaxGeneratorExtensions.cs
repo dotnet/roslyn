@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
@@ -468,10 +468,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol,
             INamedTypeSymbol containingType,
             Document document,
-            DeclarationModifiers? declarationModifiers = null,
+            DeclarationModifiers extraDeclarationModifiers = default,
             CancellationToken cancellationToken = default)
         {
-            var modifiers = declarationModifiers ?? GetOverrideModifiers(symbol);
+            var modifiers = GetOverrideModifiers(symbol) + extraDeclarationModifiers;
 
             if (symbol is IMethodSymbol method)
             {
@@ -507,6 +507,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Document newDocument,
             CancellationToken cancellationToken)
         {
+            // Required is not a valid modifier for methods, so clear it if the user typed it
+            modifiers = modifiers.WithIsRequired(false);
+
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {

@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
     public class UseCompoundAssignmentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseCompoundAssignmentTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseCompoundAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundAssignmentCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestAddExpression()
         {
             await TestInRegularAndScript1Async(
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestSubtractExpression()
         {
             await TestInRegularAndScript1Async(
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestMultiplyExpression()
         {
             await TestInRegularAndScript1Async(
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestDivideExpression()
         {
             await TestInRegularAndScript1Async(
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestModuloExpression()
         {
             await TestInRegularAndScript1Async(
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestBitwiseAndExpression()
         {
             await TestInRegularAndScript1Async(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestExclusiveOrExpression()
         {
             await TestInRegularAndScript1Async(
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestBitwiseOrExpression()
         {
             await TestInRegularAndScript1Async(
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestLeftShiftExpression()
         {
             await TestInRegularAndScript1Async(
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestRightShiftExpression()
         {
             await TestInRegularAndScript1Async(
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestCoalesceExpressionCSharp8OrGreater()
         {
             await TestInRegularAndScript1Async(
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 }", new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestCoalesceExpressionCSharp7()
         {
             await TestMissingAsync(
@@ -259,9 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
         }
 
-        [Fact]
-        [WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
         public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
         {
             await TestMissingAsync(
@@ -276,7 +275,7 @@ public class C
     new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestField()
         {
             await TestInRegularAndScript1Async(
@@ -300,7 +299,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestFieldWithThis()
         {
             await TestInRegularAndScript1Async(
@@ -324,7 +323,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestTriviaInsensitive()
         {
             await TestInRegularAndScript1Async(
@@ -348,7 +347,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestStaticFieldThroughType()
         {
             await TestInRegularAndScript1Async(
@@ -372,7 +371,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestStaticFieldThroughNamespaceAndType()
         {
             await TestInRegularAndScript1Async(
@@ -402,7 +401,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestParenthesized()
         {
             await TestInRegularAndScript1Async(
@@ -426,7 +425,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestThroughBase()
         {
             await TestInRegularAndScript1Async(
@@ -456,7 +455,7 @@ public class D : C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestMultiAccess()
         {
             await TestInRegularAndScript1Async(
@@ -490,7 +489,7 @@ public class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestOnTopLevelProp1()
         {
             await TestInRegularAndScript1Async(
@@ -514,7 +513,7 @@ public class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestOnTopLevelProp2()
         {
             await TestInRegularAndScript1Async(
@@ -538,7 +537,7 @@ public class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestOnTopLevelProp3()
         {
             await TestInRegularAndScript1Async(
@@ -562,7 +561,7 @@ public class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnTopLevelRefProp()
         {
             await TestMissingAsync(
@@ -578,7 +577,7 @@ public class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnNestedProp1()
         {
             await TestMissingAsync(
@@ -599,7 +598,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnNestedProp2()
         {
             await TestMissingAsync(
@@ -620,7 +619,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnNestedProp3()
         {
             await TestMissingAsync(
@@ -641,7 +640,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnUnboundSymbol()
         {
             await TestMissingAsync(
@@ -654,7 +653,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotOnUnboundThisAccess()
         {
             await TestMissingAsync(
@@ -667,7 +666,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingAsync(
@@ -684,8 +683,7 @@ public class C
 }");
         }
 
-        [WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionOnNextLine()
         {
             await TestInRegularAndScript1Async(
@@ -706,8 +704,7 @@ public class C
 }");
         }
 
-        [WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionSeparatedWithSeveralLines()
         {
             await TestInRegularAndScript1Async(
@@ -729,7 +726,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -751,7 +748,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScript1Async(
@@ -771,7 +768,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestFixAll()
         {
             await TestInRegularAndScript1Async(
@@ -793,7 +790,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact]
         public async Task TestNestedAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -813,8 +810,7 @@ public class C
 }");
         }
 
-        [WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
         public async Task TestNotOnObjectInitializer()
         {
             await TestMissingAsync(
@@ -833,8 +829,7 @@ struct InsertionPoint
 }");
         }
 
-        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnImplicitObjectInitializer()
         {
             await TestMissingAsync(
@@ -853,8 +848,7 @@ struct InsertionPoint
 }");
         }
 
-        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnRecord()
         {
             await TestMissingAsync(
@@ -871,8 +865,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
         public async Task TestParenthesizedExpression()
         {
             await TestInRegularAndScript1Async(
@@ -892,8 +885,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -913,8 +905,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestDecrement()
         {
             await TestInRegularAndScript1Async(
@@ -934,8 +925,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestMinusIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -955,8 +945,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDouble()
         {
             await TestInRegularAndScript1Async(
@@ -976,8 +965,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementNotOnString()
         {
             await TestInRegularAndScript1Async(
@@ -997,8 +985,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementChar()
         {
             await TestInRegularAndScript1Async(
@@ -1018,8 +1005,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementEnum()
         {
             await TestInRegularAndScript1Async(
@@ -1041,8 +1027,7 @@ public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDecimal()
         {
             await TestInRegularAndScript1Async(
@@ -1062,8 +1047,7 @@ public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1088,8 +1072,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1114,8 +1097,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementLoopVariable()
         {
             await TestInRegularAndScript1Async(
@@ -1139,8 +1121,7 @@ $@"public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         public async Task TestIncrementInExpressionContext()
         {
             await TestInRegularAndScript1Async(
@@ -1160,8 +1141,7 @@ $@"public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("switch($$) { }")]
         [InlineData("while(($$) > 0) { }")]
         [InlineData("_ = true ? $$ : 0;")]
@@ -1187,8 +1167,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("return $$;")]
         [InlineData("return true ? $$ : 0;")]
         [InlineData("return ($$);")]
@@ -1213,8 +1192,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData(
             "/* Before */ i [||]= i + 1; /* After */",
             "/* Before */ i++; /* After */")]

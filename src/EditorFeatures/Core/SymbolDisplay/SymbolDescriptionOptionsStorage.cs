@@ -6,13 +6,15 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal static class SymbolDescriptionOptionsStorage
     {
         public static SymbolDescriptionOptions GetSymbolDescriptionOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                QuickInfoOptions: globalOptions.GetQuickInfoOptions(language),
-                ClassificationOptions: globalOptions.GetClassificationOptions(language));
+            => new()
+            {
+                QuickInfoOptions = globalOptions.GetQuickInfoOptions(language),
+                ClassificationOptions = globalOptions.GetClassificationOptions(language),
+            };
     }
 }

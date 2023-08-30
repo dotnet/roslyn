@@ -798,6 +798,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Syntax And Semantic Utils"
+        Protected Overrides Function IsNamespaceDeclaration(node As SyntaxNode) As Boolean
+            ' An edit can operate on either just the statement (update) or the whole block (move, insert, delete).
+            Return node.IsKind(SyntaxKind.NamespaceStatement, SyntaxKind.NamespaceBlock)
+        End Function
+
+        Private Shared Function IsTypeDeclaration(node As SyntaxNode) As Boolean
+            Return TypeOf node Is TypeBlockSyntax OrElse TypeOf node Is DelegateStatementSyntax OrElse TypeOf node Is EnumBlockSyntax
+        End Function
+
         Protected Overrides Function IsCompilationUnitWithGlobalStatements(node As SyntaxNode) As Boolean
             Return False
         End Function
@@ -808,6 +817,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
             Return Nothing
+        End Function
+
+        Protected Overrides Iterator Function GetTopLevelTypeDeclarations(compilationUnit As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Dim stack = ArrayBuilder(Of SyntaxList(Of StatementSyntax)).GetInstance()
+
+            stack.Add(DirectCast(compilationUnit, CompilationUnitSyntax).Members)
+
+            While stack.Count > 0
+                Dim members = stack.Last()
+                stack.RemoveLast()
+
+                For Each member In members
+                    If IsTypeDeclaration(member) Then
+                        Yield member
+                    End If
+
+                    Dim namespaceBlock = TryCast(member, NamespaceBlockSyntax)
+                    If namespaceBlock IsNot Nothing Then
+                        stack.Add(namespaceBlock.Members)
+                    End If
+                Next
+            End While
         End Function
 
         Protected Overrides ReadOnly Property LineDirectiveKeyword As String
@@ -1012,14 +1043,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
 
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, <Out> ByRef declaration As SyntaxNode) As Boolean
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, editKind As EditKind, <Out> ByRef declaration As SyntaxNode) As Boolean
             If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
                 Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
                 declaration = node.Parent.Parent
                 Return True
             End If
 
-            If node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
+            ' We allow deleting event and property accessors, so don't associate them
+            If editKind <> EditKind.Delete AndAlso node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
                 declaration = node.Parent
                 Return True
             End If
@@ -1237,45 +1269,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim oldSymbols As OneOrMany(Of ISymbol) = Nothing
             Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
 
-            If editKind = EditKind.Delete Then
-                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
-                    Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                End If
-
-                Return oldSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(s, Nothing, editKind))
-            End If
-
-            If editKind = EditKind.Insert Then
-                If Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
-                    Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                End If
-
-                Return newSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(Nothing, s, editKind))
-            End If
-
-            If editKind = EditKind.Update Then
-                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-                   Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
-                    Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                End If
-
-                If oldSymbols.Count = 1 AndAlso newSymbols.Count = 1 Then
-                    Return OneOrMany.Create((oldSymbols(0), newSymbols(0), editKind))
-                End If
-
-                ' This only occurs when field identifiers are deleted/inserted/reordered from/to/within their variable declarator list,
-                ' or their shared initializer is updated. The particular inserted and deleted fields will be represented by separate edits,
-                ' but the AsNew clause of the declarator may have been updated as well, which needs to update the remaining (matching) fields.
-                Dim builder = ArrayBuilder(Of (ISymbol, ISymbol, EditKind)).GetInstance()
-                For Each oldSymbol In oldSymbols
-                    Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
-                    If newSymbol IsNot Nothing Then
-                        builder.Add((oldSymbol, newSymbol, editKind))
+            Select Case editKind
+                Case EditKind.Delete
+                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
                     End If
-                Next
 
-                Return OneOrMany.Create(builder.ToImmutableAndFree())
-            End If
+                    Return oldSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(s, Nothing, editKind))
+
+                Case EditKind.Insert
+                    If Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    Return newSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(Nothing, s, editKind))
+
+                Case EditKind.Update
+                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                       Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    If oldSymbols.Count = 1 AndAlso newSymbols.Count = 1 Then
+                        Return OneOrMany.Create((oldSymbols(0), newSymbols(0), editKind))
+                    End If
+
+                    ' This only occurs when field identifiers are deleted/inserted/reordered from/to/within their variable declarator list,
+                    ' or their shared initializer is updated. The particular inserted and deleted fields will be represented by separate edits,
+                    ' but the AsNew clause of the declarator may have been updated as well, which needs to update the remaining (matching) fields.
+                    Dim builder = ArrayBuilder(Of (ISymbol, ISymbol, EditKind)).GetInstance()
+                    For Each oldSymbol In oldSymbols
+                        Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
+                        If newSymbol IsNot Nothing Then
+                            builder.Add((oldSymbol, newSymbol, editKind))
+                        End If
+                    Next
+
+                    Return OneOrMany.Create(builder.ToImmutableAndFree())
+
+                Case EditKind.Move
+                    Contract.ThrowIfNull(oldNode)
+                    Contract.ThrowIfNull(newNode)
+                    Contract.ThrowIfNull(oldModel)
+
+                    Debug.Assert(oldNode.RawKind = newNode.RawKind)
+                    If Not IsTypeDeclaration(oldNode) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    Dim oldSymbol = oldModel.GetDeclaredSymbol(oldNode, cancellationToken)
+                    Dim newSymbol = newModel.GetDeclaredSymbol(newNode, cancellationToken)
+                    Return OneOrMany.Create((oldSymbol, newSymbol, editKind))
+            End Select
 
             Throw ExceptionUtilities.UnexpectedValue(editKind)
         End Function
@@ -1289,8 +1334,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Select Case node.Kind()
                 Case SyntaxKind.ImportsStatement,
-                     SyntaxKind.NamespaceStatement,
-                     SyntaxKind.NamespaceBlock
+                     SyntaxKind.NamespaceBlock,
+                     SyntaxKind.NamespaceStatement
                     Return False
 
                 Case SyntaxKind.VariableDeclarator
@@ -2113,7 +2158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case EditKind.Update
-                        ClassifyUpdate(_oldNode, _newNode)
+                        ClassifyUpdate(_newNode)
                         Return
 
                     Case EditKind.Move
@@ -2140,6 +2185,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.VariableDeclarator
                         ' Identifier can be moved within the same type declaration.
                         ' Determine validity of such change in semantic analysis.
+                        Return
+
+                    Case SyntaxKind.NamespaceBlock,
+                         SyntaxKind.ClassBlock,
+                         SyntaxKind.StructureBlock,
+                         SyntaxKind.InterfaceBlock,
+                         SyntaxKind.ModuleBlock,
+                         SyntaxKind.EnumBlock,
+                         SyntaxKind.DelegateFunctionStatement,
+                         SyntaxKind.DelegateSubStatement
                         Return
 
                     Case Else
@@ -2224,8 +2279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Insert"
             Private Sub ClassifyInsert(node As SyntaxNode)
                 Select Case node.Kind
-                    Case SyntaxKind.OptionStatement,
-                         SyntaxKind.NamespaceBlock
+                    Case SyntaxKind.OptionStatement
                         ReportError(RudeEditKind.Insert)
                         Return
 
@@ -2258,7 +2312,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyDelete(oldNode As SyntaxNode)
                 Select Case oldNode.Kind
                     Case SyntaxKind.OptionStatement,
-                         SyntaxKind.NamespaceBlock,
                          SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Delete)
                         Return
@@ -2283,14 +2336,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Update"
-            Private Sub ClassifyUpdate(oldNode As SyntaxNode, newNode As SyntaxNode)
+            Private Sub ClassifyUpdate(newNode As SyntaxNode)
                 Select Case newNode.Kind
                     Case SyntaxKind.OptionStatement
                         ReportError(RudeEditKind.Update)
-                        Return
-
-                    Case SyntaxKind.NamespaceStatement
-                        ClassifyUpdate(DirectCast(oldNode, NamespaceStatementSyntax), DirectCast(newNode, NamespaceStatementSyntax))
                         Return
 
                     Case SyntaxKind.AttributesStatement
@@ -2305,11 +2354,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                         Return
                 End Select
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As NamespaceStatementSyntax, newNode As NamespaceStatementSyntax)
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Name, newNode.Name))
-                ReportError(RudeEditKind.Renamed)
             End Sub
 
             Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
@@ -2591,7 +2635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
-            If newNode.IsKind(SyntaxKind.AwaitExpression) Then
+            If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
                 Dim oldContainingStatementPart = FindContainingStatementPart(oldNode)
                 Dim newContainingStatementPart = FindContainingStatementPart(newNode)
 

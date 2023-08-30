@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
@@ -23,12 +22,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Roslyn.Utilities;
@@ -53,15 +51,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
-            (typeof(IRemoteTodoCommentsDiscoveryService), typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            (typeof(IRemoteTaskListService), null),
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
-            (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
-            (typeof(IRemoteEncapsulateFieldService), null),
-            (typeof(IRemoteRenamerService), null),
-            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+            (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
+            (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
@@ -18,12 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             private readonly int _ordinal;
             private readonly MetadataReader _metadataReader;
             private readonly IEnumerable<MetadataReader> _readers;
+            private readonly GenerationInfo _generationInfo;
 
-            public GenerationVerifier(int ordinal, MetadataReader metadataReader, IEnumerable<MetadataReader> readers)
+            public GenerationVerifier(int ordinal, GenerationInfo generationInfo, IEnumerable<MetadataReader> readers)
             {
                 _ordinal = ordinal;
-                _metadataReader = metadataReader;
+                _metadataReader = generationInfo.MetadataReader;
                 _readers = readers;
+                _generationInfo = generationInfo;
             }
 
             private string GetAssertMessage(string message)
@@ -62,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(expected, actual, message: GetAssertMessage("PropertyDefs don't match"));
             }
 
+            internal void VerifyDeletedMembers(params string[] expected)
+            {
+                var actual = _generationInfo.Baseline.DeletedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+            }
+
             internal void VerifyTableSize(TableIndex table, int expected)
             {
                 AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
@@ -90,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow> expected)
             {
                 AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+            }
+
+            internal void VerifyIL(string expectedIL)
+            {
+                _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
             }
         }
     }

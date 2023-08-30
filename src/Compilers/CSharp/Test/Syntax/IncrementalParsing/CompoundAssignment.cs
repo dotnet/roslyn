@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         }
 
         [Fact]
+        public void AssignToUnsignedRightShift()
+        {
+            MakeAssignmentChange(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.UnsignedRightShiftAssignmentExpression);
+        }
+
+        [Fact]
         public void AssignToAnd()
         {
             MakeAssignmentChange(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.AndAssignmentExpression);
@@ -128,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                     return "<<=";
                 case SyntaxKind.RightShiftAssignmentExpression:
                     return ">>=";
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                    return ">>>=";
                 default:
                     throw new Exception("No operator found");
             }

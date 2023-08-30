@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderMembers())
             {
@@ -177,6 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override uint LocalScopeDepth => Binder.TopLevelScope;
+        internal override uint LocalScopeDepth => Binder.CurrentMethodScope;
     }
 }

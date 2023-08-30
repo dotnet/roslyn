@@ -293,10 +293,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             bool Filter(TTag tag)
                 => true;
 
-            if (filter == null)
-            {
-                filter = Filter;
-            }
+            filter ??= Filter;
 
             return ExecuteOnActiveView(view =>
             {
@@ -378,10 +375,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (!string.IsNullOrEmpty(menuText))
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
                 {
                     actionSets = Array.Empty<SuggestedActionSet>();
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
                 if (set == null)

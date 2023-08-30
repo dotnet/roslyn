@@ -4,7 +4,6 @@
 
 extern alias InteractiveHost;
 extern alias Scripting;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +16,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -36,7 +37,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly IThreadingContext _threadingContext;
         private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
         private readonly InteractiveWorkspace _workspace;
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+
         private readonly CancellationTokenSource _shutdownCancellationSource;
+
+        /// <summary>
+        /// The top level directory where all the interactive host extensions are installed (both Core and Desktop).
+        /// </summary>
         private readonly string _hostDirectory;
 
         #region State only accessible by queued tasks
@@ -58,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private ImmutableArray<string> _referenceSearchPaths;
         private ImmutableArray<string> _sourceSearchPaths;
         private string _workingDirectory;
+        private InteractiveHostOptions? _hostOptions;
 
         /// <summary>
         /// Buffers that need to be associated with a submission project once the process initialization completes.
@@ -70,12 +79,17 @@ namespace Microsoft.CodeAnalysis.Interactive
             InteractiveWorkspace workspace,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
+            ITextDocumentFactoryService documentFactory,
+            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
             _workspace = workspace;
             _threadingContext = threadingContext;
             _languageInfo = languageInfo;
+            _textDocumentFactoryService = documentFactory;
+            _editorOptionsService = editorOptionsService;
+
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
 
@@ -116,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // update host state:
                 _platformInfo = platformInfo;
                 _initializationResult = result.InitializationResult;
+                _hostOptions = options;
                 UpdatePathsNoLock(result);
 
                 // Create submission projects for buffers that were added by the Interactive Window 
@@ -194,6 +209,19 @@ namespace Microsoft.CodeAnalysis.Interactive
             _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
 
+            // If the _initializationResult is not null we must also have the host options.
+            RoslynDebug.AssertNotNull(_hostOptions);
+            // Retrieve the directory that the host path exe is located in.
+            var hostPathDirectory = Path.GetDirectoryName(_hostOptions.HostPath);
+            RoslynDebug.AssertNotNull(hostPathDirectory);
+
+            // Create a file path for the submission located in the interactive host directory.
+            var newSubmissionFilePath = Path.Combine(hostPathDirectory, $"Submission{SubmissionCount}{_languageInfo.Extension}");
+
+            // Associate the path with both the editor document and our roslyn document so LSP can make requests on it.
+            _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
+            textDocument.Rename(newSubmissionFilePath);
+
             // Chain projects to the the last submission that successfully executed.
             _workspace.SetCurrentSolution(solution =>
             {
@@ -202,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     RoslynDebug.AssertNotNull(initializationScriptPath);
 
                     var initProject = CreateSubmissionProjectNoLock(solution, initializationScriptProjectId, previousSubmissionProjectId: null, languageName, initializationScriptImports, initializationScriptReferences);
-
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
@@ -213,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 solution = newSubmissionProject.Solution.AddDocument(
                     newSubmissionDocumentId,
                     newSubmissionProjectName,
-                    newSubmissionText);
+                    newSubmissionText,
+                    filePath: newSubmissionFilePath);
 
                 return solution;
             }, WorkspaceChangeKind.SolutionChanged);

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
         [ExportWorkspaceServiceFactory(typeof(ISolutionAssetStorageProvider)), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly SolutionAssetStorage _storage = new SolutionAssetStorage();
+            private readonly SolutionAssetStorage _storage = new();
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

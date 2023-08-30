@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenOperand.Type is object);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, isChecked: false, ref useSiteInfo);
             _diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
             if (!conversion.IsImplicit)
             {
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(result.Type is not null);
                     Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
                     var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
-                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
+                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
                 }
             }
             else

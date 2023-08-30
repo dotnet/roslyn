@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                     workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
                     workspace.GetService<IGlobalOptionService>(),
+                    visibilityTracker: null,
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();

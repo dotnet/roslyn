@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.MetadataAsSource
+Imports Microsoft.CodeAnalysis.Structure
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
@@ -70,6 +71,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property CollapseImportsWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, value)
+            End Set
+        End Property
+
+        Public Property CollapseRegionsWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, value)
+            End Set
+        End Property
+
+        Public Property CollapseMetadataSignatureFilesWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, value)
+            End Set
+        End Property
+
+        Public Property CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, value)
+            End Set
+        End Property
+
         Public Property PrettyListing As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.PrettyListing)
@@ -88,6 +125,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property NavigateToSourceLinkAndEmbeddedSources As Boolean
+            Get
+                Return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, value)
+            End Set
+        End Property
+
         Public Property AlwaysUseDefaultSymbolServers As Boolean
             Get
                 Return GetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers)
@@ -97,11 +143,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property AddImportsOnPaste As Integer
+        Public Property AddImportsOnPaste As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
             End Get
-            Set(value As Integer)
+            Set(value As Boolean)
                 SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value)
             End Set
         End Property

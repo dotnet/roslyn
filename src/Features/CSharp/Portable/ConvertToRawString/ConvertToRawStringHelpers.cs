@@ -4,7 +4,9 @@
 
 using System;
 using System.Globalization;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,14 +25,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
 
             // a single line raw string cannot contain a newline.
-            if (characters.Any(static ch => IsNewLine(ch)))
+            if (characters.Any(static ch => IsCSharpNewLine(ch)))
                 return false;
 
             return true;
         }
 
-        public static bool IsNewLine(VirtualChar ch)
+        public static bool IsCSharpNewLine(VirtualChar ch)
             => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
+
+        public static bool IsCSharpWhitespace(VirtualChar ch)
+            => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsWhitespace((char)ch.Value);
+
+        public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
+        {
+            return index + 1 < characters.Length &&
+                characters[index].Rune is { Utf16SequenceLength: 1, Value: '\r' } &&
+                characters[index + 1].Rune is { Utf16SequenceLength: 1, Value: '\n' };
+        }
 
         public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
             => AllEscapesAre(sequence, static ch => ch.Value == '"');
@@ -80,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (ch.Span.Length > 1)
             {
                 // An escaped newline is fine to convert (to a multi-line raw string).
-                if (IsNewLine(ch))
+                if (IsCSharpNewLine(ch))
                     return true;
 
                 // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously

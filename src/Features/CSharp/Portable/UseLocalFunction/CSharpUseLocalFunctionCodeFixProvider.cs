@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -41,22 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_local_function, nameof(CSharpAnalyzersResources.Use_local_function));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -89,10 +86,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
-            var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
-                options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+            bool makeStaticIfPossible;
+
+            if (languageVersion >= LanguageVersion.CSharp8)
+            {
+                var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                makeStaticIfPossible = options.PreferStaticLocalFunction.Value;
+            }
+            else
+            {
+                makeStaticIfPossible = false;
+            }
 
             // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.
@@ -106,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
 
                 currentRoot = ReplaceAnonymousWithLocalFunction(
-                    document.Project.Solution.Workspace.Services, currentRoot,
+                    document.Project.Solution.Services, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
                     delegateType.DelegateInvokeMethod, parameterList, makeStatic);
 
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
-            HostWorkspaceServices services, SyntaxNode currentRoot,
+            SolutionServices services, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {
@@ -219,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+            var body = anonymousFunction.Body is BlockSyntax block
                 ? block
                 : null;
 
@@ -314,13 +319,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
             => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_local_function, createChangedDocument, CSharpAnalyzersResources.Use_local_function)
-            {
-            }
-        }
     }
 }

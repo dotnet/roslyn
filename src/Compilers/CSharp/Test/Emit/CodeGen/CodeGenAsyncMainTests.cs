@@ -810,7 +810,7 @@ class A
             compilation.VerifyDiagnostics(
                 // (6,23): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static void Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -835,7 +835,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
@@ -862,7 +862,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1195,10 +1195,10 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(11, 22),
                 // (11,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(11, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(11, 22),
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     async static void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1220,7 +1220,7 @@ class A
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     static async void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }

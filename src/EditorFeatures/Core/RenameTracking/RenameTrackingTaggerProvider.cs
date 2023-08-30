@@ -86,8 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer == null)
                     {
-                        FailFast.Fail(string.Format("document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
-                                                            document.Name, text.Container.GetType().FullName, text.ToString()));
+                        var ex = new InvalidOperationException(string.Format(
+                            "document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
+                            document.Name,
+                            text.Container.GetType().FullName,
+                            text.ToString()));
+                        FatalError.ReportAndCatch(ex);
+                        return false;
                     }
 
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))

@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -51,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
             _globalOptions = globalOptions;
         }
@@ -123,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // want to actually go recompute things.  Note: this only works for containment.  If the
             // user moves their caret to the end of a highlighted reference, we do want to recompute
             // as they may now be at the start of some other reference that should be highlighted instead.
-            var existingTags = context.GetExistingContainingTags(caretPosition);
-            if (!existingTags.IsEmpty())
+            var onExistingTags = context.HasExistingContainingTags(caretPosition);
+            if (onExistingTags)
             {
                 context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return Task.CompletedTask;

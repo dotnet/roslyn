@@ -1061,7 +1061,7 @@ End Class
         End Function
 
         ' A mock message provider
-        Private Class MockMessageProvider
+        Private NotInheritable Class MockMessageProvider
             Inherits TestMessageProvider
 
             Public Overrides ReadOnly Property CodePrefix As String
@@ -1105,6 +1105,16 @@ End Class
             Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
                 Return MessageProvider.Instance.GetErrorDisplayString(symbol)
             End Function
+
+            Public Overrides Function GetIsEnabledByDefault(code As Integer) As Boolean
+                Return True
+            End Function
+
+#If DEBUG Then
+            Friend Overrides Function ShouldAssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
+                Return False
+            End Function
+#End If
         End Class
 
         ' A test rewriting visitor

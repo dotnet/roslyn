@@ -7,15 +7,12 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -72,11 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration)
             => GetExpressionBody((TDeclaration)declaration);
 
-        public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
-            => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
+        public override bool IsRelevantDeclarationNode(SyntaxNode node)
+            => node is TDeclaration;
 
-        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
-            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer, out fixesError, out expressionBody);
+        public override bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer)
+            => CanOfferUseExpressionBody(preference, (TDeclaration)declaration, forAnalyzer);
+
+        public override bool CanOfferUseBlockBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
+            => CanOfferUseBlockBody(preference, (TDeclaration)declaration, forAnalyzer, out fixesError, out expressionBody);
 
         public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody)
             => Update(semanticModel, (TDeclaration)declaration, useExpressionBody);
@@ -92,12 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         public bool CanOfferUseExpressionBody(
-            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+            CodeStyleOption2<ExpressionBodyPreference> preference, TDeclaration declaration, bool forAnalyzer)
         {
-            var currentOptionValue = optionSet.GetOption(Option);
-            var preference = currentOptionValue.Value;
-            var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
-            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
+            var userPrefersExpressionBodies = preference.Value != ExpressionBodyPreference.Never;
+            var analyzerDisabled = preference.Notification.Severity == ReportDiagnostic.Suppress;
 
             // If the user likes expression bodies, then we offer expression bodies from the diagnostic analyzer.
             // If the user does not like expression bodies then we offer expression bodies from the refactoring provider.
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     // They don't have an expression body.  See if we could convert the block they
                     // have into one.
 
-                    var conversionPreference = forAnalyzer ? preference : ExpressionBodyPreference.WhenPossible;
+                    var conversionPreference = forAnalyzer ? preference.Value : ExpressionBodyPreference.WhenPossible;
 
                     return TryConvertToExpressionBody(declaration, conversionPreference,
                         expressionWhenOnSingleLine: out _, semicolonWhenOnSingleLine: out _);
@@ -174,16 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         public bool CanOfferUseBlockBody(
-            OptionSet optionSet,
+            CodeStyleOption2<ExpressionBodyPreference> preference,
             TDeclaration declaration,
             bool forAnalyzer,
             out bool fixesError,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
         {
-            var currentOptionValue = optionSet.GetOption(Option);
-            var preference = currentOptionValue.Value;
-            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
-            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
+            var userPrefersBlockBodies = preference.Value == ExpressionBodyPreference.Never;
+            var analyzerDisabled = preference.Notification.Severity == ReportDiagnostic.Suppress;
 
             expressionBody = GetExpressionBody(declaration);
             if (expressionBody?.TryConvertToBlock(

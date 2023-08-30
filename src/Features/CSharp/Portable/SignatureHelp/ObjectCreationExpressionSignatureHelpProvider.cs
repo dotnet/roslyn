@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, out var currentSymbol, out var parameterIndex);
 
             // present items and select
-            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
             var items = methods.SelectAsArray(c =>
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(arguments, invokeMethod, position, semanticModel, semanticFactsService, out var parameterIndex);
 
             // present item and select
-            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
             var items = ConvertDelegateTypeConstructor(objectCreationExpression, invokeMethod, semanticModel, structuralTypeDisplayService, position);
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // Add the newly added analyzer config document as a solution item.
             // The analyzer config document is not yet created, so we just mark the file
             // path for tracking and add it as a solution item whenever the file gets created by the code fix application.
-            var service = _project.Solution.Workspace.Services.GetService<IAddSolutionItemService>();
+            var service = _project.Solution.Services.GetService<IAddSolutionItemService>();
             service?.TrackFilePathAndAddSolutionItemWhenFileCreated(editorConfigDocument.FilePath);
 
             return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             var codeStyleOptions = GetCodeStyleOptionsForDiagnostic(diagnostic, project);
             if (!codeStyleOptions.IsEmpty)
             {
-                var optionSet = project.Solution.Workspace.Options;
+                var optionSet = project.Solution.Options;
                 var builder = ArrayBuilder<(string optionName, string currentOptionValue, bool isPerLanguage)>.GetInstance();
 
                 try
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
-                var optionSet = project.Solution.Workspace.Options;
+                var optionSet = project.Solution.Options;
                 using var _ = ArrayBuilder<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.GetInstance(out var builder);
 
                 foreach (var option in options.OrderBy(option => option.Name))

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// are two possible scopes: one for the namespace, and another for any using statements
     /// in the namespace. The namespace scope is searched before the using scope.
     /// </summary>
-    internal struct ExtensionMethodScope
+    internal readonly struct ExtensionMethodScope
     {
         public readonly Binder Binder;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An enumerable collection of extension method scopes in search
     /// order, from the given Binder, out through containing Binders.
     /// </summary>
-    internal struct ExtensionMethodScopes
+    internal readonly struct ExtensionMethodScopes
     {
         private readonly Binder _binder;
 

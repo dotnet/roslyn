@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "void").WithArguments("", "void").WithLocation(1, 21),
                 // (1,21): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged[void]<void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 21)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",").WithLocation(1, 21)
             );
 
             N(SyntaxKind.LocalDeclarationStatement);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* invalid[Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
                 // (1,11): error CS1003: Syntax error, 'unmanaged' expected
                 // delegate* invalid[Cdecl]<void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("unmanaged", "").WithLocation(1, 11)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("unmanaged").WithLocation(1, 11)
             );
             N(SyntaxKind.LocalDeclarationStatement);
             {
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* invalid<void> ptr;", options: TestOptions.RegularPreview,
                 // (1,11): error CS1003: Syntax error, 'managed' expected
                 // delegate* invalid<void>
-                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("managed", "").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("managed").WithLocation(1, 11));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
                     // (1,12): error CS1003: Syntax error, '>' expected
                     // delegate*< ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 12),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 12),
                     // (1,12): error CS1001: Identifier expected
                     // delegate*< ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 12));
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
                     // (1,15): error CS1003: Syntax error, '>' expected
                     // delegate*<ref ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 15),
                     // (1,15): error CS1001: Identifier expected
                     // delegate*<ref ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 15));
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate*<ref bar ;", options: TestOptions.Regular9,
                     // (1,19): error CS1003: Syntax error, '>' expected
                     // delegate*<ref bar ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 19),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 19),
                     // (1,19): error CS1001: Identifier expected
                     // delegate*<ref bar ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 19));
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 20),
                     // (1,20): error CS1003: Syntax error, '>' expected
                     // delegate*<ref bar, ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 20),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 20),
                     // (1,20): error CS1001: Identifier expected
                     // delegate*<ref bar, ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 20));
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* unmanaged[ptr];", options: TestOptions.Regular9,
                 // (1,25): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[ptr];
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<").WithLocation(1, 25),
                 // (1,25): error CS1001: Identifier expected
                 // delegate* unmanaged[ptr];
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 25));
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* unmanaged[cdecl] ;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] ;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<").WithLocation(1, 28),
                 // (1,28): error CS1001: Identifier expected
                 // delegate* unmanaged[cdecl] ;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28));
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* unmanaged[cdecl] ptr;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 28));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<").WithLocation(1, 28));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* ;", options: TestOptions.Regular9,
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 11),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<").WithLocation(1, 11),
                     // (1,11): error CS1001: Identifier expected
                     // delegate* ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 11));
@@ -1311,13 +1311,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate*( ;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*( ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<").WithLocation(1, 10),
                     // (1,12): error CS1031: Type expected
                     // delegate*( ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
                     // (1,12): error CS1003: Syntax error, '>' expected
                     // delegate*( ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 12),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 12),
                     // (1,12): error CS1001: Identifier expected
                     // delegate*( ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 12));
@@ -1358,10 +1358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* @cdecl>", options: TestOptions.Regular9,
                 // (1,11): error CS1003: Syntax error, '<' expected
                 // delegate* @cdecl>
-                Diagnostic(ErrorCode.ERR_SyntaxError, "@cdecl").WithArguments("<", "").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "@cdecl").WithArguments("<").WithLocation(1, 11),
                 // (1,17): error CS1003: Syntax error, ',' expected
                 // delegate* @cdecl>
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(1, 17),
                 // (1,18): error CS1002: ; expected
                 // delegate* @cdecl>
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18));
@@ -1405,10 +1405,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 22),
                 // (1,22): error CS1003: Syntax error, ']' expected
                 // delegate* unmanaged[ ;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(1, 22),
                 // (1,22): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[ ;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<").WithLocation(1, 22),
                 // (1,22): error CS1001: Identifier expected
                 // delegate* unmanaged[ ;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 22)
@@ -1463,10 +1463,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* unmanaged[Cdecl ;", options: TestOptions.RegularPreview,
                 // (1,27): error CS1003: Syntax error, ']' expected
                 // delegate* unmanaged[Cdecl ;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(1, 27),
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[Cdecl ;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<").WithLocation(1, 27),
                 // (1,27): error CS1001: Identifier expected
                 // delegate* unmanaged[Cdecl ;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27)
@@ -1524,10 +1524,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
                 // (1,27): error CS1003: Syntax error, ']' expected
                 // delegate* unmanaged[Cdecl,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 27),
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[Cdecl,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<").WithLocation(1, 27),
                 // (1,27): error CS1001: Identifier expected
                 // delegate* unmanaged[Cdecl,
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
@@ -1628,10 +1628,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate*(int, void)", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*(int, void)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<").WithLocation(1, 10),
                     // (1,20): error CS1003: Syntax error, '>' expected
                     // delegate*(int, void)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">", ")").WithLocation(1, 20),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 20),
                     // (1,21): error CS1001: Identifier expected
                     // delegate*(int, void)
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
@@ -3046,10 +3046,10 @@ o switch
             UsingStatement("delegate*<int param1, string param2 = default, void> ptr;", options: TestOptions.Regular9,
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // delegate*<int param1, string param2 = default, void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "param1").WithArguments(",", "").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "param1").WithArguments(",").WithLocation(1, 15),
                     // (1,30): error CS1003: Syntax error, ',' expected
                     // delegate*<int param1, string param2 = default, void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "param2").WithArguments(",", "").WithLocation(1, 30));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "param2").WithArguments(",").WithLocation(1, 30));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3103,13 +3103,13 @@ o switch
             UsingStatement("delegate*void> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<").WithLocation(1, 10),
                     // (1,10): error CS1001: Identifier expected
                     // delegate*void> ptr;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 10),
                     // (1,10): error CS1003: Syntax error, ',' expected
                     // delegate*void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 10));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",").WithLocation(1, 10));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3147,13 +3147,13 @@ o switch
             UsingStatement("delegate* unmanaged[cdecl] void> ptr;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<").WithLocation(1, 28),
                 // (1,28): error CS1001: Identifier expected
                 // delegate* unmanaged[cdecl] void> ptr;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 28),
                 // (1,28): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged[cdecl] void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 28));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",").WithLocation(1, 28));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3204,7 +3204,7 @@ o switch
             UsingStatement("delegate*> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<", "").WithLocation(1, 10));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<").WithLocation(1, 10));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3242,10 +3242,10 @@ o switch
             UsingStatement("delegate* unmanaged Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
                 // (1,21): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged Cdecl]<void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Cdecl").WithArguments("<", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Cdecl").WithArguments("<").WithLocation(1, 21),
                 // (1,26): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged Cdecl]<void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(1, 26)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 26)
             );
             N(SyntaxKind.LocalDeclarationStatement);
             {
@@ -3628,7 +3628,7 @@ void M()
             UsingStatement("delegate*", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<").WithLocation(1, 10),
                     // (1,10): error CS1001: Identifier expected
                     // delegate*
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
@@ -3672,7 +3672,7 @@ void M()
             UsingStatement("delegate* unmanaged[cdecl]", options: TestOptions.Regular9,
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<").WithLocation(1, 27),
                 // (1,27): error CS1001: Identifier expected
                 // delegate* unmanaged[cdecl]
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
@@ -3729,10 +3729,10 @@ void M()
             UsingStatement("delegate* unmanaged[cdecl]<void) ptr;", options: TestOptions.Regular9,
                 // (1,32): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged[cdecl]<void) ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 32),
                 // (1,37): error CS1003: Syntax error, '>' expected
                 // delegate* unmanaged[cdecl]<void) ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 37),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 37),
                 // (1,37): error CS1001: Identifier expected
                 // delegate* unmanaged[cdecl]<void) ptr;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 37));
@@ -3786,13 +3786,13 @@ void M()
             UsingStatement("delegate* unmanaged[cdecl](void> ptr;", options: TestOptions.Regular9,
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl](void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<").WithLocation(1, 27),
                 // (1,32): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged[cdecl](void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(1, 32),
                 // (1,37): error CS1003: Syntax error, '>' expected
                 // delegate* unmanaged[cdecl](void> ptr;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 37),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(1, 37),
                 // (1,37): error CS1001: Identifier expected
                 // delegate* unmanaged[cdecl](void> ptr;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 37));
@@ -3851,7 +3851,7 @@ void C()
 }}", options: TestOptions.Regular9,
                 // (5,21): error CS1003: Syntax error, '<' expected
                 //     unmanaged[Cdecl]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(5, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<").WithLocation(5, 21),
                 // (5,21): error CS1001: Identifier expected
                 //     unmanaged[Cdecl]
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 21),
@@ -3938,7 +3938,7 @@ void C()
 }", options: TestOptions.Regular9,
                     // (4,14): error CS1003: Syntax error, '<' expected
                     //     delegate*
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(4, 14),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<").WithLocation(4, 14),
                     // (4,14): error CS1001: Identifier expected
                     //     delegate*
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 14),

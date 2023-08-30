@@ -36,12 +36,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public Type Type { get; }
 
-        /// <summary>
-        /// Flag indicating if this is a per-language option or a language specific option.
-        /// </summary>
-        public bool IsPerLanguage { get; }
-
-        public OptionDefinition(string feature, OptionGroup group, string name, object? defaultValue, Type type, bool isPerLanguage)
+        public OptionDefinition(string feature, OptionGroup group, string name, object? defaultValue, Type type)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -58,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Options
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.Type = type ?? throw new ArgumentNullException(nameof(type));
-            this.IsPerLanguage = isPerLanguage;
         }
 
         public override bool Equals(object? obj)
@@ -71,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var equals = this.Name == other.Name &&
                 this.Feature == other.Feature &&
-                this.Group == other.Group &&
-                this.IsPerLanguage == other.IsPerLanguage;
+                this.Group == other.Group;
 
             // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
             // So, we skip these fields for equality checks of code style options.
@@ -89,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Options
             var hash = this.Feature.GetHashCode();
             hash = unchecked((hash * (int)0xA5555529) + this.Group.GetHashCode());
             hash = unchecked((hash * (int)0xA5555529) + this.Name.GetHashCode());
-            hash = unchecked((hash * (int)0xA5555529) + this.IsPerLanguage.GetHashCode());
 
             // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
             // So, we skip these fields for hash computation of code style options.

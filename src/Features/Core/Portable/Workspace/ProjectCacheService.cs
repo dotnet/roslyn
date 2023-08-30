@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -26,30 +26,33 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly object _gate = new();
 
         private readonly Workspace? _workspace;
-        private readonly ISyntaxTreeConfigurationService? _configurationService;
+        private readonly IWorkspaceConfigurationService? _configurationService;
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
-        private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
-        public ProjectCacheService(Workspace? workspace)
+        public ProjectCacheService(Workspace? workspace, bool createImplicitCache = false)
         {
             _workspace = workspace;
-            _configurationService = workspace?.Services.GetService<ISyntaxTreeConfigurationService>();
-        }
+            _configurationService = workspace?.Services.GetService<IWorkspaceConfigurationService>();
+            _implicitCache = createImplicitCache ? new SimpleMRUCache() : null;
 
-        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
-            : this(workspace)
-        {
-            _implicitCache = new SimpleMRUCache();
-            _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
+            // Also clear the cache when the solution is cleared or removed.
+            if (createImplicitCache && workspace != null)
+            {
+                workspace.WorkspaceChanged += (s, e) =>
+                {
+                    if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
+                        this.ClearImplicitCache();
+                };
+            }
         }
 
         /// <summary>
         /// Recoverable trees only save significant memory for larger trees.
         /// </summary>
         public int MinimumLengthForRecoverableTree
-            => (_configurationService?.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
+            => (_configurationService?.Options.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
 
         public bool IsImplicitCacheEmpty
         {
@@ -67,14 +70,6 @@ namespace Microsoft.CodeAnalysis.Host
             lock (_gate)
             {
                 _implicitCache?.Clear();
-            }
-        }
-
-        public void ClearExpiredImplicitCache(DateTime expirationTime)
-        {
-            lock (_gate)
-            {
-                _implicitCache?.ClearExpiredItems(expirationTime);
             }
         }
 
@@ -106,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                     else if (_implicitCache != null && !PartOfP2PReferences(key))
                     {
-                        RoslynDebug.Assert(_implicitCacheMonitor != null);
                         _implicitCache.Touch(instance);
-                        _implicitCacheMonitor.Touch();
                     }
                 }
             }
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private bool IsEnabled
-            => _configurationService?.DisableProjectCacheService != true;
+            => _configurationService?.Options.DisableProjectCacheService != true;
 
         private bool PartOfP2PReferences(ProjectId key)
         {

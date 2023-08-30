@@ -361,8 +361,7 @@ End Class"
             ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds)
         End Sub
 
-        <WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")>
-        <Fact>
+        <Fact, WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")>
         Public Sub AssemblyDuplicateReferences()
             Const sourceA =
 "Public Class A
@@ -718,8 +717,7 @@ IL_0005:  ret
                 End Sub)
         End Sub
 
-        <WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")>
-        <Fact>
+        <Fact, WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")>
         Public Sub DuplicateTypesInMscorlib()
             Const sourceConsole =
 "Namespace System
@@ -803,8 +801,7 @@ End Class"
 
         ' An assembly with the expected corlib name and with System.Object should
         ' be considered the corlib, even with references to external assemblies.
-        <WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")>
-        <Fact>
+        <Fact, WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")>
         Public Sub CorLibWithAssemblyReferences()
             Const sourceLib =
 "Public Class Private1

@@ -114,7 +114,9 @@ End Module
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New VisualBasicChangeSignatureCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext)())
+                Dim handler = New VisualBasicChangeSignatureCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GlobalOptions)
 
                 Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
@@ -124,8 +126,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[

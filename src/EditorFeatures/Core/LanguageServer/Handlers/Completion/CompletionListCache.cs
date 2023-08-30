@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
     /// Caches completion lists in between calls to CompletionHandler and
     /// CompletionResolveHandler. Used to avoid unnecessary recomputation.
     /// </summary>
-    internal class CompletionListCache
+    internal class CompletionListCache : ILspService
     {
         /// <summary>
         /// Maximum number of completion lists allowed in cache. Must be >= 1.
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// completion list.
         /// </summary>
         private readonly List<CacheEntry> _resultIdToCompletionList = new();
+
         #endregion
 
         /// <summary>

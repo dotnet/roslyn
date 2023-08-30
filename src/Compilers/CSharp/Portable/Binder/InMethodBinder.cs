@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override uint LocalScopeDepth => Binder.TopLevelScope;
+        internal override uint LocalScopeDepth => Binder.CurrentMethodScope;
 
         protected override bool InExecutableBinder => true;
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderMembers())
             {

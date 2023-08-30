@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
                 {
                     EmitExpression(fieldAccess.ReceiverOpt, used: false);
                     return;
@@ -1022,6 +1022,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(!field.IsConst || field.ContainingType.SpecialType == SpecialType.System_Decimal,
                 "rewriter should lower constant fields into constant expressions");
+
+            EmitFieldLoadNoIndirection(fieldAccess, used);
+
+            if (field.RefKind != RefKind.None)
+            {
+                EmitLoadIndirect(field.Type, fieldAccess.Syntax);
+            }
+
+            EmitPopIfUnused(used);
+        }
+
+        private void EmitFieldLoadNoIndirection(BoundFieldAccess fieldAccess, bool used)
+        {
+            var field = fieldAccess.FieldSymbol;
 
             // static field access is sideeffecting since it guarantees that ..ctor has run.
             // we emit static accesses even if unused.
@@ -1062,7 +1076,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSymbolToken(field, fieldAccess.Syntax);
                 }
             }
-            EmitPopIfUnused(used);
         }
 
         private LocalDefinition EmitFieldLoadReceiver(BoundExpression receiver)
@@ -1128,10 +1141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-        // ldfld can work with structs directly or with their addresses
+        // ldfld can work with structs directly or with their addresses.
         // In some cases it results in same native code emitted, but in some cases JIT pushes values for real
         // resulting in much worse code (on x64 in particular).
-        // So, we will always prefer references here except when receiver is a struct non-ref local or parameter. 
+        // So, we will always prefer references here except when receiver is a struct, non-ref local, or parameter. 
         private bool FieldLoadPrefersRef(BoundExpression receiver)
         {
             // only fields of structs can be accessed via value
@@ -1167,7 +1180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)receiver;
-                    if (fieldAccess.FieldSymbol.IsStatic)
+                    var field = fieldAccess.FieldSymbol;
+
+                    if (field.IsStatic || field.RefKind != RefKind.None)
                     {
                         return true;
                     }
@@ -1259,14 +1274,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLocalLoad(BoundLocal local, bool used)
         {
+            bool isRefLocal = local.LocalSymbol.RefKind != RefKind.None;
             if (IsStackLocal(local.LocalSymbol))
             {
                 // local must be already on the stack
-                EmitPopIfUnused(used);
+                EmitPopIfUnused(used || isRefLocal);
             }
             else
             {
-                if (used)
+                if (used || isRefLocal)
                 {
                     LocalDefinition definition = GetLocal(local);
                     _builder.EmitLocalLoad(definition);
@@ -1278,9 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            if (used && local.LocalSymbol.RefKind != RefKind.None)
+            if (isRefLocal)
             {
                 EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1531,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
-            if (method.IsAbstract)
+            if (method.IsAbstract || method.IsVirtual)
             {
                 if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                 {
@@ -1979,13 +1996,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (this._module.Compilation.IsReadOnlySpanType(expression.Type) &&
-                    expression.Arguments.Length == 1)
+                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlace: false))
                 {
-                    if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace: false))
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 // none of the above cases, so just create an instance
@@ -2000,6 +2013,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EmitPopIfUnused(used);
             }
+        }
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, bool inPlace)
+        {
+            int argumentsLength = expression.Arguments.Length;
+            return ((argumentsLength == 1 &&
+                     expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
+                    (argumentsLength == 3 &&
+                     expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
+                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace,
+                           start: argumentsLength == 3 ? expression.Arguments[1] : null,
+                           length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
 
         /// <summary>
@@ -2089,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitAssignmentPostfix(assignmentOperator, temp, useKind);
         }
 
-        // sometimes it is possible and advantageous to get an address of the lHS and 
+        // sometimes it is possible and advantageous to get an address of the LHS and 
         // perform assignment as an in-place initialization via initobj or constructor invocation.
         //
         // 1) initobj 
@@ -2222,16 +2247,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             // ReadOnlySpan may just refer to the blob, if possible.
-            if (this._module.Compilation.IsReadOnlySpanType(objCreation.Type) && objCreation.Arguments.Length == 1)
+            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, inPlace: true))
             {
-                if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)objCreation.Type, objCreation.Arguments[0], used, inPlace: true))
+                if (used)
                 {
-                    if (used)
-                    {
-                        EmitExpression(target, used: true);
-                    }
-                    return;
+                    EmitExpression(target, used: true);
                 }
+                return;
             }
 
             var constructor = objCreation.Constructor;
@@ -2294,7 +2316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-
         private bool EmitAssignmentPreamble(BoundAssignmentOperator assignmentOperator)
         {
             var assignmentTarget = assignmentOperator.Left;
@@ -2309,7 +2330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.FieldAccess:
                     {
                         var left = (BoundFieldAccess)assignmentTarget;
-                        if (!left.FieldSymbol.IsStatic)
+                        if (left.FieldSymbol.RefKind != RefKind.None &&
+                            !assignmentOperator.IsRef)
+                        {
+                            EmitFieldLoadNoIndirection(left, used: true);
+                        }
+                        else if (!left.FieldSymbol.IsStatic)
                         {
                             var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
                             Debug.Assert(temp == null, "temp is unexpected when assigning to a field");
@@ -2586,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (expression.Kind)
             {
                 case BoundKind.FieldAccess:
-                    EmitFieldStore((BoundFieldAccess)expression);
+                    EmitFieldStore((BoundFieldAccess)expression, assignment.IsRef);
                     break;
 
                 case BoundKind.Local:
@@ -2794,7 +2820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitFieldStore(BoundFieldAccess fieldAccess)
+        private void EmitFieldStore(BoundFieldAccess fieldAccess, bool refAssign)
         {
             var field = fieldAccess.FieldSymbol;
 
@@ -2803,14 +2829,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Volatile);
             }
 
-            _builder.EmitOpCode(field.IsStatic ? ILOpCode.Stsfld : ILOpCode.Stfld);
-            EmitSymbolToken(field, fieldAccess.Syntax);
+            if (field.RefKind != RefKind.None && !refAssign)
+            {
+                //NOTE: we should have the actual field already loaded, 
+                //now need to do a store to where it points to
+                EmitIndirectStore(field.Type, fieldAccess.Syntax);
+            }
+            else
+            {
+                _builder.EmitOpCode(field.IsStatic ? ILOpCode.Stsfld : ILOpCode.Stfld);
+                EmitSymbolToken(field, fieldAccess.Syntax);
+            }
         }
 
         private void EmitParameterStore(BoundParameter parameter, bool refAssign)
         {
-            int slot = ParameterSlot(parameter);
-
             if (parameter.ParameterSymbol.RefKind != RefKind.None && !refAssign)
             {
                 //NOTE: we should have the actual parameter already loaded, 
@@ -2819,6 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                int slot = ParameterSlot(parameter);
                 _builder.EmitStoreArgumentOpcode(slot);
             }
         }
@@ -3524,7 +3558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
-                if (load.TargetMethod.IsAbstract && load.TargetMethod.IsStatic)
+                if ((load.TargetMethod.IsAbstract || load.TargetMethod.IsVirtual) && load.TargetMethod.IsStatic)
                 {
                     if (load.ConstrainedToTypeOpt is not { TypeKind: TypeKind.TypeParameter })
                     {

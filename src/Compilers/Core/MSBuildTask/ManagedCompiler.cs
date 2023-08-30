@@ -642,15 +642,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
+#if BOOTSTRAP
+            if (!ValidateBootstrapResponse(response))
+            {
+                return 1;
+            }
+#endif
+
             if (response is null)
             {
                 LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, "could not launch server");
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-            }
-
-            if (response.Type != BuildResponse.ResponseType.Completed)
-            {
-                ValidateBootstrapUtil.AddFailedServerConnection(response.Type, OutputAssembly?.ItemSpec);
             }
 
             switch (response.Type)
@@ -669,6 +671,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
+                case BuildResponse.ResponseType.CannotConnect:
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"cannot connect to the server");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                     var rejectedResponse = (RejectedBuildResponse)response;
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
@@ -685,6 +691,66 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
+
+#if BOOTSTRAP
+#pragma warning disable IDE0044
+        /// <summary>
+        /// Keeps track of the number of times the task failed to connect to the compiler 
+        /// server. Even in valid builds this can be greater than zero (connect is
+        /// inherently a race condition). If this gets too high though in a bootstrap build
+        /// it's evidence of a bigger issue the team should be looking at.
+        /// </summary>
+        private static int s_connectFailedCount;
+
+#pragma warning restore IDE0044
+
+
+        /// <summary>
+        /// In bootstrap builds this validates the response. When this returns false it 
+        /// indicates the bootstrap build is incorrect and the compilation should fail.
+        /// </summary>
+        private bool ValidateBootstrapResponse(BuildResponse? response)
+        {
+            // This represents the maximum number of failed connection attempts on the server before we will declare
+            // that the overall build itself failed. Keeping this at zero is not realistic because even in a fully
+            // functioning server connection failures are expected. The server could be too busy to accept connections
+            // fast enough. Anything above this count though is considered worth investigating by the compiler team.
+            //
+            const int maxCannotConnectCount = 2;
+
+            var responseType = response?.Type ?? BuildResponse.ResponseType.CannotConnect;
+            switch (responseType)
+            {
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    Log.LogError($"Analyzer inconsistency building");
+                    return false;
+                case BuildResponse.ResponseType.MismatchedVersion:
+                case BuildResponse.ResponseType.IncorrectHash:
+                    Log.LogError($"Critical error {responseType} when building");
+                    return false;
+                case BuildResponse.ResponseType.Rejected:
+                    Log.LogError($"Compiler request rejected");
+                    return false;
+                case BuildResponse.ResponseType.CannotConnect:
+                    if (Interlocked.Increment(ref s_connectFailedCount) > maxCannotConnectCount)
+                    {
+                        Log.LogError("Too many errors connecting to the server");
+                        return false;
+                    }
+                    return true;
+
+                case BuildResponse.ResponseType.Completed:
+                case BuildResponse.ResponseType.Shutdown:
+                    // Expected messages
+                    break;
+                default:
+                    Log.LogError($"Unexpected response type {responseType}");
+                    return false;
+            }
+
+            return true;
+        }
+#endif
 
         /// <summary>
         /// Log the compiler output to MSBuild. Each language will override this to parse their output and log it

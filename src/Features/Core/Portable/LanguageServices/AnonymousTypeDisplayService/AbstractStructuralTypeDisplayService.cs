@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractStructuralTypeDisplayService : IStructuralTypeDisplayService
     {
@@ -78,8 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
-            typeParts.Add(PlainText(FeaturesResources.Types_colon));
-            typeParts.AddRange(LineBreak());
+
+            if (transitiveStructuralTypeReferences.Length > 0)
+            {
+                typeParts.Add(PlainText(FeaturesResources.Types_colon));
+                typeParts.AddRange(LineBreak());
+            }
 
             for (var i = 0; i < transitiveStructuralTypeReferences.Length; i++)
             {

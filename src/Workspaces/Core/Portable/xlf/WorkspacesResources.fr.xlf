@@ -67,6 +67,21 @@
         <target state="translated">Erreur durant la lecture du contenu du fichier source '{0}' -- '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">Nous n’avons pas pu résoudre les conflits de changement de nom.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
+        <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
+        <target state="translated">'FixAllScope.ContainingType' et 'FixAllScope.ContainingMember' ne sont pas pris en charge avec ce constructeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
+        <source>'FixAllScope.Custom' is not supported with this API</source>
+        <target state="translated">'FixAllScope.Custom' n’est pas pris en charge avec cette API</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Indentation et espacement</target>
@@ -435,11 +450,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Le chemin d'accès spécifié doit être absolu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Le nom peut être simplifié.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

@@ -10,6 +10,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -22,70 +24,87 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal static partial class DependentProjectsFinder
     {
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
-            Solution solution, ISymbol symbol, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                // namespaces are visible in all projects.
-                return projects != null
-                    ? projects.ToImmutableArray()
-                    : solution.Projects.ToImmutableArray();
-            }
-            else
-            {
-                var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-                return projects != null
-                    ? dependentProjects.WhereAsArray(projects.Contains)
-                    : dependentProjects;
-            }
+            // namespaces are visible in all projects.
+            if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+                return projects.ToImmutableArray();
+
+            var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
+            return dependentProjects.WhereAsArray(projects.Contains);
         }
 
         /// <summary>
-        /// This method computes the dependent projects that need to be searched for references of the given <paramref name="symbol"/>.
+        /// This method computes the dependent projects that need to be searched for references of the given <paramref
+        /// name="symbols"/>.
+        /// <para/>
         /// This computation depends on the given symbol's visibility:
-        ///     1) Public: Dependent projects include the symbol definition project and all the referencing projects.
-        ///     2) Internal: Dependent projects include the symbol definition project and all the referencing projects that have internals access to the definition project.
-        ///     3) Private: Dependent projects include the symbol definition project and all the referencing submission projects (which are special and can reference private fields of the previous submission).
-        /// 
+        /// <list type="number">
+        /// <item>Public: Dependent projects include the symbol definition project and all the referencing
+        /// projects.</item>
+        /// <item>Internal: Dependent projects include the symbol definition project and all the referencing projects
+        /// that have internals access to the definition project..</item>
+        /// <item>Private: Dependent projects include the symbol definition project and all the referencing submission
+        /// projects (which are special and can reference private fields of the previous submission).</item>
+        /// </list>
         /// We perform this computation in two stages:
-        ///     1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-        ///     2) Filter the above computed dependent projects based on symbol visibility.
+        /// <list type="number">
+        /// <item>Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.</item>
+        /// <item>Filter the above computed dependent projects based on symbol visibility.</item>
         /// Dependent projects computed in stage (1) are cached to avoid recomputation.
+        /// </list>
         /// </summary>
         private static async Task<ImmutableArray<Project>> GetDependentProjectsWorkerAsync(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbolOrigination = GetSymbolOrigination(solution, symbol, cancellationToken);
+            var symbolOriginations = GetSymbolOriginations(solution, symbols, cancellationToken);
 
-            // If we can't find where the symbol came from, we can't determine what projects to search for references to it.
-            if (symbolOrigination.assembly == null)
-                return ImmutableArray<Project>.Empty;
+            using var _ = PooledHashSet<Project>.GetInstance(out var result);
 
-            // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-            var symbolVisibility = symbol.GetResultantVisibility();
-            var dependentProjects = await ComputeDependentProjectsAsync(
-                solution, symbolOrigination, symbolVisibility, cancellationToken).ConfigureAwait(false);
+            foreach (var (assembly, (sourceProject, maxVisibility)) in symbolOriginations)
+            {
+                // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
+                var dependentProjects = await ComputeDependentProjectsAsync(
+                    solution, (assembly, sourceProject), maxVisibility, cancellationToken).ConfigureAwait(false);
 
-            // 2) Filter the above computed dependent projects based on symbol visibility.
-            var filteredProjects = symbolVisibility == SymbolVisibility.Internal
-                ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
-                : dependentProjects;
+                // 2) Filter the above computed dependent projects based on symbol visibility.
+                var filteredProjects = maxVisibility == SymbolVisibility.Internal
+                    ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
+                    : dependentProjects;
 
-            return filteredProjects.SelectAsArray(t => t.project);
+                result.AddRange(filteredProjects.Select(p => p.project));
+            }
+
+            return result.ToImmutableArray();
         }
 
         /// <summary>
-        /// Returns a pair of data bout where <paramref name="symbol"/> originates from.  It's <see
+        /// Returns information about where <paramref name="symbols"/> originate from.  It's <see
         /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
-        /// was a symbol from source.
+        /// was a symbol from source. 
         /// </summary>
-        private static (IAssemblySymbol assembly, Project? sourceProject) GetSymbolOrigination(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        private static Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility maxVisibility)> GetSymbolOriginations(
+            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
-            var assembly = symbol.OriginalDefinition.ContainingAssembly;
-            return assembly == null ? default : (assembly, solution.GetProject(assembly, cancellationToken));
+            var result = new Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility visibility)>();
+
+            foreach (var symbol in symbols)
+            {
+                var assembly = symbol.OriginalDefinition.ContainingAssembly;
+                if (assembly == null)
+                    continue;
+
+                if (!result.TryGetValue(assembly, out var projectAndVisibility))
+                    projectAndVisibility = (solution.GetProject(assembly, cancellationToken), symbol.GetResultantVisibility());
+
+                // Visibility enum has higher visibility as a lower number, so choose the minimum of both.
+                projectAndVisibility.visibility = (SymbolVisibility)Math.Min((int)projectAndVisibility.visibility, (int)symbol.GetResultantVisibility());
+                result[assembly] = projectAndVisibility;
+            }
+
+            return result;
         }
 
         private static async Task<ImmutableArray<(Project project, bool hasInternalsAccess)>> ComputeDependentProjectsAsync(
@@ -261,7 +280,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // WORKAROUND:
                 // perf check metadata reference using newly created empty compilation with only metadata references.
-                compilation = project.LanguageServices.CompilationFactory!.CreateCompilation(
+                compilation = project.Services.GetRequiredService<ICompilationFactoryService>().CreateCompilation(
                     project.AssemblyName, project.CompilationOptions!);
 
                 compilation = compilation.AddReferences(project.MetadataReferences);

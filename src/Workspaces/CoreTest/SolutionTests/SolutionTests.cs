@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,7 +34,9 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -187,8 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
-        [Fact]
-        [WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
+        [Fact, WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
         [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/37125")]
         public void WithDocumentFilePath()
         {
@@ -269,8 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
         }
 
-        [Fact]
-        [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
+        [Fact, WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
         public async Task WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
         {
             var projectId = ProjectId.CreateNewId();
@@ -706,7 +707,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(originalSyntaxTreeOptionsProvider);
 
-            var defaultOptions = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            var defaultOptions = solution.Projects.Single().Services.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             Assert.Null(defaultOptions.SyntaxTreeOptionsProvider);
 
             solution = solution.WithProjectCompilationOptions(projectId, defaultOptions);
@@ -840,8 +841,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
-        [Fact]
-        [WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
+        [Fact, WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
         public void WithProjectReferences_ProjectNotInSolution()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1201,8 +1201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("bar", project.AssemblyName);
         }
 
-        [Fact]
-        [WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
+        [Fact, WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
             using var workspace = CreateWorkspace();
@@ -1569,8 +1568,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
-        [Fact]
+        [Fact, WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
         public async Task TestProjectDependencyLoadingAsync()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
@@ -1816,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(documentId, "DocumentName", SourceText.From("class Class{}"));
 
             var document = solution1.GetDocument(documentId);
-            var newRoot = await Formatter.FormatAsync(document).Result.GetSyntaxRootAsync();
+            var newRoot = await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).Result.GetSyntaxRootAsync();
             var solution2 = solution1.WithDocumentSyntaxRoot(documentId, newRoot);
 
             Assert.NotEqual(solution1, solution2);
@@ -1912,8 +1910,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact]
-        [WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [Fact, WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -1941,14 +1938,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
                 observedText.AssertReleased();
             }
             else
             {
                 // If this assertion fails, it means a new target supports the true temporary storage service, and the
                 // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
             }
 
             // if we ask for the same text again we should get the original content
@@ -2423,6 +2420,78 @@ End Class";
             return new ObjectReference<Compilation>(observed);
         }
 
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        [WorkItem(63834, "https://github.com/dotnet/roslyn/issues/63834")]
+        public void RecoverableTree_With(string language)
+        {
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+
+            var sol = workspace.CurrentSolution
+                .AddProject(pid, "test", "test.dll", language)
+                .AddDocument(did, "test", SourceText.From(language == LanguageNames.CSharp ? "class C {}" : "Class C : End Class", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: "old path");
+
+            var document = sol.GetDocument(did);
+            var tree = document.GetSyntaxTreeSynchronously(default);
+            var recoverableTree = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree);
+
+            var tree2 = tree.WithFilePath("new path");
+            var recoverableTree2 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree2);
+
+            Assert.Equal("new path", tree2.FilePath);
+            Assert.Same(tree2, tree2.GetRoot().SyntaxTree);
+            Assert.Same(tree.Options, tree2.Options);
+            Assert.Same(tree.Encoding, tree2.Encoding);
+            Assert.Equal(tree.Length, tree2.Length);
+            Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree2.ContainsDirectives);
+
+            // unchanged:
+            Assert.Same(tree, tree.WithFilePath("old path"));
+
+            var newRoot = (language == LanguageNames.CSharp) ? CS.SyntaxFactory.ParseCompilationUnit("""
+                #define X
+                #if X
+                class NewType {}
+                #endif
+                """) : (SyntaxNode)VB.SyntaxFactory.ParseCompilationUnit("""
+                #Define X
+                #If X
+                Class C
+                End Class
+                #End If
+                """);
+
+            Assert.True(newRoot.ContainsDirectives);
+
+            var tree3 = tree.WithRootAndOptions(newRoot, tree.Options);
+            var recoverableTree3 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree3);
+
+            Assert.Equal("old path", tree3.FilePath);
+            Assert.Same(tree3, tree3.GetRoot().SyntaxTree);
+            Assert.Same(tree.Options, tree3.Options);
+            Assert.Same(tree.Encoding, tree3.Encoding);
+            Assert.Equal(newRoot.FullSpan.Length, tree3.Length);
+            Assert.True(recoverableTree3.ContainsDirectives);
+
+            var newOptions = tree.Options.WithKind(SourceCodeKind.Script);
+            var tree4 = tree.WithRootAndOptions(tree.GetRoot(), newOptions);
+            var recoverableTree4 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree4);
+
+            Assert.Equal("old path", tree4.FilePath);
+            Assert.Same(tree4, tree4.GetRoot().SyntaxTree);
+            Assert.Same(newOptions, tree4.Options);
+            Assert.Same(tree.Encoding, tree4.Encoding);
+            Assert.Equal(tree.Length, tree4.Length);
+            Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree4.ContainsDirectives);
+
+            // unchanged:
+            Assert.Same(tree, tree.WithRootAndOptions(tree.GetRoot(), tree.Options));
+        }
+
         [Fact]
         public void TestWorkspaceLanguageServiceOverride()
         {
@@ -2492,8 +2561,7 @@ End Class";
             }
         }
 
-        [Fact]
-        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        [Fact, WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
         public async Task TestDocumentFileAccessFailureMissingFile()
         {
             var workspace = new AdhocWorkspace();
@@ -2584,8 +2652,7 @@ public class C : A {
             Assert.Equal(pid1, projectForBaseType.Id);
         }
 
-        [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
-        [Fact]
+        [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public void TestEncodingRetainedAfterTreeChanged()
         {
             var ws = new AdhocWorkspace();
@@ -2712,6 +2779,41 @@ public class C : A {
             Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var solution = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).Solution;
+
+            var documentId1 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+            var documentId2 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+            var documentId3 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+
+            solution = solution
+                .AddDocument(documentId1, nameof(documentId1), "// Document 1")
+                .AddDocument(documentId2, nameof(documentId2), "// Document 2")
+                .AddDocument(documentId3, nameof(documentId3), "// Document 3");
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
+
+            solution = solution
+                .WithDocumentText(documentId1, SourceText.From("// Document 1 Changed"))
+                .WithDocumentText(documentId2, SourceText.From("// Document 2 Changed"))
+                .WithDocumentText(documentId3, SourceText.From("// Document 3 Changed"));
+
+            GC.KeepAlive(originalCompilation);
+
+            var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
+
+            var frozen = solution.GetRequiredDocument(documentIdToFreeze).WithFrozenPartialSemantics(CancellationToken.None);
+
+            var tree = await frozen.GetSyntaxTreeAsync();
+            Assert.Contains("Changed", tree.ToString());
+        }
+
         [Fact]
         public void TestProjectCompletenessWithMultipleProjects()
         {
@@ -2792,8 +2894,7 @@ public class C : A {
             Assert.True(exceptionThrown);
         }
 
-        [Fact]
-        [WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
+        [Fact, WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
@@ -2801,7 +2902,7 @@ public class C : A {
             var solution = workspace.CurrentSolution;
             var dummyProject = solution.AddProject("dummy", "dummy", LanguageNames.CSharp);
 
-            var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
+            var factory = dummyProject.Services.GetService<ISyntaxTreeFactoryService>();
 
             // create the origin tree
             var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
@@ -3087,8 +3188,7 @@ public class C : A {
             Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
         }
 
-        [Fact]
-        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        [Fact, WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
             using var workspace = CreateWorkspace();
@@ -3142,7 +3242,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3163,7 +3263,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3264,16 +3364,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
-            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var option = FormattingOptions.UseTabs;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
@@ -3286,13 +3386,8 @@ class C
             var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
             VerifyOptionSet(s2.Options);
 
-            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
-            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
-            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
-            VerifyOptionSet(roundTripOptionSet);
-
             // Verify option value is preserved on removing a project.
-            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            var s4 = s2.RemoveProject(s2.Projects.Single(p => p.Name == "P1").Id);
             VerifyOptionSet(s4.Options);
 
             return;
@@ -3301,16 +3396,6 @@ class C
             {
                 Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
                 Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
-            }
-
-            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
-            {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream);
-                optionSet.Serialize(writer, CancellationToken.None);
-                stream.Position = 0;
-                using var reader = ObjectReader.TryGetReader(stream);
-                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
         }
 
@@ -3383,6 +3468,55 @@ class C
             sourceTextToRelease.AssertReleased();
 
             GC.KeepAlive(finalSolution);
+        }
+
+        [Theory]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "a/b/test.cs", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "", "*.cs", false, false)]
+        [InlineData(null, "a/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData(null, "a/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*test.cs", false, true)]
+        public async Task EditorConfigOptions(string projectPath, string configPath, string sourcePath, string pattern, bool appliedToEntireProject, bool appliedToDocument)
+        {
+            projectPath = string.IsNullOrEmpty(projectPath) ? projectPath : Path.Combine(TempRoot.Root, projectPath);
+            configPath = Path.Combine(TempRoot.Root, configPath);
+            sourcePath = string.IsNullOrEmpty(sourcePath) ? sourcePath : Path.Combine(TempRoot.Root, sourcePath);
+
+            using var workspace = CreateWorkspace();
+            var projectId = ProjectId.CreateNewId();
+
+            var projectInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: "proj1",
+                assemblyName: "proj1.dll",
+                language: LanguageNames.CSharp,
+                filePath: projectPath);
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectInfo)
+                .AddDocument(documentId, "test.cs", SourceText.From("public class C { }"), filePath: sourcePath)
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".editorconfig", SourceText.From($"[{pattern}]\nindent_style = tab"), filePath: configPath);
+
+            var document = solution.GetRequiredDocument(documentId);
+
+#pragma warning disable RS0030 // Do not used banned APIs
+            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+#pragma warning restore
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
+
+            var projectOptions = document.Project.GetAnalyzerConfigOptions();
+            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
     }
 }

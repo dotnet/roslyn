@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         // We need to analyze generated code to get callbacks for read/writes to non-generated members in generated code.
-        protected override bool ReceiveAnalysisCallbacksForGeneratedCode => true;
+        protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                             var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
-                                var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
+                                var option = GetCodeStyleOption(field, symbolEndContext.Options);
                                 var diagnostic = DiagnosticHelper.Create(
                                     Descriptor,
                                     field.Locations[0],
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
-                    var option = GetCodeStyleOption(field, options, cancellationToken);
+                    var option = GetCodeStyleOption(field, options);
                     if (option == null || !option.Value)
                     {
                         return default;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return true;
         }
 
-        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
-            => options.GetOption(CodeStyleOptions2.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
+            => options.GetAnalyzerOptions(field.Locations[0].SourceTree).PreferReadonly;
     }
 }

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    internal struct AssemblyAndLocation : IEquatable<AssemblyAndLocation>
+    internal readonly struct AssemblyAndLocation : IEquatable<AssemblyAndLocation>
     {
         public Assembly Assembly { get; }
         public string Location { get; }

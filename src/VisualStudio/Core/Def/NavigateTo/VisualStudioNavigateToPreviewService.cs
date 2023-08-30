@@ -27,14 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
         }
 
         public bool CanPreview(Document document)
-        {
-            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
-            {
-                return false;
-            }
-
-            return visualStudioWorkspace.TryGetContainedDocument(document.Id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(document.Id) == null;
 
         public void PreviewItem(INavigateToItemDisplay itemDisplay)
         {

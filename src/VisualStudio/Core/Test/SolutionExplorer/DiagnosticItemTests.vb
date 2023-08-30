@@ -8,8 +8,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class DiagnosticItemTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
@@ -18,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 

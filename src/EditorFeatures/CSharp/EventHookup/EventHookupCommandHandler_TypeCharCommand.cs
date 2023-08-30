@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     {
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             nextHandler();
 
             if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private bool IsTextualPlusEquals(ITextView textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (!caretPoint.HasValue)
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             return nextHandler();
         }
     }

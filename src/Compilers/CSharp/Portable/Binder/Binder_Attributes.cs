@@ -51,7 +51,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+                    var boundType = binder.BindType(attributeToBind.Name, diagnostics);
+                    var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+
+                    // Check the attribute type (unless the attribute type is already an error).
+                    if (boundTypeSymbol.TypeKind != TypeKind.Error)
+                    {
+                        var location = attributeToBind.Name.GetLocation();
+                        binder.CheckDisallowedAttributeDependentType(boundType, location, diagnostics);
+                    }
+
+                    boundAttributeTypes[i] = boundTypeSymbol;
 
                     afterAttributePartBound?.Invoke(attributeToBind);
                 }
@@ -194,7 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     out var memberResolutionResult,
                     out var candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true);
+                    allowProtectedConstructorsOfBaseType: true,
+                    suppressUnsupportedRequiredMembersError: false);
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
                 argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
@@ -225,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
                     ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
-                    if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In))
+                    if (attributeConstructor.Parameters.Any(static p => p.RefKind == RefKind.In))
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     }
@@ -237,6 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
+
+            if (attributeConstructor is not null)
+            {
+                CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
+            }
 
             analyzedArguments.ConstructorArguments.Free();
 
@@ -807,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(argument.TypeInternal is object);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref discardedUseSiteInfo);
+            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, isChecked: false, ref discardedUseSiteInfo);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
@@ -828,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk a custom attribute argument bound node and return a TypedConstant.  Verify that the expression is a constant expression.
         /// </summary>
-        private struct AttributeExpressionVisitor
+        private readonly struct AttributeExpressionVisitor
         {
             private readonly Binder _binder;
 
@@ -1113,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region AnalyzedAttributeArguments
 
-        private struct AnalyzedAttributeArguments
+        private readonly struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
             internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;

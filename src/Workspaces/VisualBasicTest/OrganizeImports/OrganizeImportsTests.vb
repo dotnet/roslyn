@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
@@ -16,6 +17,7 @@ Imports Microsoft.CodeAnalysis.UnitTests
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Organizing)>
     Public Class OrganizeImportsTests
         Private Shared Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
@@ -25,16 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine))))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim options = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups,
+                    .NewLine = If(endOfLine, OrganizeImportsOptions.Default.NewLine)
+                }
 
-                If endOfLine IsNot Nothing Then
-                    options = options.WithChangedOption(New OptionKey(FormattingOptions2.NewLine, document.Project.Language), endOfLine)
-                End If
-
-                document = document.WithSolutionOptions(options)
-
-                Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
+                Dim newDocument = Await service.OrganizeImportsAsync(document, options, CancellationToken.None)
+                Dim newRoot = Await newDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine)), newRoot.ToFullString())
             End Using
         End Function
@@ -46,38 +48,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
-                document = document.WithSolutionOptions(options)
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With {.SeparateImportDirectiveGroups = separateImportGroups}
+                }
 
-                Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
-                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)
+                Dim organizeOptions = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups
+                }
+
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim organizedDocument = Await service.OrganizeImportsAsync(document, organizeOptions, CancellationToken.None)
+                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestEmptyFile() As Task
             Await CheckAsync(<content></content>, <content></content>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestSingleImportsStatement() As Task
             Dim initial = <content>Imports A</content>
             Dim final = initial
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestMultipleClauses() As Task
             Dim initial = <content>Imports C, B, A</content>
             Dim final = <content>Imports A, B, C</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestAliasesAtBottom() As Task
             Dim initial =
 <content>Imports A = B
@@ -95,7 +105,7 @@ Imports D = E
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestMultipleStatementsMultipleClauses() As Task
             Dim initial =
                 <content>Imports F
@@ -110,7 +120,7 @@ Imports F
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestSpecialCaseSystem() As Task
             Dim initial =
 <content>Imports M2
@@ -127,7 +137,7 @@ Imports M2
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotSpecialCaseSystem() As Task
             Dim initial =
 <content>Imports M2
@@ -145,7 +155,7 @@ Imports System.Linq
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestMissingNames() As Task
             Dim initial =
     <content>Imports B
@@ -160,7 +170,7 @@ Imports B
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile1() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -185,7 +195,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile2() As Task
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -210,7 +220,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile3() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -239,8 +249,7 @@ end namespace</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        <WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
+        <Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile4() As Task
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -269,8 +278,7 @@ end namespace</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile1() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -293,8 +301,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile2() As Task
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -317,8 +324,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile3() As Task
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -341,7 +347,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotSortIfEndIfBlocks() As Task
             Dim initial =
 <content>Imports D
@@ -361,7 +367,7 @@ namespace D { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDuplicateUsings() As Task
             Dim initial =
 <content>Imports A
@@ -372,7 +378,7 @@ Imports A</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestTrailingComments() As Task
             Dim initial =
 <content>Imports D '/*03*/
@@ -391,7 +397,7 @@ Imports D '/*03*/
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestInsideRegionBlock() As Task
             Dim initial =
     <content>#region Using directives
@@ -411,7 +417,7 @@ Imports C
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestNestedRegionBlock() As Task
             Dim initial =
 <content>Imports C
@@ -425,7 +431,7 @@ Imports B</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestMultipleRegionBlocks() As Task
             Dim initial =
     <content>#region Using directives
@@ -441,7 +447,7 @@ Imports B
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestInterleavedNewlines() As Task
             Dim initial =
 <content>Imports B
@@ -464,7 +470,7 @@ end class</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestInsideIfEndIfBlock() As Task
             Dim initial =
 <content>#if not X
@@ -483,7 +489,7 @@ Imports C
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestIfEndIfBlockAbove() As Task
             Dim initial =
 <content>#if not X
@@ -499,7 +505,7 @@ Imports E</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestIfEndIfBlockMiddle() As Task
             Dim initial =
 <content>Imports D
@@ -518,7 +524,7 @@ Imports G</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestIfEndIfBlockBelow() As Task
             Dim initial =
 <content>Imports D
@@ -534,7 +540,7 @@ Imports F
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestKorean() As Task
             Dim initial =
     <content>Imports 하
@@ -572,7 +578,7 @@ Imports 하
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestDoNotSpecialCaseSystem1() As Task
             Dim initial =
 <content>Imports B
@@ -600,8 +606,7 @@ Imports SystemZ
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        <WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
+        <Fact, WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
         Public Async Function TestXml() As Task
             Dim initial =
 <content><![CDATA[Imports System
@@ -623,7 +628,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestCaseSensitivity1() As Task
             Dim initial =
 <content>Imports Bb
@@ -757,7 +762,7 @@ Imports ああ
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact>
         Public Async Function TestCaseSensitivity2() As Task
             Dim initial =
 <content>Imports あ
@@ -809,8 +814,7 @@ Imports ああ
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
         Public Async Function TestGrouping() As Task
             Dim initial =
 <content><![CDATA[' Banner
@@ -849,8 +853,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
 
-        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
         Public Async Function TestGrouping2() As Task
             ' Make sure we don't insert extra newlines if they're already there.
             Dim initial =
@@ -894,8 +897,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
 
-        <WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
-        <Theory, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Theory, WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
         <InlineData(vbLf)>
         <InlineData(vbCrLf)>
         Public Async Function TestGrouping3(endOfLine As String) As Task
@@ -936,8 +938,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True, endOfLine:=endOfLine)
         End Function
 
-        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
         Public Async Function TestGroupingWithFormat() As Task
             Dim initial =
 <content><![CDATA[Imports M
@@ -975,8 +976,7 @@ End Namespace
             Await CheckWithFormatAsync(initial, final, placeSystemNamespaceFirst:=False, separateImportGroups:=True)
         End Function
 
-        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
         Public Async Function TestSortingAndGroupingWithFormat() As Task
             Dim initial =
 <content><![CDATA[Imports M

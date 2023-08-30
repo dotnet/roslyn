@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,13 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        // This is used to add on the preview language version which controls incremental generators being allowed.
-        // TODO: remove this method entirely and the calls once incremental generators are no longer preview
-        private static Project WithPreviewLanguageVersion(Project project)
-        {
-            return project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
@@ -42,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
             // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -69,7 +64,56 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        [WorkItem(1655835, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
+        {
+            using var workspace = CreateWorkspace();
+
+            // AnalyzerReferences may implement equality (AnalyezrFileReference does), and we want to make sure if we substitute out one
+            // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
+            // be different since two AnalyzerFileReferences that are value equal but different instances would have their own generators as well.
+            const string SharedPath = "Z:\\Generator.dll";
+            ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
+
+            var analyzerReference1 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+            var analyzerReference2 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference1);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one analyzer reference to the other
+            project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Now remove and confirm that we don't have any files
+            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+
+            Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+        }
+
+        private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
+        {
+            public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath) : base(generator)
+            {
+                FullPath = analyzerFilePath;
+            }
+
+            public override bool Equals(object? obj) => Equals(obj as AnalyzerReference);
+            public override string FullPath { get; }
+            public override int GetHashCode() => this.FullPath.GetHashCode();
+
+            public bool Equals(AnalyzerReference? other)
+            {
+                return other is TestGeneratorReferenceWithFilePathEquality otherReference &&
+                    this.FullPath == otherReference.FullPath;
+            }
+        }
+
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyAddsAndRemovesRunningGenerators()
         {
             using var workspace = CreateWorkspace();
 
@@ -82,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generatorReferenceToKeep = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent", hintName: "generatorReferenceToKeep"));
             var analyzerReferenceToAddAndRemove = new TestGeneratorReference(new SingleFileTestGenerator2("// More Static Content", hintName: "analyzerReferenceToAddAndRemove"));
 
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(generatorReferenceToKeep);
 
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
@@ -104,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace(new[] { typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking) });
             var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
             var analyzerReference = new TestGeneratorReference(generator);
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project
                 .AddAdditionalDocument("Test2.txt", "Hello, world!").Project;
@@ -178,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -218,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
             if (assertRightAway)
@@ -261,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -282,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var projectBeforeChange = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
@@ -321,7 +365,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
             {
-                var project = WithPreviewLanguageVersion(AddEmptyProject(solution));
+                var project = AddEmptyProject(solution);
                 project = project.AddAnalyzerReference(analyzerReference);
                 project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
@@ -334,7 +378,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var solution = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project.Solution;
 
@@ -361,7 +405,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var generatorRan = false;
             var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
@@ -387,7 +431,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
@@ -401,7 +445,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -575,7 +619,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var originalAdditionalFile = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var originalAdditionalFile = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", SourceText.From(""));
 
@@ -687,8 +731,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -716,8 +759,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGeneratorsEvenIfCompilationFallsAwayBeforeFreeze()
         {
             using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
@@ -752,7 +794,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 

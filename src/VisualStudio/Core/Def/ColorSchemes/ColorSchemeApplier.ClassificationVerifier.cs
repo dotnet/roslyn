@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 ColorableItemInfo colorItem,
                 string classification)
             {
-                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnUIThread();
                 Contract.ThrowIfNull(_fontAndColorUtilities);
 
                 var foregroundColorRef = colorItem.crForeground;

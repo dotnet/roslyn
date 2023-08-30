@@ -202,7 +202,7 @@ Friend Class GreenNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -400,30 +400,6 @@ Friend Class GreenNodeFactoryWriter
     Private Sub GenerateNodeStructureChildParameter(node As ParseNodeStructure, child As ParseNodeChild, Optional conflictName As String = Nothing)
         _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildFactoryTypeRef(node, child, True, True))
     End Sub
-
-    ' Given a node structure, return the default trailing trivia for that node structure as 
-    ' one of the strings "Nothing", "SingleSpaceTrivia", "NewlineTrivia".
-    Private Function GetDefaultTrailingTrivia(nodeStructure As ParseNodeStructure) As String
-        ' Go through parent chain, looking for non-empty value of trailing trivia.
-        While nodeStructure IsNot Nothing
-            If nodeStructure.DefaultTrailingTrivia <> "" Then
-                Select Case nodeStructure.DefaultTrailingTrivia
-                    Case "none"
-                        Return "Nothing"
-                    Case "space"
-                        Return "SingleSpaceTrivia"
-                    Case "newline"
-                        Return "NewlineTrivia"
-                    Case Else
-                        _parseTree.ReportError(nodeStructure.Element, "ERROR: Invalid value for default-trailing-trivia; must be 'none', 'space', or 'newline'")
-                End Select
-            End If
-
-            nodeStructure = nodeStructure.ParentStructure
-        End While
-
-        Return "Nothing"
-    End Function
 
     Private Sub GenerateConstructor()
         _writer.WriteLine()

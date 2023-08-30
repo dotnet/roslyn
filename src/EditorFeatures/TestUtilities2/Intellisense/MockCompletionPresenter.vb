@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private ReadOnly _textView As ITextView
         Private _filters As ImmutableArray(Of CompletionFilterWithState)
-        Private _presentedItems As ImmutableArray(Of CompletionItemWithHighlight)
+        Private _presentedItems As CompletionList(Of CompletionItemWithHighlight)
 
         Public Sub New(textView As ITextView)
             _textView = textView
@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Sub DoUpdate(presentation As CompletionPresentationViewModel)
             _filters = presentation.Filters
-            _presentedItems = presentation.Items
+            _presentedItems = presentation.ItemList
             If presentation.SelectSuggestionItem Then
                 ProgrammaticallySelectItem(presentation.SuggestionItem, True)
-            ElseIf Not presentation.Items.IsDefaultOrEmpty Then
-                ProgrammaticallySelectItem(presentation.Items(presentation.SelectedItemIndex).CompletionItem, False)
+            ElseIf Not _presentedItems.IsEmpty Then
+                ProgrammaticallySelectItem(_presentedItems(presentation.SelectedItemIndex).CompletionItem, False)
             Else
                 ProgrammaticallySelectItem(Nothing, False)
             End If
