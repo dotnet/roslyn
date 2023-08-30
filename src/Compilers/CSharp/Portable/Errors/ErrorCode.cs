@@ -2269,8 +2269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
         ERR_CollectionExpressionEscape = 9203,
-
-        ERR_ExpectedInterpolatedString = 9204,
+        ERR_ExpectedInterpolatedString = 9205,
 
         #endregion
 

@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter) &&
                     refParameter != RefKind.Out)
                 {
-                    // CS9204: Expected interpolated string
+                    // CS9205: Expected interpolated string
                     diagnostics.Add(ErrorCode.ERR_ExpectedInterpolatedString, sourceLocation);
                 }
                 else if (refArg == RefKind.Ref && refParameter == RefKind.In && !binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Special case for 'string literal -> interpolated string handler' for better user experience
                         if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter))
                         {
-                            // CS9204: Expected interpolated string
+                            // CS9205: Expected interpolated string
                             diagnostics.Add(ErrorCode.ERR_ExpectedInterpolatedString, sourceLocation);
                         }
                         else
