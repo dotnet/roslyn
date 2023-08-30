@@ -686,8 +686,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.None, _) => 0,
-                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
+                (BackgroundAnalysisScope.None, _) => 0,
+                (BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics or BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
                 _ => throw ExceptionUtilities.Unreachable(),
