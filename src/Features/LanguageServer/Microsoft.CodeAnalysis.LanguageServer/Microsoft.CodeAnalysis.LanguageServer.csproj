@@ -170,7 +170,7 @@
     <ItemGroup>
       <!-- We set Pack="false" because we only care about the RID-specific folders -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != ''"
+               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
                Pack="false"
                TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
                CopyToOutputDirectory="PreserveNewest" />
