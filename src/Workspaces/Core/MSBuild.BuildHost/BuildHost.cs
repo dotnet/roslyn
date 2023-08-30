@@ -23,17 +23,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 internal sealed class BuildHost : IBuildHost
 {
     private readonly ILogger _logger;
-    private readonly JsonRpc _jsonRpc;
     private readonly string? _binaryLogPath;
 
     private readonly object _gate = new object();
     private ProjectFileLoaderRegistry? _projectFileLoaderRegistry;
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, JsonRpc jsonRpc, string? binaryLogPath)
+    public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath)
     {
         _logger = loggerFactory.CreateLogger<BuildHost>();
-        _jsonRpc = jsonRpc;
         _binaryLogPath = binaryLogPath;
     }
 
@@ -115,7 +113,6 @@ internal sealed class BuildHost : IBuildHost
     public Task ShutdownAsync()
     {
         _buildManager?.EndBatchBuild();
-        _jsonRpc.Dispose();
 
         return Task.CompletedTask;
     }

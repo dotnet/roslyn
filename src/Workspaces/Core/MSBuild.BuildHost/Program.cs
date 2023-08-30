@@ -64,7 +64,7 @@ internal static class Program
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        jsonRpc.AddLocalRpcTarget(new BuildHost(loggerFactory, jsonRpc, binaryLogPath));
+        jsonRpc.AddLocalRpcTarget(new BuildHost(loggerFactory, binaryLogPath));
         jsonRpc.StartListening();
 
         logger.LogInformation("RPC channel started.");
