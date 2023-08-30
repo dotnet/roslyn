@@ -243,6 +243,14 @@ internal sealed class LanguageServerProjectSystem
                 var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
                 var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
+                // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
+                // language.
+                var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
+                if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
+                {
+                    return null;
+                }
+
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
                 Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos = new();

@@ -35,19 +35,16 @@ internal static class Program
 
         var logger = loggerFactory.CreateLogger(typeof(Program));
 
-        // Create a MEF container so we can create our SolutionServices to use for discovering language services; we'll include our own assembly in since that contains the services used
-        // for actually loading MSBuild projects.
-        var thisAssembly = typeof(Program).Assembly;
-
 #if NETCOREAPP
 
         // In the .NET Core case, the dependencies we want to dynamically load are not in our deps.json file, so we won't find them when MefHostServices tries to load them
         // with Assembly.Load. To work around this, we'll use LoadFrom instead by hooking our AssemblyLoadContext Resolving.
+        var thisAssemblyDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
         AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
         {
             try
             {
-                return Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(thisAssembly.Location)!, assemblyName.Name! + ".dll"));
+                return Assembly.LoadFrom(Path.Combine(thisAssemblyDirectory, assemblyName.Name! + ".dll"));
             }
             catch (Exception)
             {

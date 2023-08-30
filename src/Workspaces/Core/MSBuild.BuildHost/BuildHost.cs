@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.Extensions.Logging;
@@ -26,7 +25,6 @@ internal sealed class BuildHost : IBuildHost
     private readonly string? _binaryLogPath;
 
     private readonly object _gate = new object();
-    private ProjectFileLoaderRegistry? _projectFileLoaderRegistry;
     private ProjectBuildManager? _buildManager;
 
     public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath)
@@ -35,13 +33,13 @@ internal sealed class BuildHost : IBuildHost
         _binaryLogPath = binaryLogPath;
     }
 
-    [MemberNotNull(nameof(_projectFileLoaderRegistry), nameof(_buildManager))]
+    [MemberNotNull(nameof(_buildManager))]
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
-            if (_buildManager != null && _projectFileLoaderRegistry != null)
+            if (_buildManager != null)
                 return;
 
             VisualStudioInstance instance;
@@ -71,16 +69,11 @@ internal sealed class BuildHost : IBuildHost
         }
     }
 
-    [MemberNotNull(nameof(_projectFileLoaderRegistry), nameof(_buildManager))]
+    [MemberNotNull(nameof(_buildManager))]
     [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this creates MSBuild types which are being loaded by the caller
     private void CreateBuildManager()
     {
         Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
-
-        var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Append(typeof(BuildHost).Assembly));
-        var solutionServices = new AdhocWorkspace(hostServices).Services.SolutionServices;
-
-        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(solutionServices, new DiagnosticReporter(new AdhocWorkspace()));
 
         BinaryLogger? logger = null;
 
@@ -98,16 +91,29 @@ internal sealed class BuildHost : IBuildHost
     {
         EnsureMSBuildLoaded(projectFilePath);
 
-        return Task.FromResult(_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectFilePath, DiagnosticReportingMode.Ignore, out var _));
+        return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
     }
 
     public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
 
-        Contract.ThrowIfFalse(_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectFilePath, out var projectLoader));
+        var projectLoader = TryGetLoaderForPath(projectFilePath);
+        Contract.ThrowIfNull(projectLoader, $"We don't support this project path; we should have called {nameof(IsProjectFileSupportedAsync)} first.");
         _logger.LogInformation($"Loading {projectFilePath}");
         return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
+    }
+
+    private static IProjectFileLoader? TryGetLoaderForPath(string projectFilePath)
+    {
+        var extension = Path.GetExtension(projectFilePath);
+
+        return extension switch
+        {
+            ".csproj" => new CSharp.CSharpProjectFileLoader(),
+            ".vbproj" => new VisualBasic.VisualBasicProjectFileLoader(),
+            _ => null
+        };
     }
 
     public Task ShutdownAsync()

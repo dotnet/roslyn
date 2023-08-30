@@ -152,12 +152,6 @@
   <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
       <!-- Project references references that we need to consume for our net472 BuildHost -->
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
-        <TargetFramework>netstandard2.0</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
-        <TargetFramework>netstandard2.0</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
       </_NetFrameworkBuildHostProjectReference>
