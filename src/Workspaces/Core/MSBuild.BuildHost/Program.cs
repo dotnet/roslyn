@@ -3,16 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using StreamJsonRpc;
 using System.CommandLine;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-
-#if NETCOREAPP
-using System.Runtime.Loader;
-#endif
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
@@ -34,25 +28,6 @@ internal static class Program
             }));
 
         var logger = loggerFactory.CreateLogger(typeof(Program));
-
-#if NETCOREAPP
-
-        // In the .NET Core case, the dependencies we want to dynamically load are not in our deps.json file, so we won't find them when MefHostServices tries to load them
-        // with Assembly.Load. To work around this, we'll use LoadFrom instead by hooking our AssemblyLoadContext Resolving.
-        var thisAssemblyDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
-        AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
-        {
-            try
-            {
-                return Assembly.LoadFrom(Path.Combine(thisAssemblyDirectory, assemblyName.Name! + ".dll"));
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        };
-
-#endif
 
         var messageHandler = new HeaderDelimitedMessageHandler(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput(), new JsonMessageFormatter());
 
