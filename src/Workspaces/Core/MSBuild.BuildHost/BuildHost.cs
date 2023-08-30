@@ -33,14 +33,15 @@ internal sealed class BuildHost : IBuildHost
         _binaryLogPath = binaryLogPath;
     }
 
-    [MemberNotNull(nameof(_buildManager))]
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
-            if (_buildManager != null)
+            if (MSBuildLocator.IsRegistered)
+            {
                 return;
+            }
 
             VisualStudioInstance instance;
 
@@ -62,10 +63,7 @@ internal sealed class BuildHost : IBuildHost
 #endif
 
             MSBuildLocator.RegisterInstance(instance);
-
             _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
-
-            CreateBuildManager();
         }
     }
 
@@ -73,23 +71,28 @@ internal sealed class BuildHost : IBuildHost
     [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this creates MSBuild types which are being loaded by the caller
     private void CreateBuildManager()
     {
-        Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
-
-        BinaryLogger? logger = null;
-
-        if (_binaryLogPath != null)
+        lock (_gate)
         {
-            logger = new BinaryLogger { Parameters = _binaryLogPath };
-            _logger.LogInformation($"Logging builds to {_binaryLogPath}");
-        }
+            if (_buildManager != null)
+                return;
 
-        _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-        _buildManager.StartBatchBuild();
+            BinaryLogger? logger = null;
+
+            if (_binaryLogPath != null)
+            {
+                logger = new BinaryLogger { Parameters = _binaryLogPath };
+                _logger.LogInformation($"Logging builds to {_binaryLogPath}");
+            }
+
+            _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
+            _buildManager.StartBatchBuild();
+        }
     }
 
     public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
+        CreateBuildManager();
 
         return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
     }
@@ -97,6 +100,7 @@ internal sealed class BuildHost : IBuildHost
     public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
+        CreateBuildManager();
 
         var projectLoader = TryGetLoaderForPath(projectFilePath);
         Contract.ThrowIfNull(projectLoader, $"We don't support this project path; we should have called {nameof(IsProjectFileSupportedAsync)} first.");
