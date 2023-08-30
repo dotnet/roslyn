@@ -17,6 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
+            // BoundCollectionExpression should be handled in VisitConversion().
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private BoundExpression RewriteCollectionExpressionConversion(Conversion conversion, BoundCollectionExpression node)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.CollectionExpression);
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
             Debug.Assert(node.Type is { });
@@ -25,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
             try
             {
-                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, node.Type, out var elementType);
+                var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.CollectionInitializer:
@@ -105,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
-                var list = VisitCollectionInitializerCollectionExpression(node, collectionType);
+                var list = VisitCollectionInitializerCollectionExpression(node, listType);
                 array = _factory.Call(list, listToArray);
             }
             else
