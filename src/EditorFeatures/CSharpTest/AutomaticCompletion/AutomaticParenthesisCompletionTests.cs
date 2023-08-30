@@ -27,13 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void String1()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = """"$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = ""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
             CheckStart(session.Session);
@@ -42,13 +44,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void String2()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = @""""$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = @""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
             CheckStart(session.Session);
@@ -57,10 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void ParameterList_OpenParenthesis()
         {
-            var code = @"class C
-{
-    void Method$$
-}";
+            var code = """
+                class C
+                {
+                    void Method$$
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -70,10 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void ParameterList_OpenParenthesis_Delete()
         {
-            var code = @"class C
-{
-    void Method$$
-}";
+            var code = """
+                class C
+                {
+                    void Method$$
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -84,10 +92,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void ParameterList_OpenParenthesis_Tab()
         {
-            var code = @"class C
-{
-    void Method$$
-}";
+            var code = """
+                class C
+                {
+                    void Method$$
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -98,10 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void ParameterList_OpenParenthesis_CloseParenthesis()
         {
-            var code = @"class C
-{
-    void Method$$
-}";
+            var code = """
+                class C
+                {
+                    void Method$$
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -112,13 +124,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void Argument()
         {
-            var code = @"class C 
-{
-    void Method()
-    {
-        Method$$
-    }
-}";
+            var code = """
+                class C 
+                {
+                    void Method()
+                    {
+                        Method$$
+                    }
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -128,13 +142,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void Argument_Invalid()
         {
-            var code = @"class C 
-{
-    void Method()
-    {
-        Method($$)
-    }
-}";
+            var code = """
+                class C 
+                {
+                    void Method()
+                    {
+                        Method($$)
+                    }
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -144,13 +160,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void Array_Nested()
         {
-            var code = @"class C
-{
-    int Method(int i)
-    {
-        Method(Method$$)
-    }
-}";
+            var code = """
+                class C
+                {
+                    int Method(int i)
+                    {
+                        Method(Method$$)
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
             CheckStart(session.Session);
@@ -160,17 +178,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void OpenParenthesisWithExistingCloseParen()
         {
-            var code = @"class A
-{
-    public A(int a, int b) { }
+            var code = """
+                class A
+                {
+                    public A(int a, int b) { }
 
-    public static A Create()
-    {
-        return new A$$
-            0, 0);
-    }
-}
-";
+                    public static A Create()
+                    {
+                        return new A$$
+                            0, 0);
+                    }
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
