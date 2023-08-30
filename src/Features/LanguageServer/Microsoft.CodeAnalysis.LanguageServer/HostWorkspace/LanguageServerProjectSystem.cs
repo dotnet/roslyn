@@ -53,6 +53,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
     private readonly IGlobalOptionService _globalOptionService;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
 
@@ -77,6 +78,7 @@ internal sealed class LanguageServerProjectSystem
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
         _globalOptionService = globalOptionService;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
 
@@ -182,7 +184,7 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        await using var buildHostProcessManager = new BuildHostProcessManager(GetMSBuildBinaryLogPath());
+        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory);
 
         var displayedToast = 0;
 

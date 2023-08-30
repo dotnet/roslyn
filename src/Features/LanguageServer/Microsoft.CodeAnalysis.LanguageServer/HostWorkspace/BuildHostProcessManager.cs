@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -14,19 +15,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal sealed class BuildHostProcessManager : IAsyncDisposable
 {
+    private readonly ILoggerFactory? _loggerFactory;
+    private readonly ILogger? _logger;
     private readonly string? _binaryLogPath;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
 
-    public BuildHostProcessManager(string? binaryLogPath = null)
+    public BuildHostProcessManager(ILoggerFactory? loggerFactory = null, string? binaryLogPath = null)
     {
+        _loggerFactory = loggerFactory;
+        _logger = loggerFactory?.CreateLogger<BuildHostProcessManager>();
         _binaryLogPath = binaryLogPath;
     }
 
     public async Task<IBuildHost> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         var neededBuildHostKind = GetKindForProject(projectFilePath);
+
+        _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}");
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -39,7 +46,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                     _ => throw ExceptionUtilities.UnexpectedValue(neededBuildHostKind)
                 };
 
-                buildHostProcess = new BuildHostProcess(process);
+                buildHostProcess = new BuildHostProcess(process, _loggerFactory);
                 buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
                 _processes.Add(neededBuildHostKind, buildHostProcess);
             }
@@ -69,7 +76,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             // Dispose outside of the lock (even though we don't expect much to happen at this point)
             if (processToDispose != null)
+            {
+                processToDispose.LoggerForProcessMessages?.LogTrace("Process exited.");
                 await processToDispose.DisposeAsync();
+            }
         });
     }
 
@@ -84,10 +94,6 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet",
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
         };
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
@@ -98,7 +104,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         processStartInfo.ArgumentList.Add(typeof(IBuildHost).Assembly.Location);
 
-        AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(processStartInfo);
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
@@ -113,20 +119,16 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = netFrameworkBuildHost,
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
         };
 
-        AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(processStartInfo);
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
         var process = Process.Start(processStartInfo);
         Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
         return process;
     }
 
-    private void AppendBuildHostCommandLineArgumentsAndRemoveEnvironmentVariables(ProcessStartInfo processStartInfo)
+    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
     {
         if (_binaryLogPath is not null)
         {
@@ -137,6 +139,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
         // it might try to load targets that aren't appropriate for the build host.
         processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");
+
+        processStartInfo.CreateNoWindow = true;
+        processStartInfo.UseShellExecute = false;
+        processStartInfo.RedirectStandardInput = true;
+        processStartInfo.RedirectStandardOutput = true;
+        processStartInfo.RedirectStandardError = true;
     }
 
     private static readonly XmlReaderSettings s_xmlSettings = new()
@@ -195,18 +203,27 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         private readonly Process _process;
         private readonly JsonRpc _jsonRpc;
 
-        public BuildHostProcess(Process process)
+        private int _disposed = 0;
+
+        public BuildHostProcess(Process process, ILoggerFactory? loggerFactory)
         {
+            LoggerForProcessMessages = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
+
             _process = process;
 
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
+
+            _process.ErrorDataReceived += Process_ErrorDataReceived;
 
             var messageHandler = new HeaderDelimitedMessageHandler(sendingStream: _process.StandardInput.BaseStream, receivingStream: _process.StandardOutput.BaseStream, new JsonMessageFormatter());
 
             _jsonRpc = new JsonRpc(messageHandler);
             _jsonRpc.StartListening();
             BuildHost = _jsonRpc.Attach<IBuildHost>();
+
+            // Call this last so our type is fully constructed before we start firing events
+            _process.BeginErrorReadLine();
         }
 
         private void Process_Exited(object? sender, EventArgs e)
@@ -214,24 +231,38 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
+        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data is not null)
+                LoggerForProcessMessages?.LogTrace($"Message from Process: {e.Data}");
+        }
+
         public IBuildHost BuildHost { get; }
+        public ILogger? LoggerForProcessMessages { get; }
 
         public event EventHandler? Disconnected;
 
         public async ValueTask DisposeAsync()
         {
+            // Ensure only one thing disposes; while we disconnect the process will go away, which will call us to do this again
+            if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
+                return;
+
             // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
             try
             {
                 await BuildHost.ShutdownAsync();
+                _jsonRpc.Dispose();
+
+                LoggerForProcessMessages?.LogTrace("Process gracefully shut down.");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                LoggerForProcessMessages?.LogError(e, "Exception while shutting down the BuildHost process.");
+
                 // OK, process may have gone bad.
                 _process.Kill();
             }
-
-            _jsonRpc.Dispose();
         }
     }
 }

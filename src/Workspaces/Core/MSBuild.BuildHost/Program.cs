@@ -4,13 +4,11 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Host.Mef;
 using StreamJsonRpc;
 using System.CommandLine;
+using Microsoft.Extensions.Logging;
 
 #if NETCOREAPP
 using System.Runtime.Loader;
@@ -26,6 +24,16 @@ internal static class Program
         var command = new CliRootCommand { binaryLogOption };
         var parsedArguments = command.Parse(args);
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
+
+        // Create a console logger that logs everything to standard error instead of standard out; by setting the threshold to Trace
+        // everything will go to standard error.
+        var loggerFactory = LoggerFactory.Create(builder =>
+            builder.AddConsole(configure =>
+            {
+                configure.LogToStandardErrorThreshold = LogLevel.Trace;
+            }));
+
+        var logger = loggerFactory.CreateLogger(typeof(Program));
 
         // Create a MEF container so we can create our SolutionServices to use for discovering language services; we'll include our own assembly in since that contains the services used
         // for actually loading MSBuild projects.
@@ -56,9 +64,13 @@ internal static class Program
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        jsonRpc.AddLocalRpcTarget(new BuildHost(jsonRpc, binaryLogPath));
+        jsonRpc.AddLocalRpcTarget(new BuildHost(loggerFactory, jsonRpc, binaryLogPath));
         jsonRpc.StartListening();
 
+        logger.LogInformation("RPC channel started.");
+
         await jsonRpc.Completion.ConfigureAwait(false);
+
+        logger.LogInformation("RPC channel closed; process exiting.");
     }
 }

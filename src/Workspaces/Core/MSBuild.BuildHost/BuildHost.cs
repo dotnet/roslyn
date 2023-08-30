@@ -11,10 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
 internal sealed class BuildHost : IBuildHost
 {
+    private readonly ILogger _logger;
     private readonly JsonRpc _jsonRpc;
     private readonly string? _binaryLogPath;
 
@@ -29,8 +30,9 @@ internal sealed class BuildHost : IBuildHost
     private ProjectFileLoaderRegistry? _projectFileLoaderRegistry;
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(JsonRpc jsonRpc, string? binaryLogPath)
+    public BuildHost(ILoggerFactory loggerFactory, JsonRpc jsonRpc, string? binaryLogPath)
     {
+        _logger = loggerFactory.CreateLogger<BuildHost>();
         _jsonRpc = jsonRpc;
         _binaryLogPath = binaryLogPath;
     }
@@ -44,22 +46,28 @@ internal sealed class BuildHost : IBuildHost
             if (_buildManager != null && _projectFileLoaderRegistry != null)
                 return;
 
+            VisualStudioInstance instance;
+
 #if NETFRAMEWORK
 
             // In this case, we're just going to pick the highest VS install on the machine, in case the projects are using some newer
             // MSBuild features. Since we don't have something like a global.json we can't really know what the minimum version is.
 
             // TODO: we should also check that the managed tools are actually installed
-            MSBuildLocator.RegisterInstance(MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).First());
+            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).First();
 
 #else
 
             // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
             // TODO: we should pick the appropriate instance back in the main process and just use the one chosen here.
             var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectFilePath) };
-            MSBuildLocator.RegisterInstance(MSBuildLocator.QueryVisualStudioInstances(options).First());
+            instance = MSBuildLocator.QueryVisualStudioInstances(options).First();
 
 #endif
+
+            MSBuildLocator.RegisterInstance(instance);
+
+            _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
 
             CreateBuildManager();
         }
@@ -76,7 +84,14 @@ internal sealed class BuildHost : IBuildHost
 
         _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(solutionServices, new DiagnosticReporter(new AdhocWorkspace()));
 
-        var logger = _binaryLogPath != null ? new BinaryLogger { Parameters = _binaryLogPath } : null;
+        BinaryLogger? logger = null;
+
+        if (_binaryLogPath != null)
+        {
+            logger = new BinaryLogger { Parameters = _binaryLogPath };
+            _logger.LogInformation($"Logging builds to {_binaryLogPath}");
+        }
+
         _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
         _buildManager.StartBatchBuild();
     }
@@ -93,6 +108,7 @@ internal sealed class BuildHost : IBuildHost
         EnsureMSBuildLoaded(projectFilePath);
 
         Contract.ThrowIfFalse(_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectFilePath, out var projectLoader));
+        _logger.LogInformation($"Loading {projectFilePath}");
         return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
     }
 
