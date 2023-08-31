@@ -550,7 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = (ExpressionSyntax)node.Syntax;
             MethodSymbol? collectionBuilderMethod = null;
-            Conversion collectionBuilderReturnTypeConversion = default;
+            BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
+            BoundExpression? collectionBuilderInvocationConversion = null;
 
             switch (collectionTypeKind)
             {
@@ -575,6 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(result);
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                        Conversion collectionBuilderReturnTypeConversion;
                         collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
                         diagnostics.Add(syntax, useSiteInfo);
                         if (collectionBuilderMethod is null)
@@ -582,6 +584,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                             return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
                         }
+
+                        Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
+                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType);
+                        collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
 
                         ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
@@ -695,7 +701,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
-                collectionBuilderReturnTypeConversion,
+                collectionBuilderInvocationPlaceholder,
+                collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
         }
@@ -730,7 +737,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
-                collectionBuilderReturnTypeConversion: default,
+                collectionBuilderInvocationPlaceholder: null,
+                collectionBuilderInvocationConversion: null,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
@@ -861,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                MethodSymbol methodWithTargetTypeParameters; // original method definition substituted with type parameters from target type
+                MethodSymbol methodWithTargetTypeParameters; // builder method substituted with type parameters from target type
                 if (allTypeArguments.Length > 0)
                 {
                     var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());

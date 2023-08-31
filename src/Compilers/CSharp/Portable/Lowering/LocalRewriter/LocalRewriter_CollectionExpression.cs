@@ -228,11 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
+            Debug.Assert(node.CollectionBuilderMethod is { });
+            Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
+            Debug.Assert(node.CollectionBuilderInvocationConversion is { });
 
             var constructMethod = node.CollectionBuilderMethod;
-
-            Debug.Assert(constructMethod is { });
-            Debug.Assert(node.CollectionBuilderReturnTypeConversion.Exists);
 
             var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             BoundExpression span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var collection = new BoundCall(
+            var invocation = new BoundCall(
                 node.Syntax,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
@@ -255,7 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
-            return _factory.Convert(node.Type, collection, node.CollectionBuilderReturnTypeConversion);
+
+            var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
+            AddPlaceholderReplacement(invocationPlaceholder, invocation);
+            var result = VisitExpression(node.CollectionBuilderInvocationConversion);
+            RemovePlaceholderReplacement(invocationPlaceholder);
+            return result;
         }
 
         internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpression node, TypeSymbol elementType)

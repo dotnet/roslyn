@@ -9501,7 +9501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CollectionBuilder_Conversion_ImplicitReference_NonGeneric()
         {
-            string source = """
+            string sourceA = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -9525,6 +9525,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return new MyCollection(new List<int>(items.ToArray()));
                     }
                 }
+                """;
+            string sourceB1 = """
                 class Program
                 {
                     static void Main()
@@ -9537,16 +9539,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                new[] { sourceA, sourceB1, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        MyCollection y = [1, 2, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,26): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection.MyCollection(List<int>)'
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("list", "MyCollection.MyCollection(System.Collections.Generic.List<int>)").WithLocation(5, 26),
+                // 1.cs(6,27): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("MyCollection", "Add").WithLocation(6, 27),
+                // 1.cs(6,30): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "2").WithArguments("MyCollection", "Add").WithLocation(6, 30),
+                // 1.cs(6,33): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "3").WithArguments("MyCollection", "Add").WithLocation(6, 33));
         }
 
         [Fact]
         public void CollectionBuilder_Conversion_ImplicitReference_Generic()
         {
-            string source = """
+            string sourceA = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -9570,6 +9599,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return new MyCollection<T>(new List<T>(items.ToArray()));
                     }
                 }
+                """;
+            string sourceB1 = """
                 class Program
                 {
                     static void Main()
@@ -9582,10 +9613,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                new[] { sourceA, sourceB1, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Fails,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, null], "));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<object> y = [1, 2, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,34): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection<string>.MyCollection(List<string>)'
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("list", "MyCollection<string>.MyCollection(System.Collections.Generic.List<string>)").WithLocation(5, 34),
+                // 1.cs(6,35): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<object> y = [1, 2, null];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("MyCollection<object>", "Add").WithLocation(6, 35),
+                // 1.cs(6,38): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<object> y = [1, 2, null];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "2").WithArguments("MyCollection<object>", "Add").WithLocation(6, 38),
+                // 1.cs(6,41): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<object> y = [1, 2, null];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "null").WithArguments("MyCollection<object>", "Add").WithLocation(6, 41));
         }
 
         [Fact]
