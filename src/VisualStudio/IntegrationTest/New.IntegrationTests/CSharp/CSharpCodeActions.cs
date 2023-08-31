@@ -917,8 +917,10 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             }
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope()
+        [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics, CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics)]
+        [InlineData(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution)]
+        internal async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope)
         {
             var markup1 = @"
 class C
@@ -927,7 +929,7 @@ class C
     {
         // CS0219: The variable 'x' is assigned but its value is never used
         // IDE0059: Unnecessary assignment of a value to 'x'
-        int $$x = 0;
+        int x = 0;
     }
 }";
 
@@ -941,10 +943,7 @@ class C2
         int $$y = 0;
     }
 }";
-            await TestServices.Workspace.SetFullSolutionAnalysisAsync(
-                BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
-                CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
-                HangMitigatingCancellationToken);
+            await TestServices.Workspace.SetBackgroundAnalysisOptionsAsync(analyzerScope, compilerScope, HangMitigatingCancellationToken);
 
             await SetUpEditorAsync(markup2, HangMitigatingCancellationToken);
 
@@ -958,8 +957,7 @@ class C2
                 },
                 HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
-            await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup1, open: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]

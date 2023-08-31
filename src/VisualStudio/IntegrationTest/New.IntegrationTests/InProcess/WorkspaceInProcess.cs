@@ -86,10 +86,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             var analyzerScope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
             var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
-            return SetFullSolutionAnalysisAsync(analyzerScope, compilerScope, cancellationToken);
+            return SetBackgroundAnalysisOptionsAsync(analyzerScope, compilerScope, cancellationToken);
         }
 
-        public async Task SetFullSolutionAnalysisAsync(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope, CancellationToken cancellationToken)
+        public async Task SetBackgroundAnalysisOptionsAsync(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
