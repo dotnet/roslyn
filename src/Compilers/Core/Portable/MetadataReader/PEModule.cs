@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
-        private static readonly Dictionary<string, (int, int)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int, int)>();
-        private static readonly Dictionary<string, (int, int)> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, (int, int)>();
+        private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
 
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
@@ -3623,6 +3622,9 @@ namespace Microsoft.CodeAnalysis
 
             if (ignoreCase)
             {
+                // We should only use this functionality when computing diagnostics, so we lazily construct
+                // a case-insensitive map when necessary. Note that we can't store the original map
+                // case-insensitively, since real metadata name lookup has to remain case sensitive.
                 ensureCaseInsensitiveDictionary();
 
                 if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var value))
@@ -3652,7 +3654,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
                 {
-                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyCaseInsensitiveForwardedTypes;
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
                     return;
                 }
 
@@ -3674,6 +3676,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        [MemberNotNull(nameof(_lazyForwardedTypesToAssemblyIndexMap))]
         private void EnsureForwardTypeToAssemblyMap()
         {
             if (_lazyForwardedTypesToAssemblyIndexMap == null)
