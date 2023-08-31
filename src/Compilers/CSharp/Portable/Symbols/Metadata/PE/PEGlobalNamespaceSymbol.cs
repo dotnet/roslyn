@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override void EnsureAllMembersLoaded()
         {
-            if (lazyTypes == null || lazyNamespaces == null)
+            if (_lazyTypes == null || _lazyNamespaces == null)
             {
                 IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
 
