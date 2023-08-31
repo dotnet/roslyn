@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool isVisibleDocument,
                 bool isOpenDocument,
                 DocumentAnalysisData previousData)
-                => isVisibleDocument || (isOpenDocument && !previousData.Items.Any(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning or DiagnosticSeverity.Info));
+                => isVisibleDocument || (isOpenDocument && previousData.Items.Any(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning or DiagnosticSeverity.Info));
         }
 
         /// <summary>
