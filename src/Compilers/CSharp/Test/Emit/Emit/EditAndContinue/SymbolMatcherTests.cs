@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 otherSynthesizedMembers: null,
                 otherDeletedMembers: null);
 
+        private static CSharpSymbolMatcher CreateMatcher(CSharpCompilation fromCompilation, PEAssemblySymbol peAssemblySymbol)
+            => new CSharpSymbolMatcher(
+                SynthesizedTypeMaps.Empty,
+                fromCompilation.SourceAssembly,
+                sourceContext: default,
+                peAssemblySymbol);
+
         [Fact]
         public void ConcurrentAccess()
         {
@@ -265,13 +272,7 @@ abstract class C
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll).WithSource(source1);
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                null,
-                null,
-                compilation1.SourceAssembly,
-                default,
-                peAssemblySymbol);
+            var matcher = CreateMatcher(compilation1, peAssemblySymbol);
 
             var f0 = peAssemblySymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("F");
             var g0 = peAssemblySymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("G");
@@ -477,7 +478,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out var anonymousTypeMap0, out _);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes;
             Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(2, anonymousTypeMap0.Count);
@@ -500,7 +502,7 @@ class C
             Assert.Equal("x1", x1.Name);
             Assert.Equal("x2", x2.Name);
 
-            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, null, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
@@ -546,7 +548,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out var anonymousTypeMap0, out _);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes;
             Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("X", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal("<>f__AnonymousType2", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("Y", isKey: false, ignoreCase: false)))].Name);
@@ -569,7 +572,7 @@ class C
             var x1 = fields.Where(f => f.Name == "x1").Single();
             var x2 = fields.Where(f => f.Name == "x2").Single();
 
-            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, null, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
@@ -952,7 +955,7 @@ class C : I<int, bool>
             Assert.Equal("anotherIndex", parameters[0].Name);
 
             var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var matcher = new CSharpSymbolMatcher(null, null, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(SynthesizedTypeMaps.Empty, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property.GetCciAdapter());
 
@@ -1102,7 +1105,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out var anonymousTypeMap0, out _);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes;
             Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(2, anonymousTypeMap0.Count);
@@ -1124,7 +1128,7 @@ class C
             var y1 = fields.Where(f => f.Name == "y1").Single();
             var y2 = fields.Where(f => f.Name == "y2").Single();
 
-            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, null, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedY1 = (Cci.IFieldDefinition)matcher.MapDefinition(y1);
             var mappedY2 = (Cci.IFieldDefinition)matcher.MapDefinition(y2);
@@ -1454,10 +1458,11 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            var synthesizedDelegates0 = PEDeltaAssemblyBuilder.GetAnonymousDelegateMapFromMetadata(reader0, decoder0);
-            Assert.Contains(new SynthesizedDelegateKey("<>F{00000008}`3"), synthesizedDelegates0);
-            Assert.Contains(new SynthesizedDelegateKey("<>A{00000003}`2"), synthesizedDelegates0);
-            Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,100000000}`33"), synthesizedDelegates0);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var synthesizedDelegates0 = synthesizedTypes0.AnonymousDelegates;
+            Assert.Contains(new SynthesizedDelegateKey("<>F{00000008}`3"), synthesizedDelegates0.Keys);
+            Assert.Contains(new SynthesizedDelegateKey("<>A{00000003}`2"), synthesizedDelegates0.Keys);
+            Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,100000000}`33"), synthesizedDelegates0.Keys);
             Assert.Equal(3, synthesizedDelegates0.Count);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
@@ -1480,7 +1485,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(null, synthesizedDelegates0, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);
@@ -1521,7 +1526,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
             Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0["<>f__AnonymousDelegate0"].Name);
             Assert.Equal(1, anonymousDelegates0.Count);
 
@@ -1537,7 +1543,7 @@ class C
             var field0 = displayClass.GetFields(emitContext).Single(f => f.Name == "<>9__0_0");
             Assert.Equal("<>f__AnonymousDelegate0", field0.GetType(emitContext).ToString());
 
-            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
             var field1 = (Cci.IFieldDefinition)matcher.MapDefinition(field0);
             Assert.Equal("<>9__0_0", field1.Name);
         }
@@ -1580,7 +1586,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
             Assert.Equal(3, anonymousDelegates0.Count);
             Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
@@ -1604,7 +1611,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             Assert.Null(matcher.MapDefinition(field1));
             Assert.Null(matcher.MapDefinition(field2));
@@ -1647,7 +1654,8 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
+            var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
             Assert.Equal(3, anonymousDelegates0.Count);
             Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
             Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
@@ -1671,7 +1679,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(synthesizedTypes0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);
