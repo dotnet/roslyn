@@ -18,7 +18,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -47,20 +46,22 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
+        private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
         /// only one assembly index per type. However, if we found more than one, we
         /// keep a second one as well to use it for error reporting.
         /// We use -1 in case there was no forward.
         /// </summary>
-        private ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
+        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
 
         /// <summary>
         /// Case-insensitive version of <see cref="_lazyForwardedTypesToAssemblyIndexMap"/>, only populated if case-insensitive search is
         /// requested. We only keep the first instance of a type name, regardless of case, as this is only used for error recovery purposes
         /// in VB.
         /// </summary>
-        private ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
+        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -3628,8 +3629,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var value))
                 {
-                    var found = _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetKey(fullName, out matchedName);
-                    Debug.Assert(found);
+                    matchedName = fullName;
                     return value;
                 }
             }
@@ -3647,25 +3647,25 @@ namespace Microsoft.CodeAnalysis
 
             void ensureCaseInsensitiveDictionary()
             {
-                if (!_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.IsDefault)
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap != null)
                 {
                     return;
                 }
 
                 if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
                 {
-                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)>.Empty;
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
                     return;
                 }
 
-                var caseInsensitiveMap = ImmutableSegmentedDictionary.CreateBuilder<string, (int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
+                var caseInsensitiveMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var (key, indexPair) in _lazyForwardedTypesToAssemblyIndexMap)
                 {
                     _ = caseInsensitiveMap.TryAdd(key, indexPair);
                 }
 
-                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap.ToImmutable();
+                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap;
             }
         }
 
@@ -3676,11 +3676,12 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        [MemberNotNull(nameof(_lazyForwardedTypesToAssemblyIndexMap))]
         private void EnsureForwardTypeToAssemblyMap()
         {
-            if (_lazyForwardedTypesToAssemblyIndexMap.IsDefault)
+            if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)>.Builder? typesToAssemblyIndexMap = null;
+                Dictionary<string, (int FirstIndex, int SecondIndex)>? typesToAssemblyIndexMap = null;
 
                 try
                 {
@@ -3725,7 +3726,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        typesToAssemblyIndexMap ??= ImmutableSegmentedDictionary.CreateBuilder<string, (int, int)>();
+                        typesToAssemblyIndexMap ??= new Dictionary<string, (int FirstIndex, int SecondIndex)>();
 
                         (int FirstIndex, int SecondIndex) indices;
 
@@ -3751,11 +3752,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (typesToAssemblyIndexMap == null)
                 {
-                    _lazyForwardedTypesToAssemblyIndexMap = ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)>.Empty;
+                    _lazyForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
                 }
                 else
                 {
-                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap.ToImmutable();
+                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
                 }
             }
         }
