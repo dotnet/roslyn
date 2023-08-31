@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -42,12 +43,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
 
             _lazyRoslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(true);
             Assumes.Present(_lazyRoslynPackage);
-
-            _optionService.RefreshOption(new OptionKey2(SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
             _lazyRoslynPackage.AnalysisScopeChanged += OnAnalysisScopeChanged;
+
+            await TaskScheduler.Default;
+
+            // make sure we do not access the options or the containing assembly on UI thread:
+            RefreshSolutionBackgroundAnalysisScopeOption();
         }
 
         private void OnAnalysisScopeChanged(object? sender, EventArgs e)
+            => RefreshSolutionBackgroundAnalysisScopeOption();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void RefreshSolutionBackgroundAnalysisScopeOption()
         {
             Assumes.Present(_lazyRoslynPackage);
             _optionService.RefreshOption(new OptionKey2(SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
