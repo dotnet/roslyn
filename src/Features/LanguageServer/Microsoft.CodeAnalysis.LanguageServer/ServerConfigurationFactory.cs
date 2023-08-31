@@ -49,4 +49,5 @@ internal record class ServerConfiguration(
     string? SessionId,
     string? SharedDependenciesPath,
     IEnumerable<string> ExtensionAssemblyPaths,
-    string ExtensionLogDirectory);
+    string ExtensionLogDirectory,
+    string PipeName);

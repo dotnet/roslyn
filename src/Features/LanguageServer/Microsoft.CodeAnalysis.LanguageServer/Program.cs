@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.ServiceHub.Framework;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -100,7 +103,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var pipeServer = new NamedPipeServerStream(serverConfiguration.PipeName, PipeDirection.InOut);
+    await pipeServer.WaitForConnectionAsync(cancellationToken);
+
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
 
     try
@@ -171,6 +177,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var pipeNameOption = new CliOption<string?>("--pipe")
+    {
+        Description = "The name of the pipe to use for RPC with the parent process. If omitted, STDIN/STDOUT is used.",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -181,7 +193,8 @@ static CliRootCommand CreateCommandLineParser()
         sessionIdOption,
         sharedDependenciesOption,
         extensionAssemblyPathsOption,
-        extensionLogDirectoryOption
+        extensionLogDirectoryOption,
+        pipeNameOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
@@ -193,6 +206,7 @@ static CliRootCommand CreateCommandLineParser()
         var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
+        var pipe = parseResult.GetValue(pipeNameOption)!;
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -202,7 +216,8 @@ static CliRootCommand CreateCommandLineParser()
             SessionId: sessionId,
             SharedDependenciesPath: sharedDependenciesPath,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
-            ExtensionLogDirectory: extensionLogDirectory);
+            ExtensionLogDirectory: extensionLogDirectory,
+            PipeName: pipe);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
