@@ -3662,13 +3662,10 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var (key, indexPair) in _lazyForwardedTypesToAssemblyIndexMap)
                 {
-                    if (!caseInsensitiveMap.ContainsKey(key))
-                    {
-                        caseInsensitiveMap.Add(key, indexPair);
-                    }
+                    _ = caseInsensitiveMap.TryAdd(key, indexPair);
                 }
 
-                RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap, caseInsensitiveMap.ToImmutable());
+                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap.ToImmutable();
             }
         }
 
@@ -3754,11 +3751,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (typesToAssemblyIndexMap == null)
                 {
-                    RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyForwardedTypesToAssemblyIndexMap, ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)>.Empty);
+                    _lazyForwardedTypesToAssemblyIndexMap = ImmutableSegmentedDictionary<string, (int FirstIndex, int SecondIndex)>.Empty;
                 }
                 else
                 {
-                    RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyForwardedTypesToAssemblyIndexMap, typesToAssemblyIndexMap.ToImmutable());
+                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap.ToImmutable();
                 }
             }
         }
