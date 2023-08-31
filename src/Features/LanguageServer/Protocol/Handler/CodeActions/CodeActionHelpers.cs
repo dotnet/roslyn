@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -328,9 +329,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return codeAction;
             }
 
-            var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope);
-
-            return CodeAction.Create("Fix All: " + codeAction.Title, codeAction.NestedCodeActions, codeAction.IsInlinable, codeAction.Priority);
+            var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
+            return new FixAllCodeAction("Fix All: " + codeAction.Title, fixAllFlavor.FixAllState, false);
+            /*return CodeAction.Create("Fix All: " + codeAction.Title, codeAction.NestedCodeActions, codeAction.IsInlinable, codeAction.Priority);*/
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
