@@ -249,7 +249,6 @@ class Test
         Console.Write(s1.Length == new ReadOnlySpan<sbyte>(new sbyte[]{}).Length);
     }
 }
-
 ", TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "TrueTrue", verify: Verification.Passes).VerifyIL("Test.Main", @"
@@ -2506,38 +2505,6 @@ public class Test
         }
 
         [Theory]
-        [InlineData("System.IntPtr")]
-        [InlineData("System.UIntPtr")]
-        [InlineData("decimal")]
-        [InlineData("SingleByteField")]
-        [InlineData("object")]
-        [InlineData("string")]
-        public void UnsupportedTypes_NotOptimized(string type)
-        {
-            var csharp = RuntimeHelpersCreateSpan + $@"
-public struct SingleByteField
-{{
-    public byte Value;
-}}
-
-public class Test
-{{
-    public static System.ReadOnlySpan<{type}> StaticData => new {type}[] {{ default, default, default }};
-}}
-";
-            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
-            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
-            verifier.VerifyIL("Test.StaticData.get", @$"{{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""{type}""
-  IL_0006:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
-  IL_000b:  ret
-}}");
-        }
-
-        [Theory]
         [InlineData("byte", 1)]
         [InlineData("sbyte", 1)]
         [InlineData("short", 2)]
@@ -2684,6 +2651,482 @@ class Test
 
                 Assert.Equal(expected, actual);
             });
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        [InlineData("string", "11")]
+        [InlineData("object", "18")]
+        [InlineData("C", "18")]
+        public void ReadOnlySpanFromArryOfConstants_Null(string type, string typeCode)
+        {
+            var src = $$"""
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0] is null} {values[1] is null} {values[2] is null}");
+
+public class C
+{
+    public static System.ReadOnlySpan<{{type}}> M()
+        => new {{type}}[] { null, null, null };
+
+    public static System.ReadOnlySpan<{{type}}> M2()
+        => new {{type}}[] { null, null, null };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "3 True True True", verify: Verification.Skipped);
+            var expectedIL = $$"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldsfld     "{{type}}[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B{{typeCode}}"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0015
+  IL_0008:  pop
+  IL_0009:  ldc.i4.3
+  IL_000a:  newarr     "{{type}}"
+  IL_000f:  dup
+  IL_0010:  stsfld     "{{type}}[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B{{typeCode}}"
+  IL_0015:  newobj     "System.ReadOnlySpan<{{type}}>..ctor({{type}}[])"
+  IL_001a:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            compilation = CreateCompilationWithMscorlibAndSpan(new[] { RuntimeHelpersCreateSpan, src });
+            verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", expectedIL);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_OtherStrings()
+        {
+            var src = """
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0]} {values[1]}");
+
+public class C
+{
+    public static System.ReadOnlySpan<string> M()
+        => new string[] { "hello", "world" };
+
+    public static System.ReadOnlySpan<string> M2()
+        => new string[] { "hello", "world" };
+
+    public static System.ReadOnlySpan<string> M3()
+        => new string[] { "hello world" };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world", verify: Verification.Skipped);
+            var expectedIL = """
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  IL_0000:  ldsfld     "string[] <PrivateImplementationDetails>.13B33575336780080BB71DEC2A7434043608FF4569C0E44AD6FCFE007B5E6E06_B11"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0025
+  IL_0008:  pop
+  IL_0009:  ldc.i4.2
+  IL_000a:  newarr     "string"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldstr      "hello"
+  IL_0016:  stelem.ref
+  IL_0017:  dup
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldstr      "world"
+  IL_001e:  stelem.ref
+  IL_001f:  dup
+  IL_0020:  stsfld     "string[] <PrivateImplementationDetails>.13B33575336780080BB71DEC2A7434043608FF4569C0E44AD6FCFE007B5E6E06_B11"
+  IL_0025:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+  IL_002a:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            verifier.VerifyIL("C.M3", """
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  IL_0000:  ldsfld     "string[] <PrivateImplementationDetails>.36F71D944B9FE83E99A7DA0CA583032588C05C1016F4FA965FD724A1E7D5E69C_B11"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001d
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "string"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldstr      "hello world"
+  IL_0016:  stelem.ref
+  IL_0017:  dup
+  IL_0018:  stsfld     "string[] <PrivateImplementationDetails>.36F71D944B9FE83E99A7DA0CA583032588C05C1016F4FA965FD724A1E7D5E69C_B11"
+  IL_001d:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+  IL_0022:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_VariableStrings()
+        {
+            var src = """
+public class C
+{
+    public static System.ReadOnlySpan<string> M()
+    {
+        var hello = "hello";
+        var world = "world";
+        return new string[] { hello, world };
+    }
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  .locals init (string V_0, //hello
+                string V_1) //world
+  IL_0000:  ldstr      "hello"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "world"
+  IL_000b:  stloc.1
+  IL_000c:  ldc.i4.2
+  IL_000d:  newarr     "string"
+  IL_0012:  dup
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldloc.0
+  IL_0015:  stelem.ref
+  IL_0016:  dup
+  IL_0017:  ldc.i4.1
+  IL_0018:  ldloc.1
+  IL_0019:  stelem.ref
+  IL_001a:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
+  IL_001f:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_NoInitializer()
+        {
+            var src = """
+public class C
+{
+    public static System.ReadOnlySpan<object> M() => new object[];
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            compilation.VerifyDiagnostics(
+                // (3,64): error CS1586: Array creation must have array size or array initializer
+                //     public static System.ReadOnlySpan<object> M() => new object[];
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(3, 64)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_NativeInts()
+        {
+            var src = """
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0]}");
+
+public class C
+{
+    public static System.ReadOnlySpan<nint> M()
+        => new nint[] { 1 };
+
+    public static System.ReadOnlySpan<nint> M2()
+        => new nint[] { 1 };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var expectedIL = """
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001a
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "System.IntPtr"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
+  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001f:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_NativeUnsignedInts()
+        {
+            var src = """
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0]}");
+
+public class C
+{
+    public static System.ReadOnlySpan<nuint> M()
+        => new nuint[] { 1 };
+
+    public static System.ReadOnlySpan<nuint> M2()
+        => new nuint[] { 1 };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var expectedIL = """
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001a
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "System.UIntPtr"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
+  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001f:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_Decimals()
+        {
+            var src = """
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0]}");
+
+public class C
+{
+    public static System.ReadOnlySpan<decimal> M()
+        => new decimal[] { 1 };
+
+    public static System.ReadOnlySpan<decimal> M2()
+        => new decimal[] { 1 };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var expectedIL = """
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  IL_0000:  ldsfld     "decimal[] <PrivateImplementationDetails>.4CBBD8CA5215B8D161AEC181A74B694F4E24B001D5B081DC0030ED797A8973E0_B18"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0021
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "decimal"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldsfld     "decimal decimal.One"
+  IL_0016:  stelem     "decimal"
+  IL_001b:  dup
+  IL_001c:  stsfld     "decimal[] <PrivateImplementationDetails>.4CBBD8CA5215B8D161AEC181A74B694F4E24B001D5B081DC0030ED797A8973E0_B18"
+  IL_0021:  newobj     "System.ReadOnlySpan<decimal>..ctor(decimal[])"
+  IL_0026:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_DateTime_NotConstant()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [DateTimeConstant(-1)] static DateTime dateTime = default;
+
+    public static System.ReadOnlySpan<DateTime> M()
+        => new DateTime[] { dateTime };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            var expectedIL = """
+{
+  // Code size       24 (0x18)
+  .maxstack  4
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "System.DateTime"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldsfld     "System.DateTime C.dateTime"
+  IL_000d:  stelem     "System.DateTime"
+  IL_0012:  call       "System.ReadOnlySpan<System.DateTime> System.ReadOnlySpan<System.DateTime>.op_Implicit(System.DateTime[])"
+  IL_0017:  ret
+}
+""";
+            verifier.VerifyIL("C.M", expectedIL);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_DateTime_WithConst()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [DateTimeConstant(-1)] const DateTime dateTime = default;
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            compilation.VerifyDiagnostics(
+                // (6,28): error CS0283: The type 'DateTime' cannot be declared const
+                //     [DateTimeConstant(-1)] const DateTime dateTime = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("System.DateTime").WithLocation(6, 28),
+                // (6,54): error CS0133: The expression being assigned to 'C.dateTime' must be constant
+                //     [DateTimeConstant(-1)] const DateTime dateTime = default;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default").WithArguments("C.dateTime").WithLocation(6, 54)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArryOfConstants_WithoutConst()
+        {
+            var src = """
+public struct S { public int i; }
+public class C
+{
+    public static System.ReadOnlySpan<S> M()
+        => new S[] { default };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "S"
+  IL_0006:  call       "System.ReadOnlySpan<S> System.ReadOnlySpan<S>.op_Implicit(S[])"
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Theory]
+        [InlineData("string")]
+        [InlineData("object")]
+        [InlineData("decimal")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("System.DateTime")]
+        [InlineData("Test")]
+        public void EmptyArrayCtor_OtherTypes(string type)
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan($$"""
+using System;
+
+class Test
+{
+    public static void Main()
+    {       
+        // inplace inits
+        var s1 = new ReadOnlySpan<{{type}}>(new {{type}}[] { });
+        var s2 = new ReadOnlySpan<{{type}}>(new {{type}}[] { });
+
+        Console.Write(s1.Length == s2.Length);
+
+        // make an instance
+        Console.Write(s1.Length == new ReadOnlySpan<{{type}}>(new {{type}}[] { }).Length);
+    }
+}
+""", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "TrueTrue", verify: Verification.Passes).VerifyIL("Test.Main", $$"""
+{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<{{type}}> V_0, //s1
+                System.ReadOnlySpan<{{type}}> V_1, //s2
+                System.ReadOnlySpan<{{type}}> V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ReadOnlySpan<{{type}}>"
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    "System.ReadOnlySpan<{{type}}>"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "int System.ReadOnlySpan<{{type}}>.Length.get"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "int System.ReadOnlySpan<{{type}}>.Length.get"
+  IL_001e:  ceq
+  IL_0020:  call       "void System.Console.Write(bool)"
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "int System.ReadOnlySpan<{{type}}>.Length.get"
+  IL_002c:  ldloca.s   V_2
+  IL_002e:  initobj    "System.ReadOnlySpan<{{type}}>"
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.2
+  IL_0036:  ldloca.s   V_2
+  IL_0038:  call       "int System.ReadOnlySpan<{{type}}>.Length.get"
+  IL_003d:  ceq
+  IL_003f:  call       "void System.Console.Write(bool)"
+  IL_0044:  ret
+}
+""");
+        }
+
+        [Theory]
+        [InlineData("string")]
+        [InlineData("object")]
+        [InlineData("decimal")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("System.DateTime")]
+        public void UnusedSpan_NothingEmitted(string type)
+        {
+            string csharp = $$"""
+public class Test
+{
+    public static int M()
+    {
+        System.ReadOnlySpan<{{type}}> s = new {{type}}[] { default };
+        return 42;
+    }
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Passes);
+            verifier.VerifyIL("Test.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ret
+}
+""");
         }
     }
 }

@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -71,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // fields for cached arrays
         private readonly ConcurrentDictionary<(ImmutableArray<byte> Data, ushort ElementType), CachedArrayField> _cachedArrayFields =
             new ConcurrentDictionary<(ImmutableArray<byte> Data, ushort ElementType), CachedArrayField>(DataAndUShortEqualityComparer.Instance);
+
+        // fields for cached arrays for constants
+        private readonly ConcurrentDictionary<(ImmutableArray<ConstantValue> Constants, ushort ElementType), CachedArrayField> _cachedArrayFieldsForConstants =
+            new ConcurrentDictionary<(ImmutableArray<ConstantValue> Constants, ushort ElementType), CachedArrayField>(ConstantValueAndUShortEqualityComparer.Instance);
 
         private ModuleVersionIdField? _mvidField;
         // Dictionary that maps from analysis kind to instrumentation payload field.
@@ -147,9 +150,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Sort fields.
-            ArrayBuilder<SynthesizedStaticField> fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count + _cachedArrayFields.Count + (_mvidField != null ? 1 : 0));
+            ArrayBuilder<SynthesizedStaticField> fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(
+                _mappedFields.Count + _cachedArrayFields.Count + _cachedArrayFieldsForConstants.Count + (_mvidField != null ? 1 : 0));
+
             fieldsBuilder.AddRange(_mappedFields.Values);
             fieldsBuilder.AddRange(_cachedArrayFields.Values);
+            fieldsBuilder.AddRange(_cachedArrayFieldsForConstants.Values);
             if (_mvidField != null)
             {
                 fieldsBuilder.Add(_mvidField);
@@ -195,8 +201,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 // Hash the data to hex, but then tack on _A(ElementType). This is needed both to differentiate the array field from
                 // the data field, but also to differentiate multiple fields that may have the same raw data but different array types.
-                string name = $"{HashToHex(key.Data)}_A{key.ElementType}";
+                string name = $"{DataToHex(key.Data)}_A{key.ElementType}";
 
+                return new CachedArrayField(name, this, arrayType);
+            });
+        }
+
+        internal Cci.IFieldReference CreateArrayCachingField(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, EmitContext emitContext)
+        {
+            Debug.Assert(!IsFrozen);
+            Cci.PrimitiveTypeCode typeCode = arrayType.GetElementType(emitContext).TypeCode;
+
+            // Call sites will lazily instantiate the array to cache in this field, rather than forcibly instantiating
+            // all of them when the private implementation details class is first used.
+            return _cachedArrayFieldsForConstants.GetOrAdd((constants, (ushort)typeCode), key =>
+            {
+                // Hash the data to hex, but then tack on _B(ElementType). This is needed to differentiate multiple fields
+                // that may have the same raw data but different array types.
+                string name = $"{ConstantsToHex(key.Constants)}_B{key.ElementType}";
                 return new CachedArrayField(name, this, arrayType);
             });
         }
@@ -255,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // accordingly.  As every byte will yield two chars, the odd number of chars used for 2/4/8
                 // alignments will never produce a name that conflicts with names for an alignment of 1.
                 Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
-                string hex = HashToHex(key.Data);
+                string hex = DataToHex(key.Data);
                 string name = alignment switch
                 {
                     2 => hex + "2",
@@ -389,10 +411,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string NamespaceName => string.Empty;
 
-        private static string HashToHex(ImmutableArray<byte> data)
+        private static string DataToHex(ImmutableArray<byte> data)
         {
             ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
+            return HashToHex(hash);
+        }
 
+        private static string ConstantsToHex(ImmutableArray<ConstantValue> constants)
+        {
+            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(constants);
+            return HashToHex(hash);
+        }
+
+        private static string HashToHex(ImmutableArray<byte> hash)
+        {
 #if NETCOREAPP2_1_OR_GREATER
             return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
 #else
@@ -444,6 +476,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public override int GetHashCode((ImmutableArray<byte> Data, ushort Value) obj) =>
                 ByteSequenceComparer.GetHashCode(obj.Data); // purposefully not including Value, as it won't add meaningfully to the hash code
+        }
+
+        private sealed class ConstantValueAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<ConstantValue> Constants, ushort Value)>
+        {
+            public static readonly ConstantValueAndUShortEqualityComparer Instance = new ConstantValueAndUShortEqualityComparer();
+
+            private ConstantValueAndUShortEqualityComparer() { }
+
+            public override bool Equals((ImmutableArray<ConstantValue> Constants, ushort Value) x, (ImmutableArray<ConstantValue> Constants, ushort Value) y) =>
+                x.Value == y.Value &&
+                ByteSequenceComparer.Equals(x.Constants, y.Constants);
+
+            public override int GetHashCode((ImmutableArray<ConstantValue> Constants, ushort Value) obj)
+            {
+                int hash = 0;
+                foreach (var constant in obj.Constants)
+                {
+                    Hash.Combine(constant.GetHashCode(), hash);
+                }
+
+                // purposefully not including Value, as it won't add meaningfully to the hash code
+                return hash;
+            }
         }
     }
 
@@ -639,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     }
 
     /// <summary>
-    /// Definition of a field for storing an array caching the data from a metadata block.
+    /// Definition of a field for storing an array caching the data from a metadata block or array of constants.
     /// </summary>
     internal sealed class CachedArrayField : SynthesizedStaticField
     {
