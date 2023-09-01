@@ -1339,6 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method,
                     node.IsExtensionMethod,
                     node.WasTargetTyped,
+                    node.WasLocalFunctionConversion,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1637,6 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referencedMethod,
                 isExtensionMethod: false,
                 wasTargetTyped: false,
+                wasLocalFunctionConversion: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,

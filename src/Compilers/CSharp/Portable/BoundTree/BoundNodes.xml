@@ -2078,6 +2078,7 @@
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="IsExtensionMethod" Type="bool"/>
     <Field Name="WasTargetTyped" Type="bool"/>
+    <Field Name="WasLocalFunctionConversion" Type="bool"/>
   </Node>
 
   <Node Name="BoundArrayCreation" Base="BoundExpression">

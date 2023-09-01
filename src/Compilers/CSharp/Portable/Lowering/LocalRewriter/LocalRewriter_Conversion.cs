@@ -568,7 +568,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax = oldSyntax;
 
                         var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
+                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod,
+                                                                                        wasTargetTyped: false,
+                                                                                        wasLocalFunctionConversion: method.MethodKind == MethodKind.LocalFunction,
+                                                                                        type: rewrittenType);
 
                         Debug.Assert(_factory.TopLevelMethod is { });
 
