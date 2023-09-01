@@ -1963,6 +1963,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
         }
 
+        internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(CurrentGenerationOrdinal);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+
+            if (typeAdapter is null)
+            {
+                var typeSymbol = new SynthesizedReadOnlyListTypeSymbol(SourceModule, typeName);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+            }
+
+            Debug.Assert(typeAdapter.Name == typeName);
+            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+        }
+
+        public override ImmutableArray<NamedTypeSymbol> GetAdditionalPrivateImplementationDetailsTypes()
+        {
+            var privateImplClass = GetFrozenPrivateImplementationDetails();
+            if (privateImplClass != null)
+            {
+                string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(CurrentGenerationOrdinal);
+                var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+                if (typeAdapter is { })
+                {
+                    return ImmutableArray.Create((NamedTypeSymbol)typeAdapter.GetInternalSymbol()!);
+                }
+            }
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
         internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
         {
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);

@@ -321,6 +321,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _orderedSynthesizedMethods;
         }
 
+        public IEnumerable<Cci.IMethodDefinition> GetTopLevelTypeMethods(EmitContext context)
+        {
+            Debug.Assert(IsFrozen);
+            foreach (var type in _orderedTopLevelTypes)
+            {
+                foreach (var method in type.GetMethods(context))
+                {
+                    yield return method;
+                }
+            }
+        }
+
         // Get method by name, if one exists. Otherwise return null.
         internal Cci.IMethodDefinition? GetMethod(string name)
         {

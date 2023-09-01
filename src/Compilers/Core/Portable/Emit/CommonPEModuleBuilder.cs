@@ -697,6 +697,9 @@ namespace Microsoft.CodeAnalysis.Emit
         public virtual ImmutableArray<TNamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
             => ImmutableArray<TNamedTypeSymbol>.Empty;
 
+        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalPrivateImplementationDetailsTypes()
+            => ImmutableArray<TNamedTypeSymbol>.Empty;
+
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
