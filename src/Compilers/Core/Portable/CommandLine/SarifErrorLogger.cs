@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // region
         }
 
-        protected static string GetLevel(DiagnosticSeverity? severity)
+        protected static string GetLevel(DiagnosticSeverity severity)
         {
             switch (severity)
             {
@@ -73,9 +73,6 @@ namespace Microsoft.CodeAnalysis
                     // so we represent them similar to Info diagnostics.
                     // In future, if required, we can represent them with a custom property in the SARIF log.
                     goto case DiagnosticSeverity.Info;
-
-                case null:
-                    return "none";
 
                 default:
                     Debug.Assert(false);

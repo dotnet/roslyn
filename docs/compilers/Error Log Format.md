@@ -163,7 +163,9 @@ The `ruleConfigurationOverrides` section contains an array of entries, with an e
 1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains the below child properties:
    1. `id`: Rule id string for the rule or diagnostic.
    2. `index`: A zero-based integral index value into the `rules` array for the rule mapping.
-2. `configuration`: Configuration property for the effective overridden severity for the rule. Currently, it includes a single child property named `level` for the effective severity of the rule, such as `error`, `warning`, `note`, `none`, etc.
+2. `configuration`: Configuration property for the effective overridden severity for the rule. Currently, it may include one of the below child properties:
+   1. `enabled`: A boolean property indicating if the rule has been explicitly disabled or enabled with the configuration override entry.
+   1. `level`: Property for the effective severity of the rule, such as `error`, `warning` or `note`. Note that this property is not emitted for rules disabled with configuration override, we instead emit `enabled: false` for them.
 
 Note that we can have multiple `ruleConfigurationOverride` entries for the same descriptor if the rule is configured to fire at different severities across different parts of the compilation. For example, editorconfig based severity configurations can specify different effective severity for the same rule ID for different files or folders in a project.
 
@@ -184,7 +186,7 @@ Example `ruleConfigurationOverride` entry:
     "index": 0
   },
   "configuration": {
-    "level": "none"
+    "enabled": false
   }
 },
 {

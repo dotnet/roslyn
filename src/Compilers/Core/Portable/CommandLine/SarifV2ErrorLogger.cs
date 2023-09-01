@@ -395,9 +395,19 @@ namespace Microsoft.CodeAnalysis
                     _writer.Write("index", index);
                     _writer.WriteObjectEnd(); // descriptor
 
+                    // Emit 'configuration' property bag with "enabled: false" for disabled diagnostics and
+                    // "level: severity" for enabled diagnostics with overridden severity. 
                     _writer.WriteObjectStart("configuration");
-                    var level = GetLevel(DiagnosticDescriptor.MapReportToSeverity(severity));
-                    _writer.Write("level", level);
+                    var reportDiagnostic = DiagnosticDescriptor.MapReportToSeverity(severity);
+                    if (!reportDiagnostic.HasValue)
+                    {
+                        _writer.Write("enabled", false);
+                    }
+                    else
+                    {
+                        var level = GetLevel(reportDiagnostic.Value);
+                        _writer.Write("level", level);
+                    }
                     _writer.WriteObjectEnd(); // configuration
 
                     _writer.WriteObjectEnd(); // ruleConfigurationOverride

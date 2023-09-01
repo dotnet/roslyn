@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis
                 ""index"": {index}
               }},
               ""configuration"": {{
-                ""level"": ""{GetLevel(effectiveSeverity)}""
+                {GetConfigurationPropertyString(effectiveSeverity)}
               }}
             }}";
                     }
@@ -425,28 +425,20 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            private static string GetLevel(ReportDiagnostic severity)
+            private static string GetConfigurationPropertyString(ReportDiagnostic severity)
             {
-                switch (severity)
+                if (severity == ReportDiagnostic.Suppress)
+                    return @"""enabled"": false";
+
+                var severityString = severity switch
                 {
-                    case ReportDiagnostic.Error:
-                        return "error";
+                    ReportDiagnostic.Error => "error",
+                    ReportDiagnostic.Warn => "warning",
+                    ReportDiagnostic.Info or ReportDiagnostic.Hidden => "note",
+                    _ => throw ExceptionUtilities.UnexpectedValue(severity)
+                };
 
-                    case ReportDiagnostic.Warn:
-                        return "warning";
-
-                    case ReportDiagnostic.Info:
-                        return "note";
-
-                    case ReportDiagnostic.Hidden:
-                        goto case ReportDiagnostic.Info;
-
-                    case ReportDiagnostic.Suppress:
-                        return "none";
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(severity);
-                }
+                return $@"""level"": ""{severityString}""";
             }
 
             internal static string GetExpectedV2ErrorLogRulesText(
