@@ -868,4 +868,59 @@ public class C
             }
         }
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestOverrideCompletionWithOutCommonReferences(bool mutatingLspWorkspace)
+    {
+        var markup = """
+                     public abstract class BaseClass
+                     {
+                         public abstract bool AbstractMethod(int x);
+                     }
+                     
+                     public class MyClass : BaseClass
+                     {
+                         override {|caret:|}
+                     }
+                     """;
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true }, commonReferences: false);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        // getting and resolving completions should not throw
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        var item = results.Items.Single(i => i.FilterText == "AbstractMethod");
+        Assert.Equal("", item.TextEditText);
+        Assert.Null(item.TextEdit);
+
+        item.Data = results.ItemDefaults.Data;
+
+        var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, item, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.Null(resolvedItem.AdditionalTextEdits);
+
+        Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
+        Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+
+        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+
+        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
+        AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
+
+        Assert.Equal(false, resolvedItem.Command.Arguments[2]);
+        Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
+    }
 }
