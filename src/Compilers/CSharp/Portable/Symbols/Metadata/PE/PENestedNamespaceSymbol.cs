@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var typesByNS = _typesByNS;
 
-            if (_lazyTypes == null || _lazyNamespaces == null)
+            if (lazyTypes == null || lazyNamespaces == null)
             {
                 System.Diagnostics.Debug.Assert(typesByNS != null);
                 LoadAllMembers(typesByNS);

@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of namespaces immediately contained within this namespace 
         /// mapped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<ReadOnlyMemory<char>, PENestedNamespaceSymbol> _lazyNamespaces;
+        protected Dictionary<ReadOnlyMemory<char>, PENestedNamespaceSymbol> lazyNamespaces;
 
         /// <summary>
         /// A map of types immediately contained within this namespace 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> _lazyTypes;
+        protected Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> lazyTypes;
 
         /// <summary>
         /// A map of NoPia local types immediately contained in this assembly.
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var memberTypes = GetMemberTypesPrivate();
 
-            if (_lazyNamespaces.Count == 0)
+            if (lazyNamespaces.Count == 0)
                 return StaticCast<Symbol>.From(memberTypes);
 
-            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + _lazyNamespaces.Count);
+            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
 
             builder.AddRange(memberTypes);
-            foreach (var pair in _lazyNamespaces)
+            foreach (var pair in lazyNamespaces)
             {
                 builder.Add(pair.Value);
             }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             //assume that EnsureAllMembersLoaded() has initialize lazyTypes
             if (_lazyFlattenedTypes.IsDefault)
             {
-                var flattened = _lazyTypes.Flatten();
+                var flattened = lazyTypes.Flatten();
                 ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedTypes, flattened);
             }
 
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENestedNamespaceSymbol ns = null;
             ImmutableArray<PENamedTypeSymbol> t;
 
-            if (_lazyNamespaces.TryGetValue(name, out ns))
+            if (lazyNamespaces.TryGetValue(name, out ns))
             {
-                if (_lazyTypes.TryGetValue(name, out t))
+                if (lazyTypes.TryGetValue(name, out t))
                 {
                     // TODO - Eliminate the copy by storing all members and type members instead of non-type and type members?
                     return StaticCast<Symbol>.From(t).Add(ns);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return ImmutableArray.Create<Symbol>(ns);
                 }
             }
-            else if (_lazyTypes.TryGetValue(name, out t))
+            else if (lazyTypes.TryGetValue(name, out t))
             {
                 return StaticCast<Symbol>.From(t);
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             ImmutableArray<PENamedTypeSymbol> t;
 
-            return _lazyTypes.TryGetValue(name, out t)
+            return lazyTypes.TryGetValue(name, out t)
                 ? StaticCast<NamedTypeSymbol>.From(t)
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private void LazyInitializeNamespaces(
             IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> childNamespaces)
         {
-            if (this._lazyNamespaces == null)
+            if (this.lazyNamespaces == null)
             {
                 var namespaces = new Dictionary<ReadOnlyMemory<char>, PENestedNamespaceSymbol>(ReadOnlyMemoryOfCharComparer.Instance);
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     namespaces.Add(c.Name.AsMemory(), c);
                 }
 
-                Interlocked.CompareExchange(ref this._lazyNamespaces, namespaces, null);
+                Interlocked.CompareExchange(ref this.lazyNamespaces, namespaces, null);
             }
         }
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private void LazyInitializeTypes(IEnumerable<IGrouping<string, TypeDefinitionHandle>> typeGroups)
         {
-            if (this._lazyTypes == null)
+            if (this.lazyTypes == null)
             {
                 var moduleSymbol = ContainingPEModule;
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     Interlocked.CompareExchange(ref _lazyNoPiaLocalTypes, noPiaLocalTypes, null);
                 }
 
-                var original = Interlocked.CompareExchange(ref this._lazyTypes, typesDict, null);
+                var original = Interlocked.CompareExchange(ref this.lazyTypes, typesDict, null);
 
                 // Build cache of TypeDef Tokens
                 // Potentially this can be done in the background.
