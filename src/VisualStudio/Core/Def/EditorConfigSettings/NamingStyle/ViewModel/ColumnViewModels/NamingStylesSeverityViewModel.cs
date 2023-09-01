@@ -18,10 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
             _setting = setting;
             var selectedSeverityIndex = _setting.Severity switch
             {
-                ReportDiagnostic.Hidden => 0,
-                ReportDiagnostic.Info => 1,
-                ReportDiagnostic.Warn => 2,
-                ReportDiagnostic.Error => 3,
+                ReportDiagnostic.Suppress => 0,
+                ReportDiagnostic.Hidden => 1,
+                ReportDiagnostic.Info => 2,
+                ReportDiagnostic.Warn => 3,
+                ReportDiagnostic.Error => 4,
                 _ => throw new InvalidOperationException(),
             };
 
@@ -32,10 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         {
             var severity = selectedIndex switch
             {
-                0 => ReportDiagnostic.Hidden,
-                1 => ReportDiagnostic.Info,
-                2 => ReportDiagnostic.Warn,
-                3 => ReportDiagnostic.Error,
+                0 => ReportDiagnostic.Suppress,
+                1 => ReportDiagnostic.Hidden,
+                2 => ReportDiagnostic.Info,
+                3 => ReportDiagnostic.Warn,
+                4 => ReportDiagnostic.Error,
                 _ => throw new InvalidOperationException(),
             };
             _setting.ChangeSeverity(severity);
@@ -50,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         public static ImmutableArray<string> Severities { get; } =
             ImmutableArray.Create(
                 ServicesVSResources.Disabled,
+                ServicesVSResources.Refactoring_Only,
                 ServicesVSResources.Suggestion,
                 ServicesVSResources.Warning,
                 ServicesVSResources.Error
