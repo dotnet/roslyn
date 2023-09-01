@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -17,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>
 /// This type helps rewrite the delegate creations that target static method groups to use a cached instance of delegate.
 /// </summary>
-internal sealed class DelegateCacheRewriter
+internal sealed class DelegateCache
 {
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
     private Dictionary<MethodSymbol, DelegateCacheContainer>? _genericCacheContainers;
 
-    internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    internal DelegateCache(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
         Debug.Assert(factory.TopLevelMethod is { });
 
