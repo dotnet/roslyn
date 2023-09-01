@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/38136")]
         public async Task TestMissingOnIf()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(16234, "https://github.com/dotnet/roslyn/issues/16234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16234")]
         public async Task TestNotInExpressionTree()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(404142, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
         public async Task TestNotWithAsCheck()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(18670, "https://github.com/dotnet/roslyn/issues/18670")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18670")]
         public async Task TestNotWithElseClause()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19377")]
         public async Task TestNotWithMultipleStatementsInIf1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19377")]
         public async Task TestNotWithMultipleStatementsInIf2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(21612, "https://github.com/dotnet/roslyn/issues/21612")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21612")]
         public async Task TestNotWhenAccessedOnLeftOfAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24628")]
         public async Task TestNotWhenAccessedOnLineBefore()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestNotWhenUnconstrainedTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestWhenClassConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestWhenStructConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """);
         }
 
-        [Fact, WorkItem(44454, "https://github.com/dotnet/roslyn/issues/44454")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44454")]
         public async Task TopLevelStatement()
         {
             await TestAsync(
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
         public async Task PreserveTrailingTrivia1()
         {
             await TestAsync(
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
                 """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38102")]
         public async Task PreserveTrailingTrivia2()
         {
             await TestAsync(

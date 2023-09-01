@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Process projects in dependency graph order so that any compilations built by one are available for later
             // projects. We only have to examine the projects containing the documents requested though.
             var dependencyGraph = _solution.GetProjectDependencyGraph();
-            var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
+            var projectsToSearch = documents.Select(d => d.Project).Where(p => p.SupportsCompilation).ToImmutableHashSet();
 
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -17,35 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
+    internal abstract class SourceOrdinaryMethodSymbol : SourceOrdinaryMethodSymbolBase
     {
-        private readonly TypeSymbol _explicitInterfaceType;
-        private readonly bool _isExpressionBodied;
-        private readonly bool _hasAnyBody;
-        private readonly RefKind _refKind;
-        private bool _lazyIsVararg;
-
-        /// <summary>
-        /// A collection of type parameter constraint types, populated when
-        /// constraint types for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
-
-        /// <summary>
-        /// A collection of type parameter constraint kinds, populated when
-        /// constraint kinds for the first type parameter is requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
-
-        /// <summary>
-        /// If this symbol represents a partial method definition or implementation part, its other part (if any).
-        /// This should be set, if at all, before this symbol appears among the members of its owner.  
-        /// The implementation part is not listed among the "members" of the enclosing type.
-        /// </summary>
-        private SourceOrdinaryMethodSymbol _otherPartOfPartial;
-
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
@@ -64,12 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
-            return new SourceOrdinaryMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
+            // Use a smaller type for the common case of non-generic, non-partial, non-explicit-impl methods.
+
+            return explicitInterfaceType is null && !syntax.Modifiers.Any(SyntaxKind.PartialKeyword) && syntax.Arity == 0
+                ? new SourceOrdinaryMethodSymbolSimple(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+                : new SourceOrdinaryMethodSymbolComplex(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceOrdinaryMethodSymbol(
             NamedTypeSymbol containingType,
-            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             MethodDeclarationSyntax syntax,
@@ -80,51 +55,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  name,
                  location,
                  syntax,
-                 methodKind,
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                 isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
-                                    !firstParam.IsArgList &&
-                                    firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
-                 isReadOnly: false,
-                 hasBody: syntax.Body != null || syntax.ExpressionBody != null,
-                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                 diagnostics)
+                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics, out bool hasExplicitAccessMod))
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
-            _explicitInterfaceType = explicitInterfaceType;
+            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasBody = hasBlockBody || _isExpressionBodied;
-            _hasAnyBody = hasBody;
+            HasExplicitAccessModifier = hasExplicitAccessMod;
+            bool hasAnyBody = syntax.HasAnyBody();
+
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
+
+            if (hasAnyBody)
+            {
+                CheckModifiersForBody(location, diagnostics);
+            }
+
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation, diagnostics, location);
+
             Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
-            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
+
+            if (syntax.Arity == 0)
+            {
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
+            }
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
+            NamedTypeSymbol containingType, Location location, MethodDeclarationSyntax syntax, MethodKind methodKind,
+            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics, out bool hasExplicitAccessMod)
         {
-            var syntax = (MethodDeclarationSyntax)node;
-            if (syntax.Arity == 0)
-            {
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
-                return ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                return MakeTypeParameters(syntax, diagnostics);
-            }
+            (DeclarationModifiers declarationModifiers, hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
+            Flags flags = new Flags(
+                                    methodKind, refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
+                                    declarationModifiers,
+                                    returnsVoid: false, // The correct value will be computed lazily later and then the flags will be fixed up.
+                                    returnsVoidIsSet: false,
+                                    hasAnyBody: syntax.HasAnyBody(), isExpressionBodied: syntax.IsExpressionBodied(),
+                                    isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
+                                                       !firstParam.IsArgList &&
+                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
+                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                    isVararg: syntax.IsVarArg(),
+                                    isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
+
+            return (declarationModifiers, flags);
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        private bool HasAnyBody => flags.HasAnyBody;
+
+        private (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-
-            SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -134,13 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             var returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
@@ -175,8 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // implemented.
                 if (syntax.ConstraintClauses.Count > 0)
                 {
-                    Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
-                                                    syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    Binder.CheckFeatureAvailability(
+                        syntax.ConstraintClauses[0].WhereKeyword, MessageID.IDS_OverrideWithConstraints, diagnostics);
 
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
@@ -194,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParameters(returnType, this, declaredConstraints);
             }
 
-            return (returnType, parameters, _lazyIsVararg, declaredConstraints);
+            return (returnType, parameters, declaredConstraints);
 
             static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)
             {
@@ -211,13 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
         {
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
                 var syntax = GetSyntax();
-                var location = locations[0];
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.Type.IsValidExtensionParameterType())
@@ -230,15 +215,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter0RefKind == RefKind.Ref && !parameter0Type.Type.IsValueType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
-                else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameter0Type.TypeKind != TypeKind.Struct)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
+                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, _location, ContainingType.Name);
                 }
                 else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
                 {
@@ -251,41 +236,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (!IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, _location);
                 }
                 else
                 {
                     // Verify ExtensionAttribute is available.
                     var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-                    Location thisLocation = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation();
+
+                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
                     if ((object)attributeConstructor == null)
                     {
                         var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisLocation,
+                            thisKeyword.GetLocation(),
                             memberDescriptor.DeclaringTypeMetadataName);
                     }
                     else
                     {
-                        diagnostics.Add(useSiteInfo, thisLocation);
+                        diagnostics.Add(useSiteInfo, thisKeyword);
                     }
                 }
             }
         }
 
-        protected override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
-        {
-            var syntax = GetSyntax();
-            return this.FindExplicitlyImplementedMethod(isOperator: false, _explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
-        }
-
-        protected override Location ReturnTypeLocation => GetSyntax().ReturnType.Location;
-
-        protected override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
-
-        protected override bool HasAnyBody => _hasAnyBody;
+        protected sealed override Location ReturnTypeLocation => GetSyntax().ReturnType.Location;
 
         internal MethodDeclarationSyntax GetSyntax()
         {
@@ -293,12 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (MethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        protected override void CompleteAsyncMethodChecksBetweenStartAndFinish()
+        protected sealed override void CompleteAsyncMethodChecksBetweenStartAndFinish()
         {
             if (IsPartialDefinition)
             {
@@ -306,92 +282,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-        {
-            if (_lazyTypeParameterConstraintTypes.IsDefault)
-            {
-                GetTypeParameterConstraintKinds();
-
-                var diagnostics = BindingDiagnosticBag.GetInstance();
-                var syntax = GetSyntax();
-                var withTypeParametersBinder =
-                    this.DeclaringCompilation
-                    .GetBinderFactory(syntax.SyntaxTree)
-                    .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraintTypes(
-                    withTypeParametersBinder,
-                    TypeParameters,
-                    syntax.TypeParameterList,
-                    syntax.ConstraintClauses,
-                    diagnostics);
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, constraints))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-            }
-
-            return _lazyTypeParameterConstraintTypes;
-        }
-
-        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-        {
-            if (_lazyTypeParameterConstraintKinds.IsDefault)
-            {
-                var syntax = GetSyntax();
-                var withTypeParametersBinder =
-                    this.DeclaringCompilation
-                    .GetBinderFactory(syntax.SyntaxTree)
-                    .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraintKinds(
-                    withTypeParametersBinder,
-                    TypeParameters,
-                    syntax.TypeParameterList,
-                    syntax.ConstraintClauses);
-
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, constraints);
-            }
-
-            return _lazyTypeParameterConstraintKinds;
-        }
-
-        public override bool IsVararg
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyIsVararg;
-            }
-        }
-
-        protected override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
-
-        public override RefKind RefKind
-        {
-            get
-            {
-                return _refKind;
-            }
-        }
+        protected sealed override int GetParameterCountFromSyntax() => GetSyntax().ParameterList.ParameterCount;
 
         internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
             Debug.Assert(definition.IsPartialDefinition);
             Debug.Assert(implementation.IsPartialImplementation);
-            Debug.Assert((object)definition._otherPartOfPartial == null || (object)definition._otherPartOfPartial == implementation);
-            Debug.Assert((object)implementation._otherPartOfPartial == null || (object)implementation._otherPartOfPartial == definition);
 
-            definition._otherPartOfPartial = implementation;
-            implementation._otherPartOfPartial = definition;
+            // Thse casts must succeed as being partial means we would have created the uncommon forms.
+            SourceOrdinaryMethodSymbolComplex.InitializePartialMethodParts(
+                (SourceOrdinaryMethodSymbolComplex)definition,
+                (SourceOrdinaryMethodSymbolComplex)implementation);
         }
 
         /// <summary>
         /// If this is a partial implementation part returns the definition part and vice versa.
         /// </summary>
-        internal SourceOrdinaryMethodSymbol OtherPartOfPartial
-        {
-            get { return _otherPartOfPartial; }
-        }
+        internal abstract SourceOrdinaryMethodSymbol OtherPartOfPartial { get; }
 
         /// <summary>
         /// Returns true if this symbol represents a partial method definition (the part that specifies a signature but no body).
@@ -400,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody && !HasExternModifier;
+                return this.IsPartial && !HasAnyBody && !HasExternModifier;
             }
         }
 
@@ -411,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (_hasAnyBody || HasExternModifier);
+                return this.IsPartial && (HasAnyBody || HasExternModifier);
             }
         }
 
@@ -422,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialDefinition && (object)_otherPartOfPartial == null;
+                return this.IsPartialDefinition && this.OtherPartOfPartial is null;
             }
         }
 
@@ -434,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialImplementation ? _otherPartOfPartial : null;
+                return this.IsPartialImplementation ? this.OtherPartOfPartial : null;
             }
         }
 
@@ -446,11 +353,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialDefinition ? _otherPartOfPartial : null;
+                return this.IsPartialDefinition ? this.OtherPartOfPartial : null;
             }
         }
 
-        public override MethodSymbol PartialDefinitionPart
+        public sealed override MethodSymbol PartialDefinitionPart
         {
             get
             {
@@ -458,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol PartialImplementationPart
+        public sealed override MethodSymbol PartialImplementationPart
         {
             get
             {
@@ -471,18 +378,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return IsPartialDefinition
-                    ? _otherPartOfPartial?.IsExtern ?? false
+                    ? this.OtherPartOfPartial?.IsExtern ?? false
                     : HasExternModifier;
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
-        protected override SourceMemberMethodSymbol BoundAttributesSource
+        protected sealed override SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
@@ -490,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             if ((object)this.SourcePartialImplementation != null)
             {
@@ -516,92 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
+        private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            get { return _isExpressionBodied; }
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-        {
-            var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
-        }
-
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(syntax.TypeParameterList != null);
-
-            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList, syntax.TypeParameterList.LessThanToken.GetLocation());
-
-            OverriddenMethodTypeParameterMapBase typeMap = null;
-            if (this.IsOverride)
-            {
-                typeMap = new OverriddenMethodTypeParameterMap(this);
-            }
-            else if (this.IsExplicitInterfaceImplementation)
-            {
-                typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
-            }
-
-            var typeParameters = syntax.TypeParameterList.Parameters;
-            var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-
-            for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
-            {
-                var parameter = typeParameters[ordinal];
-                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
-                }
-
-                var identifier = parameter.Identifier;
-                var location = identifier.GetLocation();
-                var name = identifier.ValueText;
-
-                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
-
-                for (int i = 0; i < result.Count; i++)
-                {
-                    if (name == result[i].Name)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                        break;
-                    }
-                }
-
-                SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-
-                var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                if ((object)tpEnclosing != null)
-                {
-                    // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                }
-
-                var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
-                var locations = ImmutableArray.Create(location);
-                var typeParameter = (typeMap != null) ?
-                    (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
-                        typeMap,
-                        name,
-                        ordinal,
-                        locations,
-                        syntaxRefs) :
-                    new SourceMethodTypeParameterSymbol(
-                        this,
-                        name,
-                        ordinal,
-                        locations,
-                        syntaxRefs);
-
-                result.Add(typeParameter);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             var implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)
@@ -612,29 +440,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, cancellationToken);
         }
 
-        internal override bool IsDefinedInSourceTree(
+        public sealed override bool IsDefinedInSourceTree(
             SyntaxTree tree,
             TextSpan? definedWithinSpan,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // Since only the declaring (and not the implementing) part of a partial method appears in the member
             // list, we need to ensure we complete the implementation part when needed.
+            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
             return
-                base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) ||
+                IsDefinedInSourceTree(this.SyntaxRef, tree, definedWithinSpan) ||
                 this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
-        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-            if ((object)_explicitInterfaceType != null)
-            {
-                var syntax = this.GetSyntax();
-                Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
-            }
-        }
+        protected abstract override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
 
-        protected override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
         {
             var implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)
@@ -656,48 +477,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasTypeDifferences = !constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
             if (hasTypeDifferences)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.GetFirstLocation());
             }
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
             {
                 hasTypeDifferences = true;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.GetFirstLocation(), definition, implementation);
             }
 
             if (definition.RefKind != implementation.RefKind)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsStatic != implementation.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsDeclaredReadOnly != implementation.IsDeclaredReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsExtensionMethod != implementation.IsExtensionMethod)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.GetFirstLocation());
             }
 
             if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
                 || definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsVirtual != implementation.IsVirtual
@@ -705,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || definition.IsSealed != implementation.IsSealed
                 || definition.IsNew != implementation.IsNew)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.GetFirstLocation());
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
@@ -716,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
                 extraArgument: (object)null,
                 allowVariance: false,
@@ -733,11 +554,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                 {
                     // report only if this is an unsafe *nullability* difference
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.GetFirstLocation());
                 },
                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
                 extraArgument: (object)null))
             {
@@ -747,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)) ||
                 hasDifferencesInParameterOrTypeParameterName(definition, implementation))
             {
-                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
+                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.GetFirstLocation(),
                     new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
@@ -785,16 +606,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.GetFirstLocation(), implementation, typeParameter2.Name);
                 }
                 else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.GetFirstLocation(), implementation, typeParameter2.Name);
                 }
             }
         }
 
-        internal override bool CallsAreOmitted(SyntaxTree syntaxTree)
+        internal sealed override bool CallsAreOmitted(SyntaxTree syntaxTree)
         {
             if (this.IsPartialWithoutImplementation)
             {
@@ -804,6 +625,541 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+        internal sealed override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+
+#nullable enable
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
+
+            var (returnType, parameters, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
+
+            MethodSymbol? overriddenOrExplicitlyImplementedMethod = MethodChecks(returnType, parameters, diagnostics);
+
+            if (!declaredConstraints.IsDefault && overriddenOrExplicitlyImplementedMethod is object)
+            {
+                for (int i = 0; i < declaredConstraints.Length; i++)
+                {
+                    var typeParameter = this.TypeParameters[i];
+                    ErrorCode report;
+
+                    switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
+                    {
+                        case TypeParameterConstraintKind.ReferenceType:
+                            if (!typeParameter.IsReferenceType)
+                            {
+                                report = ErrorCode.ERR_OverrideRefConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        case TypeParameterConstraintKind.ValueType:
+                            if (!typeParameter.IsNonNullableValueType())
+                            {
+                                report = ErrorCode.ERR_OverrideValConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        case TypeParameterConstraintKind.Default:
+                            if (typeParameter.IsReferenceType || typeParameter.IsValueType)
+                            {
+                                report = ErrorCode.ERR_OverrideDefaultConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        default:
+                            continue;
+                    }
+
+                    diagnostics.Add(report, typeParameter.GetFirstLocation(), this, typeParameter,
+                                    overriddenOrExplicitlyImplementedMethod.TypeParameters[i], overriddenOrExplicitlyImplementedMethod);
+                }
+            }
+
+            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, _location, diagnostics);
+        }
+#nullable disable
+
+        // Consider moving this to flags to save space
+        internal bool HasExplicitAccessModifier { get; }
+
+        private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
+        {
+            bool isInterface = containingType.IsInterface;
+            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
+
+            // This is needed to make sure we can detect 'public' modifier specified explicitly and
+            // check it against language version below.
+            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.Private;
+
+            // Check that the set of modifiers is allowed
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
+
+            if (!isExplicitInterfaceImplementation)
+            {
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Sealed |
+                                    DeclarationModifiers.Abstract |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Virtual |
+                                    DeclarationModifiers.AccessibilityMask;
+
+                if (!isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Override;
+                }
+                else
+                {
+                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                               DeclarationModifiers.Abstract |
+                                                               DeclarationModifiers.Static |
+                                                               DeclarationModifiers.Virtual |
+                                                               DeclarationModifiers.Extern |
+                                                               DeclarationModifiers.Async |
+                                                               DeclarationModifiers.Partial |
+                                                               DeclarationModifiers.AccessibilityMask;
+                }
+            }
+            else
+            {
+                Debug.Assert(isExplicitInterfaceImplementation);
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+
+                allowedModifiers |= DeclarationModifiers.Static;
+            }
+
+            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
+
+            if (containingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
+            // In order to detect whether explicit accessibility mods were provided, we pass the default value
+            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
+            bool hasExplicitAccessMod;
+            DeclarationModifiers mods = MakeDeclarationModifiers(syntax, containingType, location, allowedModifiers, diagnostics);
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                hasExplicitAccessMod = false;
+                mods |= defaultAccess;
+            }
+            else
+            {
+                hasExplicitAccessMod = true;
+            }
+
+            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
+
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
+
+            mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
+            return (mods, hasExplicitAccessMod);
+        }
+
+        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
+        {
+            // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
+            // Proper errors must have been reported by now.
+            if (containingTypeIsInterface)
+            {
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
+            }
+            else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
+            {
+                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Private;
+            }
+            return mods;
+        }
+
+        private const DeclarationModifiers PartialMethodExtendedModifierMask =
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Extern;
+
+        private bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
+
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            bool isVararg = this.IsVararg;
+
+            Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
+            Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
+
+            bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
+
+            if (IsPartial && HasExplicitAccessModifier)
+            {
+                Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
+            }
+
+            if (IsPartial && IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && HasExtendedPartialModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && Parameters.Any(static p => p.RefKind == RefKind.Out))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, location, this);
+            }
+            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
+            {
+                diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
+            }
+            else if (IsOverride && (IsNew || IsVirtual))
+            {
+                // A member '{0}' marked as override cannot be marked as new or virtual
+                diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
+            }
+            else if (IsSealed && !IsOverride && !(isExplicitInterfaceImplementationInInterface && IsAbstract))
+            {
+                // '{0}' cannot be sealed because it is not an override
+                diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
+            }
+            else if (IsSealed && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
+            }
+            else if (ReturnType.IsStatic)
+            {
+                // '{0}': static types cannot be used as return types
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), location, ReturnType);
+            }
+            else if (IsAbstract && IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
+            }
+            else if (IsAbstract && IsSealed && !isExplicitInterfaceImplementationInInterface)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
+            }
+            else if (IsAbstract && IsVirtual)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
+            }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
+            }
+            else if (IsStatic && IsDeclaredReadOnly)
+            {
+                // Static member '{0}' cannot be marked 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
+            {
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
+                diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
+            }
+            else if (IsVirtual && ContainingType.IsSealed)
+            {
+                // '{0}' is a new virtual member in sealed type '{1}'
+                diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
+            }
+            else if (!HasAnyBody && IsAsync)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
+            }
+            else if (!HasAnyBody && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
+            {
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
+            }
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
+            {
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (ContainingType.IsStatic && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
+            }
+            else if (isVararg && (IsGenericMethod || ContainingType.IsGenericType || Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsParams))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
+            }
+            else if (isVararg && IsAsync)
+            {
+                diagnostics.Add(ErrorCode.ERR_VarargsAsync, location);
+            }
+        }
+
+        private sealed class SourceOrdinaryMethodSymbolSimple : SourceOrdinaryMethodSymbol
+        {
+            // Avoid adding fields here if possible.  This 'simple' type handles the majority of source methods in any
+            // compilation.  So any fields here can add significantly to heap usage.  In measurements, there are roughly
+            // 25:1 more 'simple' methods than 'complex' methods. So consider placing new data in
+            // SourceOrdinaryMethodSymbolComplex instead if it is state for rare methods.
+
+            public SourceOrdinaryMethodSymbolSimple(
+                NamedTypeSymbol containingType,
+                string name,
+                Location location,
+                MethodDeclarationSyntax syntax,
+                MethodKind methodKind,
+                bool isNullableAnalysisEnabled,
+                BindingDiagnosticBag diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+            {
+            }
+
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial
+                => null;
+
+            protected sealed override TypeSymbol ExplicitInterfaceType
+                => null;
+
+            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+                => null;
+
+            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
+                => ImmutableArray<TypeParameterSymbol>.Empty;
+
+            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+                => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+                => ImmutableArray<TypeParameterConstraintKind>.Empty;
+
+            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Specialized subclass of SourceOrdinaryMethodSymbol for less common cases.  Specifically, we only use this
+        /// for methods that are:
+        /// <list type="number">
+        /// <item>Generic.</item>
+        /// <item>An explicit interface implementation.</item>
+        /// <item>Partial.</item>
+        /// </list>
+        /// </summary>
+        private sealed class SourceOrdinaryMethodSymbolComplex : SourceOrdinaryMethodSymbol
+        {
+            private readonly TypeSymbol _explicitInterfaceType;
+
+            private readonly TypeParameterInfo _typeParameterInfo;
+
+            /// <summary>
+            /// If this symbol represents a partial method definition or implementation part, its other part (if any).
+            /// This should be set, if at all, before this symbol appears among the members of its owner.  
+            /// The implementation part is not listed among the "members" of the enclosing type.
+            /// </summary>
+            private SourceOrdinaryMethodSymbol _otherPartOfPartial;
+
+            public SourceOrdinaryMethodSymbolComplex(
+                NamedTypeSymbol containingType,
+                TypeSymbol explicitInterfaceType,
+                string name,
+                Location location,
+                MethodDeclarationSyntax syntax,
+                MethodKind methodKind,
+                bool isNullableAnalysisEnabled,
+                BindingDiagnosticBag diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+            {
+                _explicitInterfaceType = explicitInterfaceType;
+
+                // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce
+                // the amount of pointers-to-arrays this type needs to store.
+                var typeParameters = MakeTypeParameters(syntax, diagnostics);
+                _typeParameterInfo = typeParameters.IsEmpty
+                    ? TypeParameterInfo.Empty
+                    : new TypeParameterInfo { LazyTypeParameters = typeParameters };
+            }
+
+            protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
+            internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
+
+            internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
+            {
+                Debug.Assert(definition.IsPartialDefinition);
+                Debug.Assert(implementation.IsPartialImplementation);
+
+                Debug.Assert(definition._otherPartOfPartial is null || definition._otherPartOfPartial == implementation);
+                Debug.Assert(implementation._otherPartOfPartial is null || implementation._otherPartOfPartial == definition);
+
+                definition._otherPartOfPartial = implementation;
+                implementation._otherPartOfPartial = definition;
+            }
+
+            protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+            {
+                var syntax = GetSyntax();
+                return this.FindExplicitlyImplementedMethod(isOperator: false, _explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
+            }
+
+            public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
+            {
+                get
+                {
+                    Debug.Assert(!_typeParameterInfo.LazyTypeParameters.IsDefault);
+                    return _typeParameterInfo.LazyTypeParameters;
+                }
+            }
+
+            public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            {
+                if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
+                {
+                    GetTypeParameterConstraintKinds();
+
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    var syntax = GetSyntax();
+                    var withTypeParametersBinder =
+                        this.DeclaringCompilation
+                        .GetBinderFactory(syntax.SyntaxTree)
+                        .GetBinder(syntax.ReturnType, syntax, this);
+                    var constraints = this.MakeTypeParameterConstraintTypes(
+                        withTypeParametersBinder,
+                        TypeParameters,
+                        syntax.TypeParameterList,
+                        syntax.ConstraintClauses,
+                        diagnostics);
+                    if (ImmutableInterlocked.InterlockedInitialize(
+                            ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                            constraints))
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
+                }
+
+                return _typeParameterInfo.LazyTypeParameterConstraintTypes;
+            }
+
+            public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            {
+                if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
+                {
+                    var syntax = GetSyntax();
+                    var withTypeParametersBinder =
+                        this.DeclaringCompilation
+                        .GetBinderFactory(syntax.SyntaxTree)
+                        .GetBinder(syntax.ReturnType, syntax, this);
+                    var constraints = this.MakeTypeParameterConstraintKinds(
+                        withTypeParametersBinder,
+                        TypeParameters,
+                        syntax.TypeParameterList,
+                        syntax.ConstraintClauses);
+
+                    ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                        constraints);
+                }
+
+                return _typeParameterInfo.LazyTypeParameterConstraintKinds;
+            }
+
+            protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+            {
+                if ((object)_explicitInterfaceType != null)
+                {
+                    var syntax = this.GetSyntax();
+                    Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
+                    _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                }
+            }
+
+            private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                if (syntax.Arity == 0)
+                {
+                    return ImmutableArray<TypeParameterSymbol>.Empty;
+                }
+
+                Debug.Assert(syntax.TypeParameterList != null);
+
+                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList.LessThanToken);
+
+                OverriddenMethodTypeParameterMapBase typeMap = null;
+                if (this.IsOverride)
+                {
+                    typeMap = new OverriddenMethodTypeParameterMap(this);
+                }
+                else if (this.IsExplicitInterfaceImplementation)
+                {
+                    typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
+                }
+
+                var typeParameters = syntax.TypeParameterList.Parameters;
+                var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+
+                for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
+                {
+                    var parameter = typeParameters[ordinal];
+                    if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                    }
+
+                    var identifier = parameter.Identifier;
+                    var location = identifier.GetLocation();
+                    var name = identifier.ValueText;
+
+                    // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
+
+                    for (int i = 0; i < result.Count; i++)
+                    {
+                        if (name == result[i].Name)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                            break;
+                        }
+                    }
+
+                    SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+
+                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                    if ((object)tpEnclosing != null)
+                    {
+                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                    }
+
+                    var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
+                    var locations = ImmutableArray.Create(location);
+                    var typeParameter = (typeMap != null) ?
+                        (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
+                            typeMap,
+                            name,
+                            ordinal,
+                            locations,
+                            syntaxRefs) :
+                        new SourceMethodTypeParameterSymbol(
+                            this,
+                            name,
+                            ordinal,
+                            locations,
+                            syntaxRefs);
+
+                    result.Add(typeParameter);
+                }
+
+                return result.ToImmutableAndFree();
+            }
+        }
     }
 }

@@ -515,7 +515,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Assert.True(called);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers()
         {
             // By default, hidden analyzer does not execute in full solution analysis.
@@ -525,7 +525,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: false);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInCompilationOptions()
         {
             // Escalating the analyzer to non-hidden effective severity through compilation options
@@ -538,7 +538,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
         }
 
-        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42353")]
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInAnalyzerConfigOptions()
         {
             using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
@@ -1049,7 +1049,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(49698, "https://github.com/dotnet/roslyn/issues/49698")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49698")]
         internal async Task TestOnlyRequiredAnalyzerExecutedDuringDiagnosticComputation(bool documentAnalysis)
         {
             using var workspace = TestWorkspace.CreateCSharp("class A { }");
@@ -1067,7 +1067,7 @@ class A
             var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
                 document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
                 AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-                reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 cancellationToken: CancellationToken.None);
             Assert.False(analyzer2.ReceivedSymbolCallback);
 
@@ -1084,8 +1084,78 @@ class A
             Assert.Empty(diagnosticMap.Other);
         }
 
+        [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
+        [CombinatorialData]
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
+        {
+            var source = @"
+class B
+{
+    void M()
+    {
+        int x = 1;
+    }
+}";
+            var additionalText = @"This is an additional file!";
+
+            using var workspace = TestWorkspace.CreateCSharp(source);
+            var project = workspace.CurrentSolution.Projects.Single();
+            project = project.AddAdditionalDocument("additional.txt", additionalText).Project;
+
+            var analyzer = new FilterSpanTestAnalyzer(kind);
+            var analyzerId = analyzer.GetAnalyzerId();
+            var analyzerIdsToRequestDiagnostics = new[] { analyzerId };
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            workspace.TryApplyChanges(project.Solution);
+
+            project = workspace.CurrentSolution.Projects.Single();
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+            var document = project.Documents.Single();
+            var additionalDocument = project.AdditionalDocuments.Single();
+
+            var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var localDeclaration = root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax>().First();
+            var filterSpan = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                ? new TextSpan(0, 1)
+                : localDeclaration.Span;
+            // Invoke "GetDiagnosticsAsync" for a sub-span and then
+            // for the entire document span and verify FilterSpan/FilterTree on the callback context.
+            Assert.Null(analyzer.CallbackFilterSpan);
+            Assert.Null(analyzer.CallbackFilterTree);
+            await VerifyCallbackSpanAsync(filterSpan);
+            await VerifyCallbackSpanAsync(filterSpan: null);
+
+            async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
+            {
+                var analysisKind = kind is FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree or FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                    ? AnalysisKind.Syntax
+                    : AnalysisKind.Semantic;
+                var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
+                _ = await DiagnosticComputer.GetDiagnosticsAsync(
+                    documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
+                    analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+                    isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                    CancellationToken.None);
+                Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
+                {
+                    var expectedText = additionalDocument.GetTextSynchronously(CancellationToken.None).ToString();
+                    var actualText = analyzer.CallbackFilterFile.GetText().ToString();
+                    Assert.Equal(expectedText, actualText);
+                    Assert.Null(analyzer.CallbackFilterTree);
+                }
+                else
+                {
+                    Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
+                    Assert.Null(analyzer.CallbackFilterFile);
+                }
+            }
+        }
+
         [Theory, CombinatorialData]
-        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67084")]
         internal async Task TestCancellationDuringDiagnosticComputation_OutOfProc(AnalyzerRegisterActionKind actionKind)
         {
             // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE OutOfProc diagnostic computation in presence of an OperationCanceledException during analysis.
@@ -1121,12 +1191,12 @@ class A
             try
             {
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
-            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            catch (OperationCanceledException) when (analyzer.CancellationToken.IsCancellationRequested)
             {
             }
 
@@ -1134,7 +1204,7 @@ class A
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
-                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
+                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
             var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
@@ -1284,7 +1354,7 @@ class A
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions options)
                 => true;

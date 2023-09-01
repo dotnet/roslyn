@@ -71,8 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return ArrayInitializerStyle.Element;
             }
 

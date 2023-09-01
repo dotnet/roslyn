@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
-                    : CodeActionPriority.Medium;
+                    : CodeActionPriority.Default;
 
-                context.RegisterCodeFix(
-                    new UseAutoPropertyCodeAction(
+                context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
+                        equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                         priority),
                     diagnostic);
             }
@@ -267,13 +267,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             HashSet<DocumentId> linkedDocuments,
             Dictionary<DocumentId, bool> canEdit)
         {
-            if (!canEdit.ContainsKey(documentId))
+            if (!canEdit.TryGetValue(documentId, out var canEditDocument))
             {
                 var document = solution.GetDocument(documentId);
-                canEdit[documentId] = document != null && !linkedDocuments.Contains(document.Id);
+                canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
+                canEdit[documentId] = canEditDocument;
             }
 
-            return canEdit[documentId];
+            return canEditDocument;
         }
 
         private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -341,25 +342,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // We do need a setter
             return true;
-        }
-
-        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                , CodeActionPriority priority
-#endif
-                )
-                : base(title, createChangedSolution, title)
-            {
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                Priority = priority;
-#endif
-            }
-
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriority Priority { get; }
-#endif
         }
     }
 }

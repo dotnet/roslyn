@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Xunit;
-using Microsoft.VisualStudio.LanguageServices.Options;
-using Roslyn.Test.Utilities;
+using System.Text;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Options;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -226,13 +225,16 @@ public class VisualStudioOptionStorageTests
             "dotnet_remove_unnecessary_suppression_exclusions",                             // Doesn't have VS UI. TODO: https://github.com/dotnet/roslyn/issues/66062
             "dotnet_style_operator_placement_when_wrapping",                                // Doesn't have VS UI. TODO: https://github.com/dotnet/roslyn/issues/66062
             "dotnet_style_prefer_foreach_explicit_cast_in_source",                          // For a small customer segment, doesn't warrant VS UI.
+            "dotnet_binary_log_path",                                                       // VSCode only option for the VS Code project system; does not apply to VS
+            "dotnet_lsp_using_devkit",                                                      // VSCode internal only option.  Does not need any UI.
+            "dotnet_enable_references_code_lens",                                           // VSCode only option.  Does not apply to VS.
+            "dotnet_enable_tests_code_lens",                                                // VSCode only option.  Does not apply to VS.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
             "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
             "FormattingOptions_WrappingColumn",                                             // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "InlineHintsOptions_DisplayAllOverride",                                        // TODO: https://github.com/dotnet/roslyn/issues/57283
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
             "InternalDiagnosticsOptions_LiveShareDiagnosticMode",                           // TODO: remove once switched to LSP diagnostics
             "InternalDiagnosticsOptions_RazorDiagnosticMode",                               // TODO: remove once switched to LSP diagnostics
@@ -261,5 +263,39 @@ public class VisualStudioOptionStorageTests
         };
 
         Assert.Contains(configName, optionsWithoutStorage);
+    }
+
+    [Fact]
+    public void VerifyOptionGroupUnique()
+    {
+        var allOptionGroups = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location))
+            .Values
+            .Select(optionTestInfo => optionTestInfo.Option.Definition.Group)
+            .Distinct();
+
+        var allGroupNames = allOptionGroups.Select(GetFullOptionGroupName);
+
+        // The full name of each Option group should be unique. Full name is obtained by joining the names of all groups that are chained via parent reference.
+        // e.g. option group, code_style -> prefer_object_initializer.
+        // Its full name code_style.prefer_object_initializer should be unique.
+        var set = new HashSet<string>();
+        foreach (var groupName in allGroupNames)
+        {
+            Assert.True(set.Add(groupName), $"Group {groupName} doesn't have a unique name.");
+        }
+
+        static string GetFullOptionGroupName(OptionGroup group)
+        {
+            var builder = new StringBuilder();
+            var currentGroup = group;
+            while (currentGroup != null)
+            {
+                var stringToInsert = builder.Length == 0 ? currentGroup.Name : currentGroup.Name + ".";
+                builder.Insert(0, stringToInsert);
+                currentGroup = currentGroup.Parent;
+            }
+
+            return builder.ToString();
+        }
     }
 }

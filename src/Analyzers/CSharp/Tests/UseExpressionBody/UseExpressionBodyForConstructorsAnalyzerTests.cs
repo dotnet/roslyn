@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
         {
             var code = """
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
         {
             var code = """

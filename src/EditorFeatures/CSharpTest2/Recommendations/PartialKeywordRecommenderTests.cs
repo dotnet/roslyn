@@ -345,7 +345,7 @@ $$");
         public async Task TestNotAfterDelegate()
             => await VerifyAbsenceAsync(@"delegate $$");
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -355,7 +355,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -365,7 +365,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -412,7 +412,7 @@ global using Bar;");
     readonly $$");
         }
 
-        [Fact, WorkItem(578075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578075")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578075")]
         public async Task TestAfterAsync()
         {
             await VerifyKeywordAsync(@"partial class C {

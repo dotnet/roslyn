@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_Experimental : CSharpTestBase
+    public class AttributeTests_WindowsExperimental : CSharpTestBase
     {
         private const string DeprecatedAttributeSource =
 @"using System;
@@ -67,10 +67,10 @@ namespace N
             comp1.VerifyDiagnostics(
                 // (11,17): warning CS8305: 'N.A<T>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //             new B();
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("N.A<T>.B").WithLocation(11, 17),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("N.A<T>.B").WithLocation(11, 17),
                 // (12,13): warning CS8305: 'N.D<int>' is for evaluation purposes only and is subject to change or removal in future updates.
                 //             D<int> d = null;
-                Diagnostic(ErrorCode.WRN_Experimental, "D<int>").WithArguments("N.D<int>").WithLocation(12, 13));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "D<int>").WithArguments("N.D<int>").WithLocation(12, 13));
 
             var source2 =
 @"using N;
@@ -90,31 +90,31 @@ class C
             comp2A.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("N.A<int>.B").WithLocation(8, 24),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("N.A<int>.B").WithLocation(8, 24),
                 // (9,21): warning CS8305: 'N.S' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         o = default(S);
-                Diagnostic(ErrorCode.WRN_Experimental, "S").WithArguments("N.S").WithLocation(9, 21),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "S").WithArguments("N.S").WithLocation(9, 21),
                 // (10,25): warning CS8305: 'N.E' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         var e = default(E);
-                Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(10, 25),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "E").WithArguments("N.E").WithLocation(10, 25),
                 // (11,13): warning CS8305: 'N.E' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         e = E.A;
-                Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "E").WithArguments("N.E").WithLocation(11, 13));
 
             var comp2B = CreateCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
             comp2B.VerifyDiagnostics(
                 // (8,24): warning CS8305: 'N.A<int>.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         object o = new B();
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("N.A<int>.B").WithLocation(8, 24),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("N.A<int>.B").WithLocation(8, 24),
                 // (9,21): warning CS8305: 'N.S' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         o = default(S);
-                Diagnostic(ErrorCode.WRN_Experimental, "S").WithArguments("N.S").WithLocation(9, 21),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "S").WithArguments("N.S").WithLocation(9, 21),
                 // (10,25): warning CS8305: 'N.E' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         var e = default(E);
-                Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(10, 25),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "E").WithArguments("N.E").WithLocation(10, 25),
                 // (11,13): warning CS8305: 'N.E' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         e = E.A;
-                Diagnostic(ErrorCode.WRN_Experimental, "E").WithArguments("N.E").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "E").WithArguments("N.E").WithLocation(11, 13));
         }
 
         // [Experimental] applied to members even though
@@ -165,10 +165,10 @@ class Program
             comp1.VerifyDiagnostics(
                 // (7,13): warning CS8305: 'E.A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         e = E.A;        // warning CS8305: 'F.A' is for evaluation purposes only
-                Diagnostic(ErrorCode.WRN_Experimental, "E.A").WithArguments("E.A").WithLocation(7, 13),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "E.A").WithArguments("E.A").WithLocation(7, 13),
                 // (11,9): warning CS8305: 'I.F()' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         ((I)o).F();     // warning CS8305: 'I.F()' is for evaluation purposes only
-                Diagnostic(ErrorCode.WRN_Experimental, "((I)o).F()").WithArguments("I.F()").WithLocation(11, 9));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "((I)o).F()").WithArguments("I.F()").WithLocation(11, 9));
         }
 
         [Fact]
@@ -208,7 +208,7 @@ class C
             comp.VerifyDiagnostics(
                 // (20,19): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     static void F(A a)
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A").WithLocation(20, 19),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("A").WithLocation(20, 19),
                 // (23,9): warning CS0618: 'A.F1()' is obsolete: ''
                 //         a.F1();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "a.F1()").WithArguments("A.F1()", "").WithLocation(23, 9),
@@ -223,10 +223,10 @@ class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "a.F4()").WithArguments("A.F4()", "").WithLocation(26, 9),
                 // (27,14): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         (new A.B()).ToString();
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A").WithLocation(27, 14),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("A").WithLocation(27, 14),
                 // (27,14): warning CS8305: 'A.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         (new A.B()).ToString();
-                Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
         }
 
         [Fact]
@@ -319,7 +319,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "a.F4()").WithArguments("A.F4()", "").WithLocation(26, 9),
                 // (27,14): warning CS8305: 'A.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         (new A.B()).ToString();
-                Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
         }
 
         [Fact]
@@ -369,10 +369,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,31): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     static object FA() => new A();
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A"),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("A"),
                 // (9,31): warning CS8305: 'B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     static object FB() => new B();
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("B").WithLocation(9, 31));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("B").WithLocation(9, 31));
         }
 
         [Fact]
@@ -401,7 +401,7 @@ class B
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "MyAttribute").WithArguments("MyAttribute"),
                 // (14,5): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     A F() => null;
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A").WithLocation(14, 5));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("A").WithLocation(14, 5));
         }
 
         [Fact]
@@ -427,7 +427,7 @@ class B
             comp.VerifyDiagnostics(
                 // (8,2): warning CS8305: 'MyAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [MyAttribute]
-                Diagnostic(ErrorCode.WRN_Experimental, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 2),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 2),
                 // (14,5): warning CS0612: 'A' is obsolete
                 //     A F() => null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(14, 5));
@@ -458,13 +458,13 @@ class C
             comp.VerifyDiagnostics(
                 // (9,2): warning CS8305: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [A]
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("AAttribute").WithLocation(9, 2),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("AAttribute").WithLocation(9, 2),
                 // (4,2): warning CS0612: 'BAttribute' is obsolete
                 // [B]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "B").WithArguments("BAttribute").WithLocation(4, 2),
                 // (13,2): warning CS8305: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [A]
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("AAttribute").WithLocation(13, 2),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "A").WithArguments("AAttribute").WithLocation(13, 2),
                 // (14,2): warning CS0612: 'BAttribute' is obsolete
                 // [B]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "B").WithArguments("BAttribute").WithLocation(14, 2));
@@ -498,13 +498,13 @@ class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("AAttribute").WithLocation(9, 2),
                 // (4,2): warning CS8305: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [B]
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("BAttribute").WithLocation(4, 2),
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("BAttribute").WithLocation(4, 2),
                 // (13,2): warning CS0612: 'AAttribute' is obsolete
                 // [A]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("AAttribute").WithLocation(13, 2),
                 // (14,2): warning CS8305: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
                 // [B]
-                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("BAttribute").WithLocation(14, 2));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "B").WithArguments("BAttribute").WithLocation(14, 2));
         }
 
         // Combinations of attributes.
@@ -638,7 +638,7 @@ class P
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CB").WithArguments("B").WithLocation(19, 21),
                 // (20,21): warning CS8305: 'D' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         o = default(CD);
-                Diagnostic(ErrorCode.WRN_Experimental, "CD").WithArguments("D").WithLocation(20, 21));
+                Diagnostic(ErrorCode.WRN_WindowsExperimental, "CD").WithArguments("D").WithLocation(20, 21));
         }
     }
 }

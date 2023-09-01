@@ -355,19 +355,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType != null)
-                {
-
-                    var hasPointerType = _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
-                    Debug.Assert(hasPointerType == HasPointerTypeSyntactically);
-                    return hasPointerType;
-                }
-
-                return HasPointerTypeSyntactically;
+                return TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
             }
         }
-
-        protected abstract bool HasPointerTypeSyntactically { get; }
 
         /// <remarks>
         /// To facilitate lookup, all indexer symbols have the same name.
@@ -455,6 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
+
+        public sealed override Location TryGetFirstLocation() => Location;
 
         public override ImmutableArray<Location> Locations
         {
@@ -727,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.GetFirstLocation());
                     }
                     else if ((_getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
                         (_setMethod.LocalAccessibility != Accessibility.NotApplicable))
@@ -761,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.GetFirstLocation());
                     }
 
                     if (!this.IsOverride)
@@ -817,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 if (explicitlyImplementedProperty is object)
                 {
-                    TypeSymbol.CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
+                    TypeSymbol.CheckModifierMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
                 }
             }
 
@@ -826,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
@@ -915,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (((object)accessor != null) &&
                 !IsAccessibilityMoreRestrictive(this.DeclaredAccessibility, accessor.LocalAccessibility))
             {
-                diagnostics.Add(ErrorCode.ERR_InvalidPropertyAccessMod, accessor.Locations[0], accessor, this);
+                diagnostics.Add(ErrorCode.ERR_InvalidPropertyAccessMod, accessor.GetFirstLocation(), accessor, this);
             }
         }
 
@@ -937,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (accessor.LocalAccessibility == Accessibility.Private)
             {
-                diagnostics.Add(ErrorCode.ERR_PrivateAbstractAccessor, accessor.Locations[0], accessor);
+                diagnostics.Add(ErrorCode.ERR_PrivateAbstractAccessor, accessor.GetFirstLocation(), accessor);
             }
         }
 
@@ -960,12 +952,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!otherHasAccessor && thisHasAccessor)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.Locations[0], thisAccessor, explicitlyImplementedProperty);
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.GetFirstLocation(), thisAccessor, explicitlyImplementedProperty);
             }
             else if (TypeSymbol.HaveInitOnlyMismatch(thisAccessor, otherAccessor))
             {
                 Debug.Assert(thisAccessor.MethodKind == MethodKind.PropertySet);
-                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, thisAccessor.Locations[0], thisAccessor, otherAccessor);
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, thisAccessor.GetFirstLocation(), thisAccessor, otherAccessor);
             }
         }
 
@@ -1470,11 +1462,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (parameters.Length > 0)
                                 {
                                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                                    var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                    var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
-                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
+                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.GetFirstLocation(), diagnostics);
                                     }
 
                                     this.AddDeclarationDiagnostics(diagnostics);
@@ -1499,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (_state.NotePartComplete(CompletionPart.StartPropertyType))
                             {
                                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                                var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
                                 ValidatePropertyType(diagnostics);

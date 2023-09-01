@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }.RunAsync();
         }
 
-        [Theory, WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48070")]
         [InlineData(UnusedValuePreference.DiscardVariable)]
         [InlineData(UnusedValuePreference.UnusedLocalVariable)]
         public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
@@ -2053,7 +2052,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, WorkItem(40717, "https://github.com/dotnet/roslyn/issues/40717")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40717")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_AfterUseAsRefArgument(string optionName)
@@ -2081,7 +2080,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(40483, "https://github.com/dotnet/roslyn/issues/40483")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40483")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_AfterUseAsRefArgument_02(string optionName)
@@ -2700,7 +2699,7 @@ $@"class C
 }}", optionName: optionName);
         }
 
-        [Fact, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -2720,7 +2719,7 @@ $@"class C
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -2735,7 +2734,7 @@ $@"class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -2787,7 +2786,7 @@ $@"class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -2820,7 +2819,7 @@ $@"class C
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -2841,7 +2840,7 @@ $@"class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -2912,7 +2911,7 @@ $@"class C
             }.RunAsync();
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
@@ -2945,7 +2944,7 @@ $@"class C
 }}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [InlineData(nameof(PreferDiscard), "")]
         [InlineData(nameof(PreferUnusedLocal), " unused")]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePatternxxxxxxxxxxxxxxxxxxxxxx(string optionName, string fix)
@@ -2978,7 +2977,7 @@ $@"class C
 }}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePattern(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
@@ -3850,7 +3849,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UnusedInExpressionTree_PassedAsArgument(string optionName)
@@ -3873,7 +3872,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ReadInExpressionTree_PassedAsArgument(string optionName)
@@ -3896,7 +3895,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
@@ -6976,7 +6975,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Theory, WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31583")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task MissingImports(string optionName)
@@ -6991,7 +6990,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31583")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
@@ -7012,7 +7011,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32855")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RefLocalInitialization(string optionName)
@@ -7030,7 +7029,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32855")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RefLocalAssignment(string optionName)
@@ -7049,7 +7048,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(32903, "https://github.com/dotnet/roslyn/issues/32903")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32903")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
@@ -7072,7 +7071,7 @@ public class C
 }", optionName);
         }
 
-        [Fact, WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
         public async Task UnusedLocal_ForEach()
         {
             await TestDiagnosticsAsync(
@@ -7102,7 +7101,7 @@ class C
     Diagnostic("IDE0059"));
         }
 
-        [Fact, WorkItem(60030, "https://github.com/dotnet/roslyn/issues/60030")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60030")]
         public async Task UnusedLocal_ForEach_TopLevelStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7113,7 +7112,7 @@ foreach (var [|item|] in items)
 }", PreferDiscard, new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [Theory, WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
         [InlineData("_", nameof(PreferDiscard))]
         [InlineData("_", nameof(PreferUnusedLocal))]
         [InlineData("_1", nameof(PreferDiscard))]
@@ -7146,7 +7145,7 @@ class C
 }}", new TestParameters(options: GetOptions(optionName), retainNonFixableDiagnostics: true));
         }
 
-        [Theory, WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
         [InlineData("_", nameof(PreferDiscard))]
         [InlineData("_", nameof(PreferUnusedLocal))]
         [InlineData("_3", nameof(PreferDiscard))]
@@ -7165,7 +7164,7 @@ public class C
 }}", optionName);
         }
 
-        [Fact, WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32959")]
         public async Task UsedVariable_BailOutOnSemanticError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7183,7 +7182,7 @@ public class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32959")]
         public async Task UnusedVariable_BailOutOnSemanticError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7201,7 +7200,7 @@ public class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
         public async Task DelegateEscape_01()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7217,7 +7216,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
         public async Task DelegateEscape_02()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7234,7 +7233,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
         public async Task DelegateEscape_03()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7251,7 +7250,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
         public async Task DelegateEscape_04()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7268,7 +7267,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
         public async Task DelegateEscape_05()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7287,7 +7286,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
         public async Task DelegateEscape_06()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7303,7 +7302,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
         public async Task DelegateEscape_07()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7322,7 +7321,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
         public async Task RedundantAssignment_IfStatementParent()
         {
             await TestInRegularAndScriptAsync(
@@ -7348,7 +7347,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
         public async Task RedundantAssignment_LoopStatementParent()
         {
             await TestInRegularAndScriptAsync(
@@ -7370,7 +7369,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RedundantAssignment_ForStatementVariableDeclarationConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -7394,7 +7393,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RedundantAssignment_ForStatementVariableDeclarationMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7422,7 +7421,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7450,7 +7449,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -7486,7 +7485,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
         {
             //NOTE: Currently the diagnostic is only reported on the outer unused variable a. 
@@ -7507,7 +7506,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment_01()
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
@@ -7524,7 +7523,7 @@ class C
 ", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment_02()
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
@@ -7539,7 +7538,7 @@ class C
 ", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment_03()
         {
             await TestInRegularAndScriptAsync(
@@ -7561,7 +7560,7 @@ class C
 ", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment_04()
         {
             await TestInRegularAndScriptAsync(
@@ -7583,7 +7582,7 @@ class C
 ", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
         public async Task NullCoalesceAssignment_05()
         {
             await TestInRegularAndScriptAsync(
@@ -7823,7 +7822,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory, WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
@@ -7844,10 +7843,10 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
-        public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
+        public async Task CompoundAssignmentWithControlFlowInValue(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class A
@@ -7862,7 +7861,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLocalFunction(string optionName)
@@ -7884,7 +7883,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda(string optionName)
@@ -7906,7 +7905,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda_02(string optionName)
@@ -7930,7 +7929,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda_03(string optionName)
@@ -7954,7 +7953,7 @@ class C
 }", optionName);
         }
 
-        [Theory, WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33937")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
@@ -7987,7 +7986,7 @@ public static class Program
 }", optionName);
         }
 
-        [Theory, WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33937")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
@@ -8152,7 +8151,7 @@ class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
         public async Task UsingDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -8172,7 +8171,7 @@ class C : IDisposable
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
         public async Task UsingDeclarationWithInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -8193,7 +8192,7 @@ class C : IDisposable
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37709")]
         public async Task RefParameter_WrittenBeforeThrow()
         {
             await TestDiagnosticMissingAsync(
@@ -8212,7 +8211,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37709")]
         public async Task OutParameter_WrittenBeforeThrow()
         {
             await TestDiagnosticMissingAsync(
@@ -8235,7 +8234,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37871")]
         public async Task RefParameter_RefAssignmentFollowedByAssignment()
         {
             await TestDiagnosticMissingAsync(
@@ -8254,7 +8253,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37871")]
         public async Task RefParameter_RefConditionalAssignment()
         {
             await TestDiagnosticMissingAsync(
@@ -8321,7 +8320,7 @@ public class Test
 }");
         }
 
-        [Fact, WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
         public async Task DeclarationPatternInSwitchExpressionArm_UsedLocal()
         {
             await TestDiagnosticMissingAsync(
@@ -8338,7 +8337,7 @@ public class Test
 }", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [Theory, WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -8357,7 +8356,7 @@ public class Test
 }", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
         }
 
-        [Fact, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
         public async Task LocalUsedWithPropertySubPattern()
         {
             await TestDiagnosticMissingAsync(
@@ -8372,7 +8371,7 @@ public class Test
 }", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [Fact, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
         public async Task UnusedLocalDefinedInPropertySubPattern_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -8394,7 +8393,7 @@ public class Test
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
         public async Task UnusedLocalDefinedInPropertySubPattern_TypePattern()
         {
             var source =
@@ -8430,7 +8429,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Theory, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
         [CombinatorialData]
         public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -8454,7 +8453,7 @@ public class Test
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [Theory, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
         [CombinatorialData]
         public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -8470,7 +8469,7 @@ public class Test
 }", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
         }
 
-        [Fact, WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -8498,7 +8497,7 @@ public class Test
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_TypePattern()
         {
             var source =
@@ -8538,7 +8537,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact, WorkItem(39344, "https://github.com/dotnet/roslyn/issues/39344")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39344")]
         public async Task AssignmentInTry_UsedInFinally_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(
@@ -8567,7 +8566,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39755")]
         public async Task AssignmentInTry_UsedInFinally_NoDiagnostic_02()
         {
             await TestDiagnosticMissingAsync(
@@ -8598,7 +8597,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39755")]
         public async Task AssignmentInTry_NotUsedInFinally_Diagnostic()
         {
             await TestInRegularAndScriptAsync(
@@ -8641,7 +8640,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
         public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
         {
             var source = @"
@@ -8659,7 +8658,7 @@ class C
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
         }
 
-        [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
         public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
         {
             var source = @"
@@ -8673,7 +8672,7 @@ class C
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
         }
 
-        [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
         public async Task TestCodeFixTitleForPatternMatching()
         {
             var source = @"
@@ -8744,7 +8743,7 @@ namespace ConsoleApp
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
         }
 
-        [Fact, WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
         public async Task UnusedVarPattern_PartOfCase()
         {
             await TestInRegularAndScriptAsync(
@@ -8776,7 +8775,7 @@ namespace ConsoleApp
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
         public async Task UnusedVarPattern_PartOfIs()
         {
             await TestInRegularAndScriptAsync(
@@ -8800,7 +8799,7 @@ namespace ConsoleApp
 }", options: PreferDiscard);
         }
 
-        [Fact, WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
         public async Task UnusedVarPattern_TestTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -8824,7 +8823,7 @@ namespace ConsoleApp
 }", options: PreferDiscard);
         }
 
-        [WorkItem(57650, "https://github.com/dotnet/roslyn/issues/57650")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57650")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
@@ -8848,7 +8847,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
         public async Task TestImplicitObjectCreationInInitialization()
         {
             var source =
@@ -8880,9 +8879,8 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
-        public async Task TestImplicitObjectCreationInAssignement()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignment()
         {
             var source =
 @"class C
@@ -8912,6 +8910,320 @@ class C
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
                 },
                 LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment1()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment2()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: > 0 } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: > 0 })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment3()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } {|IDE0059:length|} })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment4()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } {|IDE0059:length|} } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment1()
+        {
+            var source = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [] {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment2()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment3()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}] {|IDE0059:strings|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
+        public async Task TestPrimaryConstructorParameterAssignment()
+        {
+            var source = """
+                class C(string str) {
+                	public void Reset() {
+                		str = string.Empty;
+                	}
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             }.RunAsync();
         }
     }

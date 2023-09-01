@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -27,17 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         IVsDropdownBarClient4,
         IVsDropdownBarClientEx,
         IVsCoTaskMemFreeMyStrings,
-        INavigationBarPresenter,
-        IVsCodeWindowEvents
+        INavigationBarPresenter
     {
         private readonly IVsDropdownBarManager _manager;
-        private readonly IVsCodeWindow _codeWindow;
+        private readonly VsCodeWindowViewTracker _codeWindowViewTracker;
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly ComEventSink _codeWindowEventsSink;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsImageService2 _imageService;
-        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
-        private IVsDropdownBar _dropdownBar;
+        private IVsDropdownBar? _dropdownBar;
         private IList<NavigationBarProjectItem> _projectItems;
         private IList<NavigationBarItem> _currentTypeItems;
 
@@ -48,38 +44,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             VisualStudioWorkspaceImpl workspace)
         {
             _manager = manager;
-            _codeWindow = codeWindow;
+            _codeWindowViewTracker = new VsCodeWindowViewTracker(
+                codeWindow,
+                serviceProvider.GetMefService<IThreadingContext>(),
+                serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>());
+            _codeWindowViewTracker.CaretMovedOrActiveViewChanged += OnCaretMovedOrActiveViewChanged;
+
             _workspace = workspace;
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
             _projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
-
-            _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-            _editorAdaptersFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-            codeWindow.GetPrimaryView(out var pTextView);
-            StartTrackingView(pTextView);
-
-            codeWindow.GetSecondaryView(out pTextView);
-            StartTrackingView(pTextView);
         }
 
-        private void StartTrackingView(IVsTextView pTextView)
+        private NavigationBarItem? GetCurrentTypeItem()
         {
-            if (pTextView != null)
-            {
-                var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(pTextView);
+            if (_dropdownBar == null)
+                return null;
 
-                if (wpfTextView != null)
-                {
-                    _trackedTextViews.Add(pTextView, wpfTextView);
-                    wpfTextView.Caret.PositionChanged += OnCaretPositionChanged;
-                    wpfTextView.GotAggregateFocus += OnViewGotAggregateFocus;
-                }
-            }
-        }
-
-        private NavigationBarItem GetCurrentTypeItem()
-        {
             _dropdownBar.GetCurrentSelection(1, out var currentTypeIndex);
 
             return currentTypeIndex >= 0
@@ -98,7 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
                     return _currentTypeItems[index];
 
                 case 2:
-                    return GetCurrentTypeItem().ChildItems[index];
+                    var item = GetCurrentTypeItem();
+                    Contract.ThrowIfNull(item, "We shouldn't be getting requests for member items if we had no type selected.");
+                    return item.ChildItems[index];
 
                 default:
                     throw new ArgumentException();
@@ -139,8 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             return VSConstants.S_OK;
         }
 
-        int IVsDropdownBarClient.GetComboTipText(int iCombo, out string pbstrText)
+        int IVsDropdownBarClient.GetComboTipText(int iCombo, out string? pbstrText)
         {
+            Contract.ThrowIfNull(_dropdownBar, "The dropdown is asking us for things, so we should have a reference to it.");
             var selectedItemPreviewText = string.Empty;
 
             if (_dropdownBar.GetCurrentSelection(iCombo, out var selectionIndex) == VSConstants.S_OK && selectionIndex >= 0)
@@ -214,6 +198,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.OnItemChosen(int iCombo, int iIndex)
         {
+            Contract.ThrowIfNull(_dropdownBar, "The dropdown is asking us for things, so we should have a reference to it.");
+
             int selection;
 
             // If we chose an item for the type drop-down, then refresh the member dropdown
@@ -250,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             return VSConstants.S_OK;
         }
 
-        int IVsDropdownBarClient3.GetAutomationProperties(int iCombo, out string pbstrName, out string pbstrId)
+        int IVsDropdownBarClient3.GetAutomationProperties(int iCombo, out string? pbstrName, out string? pbstrId)
         {
             switch (iCombo)
             {
@@ -305,24 +291,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         void INavigationBarPresenter.Disconnect()
         {
+            _codeWindowViewTracker.CaretMovedOrActiveViewChanged -= OnCaretMovedOrActiveViewChanged;
+            _codeWindowViewTracker.Dispose();
             _manager.RemoveDropdownBar();
-            _codeWindowEventsSink.Unadvise();
-
-            foreach (var view in _trackedTextViews.Values)
-            {
-                view.Caret.PositionChanged -= OnCaretPositionChanged;
-                view.GotAggregateFocus -= OnViewGotAggregateFocus;
-            }
-
-            _trackedTextViews.Clear();
         }
 
         void INavigationBarPresenter.PresentItems(
             ImmutableArray<NavigationBarProjectItem> projects,
-            NavigationBarProjectItem selectedProject,
+            NavigationBarProjectItem? selectedProject,
             ImmutableArray<NavigationBarItem> types,
-            NavigationBarItem selectedType,
-            NavigationBarItem selectedMember)
+            NavigationBarItem? selectedType,
+            NavigationBarItem? selectedMember)
         {
             _projectItems = projects;
             _currentTypeItems = types;
@@ -342,48 +321,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _dropdownBar.RefreshCombo((int)NavigationBarDropdownKind.Member, memberIndex);
         }
 
-        public event EventHandler<NavigationBarItemSelectedEventArgs> ItemSelected;
-
-        public event EventHandler<EventArgs> ViewFocused;
-        public event EventHandler<CaretPositionChangedEventArgs> CaretMoved;
-
-        int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
+        private void OnCaretMovedOrActiveViewChanged(object? sender, EventArgs e)
         {
-            if (_trackedTextViews.TryGetValue(pView, out var view))
-            {
-                view.Caret.PositionChanged -= OnCaretPositionChanged;
-                view.GotAggregateFocus -= OnViewGotAggregateFocus;
-
-                _trackedTextViews.Remove(pView);
-            }
-
-            return VSConstants.S_OK;
+            CaretMovedOrActiveViewChanged?.Invoke(this, e);
         }
 
-        int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
-        {
-            if (!_trackedTextViews.ContainsKey(pView))
-            {
-                var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(pView);
-                wpfTextView.Caret.PositionChanged += OnCaretPositionChanged;
-                wpfTextView.GotAggregateFocus += OnViewGotAggregateFocus;
-
-                _trackedTextViews.Add(pView, wpfTextView);
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-            => CaretMoved?.Invoke(this, e);
-
-        private void OnViewGotAggregateFocus(object sender, EventArgs e)
-            => ViewFocused?.Invoke(this, e);
+        public event EventHandler<EventArgs>? CaretMovedOrActiveViewChanged;
+        public event EventHandler<NavigationBarItemSelectedEventArgs>? ItemSelected;
 
         ITextView INavigationBarPresenter.TryGetCurrentView()
         {
-            _codeWindow.GetLastActiveView(out var lastActiveView);
-            return _editorAdaptersFactoryService.GetWpfTextView(lastActiveView);
+            return _codeWindowViewTracker.GetActiveView();
         }
     }
 }

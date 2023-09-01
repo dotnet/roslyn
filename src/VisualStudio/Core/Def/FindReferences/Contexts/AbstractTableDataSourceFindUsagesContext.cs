@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // To ensure a reasonable experience, we instead add the progress into a queue and
                 // only update the UI a few times a second so as to not overload it.
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
-                    TimeSpan.FromMilliseconds(250),
+                    DelayTimeSpan.Short,
                     this.UpdateTableProgressAsync,
                     presenter._asyncListener,
                     CancellationTokenSource.Token);
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var document = documentSpan.Document;
                 var options = _globalOptions.GetClassificationOptions(document.Project.Language);
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);

@@ -496,7 +496,7 @@ public class Test
         }
 
         [IdeFact]
-        [WorkItem(54038, "https://github.com/dotnet/roslyn/issues/54038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54038")]
         public async Task InsertPreprocessorSnippet()
         {
             await SetUpEditorAsync(@"

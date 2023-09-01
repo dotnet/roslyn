@@ -72,7 +72,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         <WpfFact>
         Public Async Function SnippetNotOfferedInComments() As Task
             Dim markup = <File>
@@ -89,7 +89,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         <WpfFact>
         Public Async Function SnippetsNotOfferedInDocComments() As Task
             Dim markup = <File>

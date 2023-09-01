@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
             await VerifyCSharp9Async(source, fixedSource);
         }
 
-        [Fact, WorkItem(58377, "https://github.com/dotnet/roslyn/issues/58377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58377")]
         public async Task TestNotInExpressionTree()
         {
             var source = """

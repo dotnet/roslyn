@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             };
 
             await test.RunAsync();
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
                 """);
         }
 
-        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestAbstractMethod()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
                 """);
         }
 
-        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestOverriddenMethod()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -568,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestPartial_WithExistingModifier()
         {
             var source = """
@@ -594,13 +595,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             };
 
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58914")]
         public async Task TestStaticOperatorInInterface()
         {
             var source = """
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
             };
 
@@ -636,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [InlineData("record struct")]
         [InlineData("interface")]
         [InlineData("enum")]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDeclaration(string declarationKind)
         {
             var source = $"file {declarationKind} C {{ }}";
@@ -645,11 +646,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
-        [Fact, WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDelegate()
         {
             var source = "file delegate void M();";
@@ -658,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -669,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [InlineData("record struct")]
         [InlineData("interface")]
         [InlineData("enum")]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestNestedFileDeclaration(string declarationKind)
         {
             var source = $$"""
@@ -690,11 +691,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
-        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle1()
         {
             var source = """
@@ -714,14 +715,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 CodeActionEquivalenceKey = nameof(AnalyzersResources.Add_accessibility_modifiers),
             };
 
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle2()
         {
             var source = """
@@ -741,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
                 Options =
                 {

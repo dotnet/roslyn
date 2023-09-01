@@ -17,14 +17,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         // Note the additional space as prefix to the System namespace,
         // to make sure items from System.* get sorted ahead.
-        private const string OtherNamespaceSortTextFormat = "{0} {1}";
-        private const string SystemNamespaceSortTextFormat = "{0}  {1}";
+        private const string OtherNamespaceSortTextFormat = "~{0} {1}";
+        private const string SystemNamespaceSortTextFormat = "~{0}  {1}";
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
         private const string MethodKey = nameof(MethodKey);
         private const string ReceiverKey = nameof(ReceiverKey);
         private const string OverloadCountKey = nameof(OverloadCountKey);
+        private const string AlwaysFullyQualifyKey = nameof(AlwaysFullyQualifyKey);
 
         public static CompletionItem Create(
             string name,
@@ -209,5 +210,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return (compilation.GetTypeByMetadataName(fullyQualifiedName), 0);
         }
+
+        public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item) => item.WithProperties(item.Properties.Add(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
+
+        public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.Properties.ContainsKey(AlwaysFullyQualifyKey);
     }
 }

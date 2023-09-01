@@ -40,7 +40,7 @@ class C
             testState.AssertShowing("C_MyEvent");
         }
 
-        [WorkItem(20999, "https://github.com/dotnet/roslyn/issues/20999")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20999")]
         [WpfFact]
         public async Task HandlerName_EventInThisClass_CamelCaseRule()
         {
@@ -830,7 +830,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, WorkItem(553660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
         public async Task PlusEqualsInsideComment()
         {
             var markup = @"
@@ -848,7 +848,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, WorkItem(951664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951664")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951664")]
         public async Task UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
         {
             var markup = @"
@@ -1023,7 +1023,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, WorkItem(58474, "https://github.com/dotnet/roslyn/issues/58474")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58474")]
         public async Task EventHookupInTopLevelCode()
         {
             var markup = @"
@@ -1078,7 +1078,7 @@ void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEv
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, WorkItem(59935, "https://github.com/dotnet/roslyn/issues/59935")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59935")]
         public async Task HandlerName_EventInGenericClass()
         {
             var markup = @"

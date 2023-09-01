@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         protected PatternMatcher(
             bool includeMatchedSpans,
-            CultureInfo culture,
+            CultureInfo? culture,
             bool allowFuzzyMatching = false)
         {
             culture ??= CultureInfo.CurrentCulture;
@@ -74,21 +76,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public static PatternMatcher CreateContainerPatternMatcher(
             string[] patternParts,
             char[] containerSplitCharacters,
+            bool includeMatchedSpans = false,
             CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return new ContainerPatternMatcher(
-                patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
+                patternParts, containerSplitCharacters, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
+            bool includeMatchedSpans = false,
             CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
                 pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
-                s_dotCharacterArray, culture, allowFuzzyMatching);
+                s_dotCharacterArray, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public abstract bool AddMatches(string? candidate, ref TemporaryArray<PatternMatch> matches);
 
-        private bool SkipMatch(string? candidate)
+        private bool SkipMatch([NotNullWhen(false)] string? candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private static bool ContainsUpperCaseLetter(string pattern)
@@ -121,20 +125,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatch? MatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped,
             bool fuzzyMatch)
         {
             return fuzzyMatch
-                ? FuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
+                ? FuzzyMatchPatternChunk(candidate, ref patternChunk, punctuationStripped)
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
         private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped)
         {
+            Contract.ThrowIfTrue(patternChunk.SimilarityChecker.IsDefault);
             if (patternChunk.SimilarityChecker.AreSimilar(candidate))
             {
                 return new PatternMatch(
@@ -302,7 +307,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
         private bool MatchPatternSegment(
             string candidate,
-            in PatternSegment segment,
+            ref PatternSegment segment,
             ref TemporaryArray<PatternMatch> matches,
             bool fuzzyMatch)
         {
@@ -321,7 +326,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
             {
                 var match = MatchPatternChunk(
-                    candidate, segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
+                    candidate, ref segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
                     matches.Add(match.Value);
@@ -349,7 +354,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (subWordTextChunks.Length == 1)
             {
                 var result = MatchPatternChunk(
-                    candidate, subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    candidate, ref subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                 if (result == null)
                 {
                     return false;
@@ -362,11 +367,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 using var tempMatches = TemporaryArray<PatternMatch>.Empty;
 
-                foreach (var subWordTextChunk in subWordTextChunks)
+                for (int i = 0, n = subWordTextChunks.Length; i < n; i++)
                 {
                     // Try to match the candidate with this word
                     var result = MatchPatternChunk(
-                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                        candidate, ref subWordTextChunks[i], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                     if (result == null)
                         return false;
 
@@ -494,7 +499,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
+            using var matchSpans = TemporaryArray<TextSpan>.Empty;
+
             while (true)
             {
                 // Let's consider our termination cases
@@ -505,7 +511,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
-                        ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
+                        ? new NormalizedTextSpanCollection(matchSpans.ToImmutableAndClear()).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);

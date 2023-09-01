@@ -2,45 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        private class ProjectIndex
+        private sealed class ProjectIndex(
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> valueTypes,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> enums,
+            MultiDictionary<DocumentId, DeclaredSymbolInfo> delegates,
+            MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> namedTypes)
         {
-            private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>> s_projectToIndex =
-                new();
+            private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<ProjectIndex>> s_projectToIndex = new();
 
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject;
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ValueTypes;
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> Enums;
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> Delegates;
-            public readonly MultiDictionary<string, (Document, DeclaredSymbolInfo)> NamedTypes;
-
-            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
-            {
-                ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
-                ValueTypes = valueTypes;
-                Enums = enums;
-                Delegates = delegates;
-                NamedTypes = namedTypes;
-            }
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ValueTypes = valueTypes;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Enums = enums;
+            public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Delegates = delegates;
+            public readonly MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> NamedTypes = namedTypes;
 
             public static Task<ProjectIndex> GetIndexAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                if (!s_projectToIndex.TryGetValue(project, out var lazyIndex))
+                if (!s_projectToIndex.TryGetValue(project.State, out var lazyIndex))
                 {
                     lazyIndex = s_projectToIndex.GetValue(
-                        project, p => new AsyncLazy<ProjectIndex>(
-                            c => ProjectIndex.CreateIndexAsync(p, c), cacheResult: true));
+                        project.State, p => new AsyncLazy<ProjectIndex>(
+                            c => CreateIndexAsync(project, c)));
                 }
 
                 return lazyIndex.GetValueAsync(cancellationToken);
@@ -48,41 +44,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
             {
-                var classesThatMayDeriveFromSystemObject = new MultiDictionary<Document, DeclaredSymbolInfo>();
-                var valueTypes = new MultiDictionary<Document, DeclaredSymbolInfo>();
-                var enums = new MultiDictionary<Document, DeclaredSymbolInfo>();
-                var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
+                var classesThatMayDeriveFromSystemObject = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
+                var valueTypes = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
+                var enums = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
+                var delegates = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
 
-                var namedTypes = new MultiDictionary<string, (Document, DeclaredSymbolInfo)>(
+                var namedTypes = new MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)>(
                     project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
-                foreach (var document in project.Documents)
+                var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
+
+                var regularDocumentStates = project.State.DocumentStates;
+                var sourceGeneratorDocumentStates = await project.Solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+                var allStates =
+                    regularDocumentStates.States.Select(kvp => (kvp.Key, kvp.Value)).Concat(
+                    sourceGeneratorDocumentStates.States.Select(kvp => (kvp.Key, (DocumentState)kvp.Value)));
+
+                // Avoid realizing actual Document instances here.  We don't need them, and it can allocate a lot of
+                // memory as we do background indexing.
+                foreach (var (documentId, document) in allStates)
                 {
-                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                    var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(
+                        solutionKey, project.State, document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)
                         {
                             case DeclaredSymbolInfoKind.Class:
                             case DeclaredSymbolInfoKind.Record:
-                                classesThatMayDeriveFromSystemObject.Add(document, info);
+                                classesThatMayDeriveFromSystemObject.Add(documentId, info);
                                 break;
                             case DeclaredSymbolInfoKind.Enum:
-                                enums.Add(document, info);
+                                enums.Add(documentId, info);
                                 break;
                             case DeclaredSymbolInfoKind.Struct:
                             case DeclaredSymbolInfoKind.RecordStruct:
-                                valueTypes.Add(document, info);
+                                valueTypes.Add(documentId, info);
                                 break;
                             case DeclaredSymbolInfoKind.Delegate:
-                                delegates.Add(document, info);
+                                delegates.Add(documentId, info);
                                 break;
                         }
 
                         foreach (var inheritanceName in info.InheritanceNames)
-                        {
-                            namedTypes.Add(inheritanceName, (document, info));
-                        }
+                            namedTypes.Add(inheritanceName, (documentId, info));
                     }
                 }
 

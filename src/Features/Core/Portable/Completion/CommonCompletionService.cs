@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
            string filterText,
            IList<MatchResult> builder)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, matchResults, filterText, builder);
+            CompletionService.FilterItems(CompletionHelper.GetHelper(document), matchResults, filterText, builder);
         }
     }
 }

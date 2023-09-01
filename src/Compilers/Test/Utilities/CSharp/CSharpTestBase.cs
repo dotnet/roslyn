@@ -690,6 +690,17 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal const string CollectionBuilderAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+            """;
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -1756,12 +1767,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
                 }
 
+                var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
                 try
                 {
-                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, new BindingDiagnosticBag(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, bindingDiagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
                 }
                 finally
                 {
+                    diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+                    bindingDiagnostics.Free();
+
                     if (ensureEnglishUICulture)
                     {
                         CultureInfo.CurrentUICulture = saveUICulture;

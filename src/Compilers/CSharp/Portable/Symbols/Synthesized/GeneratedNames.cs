@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
+        internal static string MakePrimaryConstructorParameterFieldName(string parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+            return "<" + parameterName + ">P";
+        }
+
         internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
             Debug.Assert((int)finalizeState < -2);
@@ -448,6 +454,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
             return true;
+        }
+
+        internal static string MakeSynthesizedInlineArrayName(int arrayLength, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.InlineArrayType == 'y');
+            var name = "<>y__InlineArray" + arrayLength;
+
+            // Synthesized inline arrays need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + GenerationSeparator + generation : name;
         }
 
         internal static string AsyncBuilderFieldName()

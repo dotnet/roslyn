@@ -9,11 +9,8 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class SignatureHelpItemEventArgs : EventArgs
+    internal class SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem) : EventArgs
     {
-        public SignatureHelpItem SignatureHelpItem { get; }
-
-        public SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem)
-            => this.SignatureHelpItem = signatureHelpItem;
+        public SignatureHelpItem SignatureHelpItem { get; } = signatureHelpItem;
     }
 }

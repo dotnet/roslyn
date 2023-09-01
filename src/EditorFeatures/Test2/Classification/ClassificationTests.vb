@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -24,7 +25,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     <UseExportProvider>
     Public Class ClassificationTests
-        <Fact, WorkItem(66245, "https://github.com/dotnet/roslyn/pull/66245")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/66245")>
         Public Async Function TestClassificationAndHighlight1() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -74,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(65926, "https://github.com/dotnet/roslyn/issues/65926")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65926")>
         Public Async Function TestEmbeddedClassifications1() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -136,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(63702, "https://github.com/dotnet/roslyn/issues/63702")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63702")>
         Public Async Function TestEmbeddedClassifications2() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -202,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, WorkItem(66507, "https://github.com/dotnet/roslyn/issues/66507")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66507")>
         Public Async Function TestUtf8StringSuffix() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -241,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 subText)}', {span.TextSpan})"
         End Function
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
             Dim workspaceDefinition =
             <Workspace>
@@ -302,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Assert.NotNull(run)
         End Sub
 
-        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestWrongDocument() As Task
             Dim workspaceDefinition =
             <Workspace>
@@ -327,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim text = Await wrongDocument.GetTextAsync(CancellationToken.None)
 
                 ' make sure we don't crash with wrong document
-                Dim result = New ArrayBuilder(Of ClassifiedSpan)()
+                Dim result = New SegmentedList(Of ClassifiedSpan)()
                 Await classificationService.AddSyntacticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
                 Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), options:=Nothing, result, CancellationToken.None)
             End Using
@@ -342,17 +343,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Sub New()
             End Sub
 
-            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
+            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
             End Sub
 
-            Public Sub AddSyntacticClassifications(services As SolutionServices, root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
+            Public Sub AddSyntacticClassifications(services As SolutionServices, root As SyntaxNode, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
             End Sub
 
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
+            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
+            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
@@ -367,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Return Nothing
             End Function
 
-            Public Function AddEmbeddedLanguageClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddEmbeddedLanguageClassificationsAsync
+            Public Function AddEmbeddedLanguageClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddEmbeddedLanguageClassificationsAsync
                 Return Task.CompletedTask
             End Function
         End Class

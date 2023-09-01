@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -21,18 +22,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
     public class RemoveUnnecessaryLambdaExpressionTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
+        private static async Task TestInRegularAndScriptAsync(
+            string testCode,
+            string fixedCode,
+            LanguageVersion version = LanguageVersion.CSharp12,
+            OutputKind? outputKind = null)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = version,
+                TestState =
+                {
+                    OutputKind = outputKind,
+                }
             }.RunAsync();
         }
 
-        private static Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
-            => TestInRegularAndScriptAsync(testCode, testCode, version);
+        private static Task TestMissingInRegularAndScriptAsync(
+            string testCode,
+            LanguageVersion version = LanguageVersion.CSharp12,
+            OutputKind? outputKind = null)
+            => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
         [Fact]
         public async Task TestMissingInCSharp10()
@@ -109,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }
@@ -725,7 +737,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -754,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint1()
         {
             var code = """
@@ -805,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint2()
         {
             var code = """
@@ -833,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -869,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestWithLambdaWithDynamic()
         {
             await TestInRegularAndScriptAsync(
@@ -945,7 +957,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = """
@@ -985,7 +997,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1002,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1639,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1661,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -1701,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 """);
         }
 
-        [Fact, WorkItem(63464, "https://github.com/dotnet/roslyn/issues/63464")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63464")]
         public async Task TestNotWithConditionalAttribute()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -1720,6 +1732,243 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
                     private static void M2(Action<string> a) { }
                 }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestNotWithAssignmentOfInvokedExpression1()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new(v => valueSet.SetResult(v));
+                helper.Set(true);
+                valueSet = new();
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, outputKind: OutputKind.ConsoleApplication);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression1()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new([|v => |]valueSet.SetResult(v));
+                helper.Set(true);
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new(valueSet.SetResult);
+                helper.Set(true);
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """,
+                outputKind: OutputKind.ConsoleApplication);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestNotWithAssignmentOfInvokedExpression2()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(v => valueSet.SetResult(v));
+                        helper.Set(true);
+                        valueSet = new();
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression2()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new([|v => |]valueSet.SetResult(v));
+                        helper.Set(true);
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(valueSet.SetResult);
+                        helper.Set(true);
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression3()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new([|v => |]valueSet.SetResult(v));
+                        helper.Set(true);
+                        helper.Set(false);
+
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(valueSet.SetResult);
+                        helper.Set(true);
+                        helper.Set(false);
+                
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
                 """);
         }
     }

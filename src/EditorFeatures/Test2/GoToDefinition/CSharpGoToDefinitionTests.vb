@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCSharpLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCSharpStringLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3589")>
         <WpfFact>
         Public Async Function TestCSharpGoToDefinitionOnAnonymousMember() As Task
             Dim workspace =
@@ -214,7 +214,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
         <WpfFact>
         Public Async Function TestCSharpGotoDefinitionPartialMethod() As Task
             Dim workspace =
@@ -576,7 +576,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(538765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538765")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538765")>
         <WpfFact>
         Public Async Function TestCSharpGotoDefinitionThroughOddlyNamedType() As Task
             Dim workspace =
@@ -647,7 +647,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542004")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542004")>
         <WpfFact>
         Public Async Function TestCSharpTestLambdaParameter() As Task
             Dim workspace =
@@ -708,7 +708,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionDeclaration() As Task
             Dim workspace =
 <Workspace>
@@ -730,7 +730,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionAssignment() As Task
             Dim workspace =
 <Workspace>
@@ -753,7 +753,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionForeach() As Task
             Dim workspace =
 <Workspace>
@@ -857,7 +857,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41870")>
         <WpfFact>
         Public Async Function TestCSharpGoToImplementedInterfaceMemberFromImpl1() As Task
             Dim workspace =
@@ -880,7 +880,7 @@ class Foo : IFoo1
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41870")>
         <WpfFact>
         Public Async Function TestCSharpGoToImplementedInterfaceMemberFromImpl2() As Task
             Dim workspace =
@@ -903,7 +903,7 @@ class Foo : IFoo1
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41870")>
         <WpfFact>
         Public Async Function TestCSharpGoToImplementedInterfaceMemberFromImpl3() As Task
             Dim workspace =
@@ -927,7 +927,7 @@ class Foo : IFoo1, IFoo2
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/51615")>
         <WpfFact>
         Public Async Function TestCSharpGoToDefinitionInVarPatterns() As Task
             Dim workspace =
@@ -1248,7 +1248,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact>
         Public Async Function TestCSharpFilterGotoDefResultsFromHiddenCodeForUIPresenters() As Task
             Dim workspace =
@@ -1269,7 +1269,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact>
         Public Async Function TestCSharpDoNotFilterGotoDefResultsFromHiddenCodeForApis() As Task
             Dim workspace =
@@ -1525,7 +1525,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact>
         Public Async Function TestCSharpDoNotFilterGeneratedSourceLocations() As Task
             Dim workspace =
@@ -1550,7 +1550,7 @@ partial class [|C|]
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact>
         Public Async Function TestCSharpUseGeneratedSourceLocationsIfNoNongeneratedLocationsAvailable() As Task
             Dim workspace =
@@ -1577,7 +1577,7 @@ class D
 
 #End Region
 
-        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>
         Public Async Function TestCSharpTestAliasAndTarget1() As Task
             Dim workspace =
@@ -1606,7 +1606,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>
         Public Async Function TestCSharpTestAliasAndTarget2() As Task
             Dim workspace =
@@ -1635,7 +1635,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>
         Public Async Function TestCSharpTestAliasAndTarget3() As Task
             Dim workspace =
@@ -1664,7 +1664,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>
         Public Async Function TestCSharpTestAliasAndTarget4() As Task
             Dim workspace =
@@ -1713,7 +1713,7 @@ class Program
             Await TestAsync(workspace, expectedResult:=False)
         End Function
 
-        <WorkItem(546341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546341")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546341")>
         <WpfFact>
         Public Async Function TestGoToDefinitionOnGlobalKeyword() As Task
             Dim workspace =
@@ -1792,7 +1792,7 @@ namespace QueryPattern
             Throw New InvalidOperationException("Highlight not found")
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQuerySelect() As Task
             Dim workspace =
@@ -1823,7 +1823,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryWhere() As Task
             Dim workspace =
@@ -1855,7 +1855,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQuerySelectMany1() As Task
             Dim workspace =
@@ -1887,7 +1887,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQuerySelectMany2() As Task
             Dim workspace =
@@ -1919,7 +1919,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoin1() As Task
             Dim workspace =
@@ -1951,7 +1951,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoin2() As Task
             Dim workspace =
@@ -1983,7 +1983,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoin3() As Task
             Dim workspace =
@@ -2015,7 +2015,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoin4() As Task
             Dim workspace =
@@ -2047,7 +2047,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupJoin1() As Task
             Dim workspace =
@@ -2079,7 +2079,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupJoin2() As Task
             Dim workspace =
@@ -2111,7 +2111,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupJoin3() As Task
             Dim workspace =
@@ -2143,7 +2143,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupJoin4() As Task
             Dim workspace =
@@ -2175,7 +2175,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupBy1() As Task
             Dim workspace =
@@ -2206,7 +2206,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryGroupBy2() As Task
             Dim workspace =
@@ -2237,7 +2237,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryFromCast1() As Task
             Dim workspace =
@@ -2268,7 +2268,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryFromCast2() As Task
             Dim workspace =
@@ -2299,7 +2299,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoinCast1() As Task
             Dim workspace =
@@ -2331,7 +2331,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryJoinCast2() As Task
             Dim workspace =
@@ -2363,7 +2363,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQuerySelectManyCast1() As Task
             Dim workspace =
@@ -2395,7 +2395,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQuerySelectManyCast2() As Task
             Dim workspace =
@@ -2427,7 +2427,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryOrderBySingleParameter() As Task
             Dim workspace =
@@ -2459,7 +2459,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryOrderBySingleParameterWithOrderClause() As Task
             Dim workspace =
@@ -2491,7 +2491,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryOrderByTwoParameterWithoutOrderClause() As Task
             Dim workspace =
@@ -2523,7 +2523,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryOrderByTwoParameterWithOrderClause() As Task
             Dim workspace =
@@ -2555,7 +2555,7 @@ class Test
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryDegeneratedSelect() As Task
             Dim workspace =
@@ -2587,7 +2587,7 @@ class Test
             Await TestAsync(workspace, False)
         End Function
 
-        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/23049")>
         <WpfFact>
         Public Async Function TestQueryLet() As Task
             Dim workspace =
@@ -3330,7 +3330,7 @@ $$
             Await TestAsync(workspace, expectedResult:=False)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing1() As Task
             Dim workspace =
 <Workspace>
@@ -3360,7 +3360,7 @@ class DisposableObject : IDisposable
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing2() As Task
             Dim workspace =
 <Workspace>
@@ -3390,7 +3390,7 @@ class DisposableObject : IDisposable
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing3() As Task
             Dim workspace =
 <Workspace>
@@ -3417,7 +3417,7 @@ class DisposableObject : IDisposable
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing4() As Task
             Dim workspace =
 <Workspace>
@@ -3456,7 +3456,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing5() As Task
             Dim workspace =
 <Workspace>
@@ -3495,7 +3495,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(37842, "https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
         Public Async Function TestCSharpGoToDefOnUsing6() As Task
             Dim workspace =
 <Workspace>

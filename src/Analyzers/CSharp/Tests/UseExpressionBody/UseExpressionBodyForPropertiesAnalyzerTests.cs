@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
         public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
         {
             var code = """
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(16386, "https://github.com/dotnet/roslyn/issues/16386")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16386")]
         public async Task TestUseExpressionBodyKeepTrailingTrivia()
         {
             var code = """
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestDirectivesInBlockBody1()
         {
             var code = """
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestDirectivesInBlockBody2()
         {
             var code = """
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestMissingWithDirectivesInExpressionBody1()
         {
             var code = """
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, code);
         }
 
-        [Fact, WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestMissingWithDirectivesInExpressionBody2()
         {
             var code = """
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, code);
         }
 
-        [Fact, WorkItem(19193, "https://github.com/dotnet/roslyn/issues/19193")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19193")]
         public async Task TestMoveTriviaFromExpressionToReturnStatement()
         {
             // TODO: This test is unrelated to properties. It should be moved to UseExpressionBodyForMethodsAnalyzerTests.
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfHasThrowExpressionPriorToCSharp7()
         {
             var code = """
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfHasThrowExpressionPriorToCSharp7_FixAll()
         {
             var code = """
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(50181, "https://github.com/dotnet/roslyn/issues/50181")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50181")]
         public async Task TestUseExpressionBodyPreserveComments()
         {
             var code = """

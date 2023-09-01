@@ -2641,5 +2641,570 @@ class c
                 EOF();
             }
         }
+
+        [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_AnonymousFunctionWithImplicitParameters()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            UsingTree(source,
+                // (6,59): error CS1002: ; expected
+                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(6, 59),
+                // (6,81): error CS1002: ; expected
+                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "System");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Func");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.CollectionExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "My");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.InvocationExpression);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierName);
+                                                                    {
+                                                                        N(SyntaxKind.IdentifierToken, "nameof");
+                                                                    }
+                                                                    N(SyntaxKind.ArgumentList);
+                                                                    {
+                                                                        N(SyntaxKind.OpenParenToken);
+                                                                        N(SyntaxKind.Argument);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "parameter");
+                                                                            }
+                                                                        }
+                                                                        N(SyntaxKind.CloseParenToken);
+                                                                    }
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.AnonymousMethodExpression);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.ReturnStatement);
+                                        {
+                                            N(SyntaxKind.ReturnKeyword);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                            N(SyntaxKind.SemicolonToken);
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "MyAttribute");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Attribute");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierToken, "MyAttribute");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "name1");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65515")]
+        public void ExtraInvocationClosingParentheses()
+        {
+            var text = """
+                public class C
+                {
+                    public void M()
+                    {
+                        int sum0 = Sum(1, 2));
+
+                        void Local()
+                        {
+                            AnotherLocal());
+
+                            int sum1 = Sum(1, 2));
+                            int sum2 = Sum(1, 3));
+
+                            void AnotherLocal()
+                            {
+                                int x = sum2 + 2;
+                            }
+                        }
+                    }
+
+                    public static int Sum(int a, int b) => a + b;
+                }
+                """;
+
+            UsingTree(text,
+                // (5,29): error CS1003: Syntax error, ',' expected
+                //         int sum0 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(5, 29),
+                // (9,27): error CS1002: ; expected
+                //             AnotherLocal());
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
+                // (9,27): error CS1513: } expected
+                //             AnotherLocal());
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
+                // (11,33): error CS1003: Syntax error, ',' expected
+                //             int sum1 = Sum(1, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(11, 33),
+                // (12,33): error CS1003: Syntax error, ',' expected
+                //             int sum2 = Sum(1, 3));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(12, 33));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "sum0");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Sum");
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.Argument);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralExpression);
+                                                        {
+                                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.Argument);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralExpression);
+                                                        {
+                                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.ExpressionStatement);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "AnotherLocal");
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.EmptyStatement);
+                                    {
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.LocalDeclarationStatement);
+                                    {
+                                        N(SyntaxKind.VariableDeclaration);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.VariableDeclarator);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "sum1");
+                                                N(SyntaxKind.EqualsValueClause);
+                                                {
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Sum");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CommaToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.LocalDeclarationStatement);
+                                    {
+                                        N(SyntaxKind.VariableDeclaration);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.VariableDeclarator);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "sum2");
+                                                N(SyntaxKind.EqualsValueClause);
+                                                {
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Sum");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CommaToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.LocalFunctionStatement);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "AnotherLocal");
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.LocalDeclarationStatement);
+                                            {
+                                                N(SyntaxKind.VariableDeclaration);
+                                                {
+                                                    N(SyntaxKind.PredefinedType);
+                                                    {
+                                                        N(SyntaxKind.IntKeyword);
+                                                    }
+                                                    N(SyntaxKind.VariableDeclarator);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "x");
+                                                        N(SyntaxKind.EqualsValueClause);
+                                                        {
+                                                            N(SyntaxKind.EqualsToken);
+                                                            N(SyntaxKind.AddExpression);
+                                                            {
+                                                                N(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierToken, "sum2");
+                                                                }
+                                                                N(SyntaxKind.PlusToken);
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.SemicolonToken);
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Sum");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

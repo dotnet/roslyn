@@ -1,34 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="XliffTasks" Version="1.0.0-beta.21215.1">
-      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
-      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
-    </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="7.0.0-alpha.1.22409.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23429.1">
       <Uri>https://github.com/dotnet/source-build-externals</Uri>
-      <Sha>ee790b0477953dd30ea83e0e47af909a04fd0ca3</Sha>
+      <Sha>0603839a51f5e18b89c60a3690aff5e81fa666ca</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="8.0.0-alpha.1.23211.4">
+      <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
+      <Sha>01850f2b7bff23e118d1faecb941d770c8e626f2</Sha>
+      <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
+    </Dependency>
+    <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
+    <Dependency Name="System.IO.Pipelines" Version="7.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23054.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23428.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>eae015fb1c92ceef69126164b3969447d0355c08</Sha>
+      <Sha>3d92d0bfd8c9006f5fe1687e465dc4f8aa068b00</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23423.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
+      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
+      <Sha>ed9a83526483c094fb51e7000b6f816ce6cb0325</Sha>
+      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
+      <Uri>https://github.com/dotnet/symreader</Uri>
+      <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-5.22128.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23054.2">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23428.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>eae015fb1c92ceef69126164b3969447d0355c08</Sha>
+      <Sha>3d92d0bfd8c9006f5fe1687e465dc4f8aa068b00</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23111.1">
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23251.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>5cd64de1a3319d7f15380b843352a2b963e59b57</Sha>
+      <Sha>31e5d2773251838851d273edba1babcf60321f24</Sha>
+    </Dependency>
+    <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
+         artifacts and flow in as dependencies of the packages produced by roslyn. -->
+    <Dependency Name="System.Composition" Version="7.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>22ea6422f85b05ca0793cc3b76375487be407f5d</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>596f8f422003d89b65e2bd50dc5a1aea7ce4ce91</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

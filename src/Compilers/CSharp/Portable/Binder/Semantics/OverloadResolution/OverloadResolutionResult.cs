@@ -7,7 +7,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1033,7 +1032,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // formal parameter type.
 
             TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
-            formalParameterType.CheckAllConstraints(new ConstraintsHelper.CheckConstraintsArgsBoxed((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics));
+
+            var boxedArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, location, diagnostics);
+            formalParameterType.CheckAllConstraints(boxedArgs);
+            boxedArgs.Free();
 
             return true;
         }
@@ -1210,11 +1212,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                 }
             }
-            else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
+            else if (refArg != refParameter &&
+                !(refArg == RefKind.None && refParameter == RefKind.In) &&
+                !(refArg == RefKind.Ref && refParameter == RefKind.In && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters)) &&
+                !(refParameter == RefKind.RefReadOnlyParameter && refArg is RefKind.None or RefKind.Ref or RefKind.In))
             {
-                if (refParameter == RefKind.None || refParameter == RefKind.In)
+                // Special case for 'string literal -> interpolated string handler' for better user experience
+                // Skip if parameter's ref kind is 'out' since it is invalid ref kind for passing interpolated string
+                if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter) &&
+                    refParameter != RefKind.Out)
                 {
-                    //  Argument {0} should not be passed with the {1} keyword
+                    // CS9205: Expected interpolated string
+                    diagnostics.Add(ErrorCode.ERR_ExpectedInterpolatedString, sourceLocation);
+                }
+                else if (refArg == RefKind.Ref && refParameter == RefKind.In && !binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                {
+                    //  Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadArgExtraRefLangVersion,
+                        sourceLocation,
+                        symbols,
+                        arg + 1,
+                        binder.Compilation.LanguageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureRefReadonlyParameters.RequiredVersion()));
+                }
+                else if (refParameter is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter)
+                {
+                    //  Argument {0} may not be passed with the '{1}' keyword
                     diagnostics.Add(
                         ErrorCode.ERR_BadArgExtraRef,
                         sourceLocation,
@@ -1264,22 +1288,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // have the same format as the display value of the parameter).
                     if (argument.Display is TypeSymbol argType)
                     {
-                        SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
+                        // Special case for 'string literal -> interpolated string handler' for better user experience
+                        if (isStringLiteralToInterpolatedStringHandlerArgumentConversion(argument, parameter))
+                        {
+                            // CS9205: Expected interpolated string
+                            diagnostics.Add(ErrorCode.ERR_ExpectedInterpolatedString, sourceLocation);
+                        }
+                        else
+                        {
+                            SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
+                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
-                        // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadArgType,
-                            sourceLocation,
-                            symbols,
-                            arg + 1,
-                            distinguisher.First,
-                            distinguisher.Second);
+                            // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
+                            diagnostics.Add(
+                                ErrorCode.ERR_BadArgType,
+                                sourceLocation,
+                                symbols,
+                                arg + 1,
+                                distinguisher.First,
+                                distinguisher.Second);
+                        }
                     }
                     else
                     {
@@ -1293,6 +1326,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            static bool isStringLiteralToInterpolatedStringHandlerArgumentConversion(BoundExpression argument, ParameterSymbol parameter)
+                => argument is BoundLiteral { Type.SpecialType: SpecialType.System_String } &&
+                   parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true };
         }
 
         /// <summary>

@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -21,9 +18,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public ContainerPatternMatcher(
                 string[] patternParts, char[] containerSplitCharacters,
-                CultureInfo culture,
+                bool includeMatchedSpans,
+                CultureInfo? culture,
                 bool allowFuzzyMatching = false)
-                : base(false, culture, allowFuzzyMatching)
+                : base(includeMatchedSpans, culture, allowFuzzyMatching)
             {
                 _containerSplitCharacters = containerSplitCharacters;
 
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            public override bool AddMatches(string container, ref TemporaryArray<PatternMatch> matches)
+            public override bool AddMatches(string? container, ref TemporaryArray<PatternMatch> matches)
             {
                 if (SkipMatch(container))
                 {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         i--, j--)
                 {
                     var containerName = containerParts[j];
-                    if (!MatchPatternSegment(containerName, _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
+                    if (!MatchPatternSegment(containerName, ref _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
                         return false;

@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ImplicitlyTypeArraysTests : SemanticModelTestBase
     {
-        #region "Functionality tests"
-
         [Fact]
         public void ImplicitlyTypedArrayLocal()
         {
@@ -36,8 +34,9 @@ class C
             compilation.VerifyDiagnostics();
 
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("F").Single();
-            var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            diagnostics.Free();
 
             var locDecl = (BoundLocalDeclaration)block.Statements.Single();
             var localA = (ArrayTypeSymbol)locDecl.DeclaredTypeOpt.Display;
@@ -101,7 +100,5 @@ class C
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
         }
-
-        #endregion
     }
 }

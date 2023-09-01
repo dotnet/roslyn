@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(10714, "https://github.com/dotnet/roslyn/issues/10714")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10714")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLocalInAutoPropInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -132,7 +132,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(530636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLocalInLambdaInField1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -148,7 +148,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(530636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLocalInLambdaInField2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -165,7 +165,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(608210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608210")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608210")>
         Public Async Function TestLocalInPropertyInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -185,7 +185,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(2667, "https://github.com/dotnet/roslyn/issues/2667")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2667")>
         Public Async Function TestLocalWithWithStatement(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -296,8 +296,8 @@ End Module
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -328,8 +328,8 @@ static class Program
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_02(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -360,8 +360,8 @@ static class Program
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_03(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -392,8 +392,8 @@ static class Program
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_04(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -424,8 +424,8 @@ static class Program
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_01(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -454,8 +454,8 @@ End Module
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_02(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -484,8 +484,8 @@ End Module
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_03(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -514,8 +514,8 @@ End Module
 
         <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
-        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
-        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_04(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -577,7 +577,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50589")>
         Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -600,7 +600,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50589")>
         Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -623,7 +623,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(1711987, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1711987")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1711987")>
         Public Async Function TestLocal_ErrorDuplicateMethodInDifferentFiles(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

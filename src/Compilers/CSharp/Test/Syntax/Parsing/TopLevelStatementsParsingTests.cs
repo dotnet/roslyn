@@ -1609,27 +1609,19 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             EOF();
         }
 
-        [Fact]
-        public void TupleUnsupportedInUsingStatement()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.Preview)]
+        public void TupleUnsupportedInUsingStatement(LanguageVersion version)
         {
             var test = @"
 using VT2 = (int, int);
 ";
 
-            UsingTree(test,
-                // (2,13): error CS1001: Identifier expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19)
-                );
+            var tree = UsingTree(test, TestOptions.RegularPreview.WithLanguageVersion(version));
+
+            // No parse errors here regardless of version.  Errors are just semantic.
+            tree.GetDiagnostics().Verify();
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1644,38 +1636,27 @@ using VT2 = (int, int);
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.TupleType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2686,14 +2667,7 @@ e
         {
             var test = @"using s = delegate*<void>;";
 
-            UsingTree(test,
-                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,26): error CS1001: Identifier expected
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26)
-                );
+            UsingTree(test);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2708,42 +2682,24 @@ e
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.FunctionPointerParameterList);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameter);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.VoidKeyword);
-                                        }
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3244,9 +3200,9 @@ record class Point(int x, int y);
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
-                // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,19): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 19),
                 // (2,24): warning CS9113: Parameter 'x' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
@@ -3550,19 +3506,12 @@ global using Bar x;
                 // (2,15): error CS1001: Identifier expected
                 // 			       W   )b
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1002: ; expected
+                // (2,15): error CS1003: Syntax error, ',' expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1022: Type or namespace definition, or end-of-file expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 15),
-                // (2,17): error CS1001: Identifier expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 15),
                 // (2,17): error CS1002: ; expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3575,24 +3524,6 @@ global using Bar x;
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "W");
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {

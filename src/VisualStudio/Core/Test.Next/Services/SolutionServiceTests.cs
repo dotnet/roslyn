@@ -441,7 +441,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48564")]
         public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
         {
             using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");

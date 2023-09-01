@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpSyntaxNode _root;
         private readonly ReaderWriterLockSlim _nodeMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
-        private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedBoundNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
+        private readonly Dictionary<SyntaxNode, OneOrMany<BoundNode>> _guardedBoundNodeMap = new Dictionary<SyntaxNode, OneOrMany<BoundNode>>();
         private readonly Dictionary<SyntaxNode, IOperation> _guardedIOperationNodeMap = new Dictionary<SyntaxNode, IOperation>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The bound nodes are stored in the map from highest to lowest, so the first bound node is the highest.
             var boundNodes = GetBoundNodes(node);
 
-            if (boundNodes.Length == 0)
+            if (boundNodes.Count == 0)
             {
                 return null;
             }
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The bound nodes are stored in the map from highest to lowest, so the last bound node is the lowest.
             var boundNodes = GetBoundNodes(node);
 
-            if (boundNodes.Length == 0)
+            if (boundNodes.Count == 0)
             {
                 return null;
             }
@@ -553,9 +553,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundNode GetLowerBoundNode(ImmutableArray<BoundNode> boundNodes)
+        private static BoundNode GetLowerBoundNode(OneOrMany<BoundNode> boundNodes)
         {
-            return boundNodes[boundNodes.Length - 1];
+            return boundNodes[boundNodes.Count - 1];
         }
 
         public sealed override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -1420,25 +1420,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ImmutableArray<BoundNode> GuardedGetBoundNodesFromMap(CSharpSyntaxNode node)
+        private OneOrMany<BoundNode> GuardedGetBoundNodesFromMap(CSharpSyntaxNode node)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld || _nodeMapLock.IsReadLockHeld);
-            ImmutableArray<BoundNode> result;
-            return _guardedBoundNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
+            OneOrMany<BoundNode> result;
+            return _guardedBoundNodeMap.TryGetValue(node, out result) ? result : OneOrMany<BoundNode>.Empty;
         }
 
         /// <summary>
         /// Internal for test purposes only
         /// </summary>
-        internal ImmutableArray<BoundNode> TestOnlyTryGetBoundNodesFromMap(CSharpSyntaxNode node)
+        internal OneOrMany<BoundNode> TestOnlyTryGetBoundNodesFromMap(CSharpSyntaxNode node)
         {
-            ImmutableArray<BoundNode> result;
-            return _guardedBoundNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
+            OneOrMany<BoundNode> result;
+            return _guardedBoundNodeMap.TryGetValue(node, out result) ? result : OneOrMany<BoundNode>.Empty;
         }
 
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
         // performs a lookup of the given syntax node in the map. 
-        private ImmutableArray<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
+        private OneOrMany<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld);
 
@@ -1457,8 +1457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(syntax != _root || _guardedBoundNodeMap.ContainsKey(bound.Syntax));
             }
 
-            ImmutableArray<BoundNode> result;
-            return _guardedBoundNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
+            OneOrMany<BoundNode> result;
+            return _guardedBoundNodeMap.TryGetValue(syntax, out result) ? result : OneOrMany<BoundNode>.Empty;
         }
 
         protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null, ImmutableDictionary<Symbol, Symbol> remappedSymbols = null)
@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Have we already cached a bound node for it?
             // If not, bind the outermost expression containing the lambda and then fill in the map.
-            ImmutableArray<BoundNode> nodes;
+            OneOrMany<BoundNode> nodes;
 
             EnsureNullabilityAnalysisPerformedIfNecessary();
 
@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
             }
 
-            if (!nodes.IsDefaultOrEmpty)
+            if (!nodes.IsEmpty)
             {
                 return GetLowerBoundNode(nodes);
             }
@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
                 }
 
-                if (!nodes.IsDefaultOrEmpty)
+                if (!nodes.IsEmpty)
                 {
                     // If everything is working as expected we should end up here because binding the enclosing lambda
                     // should also take care of binding and caching this lambda.
@@ -1688,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
-            if (!nodes.IsDefaultOrEmpty)
+            if (!nodes.IsEmpty)
             {
                 return GetLowerBoundNode(nodes);
             }
@@ -2037,7 +2037,7 @@ done:
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
         /// Strictly speaking, the order is that of a pre-order traversal of the bound tree.
         /// </summary>
-        internal ImmutableArray<BoundNode> GetBoundNodes(CSharpSyntaxNode node)
+        internal OneOrMany<BoundNode> GetBoundNodes(CSharpSyntaxNode node)
         {
             // If this method is called with a null parameter, that implies that the Root should be
             // bound, but make sure that the Root is bindable.
@@ -2061,14 +2061,14 @@ done:
             // reader-writer lock.
             //
             // Have we already got the desired bound node in the mutable map? If so, return it.
-            ImmutableArray<BoundNode> results;
+            OneOrMany<BoundNode> results;
 
             using (_nodeMapLock.DisposableRead())
             {
                 results = GuardedGetBoundNodesFromMap(node);
             }
 
-            if (!results.IsDefaultOrEmpty)
+            if (!results.IsEmpty)
             {
                 return results;
             }
@@ -2088,7 +2088,7 @@ done:
                 results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
             }
 
-            if (!results.IsDefaultOrEmpty)
+            if (!results.IsEmpty)
             {
                 return results;
             }
@@ -2108,7 +2108,7 @@ done:
                 results = GuardedGetBoundNodesFromMap(node);
             }
 
-            if (results.IsDefaultOrEmpty)
+            if (results.IsEmpty)
             {
                 // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
@@ -2118,7 +2118,7 @@ done:
                     results = GuardedGetBoundNodesFromMap(node);
                 }
 
-                if (!results.IsDefaultOrEmpty)
+                if (!results.IsEmpty)
                 {
                     return results;
                 }
@@ -2128,7 +2128,7 @@ done:
                 return results;
             }
 
-            return ImmutableArray<BoundNode>.Empty;
+            return OneOrMany<BoundNode>.Empty;
         }
 
         // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
@@ -2239,11 +2239,12 @@ done:
             return node;
         }
 
+#nullable enable
         /// <summary>
         /// If the node is an expression, return the nearest parent node
         /// with semantic meaning. Otherwise return null.
         /// </summary>
-        protected CSharpSyntaxNode GetBindableParentNode(CSharpSyntaxNode node)
+        protected CSharpSyntaxNode? GetBindableParentNode(CSharpSyntaxNode node)
         {
             if (!(node is ExpressionSyntax))
             {
@@ -2251,7 +2252,7 @@ done:
             }
 
             // The node is an expression, but its parent is null
-            CSharpSyntaxNode parent = node.Parent;
+            CSharpSyntaxNode? parent = node.Parent;
             if (parent == null)
             {
                 // For speculative model, expression might be the root of the syntax tree, in which case it can have a null parent.
@@ -2289,17 +2290,25 @@ foundParent:;
             // the node is the instance associated with the method invocation.
             // In that case, return the invocation expression so that any conversion
             // of the receiver can be included in the resulting SemanticInfo.
-            if ((bindableParent.Kind() == SyntaxKind.SimpleMemberAccessExpression) && (bindableParent.Parent.Kind() == SyntaxKind.InvocationExpression))
+            switch (bindableParent)
             {
-                bindableParent = bindableParent.Parent;
-            }
-            else if (bindableParent.Kind() == SyntaxKind.ArrayType)
-            {
-                bindableParent = SyntaxFactory.GetStandaloneExpression((ArrayTypeSyntax)bindableParent);
+                case { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression, Parent.RawKind: (int)SyntaxKind.InvocationExpression }:
+                    bindableParent = bindableParent.Parent;
+                    break;
+                case ArrayTypeSyntax arrayType:
+                    bindableParent = SyntaxFactory.GetStandaloneExpression(arrayType);
+                    break;
+                case { RawKind: (int)SyntaxKind.ComplexElementInitializerExpression }:
+                    // The { "a", "b" } node in a collection initializer is marked as compiler-generated, and will never
+                    // end up in the bound node map. We don't need the parent node for any calculations here, so just return
+                    // null to avoid rebinding the initializer (which can cause exponential binding problems, see EndToEndTests.LongInitializerList).
+                    bindableParent = null;
+                    break;
             }
 
             return bindableParent;
         }
+#nullable disable
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {
@@ -2430,9 +2439,9 @@ foundParent:;
             {
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
-                    ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+                    OneOrMany<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
 
-                    if (!boundNodes.IsDefaultOrEmpty)
+                    if (!boundNodes.IsEmpty)
                     {
                         // Already bound. Return the top-most bound node associated with the statement. 
                         return boundNodes[0];
@@ -2481,5 +2490,9 @@ foundParent:;
             }
         }
 
+        internal sealed class MemberSemanticBindingCounter
+        {
+            internal int BindCount;
+        }
     }
 }

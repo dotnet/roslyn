@@ -2070,10 +2070,8 @@ tryAgain:
                         TypeDefinitionHandle typeDef = typeDefsToSearch.Dequeue();
                         Debug.Assert(!typeDef.IsNil);
 
-                        if (!visitedTypeDefTokens.Contains(typeDef))
+                        if (visitedTypeDefTokens.Add(typeDef))
                         {
-                            visitedTypeDefTokens.Add(typeDef);
-
                             foreach (MethodDefinitionHandle methodDef in Module.GetMethodsOfTypeOrThrow(typeDef))
                             {
                                 if (methodDef == targetMethodDef)
@@ -2091,12 +2089,9 @@ tryAgain:
                         TypeSymbol typeSymbol = typeSymbolsToSearch.Dequeue();
                         Debug.Assert(typeSymbol != null);
 
-                        if (!visitedTypeSymbols.Contains(typeSymbol))
+                        if (visitedTypeSymbols.Add(typeSymbol))
                         {
-                            visitedTypeSymbols.Add(typeSymbol);
-
                             //we're looking for a method def but we're currently on a type *ref*, so just enqueue supertypes
-
                             EnqueueTypeSymbolInterfacesAndBaseTypes(typeDefsToSearch, typeSymbolsToSearch, typeSymbol);
                         }
                     }

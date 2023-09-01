@@ -218,7 +218,7 @@ End Class</a>
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(545351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545351")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545351")>
         Public Async Function TestBuilderWhenOptionExplicitOff() As Task
             Dim markup = <a>Option Explicit Off
  
@@ -232,7 +232,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         Public Async Function TestUsingStatement() As Task
             Dim markup = <a> 
 Class C1
@@ -244,7 +244,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
         Public Async Function TestOptionExplicitOffStatementLevel1() As Task
             Dim markup = <a> 
 Option Explicit Off
@@ -257,7 +257,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
         Public Async Function TestOptionExplicitOffStatementLevel2() As Task
             Dim markup = <a> 
 Option Explicit Off
@@ -270,7 +270,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(960416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960416")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960416")>
         Public Async Function TestReadonlyField() As Task
             Dim markup = <a> 
 Class C1
@@ -282,7 +282,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceDeclarationName_Unqualified() As Task
             Dim markup = <a> 
 Namespace $$
@@ -291,7 +291,7 @@ End Namespace
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function NamespaceDeclarationName_Qualified() As Task
             Dim markup = <a> 
 Namespace A.$$
@@ -300,25 +300,25 @@ End Namespace
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function PartialClassName() As Task
             Dim markup = <a>Partial Class $$</a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function PartialStructureName() As Task
             Dim markup = <a>Partial Structure $$</a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function PartialInterfaceName() As Task
             Dim markup = <a>Partial Interface $$</a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
         End Function
 
-        <Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")>
         Public Async Function PartialModuleName() As Task
             Dim markup = <a>Partial Module $$</a>
             Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)

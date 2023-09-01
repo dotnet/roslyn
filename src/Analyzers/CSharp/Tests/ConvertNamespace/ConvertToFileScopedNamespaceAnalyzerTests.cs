@@ -677,47 +677,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithMultiLineRawString()
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString1(string suffix)
         {
             await new VerifyCS.Test
             {
-                TestCode = """"
+                TestCode = $$""""
                 [|namespace N|]
                 {
                     class C
                     {
                         void M()
                         {
-                            System.Console.WriteLine("""
+                            WriteLine("""
                     a
                         b
                             c
                                 d
                                     e
-                    """);
+                    """{{suffix}});
                         }
+
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
                 }
                 """",
-                FixedCode = """"
+                FixedCode = $$""""
                 namespace $$N;
 
                 class C
                 {
                     void M()
                     {
-                        System.Console.WriteLine("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """);
+                        WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
                     }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
                 }
                 """",
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
@@ -725,51 +732,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithUtf8MultiLineRawString()
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString2(string suffix)
         {
             await new VerifyCS.Test
             {
-                TestCode = """"
+                TestCode = $$""""
                 [|namespace N|]
                 {
                     class C
                     {
                         void M()
                         {
-                            M2("""
-                    a
-                        b
-                            c
-                                d
-                                    e
-                    """u8);
+                            WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
                         }
-
-                        void M2(System.ReadOnlySpan<byte> x) {}
+                
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
                 }
                 """",
-                FixedCode = """"
+                FixedCode = $$""""
                 namespace $$N;
 
                 class C
                 {
                     void M()
                     {
-                        M2("""
-                    a
+                        WriteLine("""
+                a
+                    b
+                        c
+                            d
+                                e
+                """{{suffix}});
+                    }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Theory, InlineData(""), InlineData("u8")]
+        public async Task TestConvertToFileScopedWithMultiLineRawString3(string suffix)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$""""
+                [|namespace N|]
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            System.Console.WriteLine("""
+                {|CS8999:|}a // error
                         b
                             c
                                 d
                                     e
-                    """u8);
+                    """{{suffix}});
+                        }
+                
+                        void WriteLine(string s) { }
+                        void WriteLine(System.ReadOnlySpan<byte> s) { } 
                     }
-
-                    void M2(System.ReadOnlySpan<byte> x) {}
                 }
                 """",
-                LanguageVersion = LanguageVersion.Preview,
+                FixedCode = $$""""
+                namespace $$N;
+
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("""
+                {|CS8999:|}a // error
+                        b
+                            c
+                                d
+                                    e
+                    """{{suffix}});
+                    }
+                
+                    void WriteLine(string s) { }
+                    void WriteLine(System.ReadOnlySpan<byte> s) { } 
+                }
+                """",
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
@@ -818,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -846,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -867,7 +931,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -895,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -916,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective1()
         {
             await new VerifyCS.Test
@@ -946,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective2()
         {
             await new VerifyCS.Test
@@ -978,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective3()
         {
             await new VerifyCS.Test
@@ -1007,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             }.RunAsync();
         }
 
-        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPPDirective4()
         {
             await new VerifyCS.Test

@@ -122,8 +122,11 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             // For each type of b., return all suitable members. Also, ensure we consider the actual type of the
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
+            // (Only add the actual type if it's not already in the set, otherwise the type and all of its members will be considered twice.)
+            if (!parameterTypeSymbols.Contains(parameter.Type, SymbolEqualityComparer.Default))
+                parameterTypeSymbols = parameterTypeSymbols.Concat(parameter.Type);
+
             return parameterTypeSymbols
-                .Concat(parameter.Type)
                 .SelectManyAsArray(parameterTypeSymbol =>
                     GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable, isForDereference));
         }
@@ -280,6 +283,50 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                                        .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
 
             return symbols;
+        }
+
+        protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseList(INamespaceOrTypeSymbol container)
+        {
+            var semanticModel = _context.SemanticModel;
+            var systemNamespace = container is not (null or INamespaceSymbol { IsGlobalNamespace: true })
+                ? null
+                 : semanticModel.LookupNamespacesAndTypes(_context.Position, semanticModel.Compilation.GlobalNamespace, nameof(System))
+                     .OfType<INamespaceSymbol>().FirstOrDefault();
+
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+
+            if (systemNamespace is not null)
+            {
+                builder.Add(systemNamespace);
+
+                var aliases = semanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => systemNamespace.Equals(a.Target));
+                builder.AddRange(aliases);
+            }
+
+            AddSpecialTypeSymbolAndItsAliases(nameof(Byte), SpecialType.System_Byte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(SByte), SpecialType.System_SByte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int16), SpecialType.System_Int16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt16), SpecialType.System_UInt16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int32), SpecialType.System_Int32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt32), SpecialType.System_UInt32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int64), SpecialType.System_Int64);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt64), SpecialType.System_UInt64);
+
+            return builder.ToImmutableAndClear();
+
+            void AddSpecialTypeSymbolAndItsAliases(string name, SpecialType specialType)
+            {
+                var specialTypeSymbol = _context.SemanticModel
+                    .LookupNamespacesAndTypes(_context.Position, container, name)
+                    .FirstOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
+
+                builder.AddIfNotNull(specialTypeSymbol);
+
+                specialTypeSymbol ??= _context.SemanticModel.Compilation.GetSpecialType(specialType);
+
+                var aliases = _context.SemanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => specialTypeSymbol.Equals(a.Target));
+                builder.AddRange(aliases);
+            }
         }
 
         protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)

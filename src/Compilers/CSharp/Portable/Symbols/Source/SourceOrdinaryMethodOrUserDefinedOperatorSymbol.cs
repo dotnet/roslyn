@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
 
-        protected SourceOrdinaryMethodOrUserDefinedOperatorSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
-            : base(containingType, syntaxReferenceOpt, location, isIterator)
+        protected SourceOrdinaryMethodOrUserDefinedOperatorSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator, (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
+            : base(containingType, syntaxReferenceOpt, location, isIterator, modifiersAndFlags)
         {
         }
 
@@ -48,11 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
-            var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
-                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
+                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, _location);
             }
 
             ExtensionMethodChecks(diagnostics);
@@ -61,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, _location);
                 }
 
                 if (!ContainingType.IsPartial())
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, _location);
                 }
             }
 
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                     this.FindExplicitlyImplementedMemberVerification(overriddenOrExplicitlyImplementedMethod, diagnostics);
-                    TypeSymbol.CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(this.ContainingType, this, overriddenOrExplicitlyImplementedMethod, isExplicit: true, diagnostics);
+                    TypeSymbol.CheckModifierMismatchOnImplementingMember(this.ContainingType, this, overriddenOrExplicitlyImplementedMethod, isExplicit: true, diagnostics);
                 }
                 else
                 {
@@ -228,35 +227,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            var location = ReturnTypeLocation;
+            // Defer computing location to avoid unnecessary allocations in most cases.
+            Location? returnTypeLocation = null;
             var compilation = DeclaringCompilation;
-
-            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
             CheckConstraintsForExplicitInterfaceType(conversions, diagnostics);
 
-            this.ReturnType.CheckAllConstraints(compilation, conversions, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(compilation, conversions, this.GetFirstLocation(), diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
 
             PartialMethodChecks(diagnostics);
 
             if (RefKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -265,10 +263,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            Location getReturnTypeLocation()
+            {
+                returnTypeLocation ??= this.ReturnTypeLocation;
+                return returnTypeLocation;
+            }
         }
 
         protected abstract void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);

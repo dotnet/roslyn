@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    var isUsedCompountAssignment = operation.IsAnyCompoundAssignment() &&
+                    var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
                         operation.Parent?.Kind != OperationKind.ExpressionStatement;
 
                     foreach (var (symbolOpt, write) in pendingWrites)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             Debug.Assert(symbolOpt != null);
                             OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
-                            if (isUsedCompountAssignment)
+                            if (isUsedCompoundAssignment)
                             {
                                 OnReadReferenceFound(symbolOpt);
                             }
@@ -255,7 +255,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public override void VisitParameterReference(IParameterReferenceOperation operation)
-                => OnReferenceFound(operation.Parameter, operation);
+            {
+                if (operation.Parameter.IsPrimaryConstructor(_cancellationToken))
+                {
+                    // Bail out for primary constructor parameters.
+                    return;
+                }
+
+                OnReferenceFound(operation.Parameter, operation);
+            }
 
             public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
             {
@@ -283,7 +291,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                if (operation.DeclaredSymbol != null)
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+            {
+                base.VisitRecursivePattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitListPattern(IListPatternOperation operation)
+            {
+                base.VisitListPattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);
                 }

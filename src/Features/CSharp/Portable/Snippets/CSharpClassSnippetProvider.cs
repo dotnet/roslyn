@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,16 +18,33 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpClassSnippetProvider : CSharpTypeSnippetProvider
+    internal sealed class CSharpClassSnippetProvider : AbstractCSharpTypeSnippetProvider
     {
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
+        };
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpClassSnippetProvider()
         {
         }
+
         public override string Identifier => "class";
 
         public override string Description => FeaturesResources.class_;
+
+        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

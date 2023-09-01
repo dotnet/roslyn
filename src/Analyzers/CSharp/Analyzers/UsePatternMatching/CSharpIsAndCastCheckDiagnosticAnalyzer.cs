@@ -52,7 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
 
-                context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for 'is' expression nodes, but analyze nodes across the entire code block
+                // and eventually report a diagnostic on the local declaration statement node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                context.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression));
             });
         }
 
@@ -73,6 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 return;
             }
+
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            if (!syntaxContext.ShouldAnalyzeSpan(localDeclarationStatement.Span))
+                return;
 
             // It's of the form:
             //

@@ -621,248 +621,268 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithSingleMatchingDirective()
         {
-            var code = @"
-public class C 
-{
-#if$$ CHK 
-#endif
-}";
-            var expected = @"
-public class C 
-{
-#if$$ CHK 
-[|#endif|]
-}";
+            var code = """
+                public class C 
+                {
+                #if$$ CHK 
+                #endif
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #if$$ CHK 
+                [|#endif|]
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
         {
-            var code = @"
-public class C 
-{
-#if$$ CHK 
-#else
-#endif
-}";
-            var expected = @"
-public class C 
-{
-#if$$ CHK 
-[|#else|]
-#endif
-}";
+            var code = """
+                public class C 
+                {
+                #if$$ CHK 
+                #else
+                #endif
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #if$$ CHK 
+                [|#else|]
+                #endif
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithAllMatchingDirectives()
         {
-            var code = @"
-public class C 
-{
-#if CHK 
-#elif RET
-#else
-#endif$$
-}";
-            var expected = @"
-public class C 
-{
-[|#if|] CHK 
-#elif RET
-#else
-#endif
-}";
+            var code = """
+                public class C 
+                {
+                #if CHK 
+                #elif RET
+                #else
+                #endif$$
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                [|#if|] CHK 
+                #elif RET
+                #else
+                #endif
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestRegionDirective()
         {
-            var code = @"
-public class C 
-{
-$$#region test
-#endregion
-}";
-            var expected = @"
-public class C 
-{
-#region test
-[|#endregion|]
-}";
+            var code = """
+                public class C 
+                {
+                $$#region test
+                #endregion
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #region test
+                [|#endregion|]
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestInterleavedDirectivesInner()
         {
-            var code = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-$$#region test
-    var x = 5;
-#endregion
-#else
-    var y = 6;
-#endif
-    }
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-#region test
-    var x = 5;
-[|#endregion|]
-#else
-    var y = 6;
-#endif
-    }
-}";
+            var code = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                $$#region test
+                    var x = 5;
+                #endregion
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                #region test
+                    var x = 5;
+                [|#endregion|]
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestInterleavedDirectivesOuter()
         {
-            var code = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if$$ CHK
-#region test
-    var x = 5;
-#endregion
-#else
-    var y = 6;
-#endif
-    }
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-    void Test()
-    {
-#if CHK
-#region test
-    var x = 5;
-#endregion
-[|#else|]
-    var y = 6;
-#endif
-    }
-}";
+            var code = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if$$ CHK
+                #region test
+                    var x = 5;
+                #endregion
+                #else
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                    void Test()
+                    {
+                #if CHK
+                #region test
+                    var x = 5;
+                #endregion
+                [|#else|]
+                    var y = 6;
+                #endif
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestUnmatchedDirective1()
         {
-            var code = @"
-public class C 
-{
-$$#region test
-}";
-            var expected = @"
-public class C 
-{
-#region test
-}";
+            var code = """
+                public class C 
+                {
+                $$#region test
+                }
+                """;
+            var expected = """
+                public class C 
+                {
+                #region test
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestUnmatchedDirective2()
         {
-            var code = @"
-#d$$efine CHK
-public class C 
-{
-}";
-            var expected = @"
-#define CHK
-public class C 
-{
-}";
+            var code = """
+                #d$$efine CHK
+                public class C 
+                {
+                }
+                """;
+            var expected = """
+                #define CHK
+                public class C 
+                {
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         [WpfFact]
         public async Task TestUnmatchedConditionalDirective()
         {
-            var code = @"
-class Program
-{
-    static void Main(string[] args)
-    {#if$$
+            var code = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#if$$
 
-    }
-}";
-            var expected = @"
-class Program
-{
-    static void Main(string[] args)
-    {#if
+                    }
+                }
+                """;
+            var expected = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#if
 
-    }
-}";
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         [WpfFact]
         public async Task TestUnmatchedConditionalDirective2()
         {
-            var code = @"
-class Program
-{
-    static void Main(string[] args)
-    {#else$$
+            var code = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#else$$
 
-    }
-}";
-            var expected = @"
-class Program
-{
-    static void Main(string[] args)
-    {#else
+                    }
+                }
+                """;
+            var expected = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {#else
 
-    }
-}";
+                    }
+                }
+                """;
 
             await TestAsync(code, expected);
         }

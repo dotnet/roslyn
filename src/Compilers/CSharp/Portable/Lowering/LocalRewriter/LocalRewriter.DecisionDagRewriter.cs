@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this._mightAssignSomething ? null : base.Visit(node);
                 }
 
-                public override BoundNode VisitCall(BoundCall node)
+                protected override void VisitArguments(BoundCall node)
                 {
                     bool mightMutate =
                         // might be a call to a local function that assigns something
@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (mightMutate)
                         _mightAssignSomething = true;
                     else
-                        base.VisitCall(node);
-                    return null;
+                        base.VisitArguments(node);
                 }
 
                 private static bool MethodMayMutateReceiver(BoundExpression receiver, MethodSymbol method)
@@ -904,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // table based jump table or a non hash jump table, i.e. linear string comparisons
                 // with each case label. We use the Dev10 Heuristic to determine this
                 // (see SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch() for details).
-                if (!CodeAnalysis.CodeGen.SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(module, labelsCount))
+                if (!CodeAnalysis.CodeGen.SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount))
                 {
                     return;
                 }

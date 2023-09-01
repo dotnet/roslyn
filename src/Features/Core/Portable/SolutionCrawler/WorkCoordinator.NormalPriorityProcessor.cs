@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
-                                _currentProjectProcessing, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                _currentProjectProcessing, Processor.DependencyGraph,
                                 out var workItem, out var documentCancellation))
                             {
                                 return;
@@ -294,9 +294,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 if (textDocument != null)
                                 {
                                     // if we are called because a document is opened, we invalidate the document so that
-                                    // it can be re-analyzed. otherwise, since newly opened document has same version as before
-                                    // analyzer will simply return same data back
-                                    if (workItem.MustRefresh && !workItem.IsRetry)
+                                    // it can be re-analyzed. otherwise, since newly opened document has same version as
+                                    // before analyzer will simply return same data back
+                                    if (workItem.MustRefresh)
                                     {
                                         var isOpen = textDocument.IsOpen();
 
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // after that point.
                             if (!processedEverything && !CancellationToken.IsCancellationRequested)
                             {
-                                _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.WithAsyncToken(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
                             SolutionCrawlerLogger.LogProcessDocument(Processor._logAggregator, documentId.Id, processedEverything);

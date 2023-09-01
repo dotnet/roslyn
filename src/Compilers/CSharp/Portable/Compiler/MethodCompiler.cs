@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
+            hasDeclarationErrors |= compilation.CheckDuplicateInterceptions(diagnostics);
+
             if (compilation.PreviousSubmission != null)
             {
                 // In case there is a previous submission, we should ensure
@@ -174,12 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 methodCompiler.WaitForWorkers();
 
-                var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
+                // all threads that were adding methods must be finished now, we can freeze the class:
+                var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
                 if (privateImplClass != null)
                 {
-                    // all threads that were adding methods must be finished now, we can freeze the class:
-                    privateImplClass.Freeze();
-
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
             }
@@ -1051,7 +1051,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol, processedInitializers.BoundInitializers, diagsForCurrentMethod);
+                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
+                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
+                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
@@ -1183,7 +1185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
+                                _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
                     }
                     finally
@@ -1624,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localVariables.Length > 0xFFFE)
                 {
-                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.Locations.First());
+                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.GetFirstLocation());
                 }
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
@@ -1667,7 +1670,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineAwaiterSlots,
                     StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                     moveNextBodyDebugInfoOpt,
-                    codeCoverageSpans);
+                    codeCoverageSpans,
+                    isPrimaryConstructor: method is SynthesizedPrimaryConstructor);
             }
             finally
             {

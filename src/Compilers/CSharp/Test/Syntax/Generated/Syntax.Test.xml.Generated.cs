@@ -211,6 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
             => InternalSyntaxFactory.ImplicitStackAllocArrayCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.StackAllocKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
 
+        private static Syntax.InternalSyntax.CollectionExpressionSyntax GenerateCollectionExpression()
+            => InternalSyntaxFactory.CollectionExpression(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CollectionElementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        private static Syntax.InternalSyntax.ExpressionElementSyntax GenerateExpressionElement()
+            => InternalSyntaxFactory.ExpressionElement(GenerateIdentifierName());
+
+        private static Syntax.InternalSyntax.SpreadElementSyntax GenerateSpreadElement()
+            => InternalSyntaxFactory.SpreadElement(InternalSyntaxFactory.Token(SyntaxKind.DotDotToken), GenerateIdentifierName());
+
         private static Syntax.InternalSyntax.QueryExpressionSyntax GenerateQueryExpression()
             => InternalSyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
 
@@ -455,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ExternAliasDirective(InternalSyntaxFactory.Token(SyntaxKind.ExternKeyword), InternalSyntaxFactory.Token(SyntaxKind.AliasKeyword), InternalSyntaxFactory.Identifier("Identifier"), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static Syntax.InternalSyntax.UsingDirectiveSyntax GenerateUsingDirective()
-            => InternalSyntaxFactory.UsingDirective(null, InternalSyntaxFactory.Token(SyntaxKind.UsingKeyword), null, null, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => InternalSyntaxFactory.UsingDirective(null, InternalSyntaxFactory.Token(SyntaxKind.UsingKeyword), null, null, null, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static Syntax.InternalSyntax.NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
             => InternalSyntaxFactory.NamespaceDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
@@ -623,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.CrefBracketedParameterList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CrefParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.CrefParameterSyntax GenerateCrefParameter()
-            => InternalSyntaxFactory.CrefParameter(null, GenerateIdentifierName());
+            => InternalSyntaxFactory.CrefParameter(null, null, GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.XmlElementSyntax GenerateXmlElement()
             => InternalSyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -1517,6 +1526,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             Assert.NotNull(node.Initializer);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestCollectionExpressionFactoryAndProperties()
+        {
+            var node = GenerateCollectionExpression();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
+            Assert.Equal(default, node.Elements);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestExpressionElementFactoryAndProperties()
+        {
+            var node = GenerateExpressionElement();
+
+            Assert.NotNull(node.Expression);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestSpreadElementFactoryAndProperties()
+        {
+            var node = GenerateSpreadElement();
+
+            Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind);
+            Assert.NotNull(node.Expression);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -2558,8 +2600,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.GlobalKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind);
             Assert.Null(node.StaticKeyword);
+            Assert.Null(node.UnsafeKeyword);
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Name);
+            Assert.NotNull(node.NamespaceOrType);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -3336,6 +3379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Null(node.RefKindKeyword);
+            Assert.Null(node.ReadOnlyKeyword);
             Assert.NotNull(node.Type);
 
             AttachAndCheckDiagnostics(node);
@@ -5528,6 +5572,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestImplicitStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateCollectionExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCollectionExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateCollectionExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestExpressionElementTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExpressionElement();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExpressionElementIdentityRewriter()
+        {
+            var oldNode = GenerateExpressionElement();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestSpreadElementTokenDeleteRewriter()
+        {
+            var oldNode = GenerateSpreadElement();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSpreadElementIdentityRewriter()
+        {
+            var oldNode = GenerateSpreadElement();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10186,6 +10308,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
             => SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
 
+        private static CollectionExpressionSyntax GenerateCollectionExpression()
+            => SyntaxFactory.CollectionExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CollectionElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        private static ExpressionElementSyntax GenerateExpressionElement()
+            => SyntaxFactory.ExpressionElement(GenerateIdentifierName());
+
+        private static SpreadElementSyntax GenerateSpreadElement()
+            => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), GenerateIdentifierName());
+
         private static QueryExpressionSyntax GenerateQueryExpression()
             => SyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
 
@@ -10430,7 +10561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ExternAliasDirective(SyntaxFactory.Token(SyntaxKind.ExternKeyword), SyntaxFactory.Token(SyntaxKind.AliasKeyword), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static UsingDirectiveSyntax GenerateUsingDirective()
-            => SyntaxFactory.UsingDirective(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), default(SyntaxToken), default(NameEqualsSyntax), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.UsingDirective(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), default(SyntaxToken), default(SyntaxToken), default(NameEqualsSyntax), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
             => SyntaxFactory.NamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
@@ -10598,7 +10729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.CrefBracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CrefParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static CrefParameterSyntax GenerateCrefParameter()
-            => SyntaxFactory.CrefParameter(default(SyntaxToken), GenerateIdentifierName());
+            => SyntaxFactory.CrefParameter(default(SyntaxToken), default(SyntaxToken), GenerateIdentifierName());
 
         private static XmlElementSyntax GenerateXmlElement()
             => SyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new SyntaxList<XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -11493,6 +11624,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             Assert.NotNull(node.Initializer);
             var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithOpenBracketToken(node.OpenBracketToken).WithCloseBracketToken(node.CloseBracketToken).WithInitializer(node.Initializer);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionExpressionFactoryAndProperties()
+        {
+            var node = GenerateCollectionExpression();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
+            Assert.Equal(default, node.Elements);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
+            var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithElements(node.Elements).WithCloseBracketToken(node.CloseBracketToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestExpressionElementFactoryAndProperties()
+        {
+            var node = GenerateExpressionElement();
+
+            Assert.NotNull(node.Expression);
+            var newNode = node.WithExpression(node.Expression);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestSpreadElementFactoryAndProperties()
+        {
+            var node = GenerateSpreadElement();
+
+            Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind());
+            Assert.NotNull(node.Expression);
+            var newNode = node.WithOperatorToken(node.OperatorToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
         }
 
@@ -12533,10 +12697,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.GlobalKeyword.Kind());
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.StaticKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.UnsafeKeyword.Kind());
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Name);
+            Assert.NotNull(node.NamespaceOrType);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithAlias(node.Alias).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithUnsafeKeyword(node.UnsafeKeyword).WithAlias(node.Alias).WithNamespaceOrType(node.NamespaceOrType).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -13311,8 +13476,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Equal(SyntaxKind.None, node.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.ReadOnlyKeyword.Kind());
             Assert.NotNull(node.Type);
-            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithType(node.Type);
+            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
         }
 
@@ -15503,6 +15669,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestImplicitStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateCollectionExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCollectionExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateCollectionExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestExpressionElementTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExpressionElement();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExpressionElementIdentityRewriter()
+        {
+            var oldNode = GenerateExpressionElement();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestSpreadElementTokenDeleteRewriter()
+        {
+            var oldNode = GenerateSpreadElement();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSpreadElementIdentityRewriter()
+        {
+            var oldNode = GenerateSpreadElement();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

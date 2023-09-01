@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         [Fact]
         public async Task PrimaryConstructorBaseType_FirstParameter()
         {
-            var markup = @"
-record Base(int Identifier)
-{
-    private Base(string ignored) : this(1, 2) { }
-}
-record Derived(int Other) : [|Base($$1|]);
-";
+            var markup = """
+                record Base(int Identifier)
+                {
+                    private Base(string ignored) : this(1, 2) { }
+                }
+                record Derived(int Other) : [|Base($$1|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
@@ -41,13 +41,13 @@ record Derived(int Other) : [|Base($$1|]);
         [Fact]
         public async Task PrimaryConstructorClassBaseType_FirstParameter()
         {
-            var markup = @"
-class Base(int Identifier)
-{
-    private Base(string ignored) : this(1, 2) { }
-}
-class Derived(int Other) : [|Base($$1|]);
-";
+            var markup = """
+                class Base(int Identifier)
+                {
+                    private Base(string ignored) : this(1, 2) { }
+                }
+                class Derived(int Other) : [|Base($$1|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
@@ -58,13 +58,13 @@ class Derived(int Other) : [|Base($$1|]);
         [Fact]
         public async Task PrimaryConstructorBaseType_SecondParameter()
         {
-            var markup = @"
-record Base(int Identifier1, int Identifier2)
-{
-    protected Base(string name) : this(1, 2) { }
-}
-record Derived(int Other) : [|Base(1, $$2|]);
-";
+            var markup = """
+                record Base(int Identifier1, int Identifier2)
+                {
+                    protected Base(string name) : this(1, 2) { }
+                }
+                record Derived(int Other) : [|Base(1, $$2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
@@ -77,13 +77,13 @@ record Derived(int Other) : [|Base(1, $$2|]);
         [Fact]
         public async Task PrimaryConstructorClassBaseType_SecondParameter()
         {
-            var markup = @"
-class Base(int Identifier1, int Identifier2)
-{
-    protected Base(string name) : this(1, 2) { }
-}
-class Derived(int Other) : [|Base(1, $$2|]);
-";
+            var markup = """
+                class Base(int Identifier1, int Identifier2)
+                {
+                    protected Base(string name) : this(1, 2) { }
+                }
+                class Derived(int Other) : [|Base(1, $$2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1));
@@ -95,14 +95,14 @@ class Derived(int Other) : [|Base(1, $$2|]);
         [Fact]
         public async Task CommentOnBaseConstructor()
         {
-            var markup = @"
-record Base(int Identifier1, int Identifier2)
-{
-    /// <summary>Summary for constructor</summary>
-    protected Base(string name) : this(1, 2) { }
-}
-record Derived(int Other) : [|Base(1, $$2|]);
-";
+            var markup = """
+                record Base(int Identifier1, int Identifier2)
+                {
+                    /// <summary>Summary for constructor</summary>
+                    protected Base(string name) : this(1, 2) { }
+                }
+                record Derived(int Other) : [|Base(1, $$2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
@@ -115,14 +115,14 @@ record Derived(int Other) : [|Base(1, $$2|]);
         [Fact]
         public async Task CommentOnClassBaseConstructor()
         {
-            var markup = @"
-class Base(int Identifier1, int Identifier2)
-{
-    /// <summary>Summary for constructor</summary>
-    protected Base(string name) : this(1, 2) { }
-}
-class Derived(int Other) : [|Base(1, $$2|]);
-";
+            var markup = """
+                class Base(int Identifier1, int Identifier2)
+                {
+                    /// <summary>Summary for constructor</summary>
+                    protected Base(string name) : this(1, 2) { }
+                }
+                class Derived(int Other) : [|Base(1, $$2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1));
@@ -134,15 +134,15 @@ class Derived(int Other) : [|Base(1, $$2|]);
         [Fact]
         public async Task CommentOnBaseConstructorAndParameters()
         {
-            var markup = @"
-record Base(int Identifier1, int Identifier2)
-{
-    /// <summary>Summary for constructor</summary>
-    /// <param name=""name"">Param name</param>
-    protected Base(string name) : this(1, 2) { }
-}
-record Derived(int Other) : [|Base($$1, 2|]);
-";
+            var markup = """
+                record Base(int Identifier1, int Identifier2)
+                {
+                    /// <summary>Summary for constructor</summary>
+                    /// <param name="name">Param name</param>
+                    protected Base(string name) : this(1, 2) { }
+                }
+                record Derived(int Other) : [|Base($$1, 2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
@@ -155,15 +155,15 @@ record Derived(int Other) : [|Base($$1, 2|]);
         [Fact]
         public async Task CommentOnClassBaseConstructorAndParameters()
         {
-            var markup = @"
-class Base(int Identifier1, int Identifier2)
-{
-    /// <summary>Summary for constructor</summary>
-    /// <param name=""name"">Param name</param>
-    protected Base(string name) : this(1, 2) { }
-}
-class Derived(int Other) : [|Base($$1, 2|]);
-";
+            var markup = """
+                class Base(int Identifier1, int Identifier2)
+                {
+                    /// <summary>Summary for constructor</summary>
+                    /// <param name="name">Param name</param>
+                    protected Base(string name) : this(1, 2) { }
+                }
+                class Derived(int Other) : [|Base($$1, 2|]);
+                """;
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0));

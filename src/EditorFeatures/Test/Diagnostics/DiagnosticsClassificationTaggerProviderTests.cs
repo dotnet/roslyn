@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WpfTheory, WorkItem(62183, "https://github.com/dotnet/roslyn/issues/62183")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/62183")]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, true)]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, false)]
         [InlineData(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, true)]

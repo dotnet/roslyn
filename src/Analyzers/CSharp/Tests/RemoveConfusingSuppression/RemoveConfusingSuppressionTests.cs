@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
 
     public class RemoveConfusingSuppressionTests
     {
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestRemoveWithIsExpression1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
                 """);
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestRemoveWithIsPattern1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
                 """);
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_CSharp8()
         {
             await new VerifyCS.Test
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp8()
         {
             await new VerifyCS.Test
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_CSharp9()
         {
             await new VerifyCS.Test
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp9()
         {
             await new VerifyCS.Test
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestRemoveWithIsExpression_FixAll1()
         {
             await new VerifyCS.Test
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_FixAll1()
         {
             await new VerifyCS.Test
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestRemoveWithIsPatternExpression_FixAll1()
         {
             await new VerifyCS.Test
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
             }.RunAsync();
         }
 
-        [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPatternExpression_FixAll1()
         {
             await new VerifyCS.Test

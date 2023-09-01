@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // much better than using its 'Location' (which is the entire span of the lambda).
                     var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
                         ? lambda.DiagnosticLocation
-                        : CurrentSymbol.Locations.FirstOrNone();
+                        : CurrentSymbol.GetFirstLocationOrNone();
 
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
@@ -472,7 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(thisSlot > 0);
                     if (!this.State.IsAssigned(thisSlot))
                     {
-                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
+                        TypeSymbol parameterType = parameter.Type;
+
+                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameterType))
                         {
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
 
@@ -500,9 +502,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 this.AddImplicitlyInitializedField(field);
+                                reported = true;
                             }
                         }
-                        reported = true;
+
+                        if (!reported)
+                        {
+                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                            {
+                                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                                {
+                                    Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
+                                }
+
+                                // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                                // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                                // element field in the set. It is the only instance field in the type.
+                                // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                                // field itself.
+                                this.AddImplicitlyInitializedField(elementField);
+                            }
+
+                            reported = true;
+                        }
                     }
                 }
 
@@ -812,6 +834,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NoteRead(((BoundParameter)n).ParameterSymbol);
                         return;
 
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            continue;
+                        }
+
                     default:
                         return;
                 }
@@ -987,6 +1016,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.RangeVariable:
                         NoteWrite(((BoundRangeVariable)n).Value, value, read);
                         return;
+
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            value = null;
+                            continue;
+                        }
 
                     default:
                         return;
@@ -1170,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
-                (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations.FirstOrNone().SourceSpan.Start))
+                (symbol.TryGetFirstLocation() is var location && (location is null || node.Span.End < location.SourceSpan.Start)))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
@@ -1214,10 +1251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct });
                 if (TrackImplicitlyInitializedFields)
                 {
-#if DEBUG
                     bool foundUnassignedField = false;
-#endif
-                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
+                    NamedTypeSymbol containingType = thisParameter.ContainingType;
+                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(containingType))
                     {
                         if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
                             continue;
@@ -1229,15 +1265,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slot == -1 || !State.IsAssigned(slot))
                         {
                             AddImplicitlyInitializedField(field);
-#if DEBUG
                             foundUnassignedField = true;
-#endif
                         }
                     }
 
-#if DEBUG
+                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                    {
+                        // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                        // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                        // element field in the set. It is the only instance field in the type.
+                        // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                        // field itself.
+                        this.AddImplicitlyInitializedField(elementField);
+                        foundUnassignedField = true;
+                    }
+
                     Debug.Assert(foundUnassignedField);
-#endif
                 }
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
@@ -1281,7 +1324,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                         AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
-                        if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                        if (fieldSymbol.RefKind != RefKind.None)
+                        {
+                            // 'hasAssociatedProperty' is only true here in error scenarios where we don't need to report this as a cascading diagnostic
+                            if (!hasAssociatedProperty)
+                            {
+                                Diagnostics.Add(
+                                    ErrorCode.WRN_UseDefViolationRefField,
+                                    node.Location,
+                                    symbolName);
+                            }
+                        }
+                        else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
                             Diagnostics.Add(
                                 hasAssociatedProperty ? ErrorCode.WRN_UseDefViolationPropertySupportedVersion : ErrorCode.WRN_UseDefViolationFieldSupportedVersion,
@@ -1361,6 +1415,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         unassignedSlot = GetOrCreateSlot(eventAccess.EventSymbol.AssociatedField, unassignedSlot);
                         break;
+                    }
+
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        return IsAssigned(elementAccess.Expression, out unassignedSlot);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -1448,6 +1508,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
+            if (!isRef && node is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None } fieldAccess)
+            {
+                CheckAssigned(fieldAccess, node.Syntax);
+            }
             AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
@@ -1512,6 +1576,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        if (written)
+                        {
+                            NoteWrite(elementAccess.Expression, value: null, read);
+                        }
+
+                        if (elementAccess.Expression.Type.HasInlineArrayAttribute(out int length) &&
+                            (elementAccess.Argument.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } ||
+                             Binder.InferConstantIndexFromSystemIndex(compilation, elementAccess.Argument, length, out _) is 0))
+                        {
+                            int slot = MakeMemberSlot(elementAccess.Expression, elementAccess.Expression.Type.TryGetInlineArrayElementField());
+                            if (slot > 0)
+                            {
+                                SetSlotState(slot, written);
+                                break;
+                            }
+                        }
+
+                        if (!written)
+                        {
+                            AssignImpl(elementAccess.Expression, value: null, isRef, written, read);
+                            int slot = MakeSlot(elementAccess.Expression);
+                            SetSlotState(slot, written);
+                        }
+
+                        break;
+                    }
+
                 case BoundKind.Parameter:
                     {
                         var paramExpr = (BoundParameter)node;
@@ -1558,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
+                    ((BoundTupleExpression)node).VisitAllElements(static (x, arg) => arg.self.Assign(x, value: null, isRef: arg.isRef), (self: this, isRef));
                     break;
 
                 default:
@@ -1577,6 +1671,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
             TypeSymbol structType = variable.Symbol.GetTypeOrReturnType().Type;
+
+            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is object)
+            {
+                // An inline array of length > 1 cannot be considered fully initialized judging only based on fields.
+                return false;
+            }
+
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
@@ -1824,7 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
                                             ErrorCode.WRN_UnreadRecordParameter :
                                             ErrorCode.WRN_UnreadPrimaryConstructorParameter,
-                                        parameter.Locations.FirstOrNone(), parameter.Name);
+                                        parameter.GetFirstLocationOrNone(), parameter.Name);
                 }
             }
 
@@ -2160,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.DeclarationKind != LocalDeclarationKind.PatternVariable && !string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }
@@ -2179,7 +2280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }
@@ -2455,6 +2556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                     CheckAssigned(MethodThisParameter, node);
                     break;
+
+                case BoundKind.InlineArrayAccess:
+                    CheckAssigned(((BoundInlineArrayAccess)expr).Expression, node);
+                    break;
             }
         }
 
@@ -2635,6 +2740,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in the left-side state. If LeftOperand was not definitely assigned before this call, we will have already
             // reported an error for use before assignment.
             Assign(node.LeftOperand, node.LeftOperand);
+        }
+
+        protected override void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Expression, value: null, read: false);
+            }
+        }
+
+        protected override void AfterVisitConversion(BoundConversion node)
+        {
+            if (node.Conversion.IsInlineArray &&
+                node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Operand, value: null, read: false);
+            }
         }
 
         #endregion Visitors

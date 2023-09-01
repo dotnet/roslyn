@@ -1096,7 +1096,7 @@ class C
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1106,7 +1106,7 @@ class Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1116,7 +1116,7 @@ struct Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1126,7 +1126,7 @@ class Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1136,7 +1136,7 @@ struct Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 interface Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1146,7 +1146,7 @@ interface Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 enum Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1208,7 +1208,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57154")]
         public async Task UpgradeProjectForNewLinesInInterpolations()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1226,7 +1226,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_1()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1240,7 +1240,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_2()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1254,7 +1254,7 @@ enum Program[|;|]",
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_3()
         {
             await TestLanguageVersionUpgradedAsync("""
@@ -1266,6 +1266,23 @@ enum Program[|;|]",
                 """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForRefInMismatch()
+        {
+            await TestLanguageVersionUpgradedAsync("""
+                class C
+                {
+                    void M1(in int x) { }
+                    void M2(ref int y)
+                    {
+                        M1(ref [|y|]);
+                    }
+                }
+                """,
+                expected: LanguageVersion.CSharp12,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
         }
     }
 }

@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnImplicitToStringReceiver()
         {
             await TestMissingAsync(
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnImplicitToStringReceiverWithArg()
         {
             await TestMissingAsync(
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnStaticToStringReceiver()
         {
             await TestMissingAsync(
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnStaticToStringReceiverWithArg()
         {
             await TestMissingAsync(
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnImplicitPadLeft()
         {
             await TestMissingAsync(
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")]
         public async Task MissingOnStaticPadLeft()
         {
             await TestMissingAsync(
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42247")]
         public async Task OnConstantAlignment1()
         {
             await TestInRegularAndScript1Async(
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42247")]
         public async Task MissingOnNonConstantAlignment()
         {
             await TestMissingAsync(
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
         public async Task MissingOnBaseToString()
         {
             await TestMissingAsync(
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
         public async Task MissingOnBaseToStringEvenWhenNotOverridden()
         {
             await TestMissingAsync(
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
         public async Task MissingOnBaseToStringWithArgument()
         {
             await TestMissingAsync(
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")]
         public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
         {
             await TestInRegularAndScript1Async(
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
         public async Task FormatComponentSimplificationIsNotOfferedOnNonIFormattableType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
         public async Task FormatComponentSimplificationIsOfferedOnIFormattableType()
         {
             await TestInRegularAndScript1Async(
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
         public async Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
         {
             await TestInRegularAndScript1Async(
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")]
         public async Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
         {
             await TestInRegularAndScript1Async(
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
         public async Task ToStringSimplificationIsNotOfferedOnRefStruct()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
         public async Task PadLeftSimplificationIsStillOfferedOnRefStruct()
         {
             await TestInRegularAndScript1Async(
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
         public async Task ShadowedToString()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
         public async Task OverridenShadowedToString()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46011")]
         public async Task DoubleOverridenToString()
         {
             await TestInRegularAndScript1Async(
@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
         public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
         {
             await TestInRegularAndScript1Async(
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
         public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
         {
             await TestInRegularAndScript1Async(
@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                 """);
         }
 
-        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49647")]
         public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
         {
             await TestInRegularAndScript1Async(

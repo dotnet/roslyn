@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 """);
         }
 
-        [Fact, WorkItem(65536, "https://github.com/dotnet/roslyn/issues/65536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65536")]
         public async Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
         {
             await VerifyCS.VerifyCodeFixAsync("""

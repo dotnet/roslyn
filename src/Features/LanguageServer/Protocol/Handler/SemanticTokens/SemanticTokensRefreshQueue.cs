@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -44,6 +45,7 @@ internal class SemanticTokensRefreshQueue :
 
     private readonly LspWorkspaceManager _lspWorkspaceManager;
     private readonly IClientLanguageServerManager _notificationManager;
+    private readonly ICapabilitiesProvider _capabilitiesProvider;
 
     private readonly IAsynchronousOperationListener _asyncListener;
     private readonly CancellationTokenSource _disposalTokenSource;
@@ -61,7 +63,8 @@ internal class SemanticTokensRefreshQueue :
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
+        IClientLanguageServerManager notificationManager,
+        ICapabilitiesProvider capabilitiesProvider)
     {
         _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
 
@@ -70,11 +73,14 @@ internal class SemanticTokensRefreshQueue :
 
         _lspWorkspaceManager = lspWorkspaceManager;
         _notificationManager = notificationManager;
+        _capabilitiesProvider = capabilitiesProvider;
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken _)
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken _)
     {
-        if (_semanticTokenRefreshQueue is null && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
+        if (_semanticTokenRefreshQueue is null
+            && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true
+            && _capabilitiesProvider.GetCapabilities(clientCapabilities).SemanticTokensOptions is not null)
         {
             // Only send a refresh notification to the client every 2s (if needed) in order to avoid
             // sending too many notifications at once.  This ensures we batch up workspace notifications,
@@ -131,7 +137,7 @@ internal class SemanticTokensRefreshQueue :
         {
             if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
             {
-                return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+                return notificationManager.SendRequestAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
             }
         }
 
@@ -141,21 +147,52 @@ internal class SemanticTokensRefreshQueue :
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
-        {
-            var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
-            var documentUri = document.GetURI();
+        Uri? documentUri = null;
 
+        if (e.DocumentId is not null)
+        {
             // We enqueue the URI since there's a chance the client is already tracking the
             // document, in which case we don't need to send a refresh notification.
             // We perform the actual check when processing the batch to ensure we have the
             // most up-to-date list of tracked documents.
-            EnqueueSemanticTokenRefreshNotification(documentUri);
+            if (e.Kind is WorkspaceChangeKind.DocumentChanged)
+            {
+                var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
+                documentUri = document.GetURI();
+            }
+            else if (e.Kind is WorkspaceChangeKind.AdditionalDocumentChanged)
+            {
+                var document = e.NewSolution.GetRequiredAdditionalDocument(e.DocumentId);
+
+                // Changes to files with certain extensions (eg: razor) shouldn't trigger semantic a token refresh
+                if (DisallowsAdditionalDocumentChangedRefreshes(document.FilePath))
+                    return;
+            }
+            else if (e.Kind is WorkspaceChangeKind.DocumentReloaded)
+            {
+                var newDocument = e.NewSolution.GetRequiredDocument(e.DocumentId);
+                var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
+
+                // If the document's attributes haven't changed, then use the document's URI for
+                //   the call to EnqueueSemanticTokenRefreshNotification which will enable the
+                //   tracking check before sending the WorkspaceSemanticTokensRefreshName message.
+                if (oldDocument?.State.Attributes is IChecksummedObject oldChecksumObject
+                    && newDocument.State.Attributes is IChecksummedObject newChecksumObject
+                    && oldChecksumObject.Checksum == newChecksumObject.Checksum)
+                {
+                    documentUri = newDocument.GetURI();
+                }
+            }
         }
-        else
-        {
-            EnqueueSemanticTokenRefreshNotification(documentUri: null);
-        }
+
+        EnqueueSemanticTokenRefreshNotification(documentUri);
+    }
+
+    // Duplicated from Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.LoadedProject.TreatAsIsDynamicFile
+    private static bool DisallowsAdditionalDocumentChangedRefreshes(string? filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+        return extension is ".cshtml" or ".razor";
     }
 
     private void EnqueueSemanticTokenRefreshNotification(Uri? documentUri)

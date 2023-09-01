@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             NoteReceiverReadOrWritten(expr, _writtenInside);
         }
 
+        private void NoteReceiverWritten(BoundInlineArrayAccess expr)
+        {
+            NoteExpressionReadOrWritten(expr.Expression, _writtenInside);
+        }
+
         private void NoteReceiverRead(BoundFieldAccess expr)
         {
             NoteReceiverReadOrWritten(expr, _readInside);
@@ -167,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.FieldSymbol.IsStatic) return;
             if (expr.FieldSymbol.ContainingType.IsReferenceType) return;
             var receiver = expr.ReceiverOpt;
+            NoteExpressionReadOrWritten(receiver, readOrWritten);
+        }
+
+        private void NoteExpressionReadOrWritten(BoundExpression receiver, HashSet<Symbol> readOrWritten)
+        {
             if (receiver == null) return;
             var receiverSyntax = receiver.Syntax;
             if (receiverSyntax == null) return;
@@ -205,7 +215,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     if (receiver.Type.IsStructType() && receiverSyntax.Span.OverlapsWith(RegionSpan))
                     {
-                        NoteReceiverReadOrWritten(receiver as BoundFieldAccess, readOrWritten);
+                        NoteReceiverReadOrWritten((BoundFieldAccess)receiver, readOrWritten);
+                    }
+                    break;
+                case BoundKind.InlineArrayAccess:
+                    if (receiverSyntax.Span.OverlapsWith(RegionSpan))
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)receiver;
+                        NoteExpressionReadOrWritten(elementAccess.Expression, readOrWritten);
                     }
                     break;
             }
@@ -240,6 +257,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundKind.InlineArrayAccess:
+                    {
+                        base.AssignImpl(node, value, isRef, written, read);
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        if (!IsInside && node.Syntax != null && node.Syntax.Span.Contains(RegionSpan))
+                        {
+                            NoteReceiverWritten(elementAccess);
+                        }
+
+                        break;
+                    }
 
                 default:
                     base.AssignImpl(node, value, isRef, written, read);

@@ -263,11 +263,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.ProcessEmbeddedMethods()
                 End If
 
-                Dim privateImplClass = moduleBeingBuiltOpt.PrivateImplClass
+                ' all threads that were adding methods must be finished now, we can freeze the class:
+                Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
                 If privateImplClass IsNot Nothing Then
-                    ' all threads that were adding methods must be finished now, we can freeze the class:
-                    privateImplClass.Freeze()
-
                     compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
             End If
@@ -1688,7 +1686,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
                                       stateMachineStatesDebugInfo:=StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                                       stateMachineMoveNextDebugInfoOpt:=moveNextBodyDebugInfoOpt,
-                                      codeCoverageSpans:=codeCoverageSpans)
+                                      codeCoverageSpans:=codeCoverageSpans,
+                                      isPrimaryConstructor:=False)
             Finally
                 ' Free resources used by the basic blocks in the builder.
                 builder.FreeBasicBlocks()

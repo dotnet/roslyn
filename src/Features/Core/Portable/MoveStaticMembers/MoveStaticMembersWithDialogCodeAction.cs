@@ -22,29 +22,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersWithDialogCodeAction : CodeActionWithOptions
+    internal class MoveStaticMembersWithDialogCodeAction(
+        Document document,
+        IMoveStaticMembersOptionsService service,
+        INamedTypeSymbol selectedType,
+        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
-        private readonly Document _document;
-        private readonly ImmutableArray<ISymbol> _selectedMembers;
-        private readonly INamedTypeSymbol _selectedType;
-        private readonly IMoveStaticMembersOptionsService _service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+        private readonly Document _document = document;
+        private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
+        private readonly INamedTypeSymbol _selectedType = selectedType;
+        private readonly IMoveStaticMembersOptionsService _service = service;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
-
-        public MoveStaticMembersWithDialogCodeAction(
-            Document document,
-            IMoveStaticMembersOptionsService service,
-            INamedTypeSymbol selectedType,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            ImmutableArray<ISymbol> selectedMembers)
-        {
-            _document = document;
-            _service = service;
-            _selectedType = selectedType;
-            _fallbackOptions = fallbackOptions;
-            _selectedMembers = selectedMembers;
-        }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {

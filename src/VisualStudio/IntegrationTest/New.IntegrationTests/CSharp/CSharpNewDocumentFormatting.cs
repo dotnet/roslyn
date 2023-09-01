@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+        [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
         public async Task CreateLegacyProjectWithFileScopedNamespaces()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
-        [WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
         public async Task CreateSDKProjectWithFileScopedNamespaces()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
-        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithBlockScopedNamespacesFromEditorConfig()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -81,7 +81,7 @@ csharp_style_namespace_declarations = block_scoped
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
-        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithBlockScopedNamespacesFromIrrelevantEditorConfigH()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);
@@ -111,7 +111,7 @@ csharp_style_namespace_declarations = block_scoped
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
-        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithFileScopedNamespacesFromEditorConfig()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(false, HangMitigatingCancellationToken);

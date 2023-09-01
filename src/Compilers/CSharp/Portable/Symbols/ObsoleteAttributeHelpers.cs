@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         /// hierarchy is Obsolete.
         /// </returns>
-        private static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete)
+        private static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete, Func<Symbol, ThreeState> getStateFromSymbol)
         {
             while ((object)symbol != null)
             {
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     symbol.ForceCompleteObsoleteAttribute();
                 }
 
-                var state = symbol.ObsoleteState;
+                var state = getStateFromSymbol(symbol);
                 if (state != ThreeState.False)
                 {
                     return state;
@@ -98,9 +100,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.ObsoleteKind)
             {
                 case ObsoleteAttributeKind.None:
+                    if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Experimental
+                        || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Experimental)
+                    {
+                        return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
+                    }
+
+                    if (symbol.ContainingModule.ObsoleteKind is ObsoleteAttributeKind.Uninitialized
+                        || symbol.ContainingAssembly.ObsoleteKind is ObsoleteAttributeKind.Uninitialized)
+                    {
+                        return ObsoleteDiagnosticKind.Lazy;
+                    }
+
                     return ObsoleteDiagnosticKind.NotObsolete;
-                case ObsoleteAttributeKind.Experimental:
+                case ObsoleteAttributeKind.WindowsExperimental:
                     return ObsoleteDiagnosticKind.Diagnostic;
+                case ObsoleteAttributeKind.Experimental:
+                    return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ExperimentalState);
                 case ObsoleteAttributeKind.Uninitialized:
                     // If we haven't cracked attributes on the symbol at all or we haven't
                     // cracked attribute arguments enough to be able to report diagnostics for
@@ -109,18 +125,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ObsoleteDiagnosticKind.Lazy;
             }
 
-            switch (GetObsoleteContextState(containingMember, forceComplete))
+            return getDiagnosticKind(containingMember, forceComplete, getStateFromSymbol: static (symbol) => symbol.ObsoleteState);
+
+            static ObsoleteDiagnosticKind getDiagnosticKind(Symbol containingMember, bool forceComplete, Func<Symbol, ThreeState> getStateFromSymbol)
             {
-                case ThreeState.False:
-                    return ObsoleteDiagnosticKind.Diagnostic;
-                case ThreeState.True:
-                    // If we are in a context that is already obsolete, there is no point reporting
-                    // more obsolete diagnostics.
-                    return ObsoleteDiagnosticKind.Suppressed;
-                default:
-                    // If the context is unknown, then store the symbol so that we can do this check at a
-                    // later stage
-                    return ObsoleteDiagnosticKind.LazyPotentiallySuppressed;
+                switch (GetObsoleteContextState(containingMember, forceComplete, getStateFromSymbol))
+                {
+                    case ThreeState.False:
+                        return ObsoleteDiagnosticKind.Diagnostic;
+                    case ThreeState.True:
+                        // If we are in a context that is already experimental/obsolete, there is no point reporting
+                        // more experimental/obsolete diagnostics.
+                        return ObsoleteDiagnosticKind.Suppressed;
+                    default:
+                        // If the context is unknown, then store the symbol so that we can do this check at a
+                        // later stage
+                        return ObsoleteDiagnosticKind.LazyPotentiallySuppressed;
+                }
             }
         }
 
@@ -136,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static DiagnosticInfo createObsoleteDiagnostic(Symbol symbol, BinderFlags location)
             {
-                var data = symbol.ObsoleteAttributeData;
+                var data = symbol.ObsoleteAttributeData ?? symbol.ContainingModule.ObsoleteAttributeData ?? symbol.ContainingAssembly.ObsoleteAttributeData;
                 Debug.Assert(data != null);
 
                 if (data == null)
@@ -154,12 +175,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (data.Kind == ObsoleteAttributeKind.Experimental)
+                if (data.Kind == ObsoleteAttributeKind.WindowsExperimental)
                 {
                     Debug.Assert(data.Message == null);
                     Debug.Assert(!data.IsError);
                     // Provide an explicit format for fully-qualified type names.
-                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
+                    return new CSDiagnosticInfo(ErrorCode.WRN_WindowsExperimental,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
+                }
+
+                if (data.Kind == ObsoleteAttributeKind.Experimental)
+                {
+                    Debug.Assert(data.Message is null);
+                    Debug.Assert(!data.IsError);
+
+                    // Provide an explicit format for fully-qualified type names.
+                    return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.WRN_Experimental, data,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
                 // Issue a specialized diagnostic for add methods of collection initializers
@@ -187,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsObsoleteDiagnostic(this DiagnosticInfo diagnosticInfo)
         {
             return (ErrorCode)diagnosticInfo.Code is
-                       (ErrorCode.WRN_Experimental or ErrorCode.WRN_DeprecatedCollectionInitAdd or
+                       (ErrorCode.WRN_Experimental or ErrorCode.WRN_WindowsExperimental or ErrorCode.WRN_DeprecatedCollectionInitAdd or
                         ErrorCode.WRN_DeprecatedSymbol or ErrorCode.ERR_DeprecatedCollectionInitAddStr or
                         ErrorCode.ERR_DeprecatedSymbolStr or ErrorCode.WRN_DeprecatedCollectionInitAddStr or
                         ErrorCode.WRN_DeprecatedSymbolStr);

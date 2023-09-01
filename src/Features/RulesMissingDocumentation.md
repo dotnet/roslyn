@@ -4,13 +4,6 @@ Rule ID | Missing Help Link | Title |
 --------|-------------------|-------|
 IDE0005_gen |  | Imports statement is unnecessary. |
 IDE0043 |  | Invalid format string |
-IDE0120 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0120> | Simplify LINQ expression |
-IDE0130 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0130> | Namespace does not match folder structure |
-IDE0200 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0200> | Remove unnecessary lambda expression |
-IDE0210 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0210> | Convert to top-level statements |
-IDE0211 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0211> | Convert to 'Program.Main' style program |
-IDE0220 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0220> | Add explicit cast |
-IDE0230 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0230> | Use UTF-8 string literal |
 IDE0240 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0240> | Remove redundant nullable directive |
 IDE0241 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0241> | Remove unnecessary nullable directive |
 IDE0250 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0250> | Make struct 'readonly' |
@@ -18,6 +11,13 @@ IDE0251 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0260 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0260> | Use pattern matching |
 IDE0270 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0270> | Use coalesce expression |
 IDE0280 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0280> | Use 'nameof' |
+IDE0290 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0290> | Use primary constructor |
+IDE0300 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0300> | Simplify collection initialization |
+IDE0301 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0301> | Simplify collection initialization |
+IDE0302 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0302> | Simplify collection initialization |
+IDE0303 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0303> | Simplify collection initialization |
+IDE0304 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0304> | Simplify collection initialization |
+IDE0305 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0305> | Simplify collection initialization |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |

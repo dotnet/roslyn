@@ -30,6 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim originalCode = ""
             Dim namespacesToAdd = {"System"}
             Dim expectedUpdatedCode = "using System;
+
 "
 
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
@@ -41,6 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = "using System.Bar;
 using First.Alphabetically;
+
 "
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -51,6 +53,7 @@ using First.Alphabetically;
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = "using First.Alphabetically;
 using System.Bar;
+
 "
 
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
@@ -69,7 +72,7 @@ using G.H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WorkItem(4457, "https://github.com/dotnet/roslyn/issues/4457")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4457")>
         <WpfFact>
         Public Async Function TestAddImport_InsideNamespace() As Task
             Dim originalCode = "
@@ -174,11 +177,12 @@ using G=   H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}
             Dim expectedUpdatedCode = "using $system;
+
 "
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -277,7 +281,7 @@ using G=   H.I;
             TestFormattingWithTabSize(3)
         End Sub
 
-        <WpfTheory, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/4652")>
         <InlineData(3)>
         <InlineData(4)>
         <InlineData(5)>
@@ -411,7 +415,7 @@ using G=   H.I;
                     snippetNode,
                     CancellationToken.None)
 
-                Assert.Equal(expectedUpdatedCode,
+                AssertEx.EqualOrDiff(expectedUpdatedCode,
                              (Await updatedDocument.GetTextAsync()).ToString())
             End Using
         End Function

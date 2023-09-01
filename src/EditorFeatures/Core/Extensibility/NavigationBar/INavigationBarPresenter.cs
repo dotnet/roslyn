@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor
 
         ITextView TryGetCurrentView();
 
-        event EventHandler<EventArgs> ViewFocused;
-        event EventHandler<CaretPositionChangedEventArgs> CaretMoved;
+        /// <summary>
+        /// An event raised when the caret is moved or the active view in the document changed. In either case, the symbol under the caret has changed, so we should refresh.
+        /// </summary>
+        event EventHandler<EventArgs> CaretMovedOrActiveViewChanged;
 
         event EventHandler<NavigationBarItemSelectedEventArgs> ItemSelected;
     }

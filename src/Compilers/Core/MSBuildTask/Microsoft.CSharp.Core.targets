@@ -25,6 +25,10 @@
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '7.0' AND
                                          '$(_MaxSupportedLangVersion)' == ''">11.0</_MaxSupportedLangVersion>
 
+    <!-- .NETCoreApp == 8.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '8.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
+
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
@@ -104,6 +108,7 @@
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
+         InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
          GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
@@ -133,6 +138,7 @@
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
          ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"

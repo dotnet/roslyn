@@ -21,16 +21,9 @@ namespace Microsoft.CodeAnalysis
     /// symbols in practice, this should not be expensive to hold onto.  Importantly, semantic models and 
     /// complex method binding/caching should never really happen with this compilation.
     /// </summary>
-    internal class DeferredDocumentationProvider : DocumentationProvider
+    internal class DeferredDocumentationProvider(Compilation compilation) : DocumentationProvider
     {
-        private readonly Compilation _compilation;
-
-        public DeferredDocumentationProvider(Compilation compilation)
-        {
-            // Ensure we are getting a clone of this compilation so that we are only holding onto the decl table and
-            // not rooting a full compilation that might be quite expensive.
-            _compilation = compilation.Clone();
-        }
+        private readonly Compilation _compilation = compilation.Clone();
 
         protected override string? GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {

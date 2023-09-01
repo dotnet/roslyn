@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-            var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var helper = new PatternMatchHelper(filterText);
+            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
     }
 }

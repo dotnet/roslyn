@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType,
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,

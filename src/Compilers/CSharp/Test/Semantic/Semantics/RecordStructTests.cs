@@ -250,13 +250,13 @@ record struct Point(int x, int y);
 
             var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,13): error CS8773: Feature 'primary constructors' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS9113: Parameter 'x' is unread.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 13),
+                // 0.cs(2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS9113: Parameter 'y' is unread.
+                // 0.cs(2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
@@ -275,13 +275,13 @@ record struct Point(int x, int y);
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,13): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS9113: Parameter 'x' is unread.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 13),
+                // 0.cs(2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS9113: Parameter 'y' is unread.
+                // 0.cs(2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
@@ -322,9 +322,9 @@ namespace NS
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,17): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,17): error CS8773: Feature 'primary constructors' is not available in C# 9.0. Please use language version 12.0 or greater.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(4, 17),
                 // (4,22): warning CS9113: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),
@@ -1490,45 +1490,46 @@ ref struct RefLike{}
 
 unsafe record struct C(
     int* P1, // 1
-    int*[] P2, // 2
+    int*[] P2,
     C<int*[]> P3,
-    delegate*<int, int> P4, // 3
-    void P5, // 4
-    C2 P6, // 5, 6
-    System.ArgIterator P7, // 7
-    System.TypedReference P8, // 8
-    RefLike P9); // 9
+    delegate*<int, int> P4, // 2
+    void P5, // 3
+    C2 P6, // 4, 5
+    System.ArgIterator P7, // 6
+    System.TypedReference P8, // 7
+    RefLike P9, // 8
+    delegate*<void> P10); // 9
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
+                // 0.cs(7,10): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
-                // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
-                // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 3
+                // 0.cs(10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     delegate*<int, int> P4, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
-                // (11,5): error CS1536: Invalid parameter type 'void'
-                //     void P5, // 5
+                // 0.cs(11,5): error CS1536: Invalid parameter type 'void'
+                //     void P5, // 3
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 5, 6
+                // 0.cs(12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 4, 5
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
-                // (12,5): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 5, 6
+                // 0.cs(12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 4, 5
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
-                // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 7
+                // 0.cs(13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     System.ArgIterator P7, // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
-                // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 8
+                // 0.cs(14,5): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     System.TypedReference P8, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
-                // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 9
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
+                // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     RefLike P9, // 8
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5),
+                // 0.cs(16,21): error CS8908: The type 'delegate*<void>' may not be used for a field of a record.
+                //     delegate*<void> P10); // 9
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P10").WithArguments("delegate*<void>").WithLocation(16, 21)
                 );
         }
 
@@ -1544,43 +1545,44 @@ public ref struct RefLike{}
 public unsafe record struct C
 {
     public int* f1; // 1
-    public int*[] f2; // 2
+    public int*[] f2;
     public C<int*[]> f3;
-    public delegate*<int, int> f4; // 3
-    public void f5; // 4
-    public C2 f6; // 5
-    public System.ArgIterator f7; // 6
-    public System.TypedReference f8; // 7
-    public RefLike f9; // 8
+    public delegate*<int, int> f4; // 2
+    public void f5; // 3
+    public C2 f6; // 4
+    public System.ArgIterator f7; // 5
+    public System.TypedReference f8; // 6
+    public RefLike f9; // 7
+    public delegate*<void> f10; // 8
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1; // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // (9,19): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     public int*[] f2; // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f2").WithArguments("int*[]").WithLocation(9, 19),
-                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     public delegate*<int, int> f4; // 3
+                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     public delegate*<int, int> f4; // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
-                // (12,12): error CS0670: Field cannot have void type
-                //     public void f5; // 4
+                // 0.cs(12,12): error CS0670: Field cannot have void type
+                //     public void f5; // 3
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(12, 12),
-                // (13,15): error CS0723: Cannot declare a variable of static type 'C2'
-                //     public C2 f6; // 5
+                // 0.cs(13,15): error CS0723: Cannot declare a variable of static type 'C2'
+                //     public C2 f6; // 4
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "f6").WithArguments("C2").WithLocation(13, 15),
-                // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     public System.ArgIterator f7; // 6
+                // 0.cs(14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     public System.ArgIterator f7; // 5
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
-                // (15,12): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     public System.TypedReference f8; // 7
+                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public System.TypedReference f8; // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
-                // (16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     public RefLike f9; // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
+                // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     public RefLike f9; // 7
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12),
+                // 0.cs(17,28): error CS8908: The type 'delegate*<void>' may not be used for a field of a record.
+                //     public delegate*<void> f10; // 8
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f10").WithArguments("delegate*<void>").WithLocation(17, 28)
                 );
         }
 
@@ -1596,42 +1598,40 @@ public ref struct RefLike{}
 public unsafe record struct C
 {
     public int* f1 { get; set; } // 1
-    public int*[] f2 { get; set; } // 2
+    public int*[] f2 { get; set; }
     public C<int*[]> f3 { get; set; }
-    public delegate*<int, int> f4 { get; set; } // 3
-    public void f5 { get; set; } // 4
-    public C2 f6 { get; set; } // 5
-    public System.ArgIterator f7 { get; set; } // 6
-    public System.TypedReference f8 { get; set; } // 7
-    public RefLike f9 { get; set; } // 8
+    public delegate*<int, int> f4 { get; set; } // 2
+    public void f5 { get; set; } // 3
+    public C2 f6 { get; set; } // 4
+    public System.ArgIterator f7 { get; set; } // 5
+    public System.TypedReference f8 { get; set; } // 6
+    public RefLike f9 { get; set; } // 7
+    public delegate*<void>[] f10 { get; set; } // 8
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1 { get; set; } // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // (9,19): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     public int*[] f2 { get; set; } // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f2").WithArguments("int*[]").WithLocation(9, 19),
-                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     public delegate*<int, int> f4 { get; set; } // 3
+                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     public delegate*<int, int> f4 { get; set; } // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
-                // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
-                //     public void f5 { get; set; } // 4
+                // 0.cs(12,17): error CS0547: 'C.f5': property or indexer cannot have void type
+                //     public void f5 { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,12): error CS0722: 'C2': static types cannot be used as return types
-                //     public C2 f6 { get; set; } // 5
+                // 0.cs(13,12): error CS0722: 'C2': static types cannot be used as return types
+                //     public C2 f6 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
-                // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     public System.ArgIterator f7 { get; set; } // 6
+                // 0.cs(14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     public System.ArgIterator f7 { get; set; } // 5
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
-                // (15,12): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     public System.TypedReference f8 { get; set; } // 7
+                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public System.TypedReference f8 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
-                // (16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     public RefLike f9 { get; set; } // 8
+                // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     public RefLike f9 { get; set; } // 7
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
                 );
         }
@@ -9988,39 +9988,12 @@ public class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,26): error CS1513: } expected
+                // (7,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(7, 26),
-                // (7,26): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(7, 26),
+                // (7,26): error CS0747: Invalid initializer member declarator
                 //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(7, 26),
-                // (7,26): error CS7014: Attributes are not valid in this context.
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(7, 26),
-                // (7,27): error CS1001: Identifier expected
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 27),
-                // (7,27): error CS1003: Syntax error, ']' expected
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 27),
-                // (7,28): error CS1002: ; expected
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 28),
-                // (7,28): error CS1513: } expected
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(7, 28),
-                // (7,30): error CS1525: Invalid expression term '='
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(7, 30),
-                // (7,35): error CS1002: ; expected
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 35),
-                // (7,36): error CS1597: Semicolon after method or accessor block is not valid
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(7, 36),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1)
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 20").WithLocation(7, 26)
             };
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
@@ -10070,14 +10043,16 @@ Block[B0] - Entry
             CaptureIds: [1]
             Block[B2] - Block
                 Predecessors: [B1]
-                Statements (2)
+                Statements (3)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
                       Value:
                         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>) (Syntax: 'a')
 
-                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a with { ')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                       Value:
-                        IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { ')
+                        IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                           Instance Receiver:
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a')
 
@@ -10088,46 +10063,27 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with { ')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with { [0] = 20 }')
                   Left:
-                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with { ')
+                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with { [0] = 20 }')
                   Right:
-                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>, IsInvalid) (Syntax: 'a with { ')
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>, IsInvalid) (Syntax: 'a with { [0] = 20 }')
                       Initializers(1):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { ')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                             Left:
-                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { ')
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                                 Instance Receiver:
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'a with { ')
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                             Right:
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a')
 
             Next (Regular) Block[B4]
-                Leaving: {R3}
+                Leaving: {R3} {R1}
     }
-
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (2)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '[0')
-              Expression:
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '= 20 ')
-              Expression:
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '= 20')
-                  Left:
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                      Children(0)
-                  Right:
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
-
-        Next (Regular) Block[B5]
-            Leaving: {R1}
 }
 
-Block[B5] - Exit
-    Predecessors: [B4]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);

@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
+            if (diagnosticId == "EnableGenerateDocumentationFile")
+            {
+                Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
+                return;
+            }
+
             if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
@@ -454,6 +460,27 @@ dotnet_diagnostic.IDE0270.severity = %value%
 
 # IDE0280
 dotnet_diagnostic.IDE0280.severity = %value%
+
+# IDE0290
+dotnet_diagnostic.IDE0290.severity = %value%
+
+# IDE0300
+dotnet_diagnostic.IDE0300.severity = %value%
+
+# IDE0301
+dotnet_diagnostic.IDE0301.severity = %value%
+
+# IDE0302
+dotnet_diagnostic.IDE0302.severity = %value%
+
+# IDE0303
+dotnet_diagnostic.IDE0303.severity = %value%
+
+# IDE0304
+dotnet_diagnostic.IDE0304.severity = %value%
+
+# IDE0305
+dotnet_diagnostic.IDE0305.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -861,6 +888,13 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0260", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
                 ("IDE0270", "dotnet_style_coalesce_expression", "true"),
                 ("IDE0280", null, null),
+                ("IDE0290", "csharp_style_prefer_primary_constructors", "true"),
+                ("IDE0300", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0301", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0302", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0303", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0304", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0305", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),

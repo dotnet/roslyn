@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new MakeLocalFunctionStaticDiagnosticAnalyzer(), GetMakeLocalFunctionStaticCodeFixProvider());
+            => (new MakeLocalFunctionStaticDiagnosticAnalyzer(), new MakeLocalFunctionStaticCodeFixProvider());
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -431,7 +431,7 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
         public async Task TestMissingIfAnotherLocalFunctionCalled()
         {
             await TestMissingAsync(
@@ -546,7 +546,7 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        [WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
         public async Task TestLocalFunctionAsTopLevelStatement()
         {
             await TestAsync("""
@@ -562,7 +562,7 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        [WorkItem(59286, "https://github.com/dotnet/roslyn/issues/59286")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59286")]
         public async Task TestUnsafeLocalFunction()
         {
             await TestAsync("""

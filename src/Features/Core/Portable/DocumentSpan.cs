@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal readonly struct DocumentSpan : IEquatable<DocumentSpan>
+    internal readonly record struct DocumentSpan
     {
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis
         /// Additional information attached to a document span by it creator.
         /// </summary>
         public ImmutableDictionary<string, object>? Properties { get; }
-
-        public DocumentSpan(Document document, TextSpan sourceSpan)
-            : this(document, sourceSpan, properties: null)
-        {
-        }
 
         public DocumentSpan(
             Document document,
@@ -37,17 +32,13 @@ namespace Microsoft.CodeAnalysis
             Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
-        public override bool Equals(object? obj)
-            => obj is DocumentSpan documentSpan && Equals(documentSpan);
+        public DocumentSpan(Document document, TextSpan sourceSpan)
+            : this(document, sourceSpan, properties: null)
+        {
+        }
 
         public bool Equals(DocumentSpan obj)
             => Document == obj.Document && SourceSpan == obj.SourceSpan;
-
-        public static bool operator ==(DocumentSpan d1, DocumentSpan d2)
-            => d1.Equals(d2);
-
-        public static bool operator !=(DocumentSpan d1, DocumentSpan d2)
-            => !(d1 == d2);
 
         public override int GetHashCode()
             => Hash.Combine(

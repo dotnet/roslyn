@@ -4,25 +4,24 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal abstract class CodeStyleSetting : Setting
+    internal abstract class CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location) : Setting(optionKey, description, updater, location)
     {
         private static readonly bool[] s_boolValues = new[] { true, false };
 
-        public CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
-            : base(optionKey, description, updater, location)
-        {
-        }
-
         public abstract ICodeStyleOption GetCodeStyle();
 
-        public DiagnosticSeverity GetSeverity()
-            => GetCodeStyle().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
+        public ReportDiagnostic GetSeverity()
+        {
+            var severity = GetCodeStyle().Notification.Severity;
+            if (severity is ReportDiagnostic.Default or ReportDiagnostic.Suppress)
+                severity = ReportDiagnostic.Hidden;
+            return severity;
+        }
 
         public sealed override object? GetValue()
             => GetCodeStyle();
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         protected abstract object GetPossibleValue(int valueIndex);
 
-        public void ChangeSeverity(DiagnosticSeverity severity)
+        public void ChangeSeverity(ReportDiagnostic severity)
         {
             var notification = severity switch
             {
-                DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-                DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-                DiagnosticSeverity.Warning => NotificationOption2.Warning,
-                DiagnosticSeverity.Error => NotificationOption2.Error,
+                ReportDiagnostic.Hidden => NotificationOption2.Silent,
+                ReportDiagnostic.Info => NotificationOption2.Suggestion,
+                ReportDiagnostic.Warn => NotificationOption2.Warning,
+                ReportDiagnostic.Error => NotificationOption2.Error,
                 _ => NotificationOption2.None,
             };
 

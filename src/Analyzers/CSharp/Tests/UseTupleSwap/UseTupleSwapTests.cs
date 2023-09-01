@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             }.RunAsync();
         }
 
-        [Fact, WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58759")]
         public async Task TestTopLevelStatements()
         {
             await new VerifyCS.Test
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
         public async Task NotOnRefStruct()
         {
             var code = """
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
         public async Task OnNormalStruct()
         {
             await new VerifyCS.Test
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
             }.RunAsync();
         }
 
-        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66427")]
         public async Task NotOnPointer()
         {
             var code = """

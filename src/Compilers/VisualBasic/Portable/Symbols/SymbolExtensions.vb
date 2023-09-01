@@ -481,5 +481,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
             Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
         End Function
+
+        <Extension>
+        Friend Function IsRequired(member As Symbol) As Boolean
+            Return If(TryCast(member, PropertySymbol)?.IsRequired,
+                      If(TryCast(member, FieldSymbol)?.IsRequired,
+                         False))
+        End Function
     End Module
 End Namespace

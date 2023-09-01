@@ -853,6 +853,8 @@ namespace Foo
 $$
 ";
             var expectedCodeAfterCommit = @"using Foo;
+
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -880,6 +882,7 @@ $$
             var expectedCodeAfterCommit = @"
 using System;
 using Foo;
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -1033,7 +1036,7 @@ namespace Baz
         }
 
         [Fact]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInAttributeNameContext()
         {
             var file1 = @"
@@ -1061,7 +1064,7 @@ namespace Test
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeInAttributeNameContext(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1091,7 +1094,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInNonAttributeNameContext()
         {
             var file1 = @"
@@ -1121,7 +1124,7 @@ namespace Test
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeInNonAttributeNameContext(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1154,7 +1157,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1181,7 +1184,7 @@ namespace Test
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInAttributeNameContext(SourceCodeKind kind)
         {
             // attribute suffix isn't capitalized
@@ -1212,7 +1215,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInNonAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1241,7 +1244,7 @@ namespace Test
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInNonAttributeNameContext(SourceCodeKind kind)
         {
             // attribute suffix isn't capitalized
@@ -1275,7 +1278,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task VBAttributeTypeWithoutSuffixInAttributeNameContext()
         {
             var file1 = @"
@@ -1306,7 +1309,7 @@ namespace Test
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitTypeInUsingStaticContextShouldUseFullyQualifiedName(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1328,7 +1331,7 @@ using static Foo.MyClass$$";
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1350,7 +1353,7 @@ using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.MyClass$$
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName2(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1378,7 +1381,7 @@ namespace Foo
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        [WorkItem(39027, "https://github.com/dotnet/roslyn/issues/39027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39027")]
         public async Task TriggerCompletionInSubsequentSubmission()
         {
             var markup = @"
@@ -1653,7 +1656,7 @@ namespace BB
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory]
-        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54493")]
         public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
         {
             var markup = @"
@@ -1695,8 +1698,7 @@ namespace Test
             await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem(58473, "https://github.com/dotnet/roslyn/issues/58473")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
         public async Task TestGlobalUsingsInSdkAutoGeneratedFile()
         {
             var source = @"
@@ -1718,8 +1720,7 @@ global using global::System.Threading.Tasks;
             await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
         }
 
-        [Fact]
-        [WorkItem(58473, "https://github.com/dotnet/roslyn/issues/58473")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
         public async Task TestGlobalUsingsInSameFile()
         {
             var source = @"
@@ -1733,8 +1734,7 @@ $$";
             await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/59088")]
-        [WorkItem(58473, "https://github.com/dotnet/roslyn/issues/58473")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
         public async Task TestGlobalUsingsInUserDocument()
         {
             var source = @"
@@ -1759,7 +1759,7 @@ global using global::System.Threading.Tasks;
         [InlineData(null)]
         [InlineData(true)]
         [InlineData(false)]
-        [WorkItem(65339, "https://github.com/dotnet/roslyn/issues/65339")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65339")]
         public async Task TestFileScopedType(bool? isProjectReference)
         {
             var srcDoc = @"
@@ -1796,6 +1796,46 @@ namespace Foo
                     markup,
                     "Goo",
                     inlineDescription: "Foo");
+        }
+
+        [Fact]
+        public async Task TestEnumBaseList1()
+        {
+            var source = """
+                enum E : $$
+                """;
+
+            await VerifyTypeImportItemExistsAsync(source, "Byte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "SByte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "Console", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Action", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "DateTime", inlineDescription: "System");
+
+            // Verify that things from other namespaces are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "IEnumerable", inlineDescription: "System.Collections");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Task", inlineDescription: "System.Threading.Tasks");
+            await VerifyTypeImportItemIsAbsentAsync(source, "AssemblyName", inlineDescription: "System.Reflection");
+        }
+
+        [Fact]
+        public async Task TestEnumBaseList2()
+        {
+            var source = """
+                using System;
+
+                enum E : $$
+                """;
+
+            // Everything valid is already in the scope
+            await VerifyNoItemsExistAsync(source);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)

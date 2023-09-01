@@ -163,24 +163,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public static Symbol GetMember(this CSharpCompilation compilation, string qualifiedName)
-        {
-            return compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static ISymbol GetMember(this Compilation compilation, string qualifiedName)
-        {
-            return compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static T GetMember<T>(this CSharpCompilation compilation, string qualifiedName) where T : Symbol
-        {
-            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
-        }
+            => (T)compilation.GlobalNamespace.GetMember(qualifiedName);
 
         public static T GetMember<T>(this Compilation compilation, string qualifiedName) where T : ISymbol
+            => (T)compilation.GlobalNamespace.GetMember(qualifiedName);
+
+        public static IMethodSymbol GetCopyConstructor(this Compilation compilation, string qualifiedTypeName)
         {
-            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            if (!type.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have copy-constructor");
+            }
+
+            return type.InstanceConstructors.Single(c => c.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
         }
+
+        public static IMethodSymbol GetPrimaryConstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.InstanceConstructors.Single(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is TypeDeclarationSyntax));
+        }
+
+        public static IMethodSymbol GetParameterlessConstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.InstanceConstructors.Single(c => c.Parameters is []);
+        }
+
+        public static IMethodSymbol GetSpecializedEqualsOverload(this Compilation compilation, string qualifiedTypeName)
+        {
+            var type = compilation.GetMember<INamedTypeSymbol>(qualifiedTypeName);
+            return type.GetMembers("Equals").OfType<IMethodSymbol>().Single(m => m.Parameters is [{ Type: var parameterType }] && parameterType.Equals(type, SymbolEqualityComparer.Default));
+        }
+
+        public static IMethodSymbol GetPrimaryDeconstructor(this Compilation compilation, string qualifiedTypeName)
+        {
+            var primaryConstructor = compilation.GetPrimaryConstructor(qualifiedTypeName);
+            if (!primaryConstructor.ContainingType.IsRecord)
+            {
+                throw new InvalidOperationException("Only records have primary deconstructor");
+            }
+
+            return primaryConstructor.ContainingType.GetMembers("Deconstruct").OfType<IMethodSymbol>().Single(
+                m => m.Parameters.Length == primaryConstructor.Parameters.Length &&
+                     m.Parameters.All(p => p.RefKind == RefKind.Out && p.Type.Equals(primaryConstructor.Parameters[p.Ordinal].Type, SymbolEqualityComparer.Default)));
+        }
+
+        public static ImmutableArray<T> GetMembers<T>(this Compilation compilation, string qualifiedName) where T : ISymbol
+            => GetMembers(compilation, qualifiedName).SelectAsArray(s => (T)s.ISymbol);
 
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
         {
@@ -893,17 +930,29 @@ internal static class Extensions
 
     public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
     {
-        return binder.BindCref(syntax, out ambiguityWinner, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindCref(syntax, out ambiguityWinner, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static BoundBlock BindEmbeddedBlock(this Microsoft.CodeAnalysis.CSharp.Binder binder, BlockSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindEmbeddedBlock(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindEmbeddedBlock(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static BoundExpression BindExpression(this Microsoft.CodeAnalysis.CSharp.Binder binder, ExpressionSyntax node, DiagnosticBag diagnostics)
     {
-        return binder.BindExpression(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+        var bindingDiagnostics = Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var result = binder.BindExpression(node, bindingDiagnostics);
+        diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+        bindingDiagnostics.Free();
+        return result;
     }
 
     public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)

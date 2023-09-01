@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal Task<SyntaxContext> GetSyntaxContextWithExistingSpeculativeModelAsync(Document document, CancellationToken cancellationToken)
         {
             if (SharedSyntaxContextsWithSpeculativeModel is null)
-                return CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(document, Position, cancellationToken);
+                return Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(document, Position, cancellationToken);
 
             return SharedSyntaxContextsWithSpeculativeModel.GetSyntaxContextAsync(document, cancellationToken);
         }

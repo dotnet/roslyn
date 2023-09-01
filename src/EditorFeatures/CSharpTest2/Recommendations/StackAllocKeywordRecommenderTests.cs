@@ -112,7 +112,7 @@ $$");
     int v = $$");
         }
 
-        [Fact, WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         public async Task TestInsideForStatementVarDecl1()
         {
             await VerifyKeywordAsync(
@@ -123,7 +123,7 @@ $$");
         for (var i = $$");
         }
 
-        [Fact, WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         public async Task TestInsideForStatementVarDecl2()
         {
             await VerifyKeywordAsync(
@@ -134,7 +134,7 @@ $$");
         for (int* i = $$");
         }
 
-        [Fact, WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         public async Task TestInsideForStatementVarDecl3()
         {
             await VerifyKeywordAsync(
@@ -145,28 +145,28 @@ $$");
         for (string i = $$");
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSOfAssignment_Span()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
 Span<int> s = $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSOfAssignment_Pointer()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"int* v = $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSOfAssignment_ReAssignment()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"v = $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithCast()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -176,7 +176,7 @@ var s = (Span<char>)$$"));
 s = (Span<char>)$$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_True()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -186,7 +186,7 @@ var s = value ? $$"));
 s = value ? $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_True_WithCast()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -196,7 +196,7 @@ var s = value ? (Span<int>)$$"));
 s = value ? (Span<int>)$$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_False()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -206,7 +206,7 @@ var s = value ? stackalloc int[10] : $$"));
 s = value ? stackalloc int[10] : $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_False_WithCast()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -216,7 +216,7 @@ var s = value ? stackalloc int[10] : (Span<int>)$$"));
 s = value ? stackalloc int[10] : (Span<int>)$$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_NestedConditional_True()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -226,7 +226,7 @@ var s = value1 ? value2 ? $$"));
 s = value1 ? value2 ? $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_True()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -236,7 +236,7 @@ var s = value1 ? value2 ? (Span<int>)$$"));
 s = value1 ? value2 ? (Span<int>)$$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_NestedConditional_False()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -246,7 +246,7 @@ var s = value1 ? value2 ? stackalloc int [10] : $$"));
 s = value1 ? value2 ? stackalloc int [10] : $$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_False()
         {
             await VerifyKeywordAsync(AddInsideMethod(@"
@@ -256,7 +256,7 @@ var s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
 s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
         }
 
-        [Fact, WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
         public async Task TestNotInLHSOfAssignment()
         {
             await VerifyAbsenceAsync(AddInsideMethod(@"
@@ -266,7 +266,7 @@ var x $$ ="));
 x $$ ="));
         }
 
-        [Fact, WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41736")]
         public async Task TestInArgument()
         {
             await VerifyKeywordAsync(@"
@@ -288,7 +288,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41736")]
         public async Task TestNotInConstFieldInitializer()
         {
             await VerifyAbsenceAsync(@"

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixReturnType_LocalFunction_ArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixField()
         {
             await TestInRegularAndScript1Async(
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixPropertyDeclaration()
         {
             await TestInRegularAndScript1Async(
@@ -562,8 +562,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
-        [WorkItem(30026, "https://github.com/dotnet/roslyn/issues/30026")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26626")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30026")]
         public async Task FixOptionalParameter()
         {
             await TestInRegularAndScript1Async(
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_Invocation()
         {
             await TestInRegularAndScript1Async(
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
             await TestInRegularAndScript1Async(
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_Default()
         {
             await TestInRegularAndScript1Async(
@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_DefaultWithNullableType()
         {
             await TestInRegularAndScript1Async(
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
         public async Task NoFixInvocationOfExternalMethod_NamedArgument()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
         public async Task NoFixInvocationOfExternalMethod_NamedArgument_OutOfOrder()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44338")]
         public async Task NoFixInvocationOfExternalMethod_PositionArgument()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
         public async Task FixFieldDeclaration_Unassigned()
         {
             await TestInRegularAndScript1Async(
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
         public async Task MultipleDeclarator_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
         public async Task FixTupleFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
         public async Task FixTupleNamedFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
                 """, parameters: s_nullableFeature);
         }
 
-        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46354")]
         public async Task FixTupleGenericFieldAssignment()
         {
             await TestInRegularAndScript1Async(

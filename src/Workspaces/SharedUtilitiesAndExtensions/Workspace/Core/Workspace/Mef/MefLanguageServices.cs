@@ -193,15 +193,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return service.lazyService != null;
         }
 
-        internal sealed class LazyServiceMetadataDebuggerProxy
+        internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services)
         {
-            private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
-
-            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services)
-                => _services = services;
-
             public (string type, string layer)[] Metadata
-                => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+                => services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
         }
     }
 }

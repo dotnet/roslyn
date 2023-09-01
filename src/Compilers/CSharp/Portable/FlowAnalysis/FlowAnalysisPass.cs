@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // have already reported a non-void partial method error.
                 else if (method.Locations.Length == 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ReturnExpected, method.Locations[0], method);
+                    diagnostics.Add(ErrorCode.ERR_ReturnExpected, method.GetFirstLocation(), method);
                 }
             }
 
@@ -109,34 +109,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundBlock PrependImplicitInitializations(BoundBlock body, MethodSymbol method, ImmutableArray<FieldSymbol> implicitlyInitializedFields, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!implicitlyInitializedFields.IsEmpty);
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
-            Debug.Assert(method.ContainingType.IsStructType());
+            NamedTypeSymbol containingType = method.ContainingType;
+            Debug.Assert(containingType.IsStructType());
 
             var F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length);
-            foreach (var field in implicitlyInitializedFields)
+
+            // Inline arrays of length > 1 must be initialized completely, simply initializing the element field is not sufficient.
+            // For arrays of length == 1, initializing the element field is sufficient.
+            if (containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
             {
-                if (field.RefKind == RefKind.None)
+                Debug.Assert(elementField == implicitlyInitializedFields.Single());
+
+                // this = default;
+                builder.Add(
+                    F.ExpressionStatement(
+                        F.AssignmentExpression(
+                            F.This(),
+                            F.Default(containingType))));
+            }
+            else
+            {
+                foreach (var field in implicitlyInitializedFields)
                 {
-                    // field = default(T);
-                    builder.Add(
-                        F.ExpressionStatement(
-                            F.AssignmentExpression(
-                                F.Field(F.This(), field),
-                                F.Default(field.Type))));
-                }
-                else
-                {
-                    // field = ref *default(T*);
-                    builder.Add(
-                        F.ExpressionStatement(
-                            F.AssignmentExpression(
-                                F.Field(F.This(), field),
-                                F.NullRef(field.TypeWithAnnotations),
-                                isRef: true)));
+                    if (field.RefKind == RefKind.None)
+                    {
+                        // field = default(T);
+                        builder.Add(
+                            F.ExpressionStatement(
+                                F.AssignmentExpression(
+                                    F.Field(F.This(), field),
+                                    F.Default(field.Type))));
+                    }
+                    else
+                    {
+                        // field = ref *default(T*);
+                        builder.Add(
+                            F.ExpressionStatement(
+                                F.AssignmentExpression(
+                                    F.Field(F.This(), field),
+                                    F.NullRef(field.TypeWithAnnotations),
+                                    isRef: true)));
+                    }
                 }
             }
+
             var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
             return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Instrumentation, body.Statements.Insert(index: 0, initializations));

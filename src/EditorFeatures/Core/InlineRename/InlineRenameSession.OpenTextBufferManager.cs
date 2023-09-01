@@ -262,8 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // in tests `ActiveTextview` could be null so don't depend on it
                 return ActiveTextView == null ||
-                    _referenceSpanToLinkedRenameSpanMap.Keys
-                    .Select(s => s.ToSpan())
+                    _referenceSpanToLinkedRenameSpanMap.Values
+                    .Select(renameTrackingSpan => renameTrackingSpan.TrackingSpan.GetSpan(_subjectBuffer.CurrentSnapshot))
                     .All(s =>
                         s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
                         ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             linkedDocumentsMightConflict = false;
 
                             // Only need to check the new span's content
-                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextSynchronously(cancellationToken);
                             var firstDocumentNewSpanText = firstDocumentReplacements.Item2.SelectAsArray(replacement => firstDocumentNewText.ToString(replacement.NewSpan));
                             foreach (var (document, replacements) in documentReplacements)
                             {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                     continue;
                                 }
 
-                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextSynchronously(cancellationToken);
                                 for (var i = 0; i < replacements.Length; i++)
                                 {
                                     if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
@@ -453,9 +453,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                         // Show merge conflicts comments as unresolvable conflicts, and do not
                         // show any other rename-related spans that overlap a merge conflict comment.
-                        var mergeConflictComments = mergeResult.MergeConflictCommentSpans.ContainsKey(document.Id)
-                            ? mergeResult.MergeConflictCommentSpans[document.Id]
-                            : SpecializedCollections.EmptyEnumerable<TextSpan>();
+                        mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
+                        mergeConflictComments ??= SpecializedCollections.EmptyEnumerable<TextSpan>();
 
                         foreach (var conflict in mergeConflictComments)
                         {
@@ -554,8 +553,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                         }
 
-                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         if (oldText == newText)
                         {
@@ -596,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 SnapshotSpan? snapshotSpanToClone = null;
                 string preMergeDocumentTextString = null;
 
-                var preMergeDocumentText = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var preMergeDocumentText = preMergeDocument.GetTextSynchronously(cancellationToken);
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
                 if (snapshot != null && _textBufferCloneService != null)
                 {
@@ -605,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (snapshotSpanToClone == null)
                 {
-                    preMergeDocumentTextString = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString();
+                    preMergeDocumentTextString = preMergeDocument.GetTextSynchronously(cancellationToken).ToString();
                 }
 
                 foreach (var replacement in relevantReplacements)
@@ -737,8 +736,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 private SnapshotPoint GetNewEndpoint(TextSpan span)
                 {
                     var snapshot = _openTextBufferManager._subjectBuffer.CurrentSnapshot;
-                    var endPoint = _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.ContainsKey(span)
-                        ? _openTextBufferManager._referenceSpanToLinkedRenameSpanMap[span].TrackingSpan.GetEndPoint(snapshot)
+                    var endPoint = _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.TryGetValue(span, out var renameTrackingSpan)
+                        ? renameTrackingSpan.TrackingSpan.GetEndPoint(snapshot)
                         : _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.First(kvp => kvp.Key.OverlapsWith(span)).Value.TrackingSpan.GetEndPoint(snapshot);
                     return _openTextBufferManager.ActiveTextView.BufferGraph.MapUpToBuffer(endPoint, PointTrackingMode.Positive, PositionAffinity.Successor, _openTextBufferManager.ActiveTextView.TextBuffer).Value;
                 }

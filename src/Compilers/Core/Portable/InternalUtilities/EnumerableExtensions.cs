@@ -171,6 +171,27 @@ namespace Roslyn.Utilities
         public static IReadOnlyCollection<T> ToCollection<T>(this IEnumerable<T> sequence)
             => (sequence is IReadOnlyCollection<T> collection) ? collection : sequence.ToList();
 
+        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return item;
+            }
+
+            return default;
+        }
+
         public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
@@ -190,7 +211,28 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            return source.Cast<T?>().FirstOrDefault(static (v, predicate) => predicate(v!.Value), predicate);
+        }
+
+        public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+            where T : struct
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            return source.Cast<T?>().FirstOrDefault(static (v, arg) => arg.predicate(v!.Value, arg.arg), (predicate, arg));
         }
 
         public static T? LastOrNull<T>(this IEnumerable<T> source)
@@ -513,7 +555,11 @@ namespace Roslyn.Utilities
             return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
+#if NET7_0_OR_GREATER
+        public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
+#else
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
+#endif
         {
             return source.OrderBy(Comparisons<T>.Comparer);
         }

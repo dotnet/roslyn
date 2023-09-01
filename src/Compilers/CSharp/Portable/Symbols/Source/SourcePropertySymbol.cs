@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
 
             if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
-                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, syntax, initializer.EqualsToken.GetLocation());
+                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, initializer.EqualsToken);
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -547,22 +547,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.TryGetFirstLocation() ?? Location, param.Name);
                 }
             }
 
             diagnostics.Add(Location, useSiteInfo);
-        }
-
-        protected override bool HasPointerTypeSyntactically
-        {
-            get
-            {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode);
-                Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-                typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
-                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
-            }
         }
 
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -553,7 +553,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             var source1 = @"
@@ -594,7 +594,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
             var source1 = @"

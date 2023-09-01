@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Function
 
-        <WpfTheory, WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <CombinatorialData>
         Public Async Function UnresolvableConflictInModifiedDocument(host As RenameTestHost) As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -379,7 +379,7 @@ public class Class1
             End Using
         End Function
 
-        <WpfTheory, WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <CombinatorialData>
         Public Async Function UnresolvableConflictInUnmodifiedDocument(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -414,7 +414,7 @@ public class Class1
             End Using
         End Function
 
-        <WpfTheory, WorkItem(847467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
         <CombinatorialData>
         Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -487,7 +487,7 @@ public class Class1
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
         Public Async Function RenamingEscapedIdentifiers(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
@@ -542,7 +542,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, WorkItem(812795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
         <CombinatorialData>
         Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1138,7 +1138,7 @@ End Class
             End Using
         End Function
 
-        <WpfTheory, WorkItem(771743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
         <CombinatorialData>
         Public Async Function VerifyNoSelectionAfterCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1352,7 +1352,7 @@ namespace N
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1582,7 +1582,7 @@ static class E
             End Using
         End Function
 
-        <WpfTheory, WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <CombinatorialData>
         Public Async Function CSharpShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1617,7 +1617,7 @@ static class E
             End Using
         End Function
 
-        <WpfTheory, WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <CombinatorialData>
         Public Async Function VBShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(

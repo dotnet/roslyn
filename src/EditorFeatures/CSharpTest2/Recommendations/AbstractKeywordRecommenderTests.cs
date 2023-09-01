@@ -111,7 +111,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -120,7 +120,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -275,14 +275,14 @@ $$");
 @"public $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"file $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile2()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,

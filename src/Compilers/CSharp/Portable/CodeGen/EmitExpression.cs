@@ -11,6 +11,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.IsOperator:
-                    EmitIsExpression((BoundIsOperator)expression, used);
+                    EmitIsExpression((BoundIsOperator)expression, used, omitBooleanConversion: false);
                     break;
 
                 case BoundKind.AsOperator:
@@ -612,16 +613,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return base.Visit(node);
             }
 
-            public override BoundNode VisitCall(BoundCall node)
+            protected override void VisitReceiver(BoundCall node)
             {
                 if (node.ReceiverOpt is BoundConditionalReceiver { Id: var id } && id == _conditionalAccess.Id)
                 {
                     Debug.Assert(!_result.HasValue);
                     _result = !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(node.Arguments);
-                    return null;
                 }
-
-                return base.VisitCall(node);
             }
 
             public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
@@ -714,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
                     // NOTE: passing "ReadOnlyStrict" here. 
                     //       we should not get an address of a copy if at all possible
                     var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
@@ -932,9 +931,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
-            Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(arguments.Length == parameters.Length ||
+                (arguments.Length == parameters.Length + 1 && arguments is [.., BoundArgListOperator]), "argument count must match parameter count");
             Debug.Assert(parameters.All(p => p.RefKind == RefKind.None) || !argRefKindsOpt.IsDefault, "there are nontrivial parameters, so we must have argRefKinds");
-            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length, "if we have argRefKinds, we should have one for each argument");
+            // We might have a missing ref kind for the __arglist() of a varargs method.
+            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length ||
+                (argRefKindsOpt.Length == arguments.Length - 1 && arguments is [.., BoundArgListOperator]), "if we have argRefKinds, we should have one for each argument");
 
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -958,13 +960,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     argRefKind = argRefKindsOpt[i];
 
                     Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            parameters[i].RefKind switch
+                            {
+                                RefKind.In => argRefKind == RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                                _ => false,
+                            },
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
+                    Debug.Assert(parameters[i].RefKind != RefKind.RefReadOnlyParameter,
+                        "LocalRewriter.GetEffectiveArgumentRefKinds should ensure 'ref readonly' parameters get an entry in 'argRefKindsOpt'.");
+
                     // otherwise fallback to the refKind of the parameter
-                    argRefKind = parameters[i].RefKind;
+                    argRefKind = parameters[i].RefKind switch
+                    {
+                        RefKind.RefReadOnlyParameter => RefKind.In, // should not happen, asserted above
+                        var refKind => refKind
+                    };
                 }
             }
             else
@@ -1645,172 +1659,340 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EmitInstanceCallExpression(BoundCall call, UseKind useKind)
         {
-            var method = call.Method;
-            var receiver = call.ReceiverOpt;
-            var arguments = call.Arguments;
-            LocalDefinition tempOpt = null;
-
-            Debug.Assert(!method.IsStatic && method.RequiresInstanceReceiver);
-
             CallKind callKind;
+            AddressKind? addressKind;
+            bool box;
+            LocalDefinition tempOpt;
 
-            var receiverType = receiver.Type;
-
-            if (receiverType.IsVerifierReference())
+            if (receiverIsInstanceCall(call, out BoundCall nested))
             {
-                EmitExpression(receiver, used: true);
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
 
-                // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
-                // null check is unnecessary and we can use "call"
-                if (receiver.SuppressVirtualCalls ||
-                    (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
+                calls.Push(call);
+
+                call = nested;
+                while (receiverIsInstanceCall(call, out nested))
                 {
-                    callKind = CallKind.Call;
+                    calls.Push(call);
+                    call = nested;
                 }
-                else
+
+                callKind = determineEmitReceiverStrategy(call, out addressKind, out box);
+                emitReceiver(call, callKind, addressKind, box, out tempOpt);
+
+                while (calls.Count != 0)
                 {
-                    callKind = CallKind.CallVirt;
-                }
-            }
-            else if (receiverType.IsVerifierValue())
-            {
-                NamedTypeSymbol methodContainingType = method.ContainingType;
-                if (methodContainingType.IsVerifierValue())
-                {
-                    // if method is defined in the struct itself it is assumed to be mutating, unless 
-                    // it is a member of a readonly struct and is not a constructor
-                    var receiverAddresskind = IsReadOnlyCall(method, methodContainingType) ?
-                                                                    AddressKind.ReadOnly :
-                                                                    AddressKind.Writeable;
-                    if (MayUseCallForStructMethod(method))
+                    var parentCall = calls.Pop();
+                    CallKind parentCallKind = determineEmitReceiverStrategy(parentCall, out addressKind, out box);
+
+                    var parentCallReceiverType = call.Type;
+                    UseKind receiverUseKind;
+                    if (addressKind is null)
                     {
-                        // NOTE: this should be either a method which overrides some abstract method or 
-                        //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
-                        //       otherwise we should not use direct 'call' and must use constrained call;
+                        receiverUseKind = UseKind.UsedAsValue;
+                    }
+                    else if (BoxNonVerifierReferenceReceiver(parentCallReceiverType, addressKind.GetValueOrDefault()))
+                    {
+                        Debug.Assert(!box);
+                        // This code path is covered by IL comparison in Microsoft.CodeAnalysis.CSharp.UnitTests.BreakingChanges.NestedCollectionInitializerOnGenericProperty​ unit-test
 
-                        // calling a method defined in a value type
-                        Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
-                        tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
-                        callKind = CallKind.Call;
+                        // EmitReceiverRef pushes boxed value rather than an address in this case 
+                        receiverUseKind = UseKind.UsedAsValue;
+                        box = true;
+
+                        // not subject to emitGenericReceiverCloneIfNecessary effect
+                        Debug.Assert(addressKind.GetValueOrDefault() != AddressKind.Constrained);
+                        Debug.Assert(!parentCallReceiverType.IsVerifierValue());
+                        Debug.Assert(parentCallKind != CallKind.ConstrainedCallVirt);
                     }
                     else
                     {
-                        tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
-                        callKind = CallKind.ConstrainedCallVirt;
-                    }
-                }
-                else
-                {
-                    // calling a method defined in a base class or interface.
+                        Debug.Assert(!box);
+                        Debug.Assert(!parentCallReceiverType.IsVerifierReference());
 
-                    // When calling a method that is virtual in metadata on a struct receiver, 
-                    // we use a constrained virtual call. If possible, it will skip boxing.
-                    if (method.IsMetadataVirtual())
+                        var methodRefKind = call.Method.RefKind;
+                        if (UseCallResultAsAddress(call, addressKind.GetValueOrDefault()))
+                        {
+                            // This code path is covered by IL comparison in
+                            // - Microsoft.CodeAnalysis.CSharp.UnitTests.RefReturnTests.RefReturnConditionalAccess01​, and
+                            // - Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGenRefReadOnlyReturnTests.RefReadOnlyMethod_PassThrough_ChainNoCopying
+                            // unit tests
+                            receiverUseKind = UseKind.UsedAsAddress;
+                        }
+                        else
+                        {
+                            // This code path is covered by IL comparison in Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenShortCircuitOperatorTests.TestConditionalMemberAccessUnused2a unit-test
+
+                            // EmitAddress pushes a reference to a temp with a value in this case
+                            receiverUseKind = UseKind.UsedAsValue;
+                        }
+                    }
+
+                    emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind);
+                    FreeOptTemp(tempOpt);
+                    tempOpt = null;
+
+                    nested = call;
+                    call = parentCall;
+                    callKind = parentCallKind;
+
+                    if (box)
                     {
-                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
-                        callKind = CallKind.ConstrainedCallVirt;
+                        Debug.Assert(receiverUseKind == UseKind.UsedAsValue);
+
+                        // This code path is covered by IL comparison in
+                        // - Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.BoxingReceiver, and
+                        // - Microsoft.CodeAnalysis.CSharp.UnitTests.BreakingChanges.NestedCollectionInitializerOnGenericProperty​
+                        // unit-tests
+                        EmitBox(parentCallReceiverType, nested.Syntax);
+                    }
+                    else if (addressKind is null)
+                    {
+                        Debug.Assert(receiverUseKind == UseKind.UsedAsValue);
+                        // This code path is covered by IL comparison in Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenShortCircuitOperatorTests.TestConditionalMemberAccessUnused2a unit-test
                     }
                     else
                     {
-                        EmitExpression(receiver, used: true);
-                        EmitBox(receiverType, receiver.Syntax);
-                        callKind = CallKind.Call;
+                        Debug.Assert(!parentCallReceiverType.IsVerifierReference());
+
+                        if (receiverUseKind != UseKind.UsedAsAddress)
+                        {
+                            Debug.Assert(receiverUseKind == UseKind.UsedAsValue);
+                            Debug.Assert(!HasHome(nested, addressKind.GetValueOrDefault()));
+
+                            // This code path is covered by IL comparison in Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenShortCircuitOperatorTests.TestConditionalMemberAccessUnused2a unit-test
+
+                            // EmitAddress pushes a reference to a temp with a value in this case
+                            tempOpt = this.AllocateTemp(parentCallReceiverType, nested.Syntax);
+                            _builder.EmitLocalStore(tempOpt);
+                            _builder.EmitLocalAddress(tempOpt);
+                        }
+                        else
+                        {
+                            // This code path is covered at least by IL comparison in
+                            // - Microsoft.CodeAnalysis.CSharp.UnitTests.RefReturnTests.RefReturnConditionalAccess01​, and
+                            // - Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGenRefReadOnlyReturnTests.RefReadOnlyMethod_PassThrough_ChainNoCopying
+                            // unit tests
+                        }
+
+                        // Effect of this call is covered by IL comparison in Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenCallTests.ChainedCalls unit-test
+                        emitGenericReceiverCloneIfNecessary(call, callKind, ref tempOpt);
                     }
                 }
+
+                calls.Free();
             }
             else
             {
-                tempOpt = emitGenericReceiver(call, out callKind);
+                callKind = determineEmitReceiverStrategy(call, out addressKind, out box);
+                emitReceiver(call, callKind, addressKind, box, out tempOpt);
             }
 
-            // When emitting a callvirt to a virtual method we always emit the method info of the
-            // method that first declared the virtual method, not the method info of an
-            // overriding method. It would be a subtle breaking change to change that rule;
-            // see bug 6156 for details.
-
-            MethodSymbol actualMethodTargetedByTheCall = method;
-            if (method.IsOverride && callKind != CallKind.Call)
-            {
-                actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
-            }
-
-            if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)
-            {
-                // special case for overridden methods like ToString(...) called on
-                // value types: if the original method used in emit cannot use callvirt in this
-                // case, change it to Call.
-                callKind = CallKind.Call;
-            }
-
-            // Devirtualizing of calls to effectively sealed methods.
-            if (callKind == CallKind.CallVirt)
-            {
-                // NOTE: we check that we call method in same module just to be sure
-                // that it cannot be recompiled as not final and make our call not verifiable. 
-                // such change by adversarial user would arguably be a compat break, but better be safe...
-                // In reality we would typically have one method calling another method in the same class (one GetEnumerator calling another).
-                // Other scenarios are uncommon since base class cannot be sealed and 
-                // referring to a derived type in a different module is not an easy thing to do.
-                if (IsThisReceiver(receiver) && actualMethodTargetedByTheCall.ContainingType.IsSealed &&
-                        (object)actualMethodTargetedByTheCall.ContainingModule == (object)_method.ContainingModule)
-                {
-                    // special case for target is in a sealed class and "this" receiver.
-                    Debug.Assert(receiver.Type.IsVerifierReference());
-                    callKind = CallKind.Call;
-                }
-
-                // NOTE: we do not check that we call method in same module.
-                // Because of the "GetOriginalConstructedOverriddenMethod" above, the actual target
-                // can only be final when it is "newslot virtual final".
-                // In such case Dev11 emits "call" and we will just replicate the behavior. (see DevDiv: 546853 )
-                else if (actualMethodTargetedByTheCall.IsMetadataFinal && CanUseCallOnRefTypeReceiver(receiver))
-                {
-                    // special case for calling 'final' virtual method on reference receiver
-                    Debug.Assert(receiver.Type.IsVerifierReference());
-                    callKind = CallKind.Call;
-                }
-            }
-
-            EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(method, arguments);
-            switch (callKind)
-            {
-                case CallKind.Call:
-                    _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
-                    break;
-
-                case CallKind.CallVirt:
-                    _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior);
-                    break;
-
-                case CallKind.ConstrainedCallVirt:
-                    _builder.EmitOpCode(ILOpCode.Constrained);
-                    EmitSymbolToken(receiver.Type, receiver.Syntax);
-                    _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior);
-                    break;
-            }
-
-            EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
-                            actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
-
-            EmitCallCleanup(call.Syntax, useKind, method);
-
+            emitArgumentsAndCallEpilogue(call, callKind, useKind);
             FreeOptTemp(tempOpt);
 
+            return;
+
             [MethodImpl(MethodImplOptions.NoInlining)]
-            LocalDefinition emitGenericReceiver(BoundCall call, out CallKind callKind)
+            CallKind determineEmitReceiverStrategy(BoundCall call, out AddressKind? addressKind, out bool box)
+            {
+                var method = call.Method;
+                var receiver = call.ReceiverOpt;
+                Debug.Assert(!method.IsStatic && !method.IsDefaultValueTypeConstructor() && method.RequiresInstanceReceiver);
+
+                CallKind callKind;
+
+                var receiverType = receiver.Type;
+                box = false;
+
+                if (receiverType.IsVerifierReference())
+                {
+                    addressKind = null;
+
+                    // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
+                    // null check is unnecessary and we can use "call"
+                    if (receiver.SuppressVirtualCalls ||
+                        (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
+                    {
+                        callKind = CallKind.Call;
+                    }
+                    else
+                    {
+                        callKind = CallKind.CallVirt;
+                    }
+                }
+                else if (receiverType.IsVerifierValue())
+                {
+                    NamedTypeSymbol methodContainingType = method.ContainingType;
+                    if (methodContainingType.IsVerifierValue())
+                    {
+                        // if method is defined in the struct itself it is assumed to be mutating, unless 
+                        // it is a member of a readonly struct and is not a constructor
+                        addressKind = IsReadOnlyCall(method, methodContainingType) ?
+                                                                        AddressKind.ReadOnly :
+                                                                        AddressKind.Writeable;
+                        if (MayUseCallForStructMethod(method))
+                        {
+                            // NOTE: this should be either a method which overrides some abstract method or 
+                            //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
+                            //       otherwise we should not use direct 'call' and must use constrained call;
+
+                            // calling a method defined in a value type
+                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
+                            callKind = CallKind.Call;
+                        }
+                        else
+                        {
+                            callKind = CallKind.ConstrainedCallVirt;
+                        }
+                    }
+                    else
+                    {
+                        // calling a method defined in a base class or interface.
+
+                        // When calling a method that is virtual in metadata on a struct receiver, 
+                        // we use a constrained virtual call. If possible, it will skip boxing.
+                        if (method.IsMetadataVirtual())
+                        {
+                            addressKind = AddressKind.Writeable;
+                            callKind = CallKind.ConstrainedCallVirt;
+                        }
+                        else
+                        {
+                            addressKind = null;
+                            box = true;
+                            callKind = CallKind.Call;
+                        }
+                    }
+                }
+                else
+                {
+                    // receiver is generic and method must come from the base or an interface or a generic constraint
+                    // if the receiver is actually a value type it would need to be boxed.
+                    // let .constrained sort this out. 
+                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                                CallKind.CallVirt :
+                                CallKind.ConstrainedCallVirt;
+
+                    addressKind = (callKind == CallKind.ConstrainedCallVirt) ? AddressKind.Constrained : AddressKind.Writeable;
+                }
+
+                Debug.Assert((callKind != CallKind.ConstrainedCallVirt) || (addressKind.GetValueOrDefault() == AddressKind.Constrained) || receiverType.IsVerifierValue());
+
+                return callKind;
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            void emitReceiver(BoundCall call, CallKind callKind, AddressKind? addressKind, bool box, out LocalDefinition tempOpt)
             {
                 var receiver = call.ReceiverOpt;
                 var receiverType = receiver.Type;
+                tempOpt = null;
 
-                // receiver is generic and method must come from the base or an interface or a generic constraint
-                // if the receiver is actually a value type it would need to be boxed.
-                // let .constrained sort this out. 
-                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
-                            CallKind.CallVirt :
-                            CallKind.ConstrainedCallVirt;
+                if (addressKind is null)
+                {
+                    EmitExpression(receiver, used: true);
 
-                LocalDefinition tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+                    if (box)
+                    {
+                        EmitBox(receiverType, receiver.Syntax);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(!box);
+                    Debug.Assert(!receiverType.IsVerifierReference());
+                    tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault());
+
+                    emitGenericReceiverCloneIfNecessary(call, callKind, ref tempOpt);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            void emitArgumentsAndCallEpilogue(BoundCall call, CallKind callKind, UseKind useKind)
+            {
+                var method = call.Method;
+                var receiver = call.ReceiverOpt;
+
+                // When emitting a callvirt to a virtual method we always emit the method info of the
+                // method that first declared the virtual method, not the method info of an
+                // overriding method. It would be a subtle breaking change to change that rule;
+                // see bug 6156 for details.
+
+                MethodSymbol actualMethodTargetedByTheCall = method;
+                if (method.IsOverride && callKind != CallKind.Call)
+                {
+                    actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
+                }
+
+                if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)
+                {
+                    // special case for overridden methods like ToString(...) called on
+                    // value types: if the original method used in emit cannot use callvirt in this
+                    // case, change it to Call.
+                    callKind = CallKind.Call;
+                }
+
+                // Devirtualizing of calls to effectively sealed methods.
+                if (callKind == CallKind.CallVirt)
+                {
+                    // NOTE: we check that we call method in same module just to be sure
+                    // that it cannot be recompiled as not final and make our call not verifiable. 
+                    // such change by adversarial user would arguably be a compat break, but better be safe...
+                    // In reality we would typically have one method calling another method in the same class (one GetEnumerator calling another).
+                    // Other scenarios are uncommon since base class cannot be sealed and 
+                    // referring to a derived type in a different module is not an easy thing to do.
+                    if (IsThisReceiver(receiver) && actualMethodTargetedByTheCall.ContainingType.IsSealed &&
+                            (object)actualMethodTargetedByTheCall.ContainingModule == (object)_method.ContainingModule)
+                    {
+                        // special case for target is in a sealed class and "this" receiver.
+                        Debug.Assert(receiver.Type.IsVerifierReference());
+                        callKind = CallKind.Call;
+                    }
+
+                    // NOTE: we do not check that we call method in same module.
+                    // Because of the "GetOriginalConstructedOverriddenMethod" above, the actual target
+                    // can only be final when it is "newslot virtual final".
+                    // In such case Dev11 emits "call" and we will just replicate the behavior. (see DevDiv: 546853 )
+                    else if (actualMethodTargetedByTheCall.IsMetadataFinal && CanUseCallOnRefTypeReceiver(receiver))
+                    {
+                        // special case for calling 'final' virtual method on reference receiver
+                        Debug.Assert(receiver.Type.IsVerifierReference());
+                        callKind = CallKind.Call;
+                    }
+                }
+
+                var arguments = call.Arguments;
+                EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
+                int stackBehavior = GetCallStackBehavior(method, arguments);
+                switch (callKind)
+                {
+                    case CallKind.Call:
+                        _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
+                        break;
+
+                    case CallKind.CallVirt:
+                        _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior);
+                        break;
+
+                    case CallKind.ConstrainedCallVirt:
+                        _builder.EmitOpCode(ILOpCode.Constrained);
+                        EmitSymbolToken(receiver.Type, receiver.Syntax);
+                        _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior);
+                        break;
+                }
+
+                EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
+                                actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
+
+                EmitCallCleanup(call.Syntax, useKind, method);
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            void emitGenericReceiverCloneIfNecessary(BoundCall call, CallKind callKind, ref LocalDefinition tempOpt)
+            {
+                var receiver = call.ReceiverOpt;
+                var receiverType = receiver.Type;
 
                 if (callKind == CallKind.ConstrainedCallVirt && tempOpt is null && !receiverType.IsValueType &&
                     !ReceiverIsKnownToReferToTempIfReferenceType(receiver) &&
@@ -1856,8 +2038,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         _builder.MarkLabel(whenNotNullLabel);
                     }
                 }
+            }
 
-                return tempOpt;
+            static bool receiverIsInstanceCall(BoundCall call, out BoundCall nested)
+            {
+                if (call.ReceiverOpt is BoundCall { Method: { RequiresInstanceReceiver: true } method } receiver && !method.IsDefaultValueTypeConstructor())
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
             }
         }
 
@@ -2773,7 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
@@ -3158,7 +3350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIsExpression(BoundIsOperator isOp, bool used)
+        private void EmitIsExpression(BoundIsOperator isOp, bool used, bool omitBooleanConversion)
         {
             var operand = isOp.Operand;
             EmitExpression(operand, used);
@@ -3172,8 +3364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 _builder.EmitOpCode(ILOpCode.Isinst);
                 EmitSymbolToken(isOp.TargetType.Type, isOp.Syntax);
-                _builder.EmitOpCode(ILOpCode.Ldnull);
-                _builder.EmitOpCode(ILOpCode.Cgt_un);
+
+                if (!omitBooleanConversion)
+                {
+                    _builder.EmitOpCode(ILOpCode.Ldnull);
+                    _builder.EmitOpCode(ILOpCode.Cgt_un);
+                }
             }
         }
 
@@ -3483,6 +3679,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
+            // Generate branchless IL for (b ? 1 : 0).
+            if (used && _ilEmitStyle != ILEmitStyle.Debug &&
+                (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
+                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
+                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                isConsequenceOne != isAlternativeOne &&
+                TryEmitComparison(expr.Condition, sense: isConsequenceOne))
+            {
+                var toType = expr.Type.PrimitiveTypeCode;
+                if (toType != Cci.PrimitiveTypeCode.Boolean)
+                {
+                    _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.Int32, toType, @checked: false);
+                }
+                return;
+            }
+
             object consequenceLabel = new object();
             object doneLabel = new object();
 
@@ -3547,6 +3759,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
+
+            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
+            {
+                if (expr.ConstantValueOpt is { } constantValue)
+                {
+                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
+                    {
+                        isOne = i == 1;
+                        return true;
+                    }
+
+                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
+                    {
+                        isOne = b;
+                        return true;
+                    }
+
+                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
+                    {
+                        isOne = c == 1;
+                        return true;
+                    }
+                }
+
+                isOne = false;
+                return false;
+            }
         }
 
         /// <summary>

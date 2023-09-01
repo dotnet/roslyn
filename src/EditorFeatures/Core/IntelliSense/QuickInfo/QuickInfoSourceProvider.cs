@@ -22,32 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
-    internal partial class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class QuickInfoSourceProvider(
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor operationExecutor,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+        EditorOptionsService editorOptionsService,
+        IInlineRenameService inlineRenameService) : IAsyncQuickInfoSourceProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IUIThreadOperationExecutor _operationExecutor;
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IInlineRenameService _inlineRenameService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public QuickInfoSourceProvider(
-            IThreadingContext threadingContext,
-            IUIThreadOperationExecutor operationExecutor,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            EditorOptionsService editorOptionsService,
-            IInlineRenameService inlineRenameService)
-        {
-            _threadingContext = threadingContext;
-            _operationExecutor = operationExecutor;
-            _streamingPresenter = streamingPresenter;
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-            _editorOptionsService = editorOptionsService;
-            _inlineRenameService = inlineRenameService;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
