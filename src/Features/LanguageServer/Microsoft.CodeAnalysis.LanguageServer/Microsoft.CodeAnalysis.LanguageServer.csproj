@@ -19,14 +19,18 @@
         executables when it builds.  NuGet just happens to be a convenient way to share build artifacts.
     -->
     <IsPackable>true</IsPackable>
+    <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
+    <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
+    <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
     <!--
-        Publish all the platform specific executables before any of the pack related targets run.
+        Publish the platform specific executables before any of the pack related targets run.
         This is important to ensure that the content files exist on the project before nuget looks for them.
-            
+
         Note that BeforeTargets="Pack" is not enough, as the determination of what to include in the package runs
         before the actual "Pack" target runs.
     -->
-    <BeforePack>PublishAllRids;$(BeforePack)</BeforePack>
+    <BeforePack>PackPublishContent;$(BeforePack)</BeforePack>
+
     <!-- Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects. -->
     <NoWarn>NU5100</NoWarn>
 
@@ -43,7 +47,7 @@
     <!-- List of runtime identifiers that we want to publish an executable for -->
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' Or '$(RestoreWithR2R)' == 'true'">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
@@ -76,8 +80,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
 
     <!--
-        Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,
-        because the versions of C# DevKit and C# Extension might not be aligned.
+      Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,
+      because the versions of C# DevKit and C# Extension might not be aligned.
     -->
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" Namespace="Microsoft.CodeAnalysis.Contracts" />
   </ItemGroup>
@@ -99,47 +103,12 @@
     <Copy SourceFiles="@(RoslynVersionFile)" DestinationFolder="$(PublishDir)" />
   </Target>
 
-  <!--
-      This target runs publishing for all of the RIDs that we've specified in the project to create platform specific
-      executables.  It then updates the Content in the project to include the executables we built in the NuGet package.
-
-      This is also partially a workaround for lack of support for publishing multiple RIDs directly in a csproj.  See https://github.com/dotnet/sdk/issues/9363
-
-      Notes:
-        1.  We depend on the "Publish" target to ensure that we include the platform neutral versions of the project.
-        2.  It is important that the Content is added dynamically in this target.  If we had it in a normal ItemGroup in the
-            project, when msbuild evaluation runs the published server artifacts won't exist and so the content will be empty.
-  -->
-  <Target Name="PublishAllRids" DependsOnTargets="Publish">
-    <Message Text="Publishing builds for each runtime identifier..." Importance="High" />
-
-    <ItemGroup>
-      <!-- Transform RuntimeIdentifiers property to item -->
-      <RuntimeIdentifierForPublish Include="$(RuntimeIdentifiers)" />
-
-      <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
-      <ProjectToPublish Include="@(RuntimeIdentifierForPublish->'$(MSBuildProjectFullPath)')">
-        <AdditionalProperties>RuntimeIdentifier=%(RuntimeIdentifierForPublish.Identity)</AdditionalProperties>
-      </ProjectToPublish>
-    </ItemGroup>
-
-    <!--
-        We have to run restore first with the PublishReadyToRun flag set to true to ensure that the correct crossgen packages get restored.
-        See https://github.com/dotnet/sdk/issues/20701
-
-        We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
-        See https://github.com/NuGet/Home/issues/11968
-    -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="RestoreWithR2R=true;RestoreUseStaticGraphEvaluation=false" />
-
-    <MSBuild Projects="@(ProjectToPublish)" Targets="Publish" BuildInParallel="true" />
-
+  <Target Name="PackPublishContent" DependsOnTargets="Publish">
     <!-- We have to add the content files in a target (and not just defined in a normal item group) since they are produced by the prior step and won't exist at evaluation time. -->
-    <Message Text="Adding content files for language server artifacts..." Importance="High" />
     <ItemGroup>
-      <Content Include="$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/**/*.*">
+      <Content Include="$(PublishDir)/**/*.*">
         <Pack>true</Pack>
-        <PackagePath>content\LanguageServer</PackagePath>
+        <PackagePath>content\LanguageServer\$(PackRuntimeIdentifier)</PackagePath>
         <CopyToOutput>false</CopyToOutput>
         <BuildAction>None</BuildAction>
       </Content>
@@ -151,12 +120,11 @@
   -->
   <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
-      <!-- Project references references that we need to consume for our net472 BuildHost -->
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
-    
+
     <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
          BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
          expect the builds to have completed by this point they should be fast.  -->
@@ -176,4 +144,9 @@
                CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
+
+  <!-- If we don't have a PackRuntimeIdentifier set, that means pack has been invoked on the project directly, with say dotnet pack. In this case
+       we'll replace the Pack target with one that instead recursively invokes pack for each runtime identifier. We define those targets
+       in a separate .targets file, since we can't say to MSBuild "only consider our Pack target as a definition based on this condition" any other way. -->
+  <Import Project="PackAllRids.targets" Condition="'$(PackRuntimeIdentifier)' == ''" />
 </Project>

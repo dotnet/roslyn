@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.Equal(updatedEditorConfig, result?.ToString());
         }
 
-        private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (AnalyzerSetting, DiagnosticSeverity)[] options)
+        private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (AnalyzerSetting, ReportDiagnostic)[] options)
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         internal async Task TestAddNewAnalyzerOptionOptionAsync(
             [CombinatorialValues(Language.CSharp, Language.VisualBasic, (Language.CSharp | Language.VisualBasic))]
             Language language,
-            [CombinatorialValues(DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Info, DiagnosticSeverity.Hidden)]
-            DiagnosticSeverity severity)
+            [CombinatorialValues(ReportDiagnostic.Warn, ReportDiagnostic.Error, ReportDiagnostic.Info, ReportDiagnostic.Hidden, ReportDiagnostic.Suppress)]
+            ReportDiagnostic severity)
         {
             var expectedHeader = "";
             if (language.HasFlag(Language.CSharp) && language.HasFlag(Language.VisualBasic))
@@ -331,7 +331,7 @@ csharp_new_line_before_else = true";
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
             var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
-            analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
+            analyzerSetting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
@@ -354,7 +354,7 @@ csharp_new_line_before_else = true";
                 EditorconfigPath);
 
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, "description", options, updater);
-            setting.ChangeSeverity(DiagnosticSeverity.Error);
+            setting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);

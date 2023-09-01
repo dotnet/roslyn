@@ -2375,8 +2375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionExpression:
                     {
-                        Debug.Assert(operand.Type is null);
-                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
                         return;
                     }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
