@@ -173,13 +173,6 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             return null;
         }
 
-        if (!File.Exists(runSettingsPath))
-        {
-            var message = string.Format(LanguageServerResources.Runsettings_file_does_not_exist_at_0, runSettingsPath);
-            progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
-            return null;
-        }
-
         try
         {
             var contents = await File.ReadAllTextAsync(runSettingsPath, cancellationToken);
@@ -188,11 +181,17 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             _logger.LogTrace($".runsettings:{Environment.NewLine}{contents}");
             return contents;
         }
+        catch (FileNotFoundException)
+        {
+            var message = string.Format(LanguageServerResources.Runsettings_file_does_not_exist_at_0, runSettingsPath);
+            progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
+        }
         catch (Exception ex)
         {
             var message = string.Format(LanguageServerResources.Failed_to_read_runsettings_file_at_0_1, runSettingsPath, ex);
             progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
-            return null;
         }
+
+        return null;
     }
 }
