@@ -2404,5 +2404,189 @@ class C
             Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
             Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
+
+        [Fact]
+        public void TypeMissingIdentifier_Members()
+        {
+            const string source =
+                """
+                namespace N;
+                
+                public class
+                {
+                    public void F();
+                }
+                public class
+                {
+                    public void F();
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // 0.cs(3,13): error CS1001: Identifier expected
+                // public class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 13),
+                // 0.cs(5,17): error CS0501: '.F()' must declare a body because it is not marked abstract, extern, or partial
+                //     public void F();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("N..F()").WithLocation(5, 17),
+                // 0.cs(7,13): error CS1001: Identifier expected
+                // public class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 13),
+                // 0.cs(9,17): error CS0501: '.F()' must declare a body because it is not marked abstract, extern, or partial
+                //     public void F();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("N..F()").WithLocation(9, 17)
+                );
+
+            var outerNamespace = comp.GlobalNamespace.GetNestedNamespace("N");
+
+            var namespaceMembers = outerNamespace.GetMembers();
+
+            var uniqueMethods = new HashSet<MethodSymbol>();
+
+            foreach (var member in namespaceMembers)
+            {
+                Assert.True(member is NamedTypeSymbol);
+                var namedType = member as NamedTypeSymbol;
+
+                Assert.Equal(string.Empty, namedType.Name);
+
+                var typeMembers = namedType.GetMembers();
+                Assert.Equal(2, typeMembers.Length);
+
+                var method = typeMembers.OfType<MethodSymbol>().First(m => m is { MethodKind: not MethodKind.Constructor });
+                Assert.Equal("F", method.Name);
+
+                Assert.True(uniqueMethods.Add(method));
+            }
+
+            Assert.Equal(2, namespaceMembers.Length);
+        }
+
+        [Fact]
+        public void TypeMissingIdentifier_Nested()
+        {
+            const string source =
+                """
+                namespace N;
+                
+                public partial class
+                {
+                    partial class;
+                    partial struct;
+                    partial interface;
+                    partial enum { }
+                
+                    partial record;
+                    partial record class;
+                    partial record struct;
+                
+                    readonly partial record struct;
+                }
+                file partial class
+                {
+                    partial class;
+                    partial struct;
+                    partial interface;
+                    partial enum { }
+                
+                    partial record;
+                    partial record class;
+                    partial record struct;
+                
+                    readonly partial record struct;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1001: Identifier expected
+                // public partial class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21),
+                // (5,18): error CS1001: Identifier expected
+                //     partial class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(5, 18),
+                // (6,19): error CS1001: Identifier expected
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 19),
+                // (7,22): error CS1001: Identifier expected
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(7, 22),
+                // (8,18): error CS1001: Identifier expected
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(8, 18),
+                // (8,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(8, 18),
+                // (10,19): error CS1001: Identifier expected
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(10, 19),
+                // (11,25): error CS1001: Identifier expected
+                //     partial record class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(11, 25),
+                // (12,26): error CS1001: Identifier expected
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(12, 26),
+                // (14,35): error CS1001: Identifier expected
+                //     readonly partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(14, 35),
+                // (16,19): error CS1001: Identifier expected
+                // file partial class
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(16, 19),
+                // (18,18): error CS1001: Identifier expected
+                //     partial class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(18, 18),
+                // (19,19): error CS1001: Identifier expected
+                //     partial struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(19, 19),
+                // (20,22): error CS1001: Identifier expected
+                //     partial interface;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(20, 22),
+                // (21,18): error CS1001: Identifier expected
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(21, 18),
+                // (21,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(21, 18),
+                // (23,19): error CS1001: Identifier expected
+                //     partial record;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(23, 19),
+                // (24,25): error CS1001: Identifier expected
+                //     partial record class;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(24, 25),
+                // (25,26): error CS1001: Identifier expected
+                //     partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(25, 26),
+                // (27,35): error CS1001: Identifier expected
+                //     readonly partial record struct;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(27, 35)
+                );
+
+            var outerNamespace = comp.GlobalNamespace.GetNestedNamespace("N");
+
+            var namespaceMembers = outerNamespace.GetMembers();
+
+            var uniqueTypes = new HashSet<TypeSymbol>();
+
+            foreach (var member in namespaceMembers)
+            {
+                Assert.True(member is NamedTypeSymbol);
+                var namedType = member as NamedTypeSymbol;
+
+                Assert.Equal(string.Empty, namedType.Name);
+
+                var typeMembers = namedType.GetMembers();
+
+                var nestedTypes = typeMembers.OfType<TypeSymbol>().ToArray();
+                Assert.Equal(8, nestedTypes.Length);
+
+                foreach (var nestedType in nestedTypes)
+                {
+                    Assert.True(uniqueTypes.Add(nestedType));
+                }
+            }
+
+            Assert.Equal(16, uniqueTypes.Count);
+        }
     }
 }

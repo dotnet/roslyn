@@ -337,7 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    if ((object)other != null)
+                    // Duplicate declaration evaluation
+                    // Declarations with missing identifiers are not considered duplicate
+                    if (other is not null && name.Length > 0)
                     {
                         // To decide whether type declarations are duplicates, we need to access members which are only meaningful on source original definition symbols.
                         Debug.Assert((object)nts?.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
@@ -362,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     memberOfArity[arity] = symbol;
 
-                    if ((object)nts != null)
+                    if (nts is not null)
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
