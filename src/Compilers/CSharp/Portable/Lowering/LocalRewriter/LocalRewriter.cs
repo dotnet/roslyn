@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugDocumentProvider debugDocumentProvider,
             BindingDiagnosticBag diagnostics,
             out ImmutableArray<SourceSpan> codeCoverageSpans,
+            out DelegateCache? delegateCache,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -132,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
                 loweredStatement.CheckLocalsDefined();
+                delegateCache = localRewriter._lazyDelegateCache;
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
@@ -154,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
+                delegateCache = null;
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
                 codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);

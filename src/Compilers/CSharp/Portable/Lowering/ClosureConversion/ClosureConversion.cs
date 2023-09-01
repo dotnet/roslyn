@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // initialized lazily and could be null if there are no static lambdas
         private SynthesizedClosureEnvironment _lazyStaticLambdaFrame;
 
+        private DelegateCache _lazyDelegateCache;
+
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
@@ -159,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int methodOrdinal,
             MethodSymbol substitutedSourceMethod,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
+            DelegateCache delegateCache,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
@@ -175,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _substitutedSourceMethod = substitutedSourceMethod;
             _topLevelMethodOrdinal = methodOrdinal;
             _lambdaDebugInfoBuilder = lambdaDebugInfoBuilder;
+            _lazyDelegateCache = delegateCache;
             _currentMethod = method;
             _analysis = analysis;
             _assignLocals = assignLocals;
@@ -229,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol substitutedSourceMethod,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
+            DelegateCache delegateCache,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
@@ -256,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodOrdinal,
                 substitutedSourceMethod,
                 lambdaDebugInfoBuilder,
+                delegateCache,
                 slotAllocatorOpt,
                 compilationState,
                 diagnostics,
@@ -1329,17 +1335,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     node.MethodOpt,
                     out var receiver,
-                    out var method,
+                    out var mappedTargetMethod,
                     ref arguments,
                     ref argRefKinds);
+
+                if (mappedTargetMethod.IsStatic && node.WasLocalFunctionConversion
+                    && DelegateCache.IsAllowed(CompilationState.Compilation.LanguageVersion, _topLevelMethod, _inExpressionLambda))
+                {
+                    var delegateCache = _lazyDelegateCache ??= new DelegateCache(_topLevelMethodOrdinal);
+                    var originalCurrentFunction = _currentMethod is SynthesizedClosureMethod closureMethod ? closureMethod.BaseMethod : _currentMethod;
+                    var originalFactory = new SyntheticBoundNodeFactory(originalCurrentFunction, node.Syntax, CompilationState, Diagnostics);
+                    var originalRewritten = delegateCache.Rewrite(originalFactory, node);
+
+                    return Visit(originalRewritten);
+                }
 
                 return new BoundDelegateCreationExpression(
                     node.Syntax,
                     receiver,
-                    method,
+                    mappedTargetMethod,
                     node.IsExtensionMethod,
                     node.WasTargetTyped,
-                    node.WasLocalFunctionConversion,
+                    wasLocalFunctionConversion: false, // Not needed anymore.
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
