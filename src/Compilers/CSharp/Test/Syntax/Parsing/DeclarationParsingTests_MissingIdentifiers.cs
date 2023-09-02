@@ -1644,7 +1644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(7, 19)
                 );
 
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.StructDeclaration);
