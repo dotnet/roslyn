@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
                         }
                     }
                 }
-                """, "N1.M1()", 1); // Old implementation displayed "N1.?.M1", but we don't see a class declaration in the syntax tree...
+                """, "N1.?.M1()", 1);
         }
 
         [Fact]
