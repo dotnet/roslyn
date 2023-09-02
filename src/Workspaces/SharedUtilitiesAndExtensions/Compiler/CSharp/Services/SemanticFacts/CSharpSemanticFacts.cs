@@ -58,11 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var location = token.GetLocation();
 
             var tokenParent = token.Parent;
-            if (tokenParent is null)
-            {
-                return null;
-            }
-
             var sourceAncestor = tokenParent;
             // Skip the tuple expression if the identifier implies the name of the tuple field
             if (tokenParent is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
@@ -70,23 +65,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sourceAncestor = parentTuple.Parent;
             }
 
+            if (sourceAncestor is null)
+                return null;
+
             foreach (var ancestor in sourceAncestor.AncestorsAndSelf())
             {
                 var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
                 if (symbol != null)
                 {
-                    if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
+                    switch (symbol)
                     {
-                        // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
-                        // So check if the symbol's location encompasses the span of the token we're asking about.
-                        if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
-                            return symbol;
-                    }
-                    else
-                    {
-                        // For any other symbols, we only care if the name directly matches the span of the token
-                        if (symbol.Locations.Contains(location))
-                            return symbol;
+                        case IMethodSymbol { MethodKind: MethodKind.Conversion }:
+                            {
+                                // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                                // So check if the symbol's location encompasses the span of the token we're asking about.
+                                if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
+                                    return symbol;
+                                break;
+                            }
+
+                        case IPropertySymbol { ContainingType: ITypeSymbol { IsAnonymousType: true } }:
+                            {
+                                Debug.Assert(ancestor is AnonymousObjectMemberDeclaratorSyntax);
+                                var declarator = (AnonymousObjectMemberDeclaratorSyntax)ancestor;
+                                // If the span is not part of the property's explicit name, it's not our target result
+                                if (declarator.NameEquals is null || !declarator.NameEquals.Span.Contains(location.SourceSpan))
+                                {
+                                    break;
+                                }
+
+                                return symbol;
+                            }
+
+                        default:
+                            // For any other symbols, we only care if the name directly matches the span of the token
+                            if (symbol.Locations.Contains(location))
+                                return symbol;
+                            break;
                     }
 
                     // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.

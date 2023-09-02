@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
+#Region "Visual Basic"
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType1(kind As TestKind, host As TestHost) As Task
@@ -165,5 +166,57 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+#End Region
+
+#Region "C#"
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAnonymousTypesCSharp_SimpleExpression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+class C
+{
+    void M(string {|Definition:a|})
+    {
+        int length = [|a|].Length;
+        var r = new { [|a|], Length = 1 };
+        r = new { $$[|a|], [|a|].Length };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAnonymousTypesCSharp_PropertyAccess(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+class C
+{
+    void M(string a)
+    {
+        int length = a.[|Length|];
+        var r = new { a, Length = 1 };
+        r = new { a, a.$$[|Length|] };
+        r = new { a, Length = a.[|Length|] };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+#End Region
     End Class
 End Namespace
