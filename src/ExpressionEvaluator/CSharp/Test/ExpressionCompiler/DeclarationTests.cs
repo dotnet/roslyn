@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -972,13 +971,12 @@ class C
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression(
                     "object o = o ?? null;",
                     DkmEvaluationFlags.None,
                     NoAliases,
-                    out error,
+                    out var error,
                     testData);
                 // The compiler reports "CS0165: Use of unassigned local variable 'o'"
                 // in flow analysis. But since flow analysis is skipped in the EE,
@@ -987,7 +985,7 @@ class C
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
-  // Code size       57 (0x39)
+  // Code size       52 (0x34)
   .maxstack  4
   .locals init (System.Guid V_0)
   IL_0000:  ldtoken    ""object""
@@ -1002,12 +1000,8 @@ class C
   IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
   IL_0028:  ldstr      ""o""
   IL_002d:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_0032:  dup
-  IL_0033:  brtrue.s   IL_0037
-  IL_0035:  pop
-  IL_0036:  ldnull
-  IL_0037:  stind.ref
-  IL_0038:  ret
+  IL_0032:  stind.ref
+  IL_0033:  ret
 }");
                 testData = new CompilationTestData();
                 context.CompileExpression(
