@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     public static class SymbolDisplay
     {
-        internal static bool OptimizeDisplayString = true;
-
         /// <summary>
         /// Displays a symbol in the C# style, based on a <see cref="SymbolDisplayFormat"/>.
         /// </summary>
@@ -65,21 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
-            if (OptimizeDisplayString)
-            {
-                var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+            var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
 
-                PopulateDisplayParts(builder, symbol, semanticModelOpt, positionOpt, format, minimal);
+            PopulateDisplayParts(builder, symbol, semanticModelOpt, positionOpt, format, minimal);
 
-                var result = builder.ToDisplayString();
-                builder.Free();
+            var result = builder.ToDisplayString();
+            builder.Free();
 
-                return result;
-            }
-            else
-            {
-                return ToDisplayParts(symbol, semanticModelOpt, positionOpt, format, minimal).ToDisplayString();
-            }
+            return result;
         }
 
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
