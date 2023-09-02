@@ -55,6 +55,46 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Converts an ArrayBuilder of <see cref="SymbolDisplayPart"/>s to a string.
+        /// </summary>
+        /// <param name="parts">The array of parts.</param>
+        /// <returns>The concatenation of the parts into a single string.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/67203", AllowImplicitBoxing = false)]
+        internal static string ToDisplayString(this ArrayBuilder<SymbolDisplayPart> parts)
+        {
+            if (parts is null)
+            {
+                throw new ArgumentException("parts");
+            }
+
+            if (parts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (parts.Count == 1)
+            {
+                return parts[0].ToString();
+            }
+
+            var pool = PooledStringBuilder.GetInstance();
+            try
+            {
+                var actualBuilder = pool.Builder;
+                foreach (var part in parts)
+                {
+                    actualBuilder.Append(part.ToString());
+                }
+
+                return actualBuilder.ToString();
+            }
+            finally
+            {
+                pool.Free();
+            }
+        }
+
+        /// <summary>
         /// Determines if a flag is set on the <see cref="SymbolDisplayCompilerInternalOptions"/> enum.
         /// </summary>
         /// <param name="options">The value to check.</param>
