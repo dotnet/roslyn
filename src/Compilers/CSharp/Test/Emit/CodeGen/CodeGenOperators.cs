@@ -6806,10 +6806,55 @@ namespace BadImageFormatExceptionRepro
 
             CompileAndVerify(code).VerifyIL("Program.M", """
                 {
-                    // Code size        2 (0x2)
-                    .maxstack  1
-                    IL_0000:  ldarg.1
-                    IL_0001:  ret
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(string)")]
+        [InlineData("(string)null")]
+        [InlineData("(string)default")]
+        [InlineData("(string)default(string)")]
+        public void TestNullCoalesce_ReferenceTypeAndDefault_SideEffect(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    string Prop
+                    {
+                        get
+                        {
+                            System.Console.WriteLine("get");
+                            return null;
+                        }
+                        set
+                        {
+                            System.Console.WriteLine("set");
+                        }
+                    }
+                    
+                    static void Main()
+                    {
+                        M(new Program());
+                    }
+
+                    static string M(Program p) => p.Prop ?? {{defaultSyntax}};
+                }
+                """;
+
+            CompileAndVerify(code, expectedOutput: "get").VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "string Program.Prop.get"
+                  IL_0006:  ret
                 }
                 """);
         }

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(rewrittenLeft.Type is not null);
 
-            // Optimize `left ?? right` to just `left` when `left` is a reference type and `right` is effectively `null`
+            // Optimize `left ?? right` to just `left` when `left` is of a reference type and `right` is effectively `null`
             if (rewrittenLeft.Type.IsReferenceType &&
                 RemoveIdentityConversions(rewrittenRight).IsDefaultValue())
             {

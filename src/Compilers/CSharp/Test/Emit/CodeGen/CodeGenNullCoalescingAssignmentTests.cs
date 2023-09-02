@@ -2916,7 +2916,7 @@ struct S
         [InlineData("(object)null")]
         [InlineData("(object)default")]
         [InlineData("(object)default(object)")]
-        public void ReferenceTypeAndDefault(string defaultSyntax)
+        public void ReferenceTypeAndDefault_Parameter(string defaultSyntax)
         {
             var code = $$"""
                 class Program
@@ -2927,12 +2927,84 @@ struct S
 
             CompileAndVerify(code).VerifyIL("Program.M", """
                 {
-                    // Code size        2 (0x2)
-                    .maxstack  1
-                    IL_0000:  ldarg.1
-                    IL_0001:  ret
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  ret
                 }
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_Local(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    object M()
+                    {
+                        object o = null;
+                        o ??= {{defaultSyntax}};
+                        return o;
+                    }
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(string)")]
+        [InlineData("(string)null")]
+        [InlineData("(string)default")]
+        [InlineData("(string)default(string)")]
+        public void ReferenceTypeAndDefault_SideEffect(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    string Prop
+                    {
+                        get
+                        {
+                            System.Console.WriteLine("get");
+                            return null;
+                        }
+                        set
+                        {
+                            System.Console.WriteLine("set");
+                        }
+                    }
+
+                    static void Main()
+                    {
+                        var p = new Program();
+                        p.Prop ??= {{defaultSyntax}};
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                get
+                set
+                """;
+
+            CompileAndVerify(code, expectedOutput: expectedOutput);
         }
     }
 }

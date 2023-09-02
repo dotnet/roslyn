@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewriteNullCoalescingAssignmentStandard()
             {
-                // Optimize `left ??= right` to just `left` when `left` is a reference type and `right` is effectively `null`
-                if (transformedLHS.Type.IsReferenceType &&
+                // Optimize `left ??= right` to just `left` when `left` has no side effects and is of a reference type and `right` is effectively `null`
+                if (transformedLHS is { Type.IsReferenceType: true, Kind: BoundKind.Parameter or BoundKind.Local } &&
                     RemoveIdentityConversions(loweredRight).IsDefaultValue())
                 {
                     return lhsRead;
