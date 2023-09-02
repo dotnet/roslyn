@@ -30,7 +30,7 @@ namespace IdeCoreBenchmarks
 {
     // [GcServer(true)]
     [MemoryDiagnoser]
-    [SimpleJob(launchCount: 1, warmupCount: 0, targetCount: 0, invocationCount: 1, id: "QuickJob")]
+    [SimpleJob(launchCount: 1, warmupCount: 0, iterationCount: 0, invocationCount: 1, id: "QuickJob")]
     public class NavigateToBenchmarks
     {
         string _solutionPath;

@@ -26,6 +26,8 @@ namespace IdeCoreBenchmarks
                 AddExporter(DefaultConfig.Instance.GetExporters().ToArray());
                 AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray());
                 AddDiagnoser(MemoryDiagnoser.Default);
+                WithOptions(ConfigOptions.DisableOptimizationsValidator);
+                BuildTimeout = TimeSpan.FromMinutes(10);
             }
         }
 
