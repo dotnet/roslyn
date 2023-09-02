@@ -1340,16 +1340,12 @@ class Repro
             comp.VerifyDiagnostics();
             comp.VerifyIL("Repro.Bug", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  3
+  // Code size       12 (0xc)
+  .maxstack  2
   IL_0000:  ldstr      """"
   IL_0005:  ldarg.0
-  IL_0006:  dup
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  pop
-  IL_000a:  ldnull
-  IL_000b:  call       ""string string.Concat(string, string)""
-  IL_0010:  ret
+  IL_0006:  call       ""string string.Concat(string, string)""
+  IL_000b:  ret
 }
 ");
         }
@@ -1377,16 +1373,12 @@ class Repro
 
             comp.VerifyIL("Repro.Bug", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  3
+  // Code size       12 (0xc)
+  .maxstack  2
   IL_0000:  ldstr      """"
   IL_0005:  ldarg.0
-  IL_0006:  dup
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  pop
-  IL_000a:  ldnull
-  IL_000b:  call       ""string string.Concat(string, string)""
-  IL_0010:  ret
+  IL_0006:  call       ""string string.Concat(string, string)""
+  IL_000b:  ret
 }
 ");
         }

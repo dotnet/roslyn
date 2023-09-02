@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (transformedLHS.Type.IsReferenceType &&
                     RemoveIdentityConversions(loweredRight).IsDefaultValue())
                 {
-                    return transformedLHS;
+                    return lhsRead;
                 }
 
                 // Now that LHS is transformed with temporaries, we rewrite this node into a coalesce expression:
