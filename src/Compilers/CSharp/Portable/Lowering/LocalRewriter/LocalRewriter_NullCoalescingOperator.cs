@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -87,9 +85,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
             }
 
+            Debug.Assert(rewrittenLeft.Type is not null);
+
+            // Optimize `left ?? right` to just `left` when `left` is a reference type and `right` is effectively `null`
+            if (rewrittenLeft.Type.IsReferenceType &&
+                RemoveIdentityConversions(rewrittenRight).IsDefaultValue())
+            {
+                return rewrittenLeft;
+            }
+
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
-            Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
                 BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsImplicit: true, IsUserDefined: false })
             {

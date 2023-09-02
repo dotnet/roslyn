@@ -4,17 +4,14 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -5887,8 +5884,8 @@ class Program
 }");
         }
 
-        [Fact]
-        public void TestNullCoalesce_NonNullableWithDefault_NoOptimization()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        public void TestNullCoalesce_NonNullableWithDefault()
         {
             var source = @"
 class Program
@@ -5911,14 +5908,10 @@ class Program
 *null*";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyIL("Program.CoalesceNonNullableWithDefault", @"{
-  // Code size        7 (0x7)
-  .maxstack  2
+  // Code size        2 (0x2)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  brtrue.s   IL_0006
-  IL_0004:  pop
-  IL_0005:  ldnull
-  IL_0006:  ret
+  IL_0001:  ret
 }");
         }
 
@@ -6793,6 +6786,32 @@ namespace BadImageFormatExceptionRepro
                 //             Func<Expression<Func<T, T, T>>> func = () => (x, y) => x || y;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x || y").WithLocation(16, 68)
             );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void TestNullCoalesce_ReferenceTypeAndDefault(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    object M(object o) => o ?? {{defaultSyntax}};
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                    // Code size        2 (0x2)
+                    .maxstack  1
+                    IL_0000:  ldarg.1
+                    IL_0001:  ret
+                }
+                """);
         }
     }
 }

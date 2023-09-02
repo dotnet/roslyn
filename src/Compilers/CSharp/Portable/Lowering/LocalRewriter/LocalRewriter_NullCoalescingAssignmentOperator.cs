@@ -27,10 +27,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return node.IsNullableValueTypeAssignment ?
                     rewriteNullCoalescingAssignmentForValueType() :
-                    rewriteNullCoalscingAssignmentStandard();
+                    rewriteNullCoalescingAssignmentStandard();
 
-            BoundExpression rewriteNullCoalscingAssignmentStandard()
+            BoundExpression rewriteNullCoalescingAssignmentStandard()
             {
+                // Optimize `left ??= right` to just `left` when `left` is a reference type and `right` is effectively `null`
+                if (transformedLHS.Type.IsReferenceType &&
+                    RemoveIdentityConversions(loweredRight).IsDefaultValue())
+                {
+                    return transformedLHS;
+                }
+
                 // Now that LHS is transformed with temporaries, we rewrite this node into a coalesce expression:
                 // lhsRead ?? (transformedLHS = loweredRight)
 
