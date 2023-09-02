@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public override bool IsIndexer => false;
+        public override bool IsIndexer => Parameters.Length > 0;
 
         public override MethodSymbol? GetMethod { get; }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations => _containingType.Locations;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _containingType.DeclaringSyntaxReferences;
 
         public override Accessibility DeclaredAccessibility => Accessibility.Private;
 

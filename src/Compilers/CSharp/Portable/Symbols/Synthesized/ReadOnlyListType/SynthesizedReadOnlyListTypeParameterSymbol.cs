@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol => _containingType;
 
-        public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
+        public override ImmutableArray<Location> Locations => _containingType.Locations;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _containingType.DeclaringSyntaxReferences;
 
         internal override bool? IsNotNullable => null;
 
