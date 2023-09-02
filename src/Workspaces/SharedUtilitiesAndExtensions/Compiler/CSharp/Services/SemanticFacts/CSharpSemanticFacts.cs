@@ -57,7 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var location = token.GetLocation();
 
-            foreach (var ancestor in token.GetAncestors<SyntaxNode>())
+            var tokenParent = token.Parent;
+            if (tokenParent is null)
+            {
+                return null;
+            }
+
+            var sourceAncestor = tokenParent;
+            // Skip the tuple expression if the identifier implies the name of the tuple field
+            if (tokenParent is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
+            {
+                sourceAncestor = parentTuple.Parent;
+            }
+
+            foreach (var ancestor in sourceAncestor.AncestorsAndSelf())
             {
                 var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
                 if (symbol != null)
