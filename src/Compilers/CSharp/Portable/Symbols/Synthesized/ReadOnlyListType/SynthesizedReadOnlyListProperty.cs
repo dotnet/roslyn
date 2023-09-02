@@ -3,40 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedReadOnlyListIndexerProperty : SynthesizedReadOnlyListPropertyBase
+    internal sealed class SynthesizedReadOnlyListProperty : SynthesizedReadOnlyListPropertyBase
     {
         private readonly PropertySymbol _interfaceProperty;
 
-        internal SynthesizedReadOnlyListIndexerProperty(
-            SynthesizedReadOnlyListTypeSymbol containingType,
-            PropertySymbol interfaceProperty,
-            GenerateMethodBodyDelegate getAccessorBody,
-            GenerateMethodBodyDelegate? setAccessorBody) :
+        internal SynthesizedReadOnlyListProperty(SynthesizedReadOnlyListTypeSymbol containingType, PropertySymbol interfaceProperty, GenerateMethodBodyDelegate getAccessorBody) :
             base(containingType)
         {
-            Debug.Assert(setAccessorBody is null == interfaceProperty.SetMethod is null);
-
             _interfaceProperty = interfaceProperty;
             Name = ExplicitInterfaceHelpers.GetMemberName(interfaceProperty.Name, interfaceProperty.ContainingType, aliasQualifierOpt: null);
             GetMethod = new SynthesizedReadOnlyListMethod(containingType, interfaceProperty.GetMethod, getAccessorBody);
-            SetMethod = interfaceProperty.SetMethod is null ? null : new SynthesizedReadOnlyListMethod(containingType, interfaceProperty.SetMethod, setAccessorBody!);
         }
 
         public override string Name { get; }
 
         public override TypeWithAnnotations TypeWithAnnotations => _interfaceProperty.TypeWithAnnotations;
 
-        public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty; // PROTOTYPE: This is incorrect.
+        public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
         public override bool IsIndexer => false;
 
         public override MethodSymbol? GetMethod { get; }
 
-        public override MethodSymbol? SetMethod { get; }
+        public override MethodSymbol? SetMethod => null;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray.Create(_interfaceProperty);
 

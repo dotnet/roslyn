@@ -6179,14 +6179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000b:  ret
                 }
                 """);
-            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IEnumerable<out T>.GetEnumerator()", """
+            // PROTOTYPE: Why is a castclass instruction included? Compare to the code generated for a method written by hand.
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", """
                 {
-                  // Code size       12 (0xc)
+                  // Code size       17 (0x11)
                   .maxstack  1
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
                   IL_0006:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
-                  IL_000b:  ret
+                  IL_000b:  castclass  "System.Collections.Generic.IEnumerator<T>"
+                  IL_0010:  ret
                 }
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", """

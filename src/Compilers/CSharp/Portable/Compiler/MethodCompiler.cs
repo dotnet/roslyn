@@ -168,9 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
-                //var privateImplTypes = moduleBeingBuiltOpt.GetAdditionalPrivateImplementationDetailsTypes();
-                //methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
-
                 if (emitMethodBodies)
                 {
                     // By this time we have processed all types reachable from module's global namespace

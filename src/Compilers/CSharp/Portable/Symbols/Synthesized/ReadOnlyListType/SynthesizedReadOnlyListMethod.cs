@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedReadOnlyListGetEnumeratorT : SynthesizedImplementationMethod
+    internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method);
+
+    internal sealed class SynthesizedReadOnlyListMethod : SynthesizedImplementationMethod
     {
-        internal SynthesizedReadOnlyListGetEnumeratorT(SynthesizedReadOnlyListTypeSymbol containingType, MethodSymbol interfaceMethod) : base(interfaceMethod, containingType)
+        private readonly GenerateMethodBodyDelegate _generateMethodBody;
+
+        internal SynthesizedReadOnlyListMethod(SynthesizedReadOnlyListTypeSymbol containingType, MethodSymbol interfaceMethod, GenerateMethodBodyDelegate generateMethodBody) :
+            base(interfaceMethod, containingType)
         {
+            _generateMethodBody = generateMethodBody;
         }
 
         internal override bool SynthesizesLoweredBoundBody => true;
@@ -21,15 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                // PROTOTYPE: Test missing member.
-                var getEnumerator = (MethodSymbol)DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
-                var field = ContainingType.GetFieldsToEmit().Single();
-                // return _items.GetEnumerator();
-                var statement = f.Return(
-                    f.Call(
-                        f.Field(f.This(), field),
-                        getEnumerator));
-                f.CloseMethod(statement);
+                var body = _generateMethodBody(f, this);
+                f.CloseMethod(body);
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {

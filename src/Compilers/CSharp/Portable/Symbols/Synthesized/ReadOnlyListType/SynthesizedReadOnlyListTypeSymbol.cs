@@ -30,36 +30,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arrayType = compilation.CreateArrayTypeSymbol(elementType: typeParameter);
 
             // PROTOTYPE: Test missing interfaces.
-            var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable));
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(typeArgs));
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T).Construct(typeArgs));
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T).Construct(typeArgs));
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs));
-            interfacesBuilder.Add(compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs));
-            _interfaces = interfacesBuilder.ToImmutableAndFree();
+            var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+            var iEnumerableT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(typeArgs);
+            var iReadOnlyCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T).Construct(typeArgs);
+            var iReadOnlyListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T).Construct(typeArgs);
+            var iCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs);
+            var iListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs);
+
+            _interfaces = ImmutableArray.Create(
+                iEnumerable,
+                iEnumerableT,
+                iReadOnlyCollectionT,
+                iReadOnlyListT,
+                iCollectionT,
+                iListT);
+
+            // IEnumerable.GetEnumerator()
+            static BoundStatement generateGetEnumerator(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing member.
+                var getEnumerator = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                // return _items.GetEnumerator();
+                return f.Return(
+                    f.Call(
+                        f.Field(f.This(), field),
+                        getEnumerator));
+            }
+
+            // IEnumerable<T>.GetEnumerator()
+            static BoundStatement generateGetEnumeratorT(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing member.
+                var getEnumerator = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                // return _items.GetEnumerator();
+                return f.Return(
+                    f.Call(
+                        f.Field(f.This(), field),
+                        getEnumerator));
+            }
+
+            // IReadOnlyCollection<T>.Count, ICollection<T>.Count
+            static BoundStatement generateCount(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                // return _items.Length;
+                return f.Return(
+                    f.ArrayLength(
+                        f.Field(f.This(), field)));
+            }
+
+            // ICollection<T>.IsReadOnly
+            static BoundStatement generateIsReadOnly(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // return true;
+                return f.Return(f.Literal(true));
+            }
+
+            // IReadOnlyList<T>.this[], IList<T>.this[]
+            static BoundStatement generateIndexer(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                var parameter = method.Parameters[0];
+                // return _items[index];
+                return f.Return(
+                    f.ArrayAccess(
+                        f.Field(f.This(), field),
+                        f.Parameter(parameter)));
+            }
+
+            static BoundStatement generateNotSupportedException(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing type and member.
+                var constructor = (MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_NotSupportedException__ctor);
+                // throw new System.NotSupportedException();
+                return f.Throw(f.New(constructor));
+            }
 
             // PROTOTYPE: Test missing interface members.
             var membersBuilder = ArrayBuilder<Symbol>.GetInstance();
             membersBuilder.Add(new SynthesizedFieldSymbol(this, arrayType, "_items"));
             membersBuilder.Add(new SynthesizedReadOnlyListConstructor(this, arrayType));
-            membersBuilder.Add(new SynthesizedReadOnlyListGetEnumerator(this, (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator)));
-            membersBuilder.Add(new SynthesizedReadOnlyListGetEnumeratorT(this, (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)));
-            // PROTOTYPE: Add these to WellKnownMember.
-            addProperty(membersBuilder, new SynthesizedReadOnlyListCountProperty(this, (PropertySymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T).Construct(typeArgs).GetMembers("Count").Single()));
-            addProperty(membersBuilder, new SynthesizedReadOnlyListIndexerProperty(this, (PropertySymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T).Construct(typeArgs).GetMembers("this[]").Single()));
-            addProperty(membersBuilder, new SynthesizedReadOnlyListCountProperty(this, (PropertySymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("Count").Single()));
-            addProperty(membersBuilder, new SynthesizedReadOnlyListIsReadOnlyProperty(this, (PropertySymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("IsReadOnly").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListNotSupportedMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("Add").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListNotSupportedMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("Clear").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListContainsMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("Contains").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListCopyToMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("CopyTo").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListNotSupportedMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs).GetMembers("Remove").Single()));
-            addProperty(membersBuilder, new SynthesizedReadOnlyListIndexerProperty(this, (PropertySymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs).GetMembers("this[]").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListIndexOfMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs).GetMembers("IndexOf").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListNotSupportedMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs).GetMembers("Insert").Single()));
-            membersBuilder.Add(new SynthesizedReadOnlyListNotSupportedMethod(this, (MethodSymbol)compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs).GetMembers("RemoveAt").Single()));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), (f, m) => generateGetEnumerator(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iEnumerableT, compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)), (f, m) => generateGetEnumeratorT(f, m)));
+            addProperty(membersBuilder, new SynthesizedReadOnlyListProperty(this, (PropertySymbol)getMember(iReadOnlyCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count)), (f, m) => generateCount(f, m)));
+            addProperty(membersBuilder, new SynthesizedReadOnlyListIndexerProperty(this, (PropertySymbol)getMember(iReadOnlyListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item)), (f, m) => generateIndexer(f, m), null));
+            addProperty(membersBuilder, new SynthesizedReadOnlyListProperty(this, (PropertySymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Count)), (f, m) => generateCount(f, m)));
+            addProperty(membersBuilder, new SynthesizedReadOnlyListProperty(this, (PropertySymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly)), (f, m) => generateIsReadOnly(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Add)), (f, m) => generateNotSupportedException(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Clear)), (f, m) => generateNotSupportedException(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Contains)), (f, m) => generateNotSupportedException(f, m))); // PROTOTYPE: Should be supported.
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo)), (f, m) => generateNotSupportedException(f, m))); // PROTOTYPE: Should be supported.
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Remove)), (f, m) => generateNotSupportedException(f, m)));
+            addProperty(membersBuilder, new SynthesizedReadOnlyListIndexerProperty(this, (PropertySymbol)getMember(iListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__Item)), (f, m) => generateIndexer(f, m), (f, m) => generateNotSupportedException(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__IndexOf)), (f, m) => generateNotSupportedException(f, m))); // PROTOTYPE: Should be supported.
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__Insert)), (f, m) => generateNotSupportedException(f, m)));
+            membersBuilder.Add(new SynthesizedReadOnlyListMethod(this, (MethodSymbol)getMember(iListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__RemoveAt)), (f, m) => generateNotSupportedException(f, m)));
+
             _members = membersBuilder.ToImmutableAndFree();
+
+            // PROTOTYPE: Null-enable.
+#nullable disable
+            static Symbol getMember(NamedTypeSymbol container, Symbol? symbol)
+            {
+                return symbol is null ?
+                    null :
+                    symbol.SymbolAsMember(container);
+            }
+#nullable enable
 
             static void addProperty(ArrayBuilder<Symbol> builder, PropertySymbol property)
             {
