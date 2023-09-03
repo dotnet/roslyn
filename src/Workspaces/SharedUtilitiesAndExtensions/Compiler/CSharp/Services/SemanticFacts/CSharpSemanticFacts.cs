@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tokenParent = token.Parent;
             var sourceAncestor = tokenParent;
             // Skip the tuple expression if the identifier implies the name of the tuple field
+            // For example, we are evaluating `x` in `(x, y)`, but not in `(x: x, y: y)`
             if (tokenParent is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
             {
                 sourceAncestor = parentTuple.Parent;
@@ -86,10 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case IPropertySymbol { ContainingType: ITypeSymbol { IsAnonymousType: true } }:
                             {
-                                Debug.Assert(ancestor is AnonymousObjectMemberDeclaratorSyntax);
-                                var declarator = (AnonymousObjectMemberDeclaratorSyntax)ancestor;
                                 // If the span is not part of the property's explicit name, it's not our target result
-                                if (declarator.NameEquals is null || !declarator.NameEquals.Span.Contains(location.SourceSpan))
+                                // For example, we are evaluating `a.Length` in `new { a.Length }`
+                                if (ancestor is AnonymousObjectMemberDeclaratorSyntax declarator &&
+                                    (declarator.NameEquals is null || !declarator.NameEquals.Span.Contains(location.SourceSpan)))
                                 {
                                     break;
                                 }
