@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ScopedKind EffectiveScope => _scope;
 
-        // PROTOTYPE: Do we need to handle property _container here?
+        // PROTOTYPE: Do we need to handle PropertySymbol _container here?
         internal sealed override bool UseUpdatedEscapeRules => (_container as MethodSymbol)?.UseUpdatedEscapeRules ?? false;
     }
 

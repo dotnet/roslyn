@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedReadOnlyListMethod(
                     this,
                     (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Contains)),
-                    generateNotSupportedException)); // PROTOTYPE: Should be supported.
+                    generateContains));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
                     (MethodSymbol)getMember(iCollectionT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo)),
-                    generateNotSupportedException)); // PROTOTYPE: Should be supported.
+                    generateCopyTo));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedReadOnlyListMethod(
                     this,
                     (MethodSymbol)getMember(iListT, compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__IndexOf)),
-                    generateNotSupportedException)); // PROTOTYPE: Should be supported.
+                    generateIndexOf));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
@@ -142,11 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         getEnumerator));
             }
 
+            // PROTOTYPE: Should be static.
             // IEnumerable<T>.GetEnumerator()
-            static BoundStatement generateGetEnumeratorT(SyntheticBoundNodeFactory f, MethodSymbol method)
+            BoundStatement generateGetEnumeratorT(SyntheticBoundNodeFactory f, MethodSymbol method)
             {
                 // PROTOTYPE: Test missing member.
-                var getEnumerator = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
+                var getEnumerator = ((MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)).AsMember(iEnumerableT);
                 var field = method.ContainingType.GetFieldsToEmit().Single();
                 // return _items.GetEnumerator();
                 return f.Return(
@@ -172,15 +173,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return f.Return(f.Literal(true));
             }
 
-            // IReadOnlyList<T>.this[], IList<T>.this[]
+            // PROTOTYPE: Should be static.
+            // ICollection<T>.Contains(T)
+            BoundStatement generateContains(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing member.
+                var contains = ((MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__Contains)).AsMember(iCollectionT);
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                var parameter = method.Parameters[0];
+                // return ((ICollection<T>)_items).Contains(param0);
+                return f.Return(
+                    f.Call(
+                        f.Convert(
+                            iCollectionT,
+                            f.Field(f.This(), field)),
+                        contains,
+                        f.Parameter(parameter)));
+            }
+
+            // PROTOTYPE: Should be static.
+            // ICollection<T>.CopyTo(T[], int)
+            BoundStatement generateCopyTo(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing member.
+                var copyTo = ((MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo)).AsMember(iCollectionT);
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                var parameter0 = method.Parameters[0];
+                var parameter1 = method.Parameters[1];
+                // { ((ICollection<T>)_items).CopyTo(param0, param1); return; }
+                return f.Block(
+                    f.ExpressionStatement(
+                        f.Call(
+                            f.Convert(
+                                iCollectionT,
+                                f.Field(f.This(), field)),
+                            copyTo,
+                            f.Parameter(parameter0),
+                            f.Parameter(parameter1))),
+                    f.Return());
+            }
+
+            // IReadOnlyList<T>.this[int], IList<T>.this[int]
             static BoundStatement generateIndexer(SyntheticBoundNodeFactory f, MethodSymbol method)
             {
                 var field = method.ContainingType.GetFieldsToEmit().Single();
                 var parameter = method.Parameters[0];
-                // return _items[index];
+                // return _items[param0];
                 return f.Return(
                     f.ArrayAccess(
                         f.Field(f.This(), field),
+                        f.Parameter(parameter)));
+            }
+
+            // PROTOTYPE: Should be static.
+            // IList<T>.IndexOf(T)
+            BoundStatement generateIndexOf(SyntheticBoundNodeFactory f, MethodSymbol method)
+            {
+                // PROTOTYPE: Test missing member.
+                var indexOf = ((MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__IndexOf)).AsMember(iListT);
+                var field = method.ContainingType.GetFieldsToEmit().Single();
+                var parameter = method.Parameters[0];
+                // return ((IList<T>)_items).IndexOf(param0);
+                return f.Return(
+                    f.Call(
+                        f.Convert(
+                            iListT,
+                            f.Field(f.This(), field)),
+                        indexOf,
                         f.Parameter(parameter)));
             }
 
@@ -192,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return f.Throw(f.New(constructor));
             }
 
-            // PROTOTYPE: Null-enable.
+            // PROTOTYPE: #nullable enable
 #nullable disable
             static Symbol getMember(NamedTypeSymbol container, Symbol? symbol)
             {
