@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ScopedKind scope,
             string name)
         {
-            Debug.Assert(container is { });
             Debug.Assert(type.HasType);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);

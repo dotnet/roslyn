@@ -105,40 +105,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression array;
 
-            if (elements.Any(i => i is BoundCollectionExpressionSpreadElement))
+            switch (node.GetKnownLength())
             {
-                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
-                // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
-                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
-                var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
-                var list = VisitCollectionInitializerCollectionExpression(node, listType);
-                array = _factory.Call(list, listToArray);
-            }
-            else
-            {
-                int arrayLength = elements.Length;
-                if (arrayLength == 0)
-                {
+                case null:
+                    {
+                        // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                        // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
+                        // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
+                        var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
+                        var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
+                        var list = VisitCollectionInitializerCollectionExpression(node, listType);
+                        array = _factory.Call(list, listToArray);
+                    }
+                    break;
+
+                case 0:
                     array = CreateEmptyArray(syntax, arrayType);
-                }
-                else
-                {
-                    var initialization = new BoundArrayInitialization(
-                        syntax,
-                        isInferred: false,
-                        elements.SelectAsArray(e => VisitExpression(e)));
-                    array = new BoundArrayCreation(
-                        syntax,
-                        ImmutableArray.Create<BoundExpression>(
-                            new BoundLiteral(
-                                syntax,
-                                ConstantValue.Create(arrayLength),
-                                _compilation.GetSpecialType(SpecialType.System_Int32))),
-                        initialization,
-                        arrayType)
-                    { WasCompilerGenerated = true };
-                }
+                    break;
+
+                case int arrayLength:
+                    {
+                        var initialization = new BoundArrayInitialization(
+                            syntax,
+                            isInferred: false,
+                            elements.SelectAsArray(e => VisitExpression(e)));
+                        array = new BoundArrayCreation(
+                            syntax,
+                            ImmutableArray.Create<BoundExpression>(
+                                new BoundLiteral(
+                                    syntax,
+                                    ConstantValue.Create(arrayLength),
+                                    _compilation.GetSpecialType(SpecialType.System_Int32))),
+                            initialization,
+                            arrayType)
+                        { WasCompilerGenerated = true };
+                    }
+                    break;
             }
 
             if (spanConstructor is null)
@@ -207,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Use Array.Empty<T>() rather than List<T> for an empty collection expression when
             // the target type is IEnumerable<T>, IReadOnlyCollection<T>, or IReadOnlyList<T>.
-            if (collectionType is
+            if (node.GetKnownLength() is int length &&
+                collectionType is
                 {
                     OriginalDefinition.SpecialType:
                         SpecialType.System_Collections_Generic_IEnumerable_T or
@@ -217,15 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 })
             {
                 var elements = node.Elements;
-                int length = elements.Length;
                 if (length == 0)
                 {
                     arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
                 }
                 else
                 {
-                    Debug.Assert(!elements.Any(e => e is BoundCollectionExpressionSpreadElement)); // PROTOTYPE: Not handled.
-
                     var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, _diagnostics.DiagnosticBag).Construct(ImmutableArray.Create(elementType));
 
                     // var array = new ElementType[] { e1, ..., eN };
@@ -295,11 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind.ReadOnlySpan or
                 CollectionExpressionTypeKind.CollectionBuilder);
 
-            var elements = node.Elements;
-            return elements.Length > 0 &&
+            return node.GetKnownLength() is int length &&
+                length > 0 &&
                 CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType) &&
-                !elements.Any(i => i is BoundCollectionExpressionSpreadElement) &&
-                elements.All(e => e.ConstantValueOpt is { });
+                node.Elements.All(e => e.ConstantValueOpt is { });
         }
 
         private bool ShouldUseInlineArray(BoundCollectionExpression node)
@@ -309,9 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind.Span or
                 CollectionExpressionTypeKind.CollectionBuilder);
 
-            var elements = node.Elements;
-            return elements.Length > 0 &&
-                !elements.Any(i => i is BoundCollectionExpressionSpreadElement) &&
+            return node.GetKnownLength() is int length &&
+                length > 0 &&
                 _compilation.Assembly.RuntimeSupportsInlineArrayTypes;
         }
 
