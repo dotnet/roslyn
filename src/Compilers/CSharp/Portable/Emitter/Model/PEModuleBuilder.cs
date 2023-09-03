@@ -1965,19 +1965,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
+            Debug.Assert(syntaxNode is { });
+            Debug.Assert(diagnostics is { });
+
             string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(CurrentGenerationOrdinal);
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+            NamedTypeSymbol typeSymbol;
 
             if (typeAdapter is null)
             {
-                var typeSymbol = new SynthesizedReadOnlyListTypeSymbol(SourceModule, typeName);
+                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName);
                 privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
                 typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }
 
             Debug.Assert(typeAdapter.Name == typeName);
-            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+
+            var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
+            if (info is { })
+            {
+                Symbol.ReportUseSiteDiagnostic(info, diagnostics, syntaxNode.Location);
+            }
+
+            return typeSymbol;
         }
 
         internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)

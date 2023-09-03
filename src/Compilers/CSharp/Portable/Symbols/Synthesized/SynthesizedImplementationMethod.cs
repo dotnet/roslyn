@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
     {
         //inputs
-        private readonly MethodSymbol _interfaceMethod;
+        protected readonly MethodSymbol _interfaceMethod;
         private readonly NamedTypeSymbol _implementingType;
         private readonly bool _generateDebugInfo;
         private readonly PropertySymbol _associatedProperty;

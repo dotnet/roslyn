@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method);
+    internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method, MethodSymbol interfaceMethod);
 
     internal sealed class SynthesizedReadOnlyListMethod : SynthesizedImplementationMethod
     {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                var body = _generateMethodBody(f, this);
+                var body = _generateMethodBody(f, this, _interfaceMethod);
                 f.CloseMethod(body);
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

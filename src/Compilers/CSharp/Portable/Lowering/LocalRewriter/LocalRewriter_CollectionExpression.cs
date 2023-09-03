@@ -227,6 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, _diagnostics.DiagnosticBag).Construct(ImmutableArray.Create(elementType));
+                    if (synthesizedType.IsErrorType())
+                    {
+                        return BadExpression(node);
+                    }
 
                     // var array = new ElementType[] { e1, ..., eN };
                     var initialization = new BoundArrayInitialization(

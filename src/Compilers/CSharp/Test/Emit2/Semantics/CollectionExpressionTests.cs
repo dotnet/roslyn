@@ -6338,6 +6338,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IList<T>.RemoveAt(int)", expectedNotSupportedIL);
         }
 
+        [Theory]
+        [InlineData(SpecialType.System_Collections_IEnumerable, "System.Collections.IEnumerable")]
+        [InlineData(SpecialType.System_Collections_Generic_IEnumerable_T, "System.Collections.Generic.IEnumerable`1")]
+        [InlineData(SpecialType.System_Collections_Generic_IReadOnlyCollection_T, "System.Collections.Generic.IReadOnlyCollection`1")]
+        [InlineData(SpecialType.System_Collections_Generic_IReadOnlyList_T, "System.Collections.Generic.IReadOnlyList`1")]
+        [InlineData(SpecialType.System_Collections_Generic_ICollection_T, "System.Collections.Generic.ICollection`1")]
+        [InlineData(SpecialType.System_Collections_Generic_IList_T, "System.Collections.Generic.IList`1")]
+        public void SynthesizedReadOnlyList_MissingSpecialTypes(SpecialType missingType, string missingTypeName)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> e = [0];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(missingType);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS0518: Predefined type 'System.Collections.IEnumerable' is not defined or imported
+                //         IEnumerable<int> e = [0];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[0]").WithArguments(missingTypeName).WithLocation(6, 30));
+        }
+
+        [Theory]
+        [InlineData((int)SpecialMember.System_Collections_IEnumerable__GetEnumerator, "System.Collections.IEnumerable", "GetEnumerator")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator, "System.Collections.Generic.IEnumerable`1", "GetEnumerator")]
+        public void SynthesizedReadOnlyList_MissingSpecialMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> e = [0];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((SpecialMember)missingMember);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.IEnumerable.GetEnumerator'
+                //         IEnumerable<int> e = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(6, 30));
+        }
+
+        [Theory]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count, "System.Collections.Generic.IReadOnlyCollection`1", "Count")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item, "System.Collections.Generic.IReadOnlyList`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Count, "System.Collections.Generic.ICollection`1", "Count")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly, "System.Collections.Generic.ICollection`1", "IsReadOnly")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Add, "System.Collections.Generic.ICollection`1", "Add")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Clear, "System.Collections.Generic.ICollection`1", "Clear")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Contains, "System.Collections.Generic.ICollection`1", "Contains")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo, "System.Collections.Generic.ICollection`1", "CopyTo")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Remove, "System.Collections.Generic.ICollection`1", "Remove")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Item, "System.Collections.Generic.IList`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__IndexOf, "System.Collections.Generic.IList`1", "IndexOf")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Insert, "System.Collections.Generic.IList`1", "Insert")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__RemoveAt, "System.Collections.Generic.IList`1", "RemoveAt")]
+        [InlineData((int)WellKnownMember.System_NotSupportedException__ctor, "System.NotSupportedException", ".ctor")]
+        public void SynthesizedReadOnlyList_MissingWellKnownMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> e = [0];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.IReadOnlyCollection`1.Count'
+                //         IEnumerable<int> e = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(6, 30));
+        }
+
         [Fact]
         public void Nullable_01()
         {
