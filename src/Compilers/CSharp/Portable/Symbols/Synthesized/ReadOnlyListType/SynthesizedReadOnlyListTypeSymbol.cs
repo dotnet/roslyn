@@ -218,13 +218,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IEnumerable.GetEnumerator()
             static BoundStatement generateGetEnumerator(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var getEnumerator = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
                 var field = method.ContainingType.GetFieldsToEmit().Single();
                 // return _items.GetEnumerator();
                 return f.Return(
                     f.Call(
                         f.Field(f.This(), field),
-                        getEnumerator));
+                        interfaceMethod));
             }
 
             // IEnumerable<T>.GetEnumerator()

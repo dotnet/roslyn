@@ -697,7 +697,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.ToImmutableAndFree(),
                 targetType);
 
-            // PROTOTYPE: Remove this method and simply classify the CollectionExpressionTypeKind differently from the start.
             static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
             {
                 return targetType is not

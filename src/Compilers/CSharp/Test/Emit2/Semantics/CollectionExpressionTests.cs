@@ -6121,15 +6121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test pointer element type. See ArrayEmpty_PointerElementType.
-        // PROTOTYPE: Handle unknown length collections.
-        // PROTOTYPE: Test dynamic element types.
-
         [CombinatorialData]
         [Theory]
-        public void SynthesizedReadOnlyList_01([CombinatorialValues("IEnumerable<object>", "IReadOnlyCollection<object>", "IReadOnlyList<object>")] string targetType)
+        public void SynthesizedReadOnlyList([CombinatorialValues("IEnumerable<object>", "IReadOnlyCollection<object>", "IReadOnlyList<object>")] string targetType)
         {
-            // PROTOTYPE: Invoke all methods with [..e] when e is [] and e is [1, 2, 3].
             string source = $$"""
                 using System;
                 using System.Collections;
@@ -6421,6 +6416,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.IReadOnlyCollection`1.Count'
                 //         IEnumerable<int> e = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void SynthesizedReadOnlyList_Dynamic()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d = 2;
+                        IEnumerable<int> x = [1, d, default];
+                        IEnumerable<dynamic> y = [1, d, default];
+                        x.Report(includeType: true);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                references: new[] { CSharpRef },
+                expectedOutput: "(<>z__ReadOnlyList<System.Int32>) [1, 2, 0], (<>z__ReadOnlyList<System.Object>) [1, 2, null], ");
         }
 
         [Fact]
