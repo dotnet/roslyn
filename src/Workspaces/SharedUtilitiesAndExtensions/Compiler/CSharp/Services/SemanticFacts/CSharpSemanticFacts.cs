@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If the span is part of the property's assignment expression, it's not our target result
                                 // For example, we are evaluating `a.Length` in `new { a.Length }`, or in `new { Length = a.Length }`
                                 if (ancestor is AnonymousObjectMemberDeclaratorSyntax declarator &&
-                                    (declarator.Expression.Span.Contains(location.SourceSpan)))
+                                    declarator.Expression.Span.Contains(location.SourceSpan))
                                 {
                                     break;
                                 }
