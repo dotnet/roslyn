@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// For user defined methods the ordinal is included in Custom Debug Information record attached to the method.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct DebugId : IEquatable<DebugId>
+    internal readonly struct DebugId : IEquatable<DebugId>
     {
         public const int UndefinedOrdinal = -1;
 

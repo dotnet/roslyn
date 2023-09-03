@@ -690,6 +690,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">

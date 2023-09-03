@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType = info.GetResult?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
-            return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
+            return new BoundAwaitExpression(node, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
         }
 
         internal void ReportBadAwaitDiagnostics(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics, ref bool hasErrors)
