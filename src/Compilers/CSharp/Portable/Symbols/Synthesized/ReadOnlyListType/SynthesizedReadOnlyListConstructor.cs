@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedReadOnlyListConstructor : SynthesizedInstanceConstructor
     {
-        internal SynthesizedReadOnlyListConstructor(SynthesizedReadOnlyListTypeSymbol containingType, ArrayTypeSymbol parameterType) : base(containingType)
+        internal SynthesizedReadOnlyListConstructor(SynthesizedReadOnlyListTypeSymbol containingType, TypeSymbol parameterType) : base(containingType)
         {
             Parameters = ImmutableArray.Create(
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(parameterType), ordinal: 0, RefKind.None, "items"));

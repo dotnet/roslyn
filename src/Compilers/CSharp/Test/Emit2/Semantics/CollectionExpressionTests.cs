@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "(<>z__ReadOnlyList<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlyList<System.Int32>) [4], (<>z__ReadOnlyList<System.Int32>) [5], ");
+                expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlyArray<System.Int32>) [4], (<>z__ReadOnlyArray<System.Int32>) [5], ");
         }
 
         [Fact]
@@ -4949,7 +4949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ("IEnumerable<int>", "IEnumerable<int>") =>
                     """
                     {
-                      // Code size       57 (0x39)
+                      // Code size       62 (0x3e)
                       .maxstack  2
                       .locals init (System.Collections.Generic.List<int> V_0,
                                     System.Collections.Generic.IEnumerator<int> V_1,
@@ -4982,9 +4982,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         IL_0030:  endfinally
                       }
                       IL_0031:  ldloc.0
-                      IL_0032:  ldc.i4.0
-                      IL_0033:  call       "void CollectionExtensions.Report(object, bool)"
-                      IL_0038:  ret
+                      IL_0032:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                      IL_0037:  ldc.i4.0
+                      IL_0038:  call       "void CollectionExtensions.Report(object, bool)"
+                      IL_003d:  ret
                     }
                     """,
                 ("IEnumerable<int>", "int[]") =>
@@ -6123,7 +6124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [Theory]
-        public void SynthesizedReadOnlyList([CombinatorialValues("IEnumerable<object>", "IReadOnlyCollection<object>", "IReadOnlyList<object>")] string targetType)
+        public void SynthesizedReadOnlyArray([CombinatorialValues("IEnumerable<object>", "IReadOnlyCollection<object>", "IReadOnlyList<object>")] string targetType)
         {
             string source = $$"""
                 using System;
@@ -6139,10 +6140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Report({{targetType}} x)
                     {
                         Write("IEnumerable.GetEnumerator(): ");
-                        ((IEnumerable)x).Report();
+                        ((IEnumerable)x).Report(includeType: true);
                         WriteLine();
                         Write("IEnumerable<object>.GetEnumerator(): ");
-                        ((IEnumerable<object>)x).Report();
+                        ((IEnumerable<object>)x).Report(includeType: true);
                         WriteLine();
                         WriteLine("IReadOnlyCollection<object>.Count: {0}", ((IReadOnlyCollection<object>)x).Count);
                         WriteLine("IReadOnlyList<object>.this[]: {0}", ((IReadOnlyList<object>)x)[1]);
@@ -6154,7 +6155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Write("ICollection<object>.CopyTo: ");
                         object[] a = new object[3];
                         ((ICollection<object>)x).CopyTo(a, 0);
-                        a.Report();
+                        a.Report(includeType: true);
                         WriteLine();
                         WriteLine("ICollection<object>.Remove: {0}", Invoke(() => ((ICollection<object>)x).Remove(2)));
                         WriteLine("IList<object>.this[].get: {0}", ((IList<object>)x)[1]);
@@ -6180,8 +6181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensions },
                 expectedOutput: """
-                    IEnumerable.GetEnumerator(): [1, 2, null], 
-                    IEnumerable<object>.GetEnumerator(): [1, 2, null], 
+                    IEnumerable.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
+                    IEnumerable<object>.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
                     IReadOnlyCollection<object>.Count: 3
                     IReadOnlyList<object>.this[]: 2
                     ICollection<object>.Count: 3
@@ -6189,7 +6190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     ICollection<object>.Add: System.NotSupportedException
                     ICollection<object>.Clear: System.NotSupportedException
                     ICollection<object>.Contains: True
-                    ICollection<object>.CopyTo: [1, 2, null], 
+                    ICollection<object>.CopyTo: (System.Object[]) [1, 2, null], 
                     ICollection<object>.Remove: System.NotSupportedException
                     IList<object>.this[].get: 2
                     IList<object>.this[].set: System.NotSupportedException
@@ -6207,7 +6208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            verifier.VerifyIL("<>z__ReadOnlyList<T>..ctor(T[])", """
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>..ctor(T[])", """
                 {
                   // Code size       14 (0xe)
                   .maxstack  2
@@ -6215,7 +6216,235 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0001:  call       "object..ctor()"
                   IL_0006:  ldarg.0
                   IL_0007:  ldarg.1
-                  IL_0008:  stfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0008:  stfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IEnumerable.GetEnumerator()", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                  IL_000b:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
+                  IL_000b:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldlen
+                  IL_0007:  conv.i4
+                  IL_0008:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldelem     "T"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.get_IsReadOnly()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.get_Count()", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldlen
+                  IL_0007:  conv.i4
+                  IL_0008:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.Add(T)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.Clear()", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.Contains(T)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "bool System.Collections.Generic.ICollection<T>.Contains(T)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.CopyTo(T[], int)", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldarg.2
+                  IL_0008:  callvirt   "void System.Collections.Generic.ICollection<T>.CopyTo(T[], int)"
+                  IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.ICollection<T>.Remove(T)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IList<T>.get_Item(int)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldelem     "T"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IList<T>.set_Item(int, T)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IList<T>.IndexOf(T)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "int System.Collections.Generic.IList<T>.IndexOf(T)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IList<T>.Insert(int, T)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IList<T>.RemoveAt(int)", expectedNotSupportedIL);
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void SynthesizedReadOnlyList([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
+        {
+            string source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using static System.Console;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [];
+                        object[] y = [1, 2, null];
+                        Report<int>([..x]);
+                        Report<object>([..x, ..y]);
+                    }
+                    static void Report<T>({{targetType}} x)
+                    {
+                        int length = ((IReadOnlyCollection<T>)x).Count;
+                        Write("IEnumerable.GetEnumerator(): ");
+                        ((IEnumerable)x).Report(includeType: true);
+                        WriteLine();
+                        Write("IEnumerable<T>.GetEnumerator(): ");
+                        ((IEnumerable<T>)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IReadOnlyCollection<T>.Count: {0}", ((IReadOnlyCollection<T>)x).Count);
+                        if (length > 1) WriteLine("IReadOnlyList<T>.this[]: {0}", ((IReadOnlyList<T>)x)[1]);
+                        WriteLine("ICollection<T>.Count: {0}", ((ICollection<T>)x).Count);
+                        WriteLine("ICollection<T>.IsReadOnly: {0}", ((ICollection<T>)x).IsReadOnly);
+                        WriteLine("ICollection<T>.Add: {0}", Invoke(() => ((ICollection<T>)x).Add(default)));
+                        WriteLine("ICollection<T>.Clear: {0}", Invoke(() => ((ICollection<T>)x).Clear()));
+                        WriteLine("ICollection<T>.Contains: {0}", ((ICollection<T>)x).Contains(default));
+                        Write("ICollection<T>.CopyTo: ");
+                        T[] a = new T[length];
+                        ((ICollection<T>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection<T>.Remove: {0}", Invoke(() => ((ICollection<T>)x).Remove(default)));
+                        if (length > 1) WriteLine("IList<T>.this[].get: {0}", ((IList<T>)x)[1]);
+                        if (length > 1) WriteLine("IList<T>.this[].set: {0}", Invoke(() => ((IList<T>)x)[1] = default));
+                        WriteLine("IList<T>.IndexOf: {0}", ((IList<T>)x).IndexOf(default));
+                        WriteLine("IList<T>.Insert: {0}", Invoke(() => ((IList<T>)x).Insert(0, default)));
+                        if (length > 1) WriteLine("IList<T>.RemoveAt: {0}", Invoke(() => ((IList<T>)x).RemoveAt(1)));
+                    }
+                    static string Invoke(Action a)
+                    {
+                        try
+                        {
+                            a();
+                            return "completed";
+                        }
+                        catch (Exception e)
+                        {
+                            return e.GetType().FullName;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: """
+                    IEnumerable.GetEnumerator(): (<>z__ReadOnlyList<System.Int32>) [], 
+                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyList<System.Int32>) [], 
+                    IReadOnlyCollection<T>.Count: 0
+                    ICollection<T>.Count: 0
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add: System.NotSupportedException
+                    ICollection<T>.Clear: System.NotSupportedException
+                    ICollection<T>.Contains: False
+                    ICollection<T>.CopyTo: (System.Int32[]) [], 
+                    ICollection<T>.Remove: System.NotSupportedException
+                    IList<T>.IndexOf: -1
+                    IList<T>.Insert: System.NotSupportedException
+                    IEnumerable.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
+                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
+                    IReadOnlyCollection<T>.Count: 3
+                    IReadOnlyList<T>.this[]: 2
+                    ICollection<T>.Count: 3
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add: System.NotSupportedException
+                    ICollection<T>.Clear: System.NotSupportedException
+                    ICollection<T>.Contains: True
+                    ICollection<T>.CopyTo: (System.Object[]) [1, 2, null], 
+                    ICollection<T>.Remove: System.NotSupportedException
+                    IList<T>.this[].get: 2
+                    IList<T>.this[].set: System.NotSupportedException
+                    IList<T>.IndexOf: 2
+                    IList<T>.Insert: System.NotSupportedException
+                    IList<T>.RemoveAt: System.NotSupportedException
+                    """);
+
+            string expectedNotSupportedIL = """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.NotSupportedException..ctor()"
+                  IL_0005:  throw
+                }
+                """;
+
+            verifier.VerifyIL("<>z__ReadOnlyList<T>..ctor(System.Collections.Generic.List<T>)", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object..ctor()"
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  stfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_000d:  ret
                 }
                 """);
@@ -6224,7 +6453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       12 (0xc)
                   .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
                   IL_000b:  ret
                 }
@@ -6234,20 +6463,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       12 (0xc)
                   .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
                   IL_000b:  ret
                 }
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", """
                 {
-                  // Code size        9 (0x9)
+                  // Code size       12 (0xc)
                   .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
-                  IL_0006:  ldlen
-                  IL_0007:  conv.i4
-                  IL_0008:  ret
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  callvirt   "int System.Collections.Generic.IReadOnlyCollection<T>.Count.get"
+                  IL_000b:  ret
                 }
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", """
@@ -6255,9 +6483,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       13 (0xd)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  ldarg.1
-                  IL_0007:  ldelem     "T"
+                  IL_0007:  callvirt   "T System.Collections.Generic.IReadOnlyList<T>.this[int].get"
                   IL_000c:  ret
                 }
                 """);
@@ -6271,13 +6499,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.ICollection<T>.get_Count()", """
                 {
-                  // Code size        9 (0x9)
+                  // Code size       12 (0xc)
                   .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
-                  IL_0006:  ldlen
-                  IL_0007:  conv.i4
-                  IL_0008:  ret
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  callvirt   "int System.Collections.Generic.ICollection<T>.Count.get"
+                  IL_000b:  ret
                 }
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.ICollection<T>.Add(T)", expectedNotSupportedIL);
@@ -6287,7 +6514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       13 (0xd)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  ldarg.1
                   IL_0007:  callvirt   "bool System.Collections.Generic.ICollection<T>.Contains(T)"
                   IL_000c:  ret
@@ -6298,7 +6525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       14 (0xe)
                   .maxstack  3
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  ldarg.1
                   IL_0007:  ldarg.2
                   IL_0008:  callvirt   "void System.Collections.Generic.ICollection<T>.CopyTo(T[], int)"
@@ -6311,9 +6538,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       13 (0xd)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  ldarg.1
-                  IL_0007:  ldelem     "T"
+                  IL_0007:  callvirt   "T System.Collections.Generic.IList<T>.this[int].get"
                   IL_000c:  ret
                 }
                 """);
@@ -6323,7 +6550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       13 (0xd)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldfld      "T[] <>z__ReadOnlyList<T>._items"
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
                   IL_0006:  ldarg.1
                   IL_0007:  callvirt   "int System.Collections.Generic.IList<T>.IndexOf(T)"
                   IL_000c:  ret
@@ -6438,7 +6665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
                 references: new[] { CSharpRef },
-                expectedOutput: "(<>z__ReadOnlyList<System.Int32>) [1, 2, 0], (<>z__ReadOnlyList<System.Object>) [1, 2, null], ");
+                expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [1, 2, 0], (<>z__ReadOnlyArray<System.Object>) [1, 2, null], ");
         }
 
         [Fact]

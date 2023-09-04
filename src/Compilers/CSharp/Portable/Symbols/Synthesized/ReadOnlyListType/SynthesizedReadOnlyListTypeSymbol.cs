@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_NotSupportedException__ctor,
         };
 
-        internal static NamedTypeSymbol Create(SourceModuleSymbol containingModule, string name)
+        internal static NamedTypeSymbol Create(SourceModuleSymbol containingModule, string name, bool hasKnownLength)
         {
             var compilation = containingModule.DeclaringCompilation;
             DiagnosticInfo? diagnosticInfo = null;
@@ -99,14 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new ExtendedErrorTypeSymbol(compilation, name, arity: 1, diagnosticInfo, unreported: true);
             }
 
-            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name);
+            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength);
         }
 
         private readonly ModuleSymbol _containingModule;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
         private readonly ImmutableArray<Symbol> _members;
 
-        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name)
+        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, bool hasKnownLength)
         {
             var compilation = containingModule.DeclaringCompilation;
 
@@ -115,7 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = new SynthesizedReadOnlyListTypeParameterSymbol(this);
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
             var typeArgs = GetTypeParametersAsTypeArguments();
-            var arrayType = compilation.CreateArrayTypeSymbol(elementType: typeParameter);
+
+            TypeSymbol fieldType = hasKnownLength ?
+                compilation.CreateArrayTypeSymbol(elementType: typeParameter) :
+                compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArgs); // PROTOTYPE: Check for missing type.
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             var iEnumerableT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(typeArgs);
@@ -134,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var membersBuilder = ArrayBuilder<Symbol>.GetInstance();
             membersBuilder.Add(
-                new SynthesizedFieldSymbol(this, arrayType, "_items", isReadOnly: true));
+                new SynthesizedFieldSymbol(this, fieldType, "_items", isReadOnly: true));
             membersBuilder.Add(
-                new SynthesizedReadOnlyListConstructor(this, arrayType));
+                new SynthesizedReadOnlyListConstructor(this, fieldType));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
@@ -237,14 +240,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interfaceMethod));
             }
 
+            // PROTOTYPE: The List<T> cases shouldn't require casting to the interface
+            // since the List<T> implicit implementations can be called directly.
+
             // IReadOnlyCollection<T>.Count, ICollection<T>.Count
             static BoundStatement generateCount(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var field = method.ContainingType.GetFieldsToEmit().Single();
-                // return _items.Length;
-                return f.Return(
-                    f.ArrayLength(
-                        f.Field(f.This(), field)));
+                var fieldReference = f.Field(f.This(), field);
+                if (field.Type.IsArray())
+                {
+                    // return _items.Length;
+                    return f.Return(
+                        f.ArrayLength(fieldReference));
+                }
+                else
+                {
+                    // return ((ICollection<T>)_items).Count;
+                    return f.Return(
+                        f.Call(
+                            f.Convert(
+                                interfaceMethod.ContainingType,
+                                fieldReference),
+                            interfaceMethod));
+                }
             }
 
             // ICollection<T>.IsReadOnly
@@ -292,12 +311,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static BoundStatement generateIndexer(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var field = method.ContainingType.GetFieldsToEmit().Single();
-                var parameter = method.Parameters[0];
-                // return _items[param0];
-                return f.Return(
-                    f.ArrayAccess(
-                        f.Field(f.This(), field),
-                        f.Parameter(parameter)));
+                var fieldReference = f.Field(f.This(), field);
+                var parameterReference = f.Parameter(method.Parameters[0]);
+                if (field.Type.IsArray())
+                {
+                    // return _items[param0];
+                    return f.Return(
+                        f.ArrayAccess(fieldReference, parameterReference));
+                }
+                else
+                {
+                    // return ((IList<T>)_items)[param0];
+                    return f.Return(
+                        f.Call(
+                            f.Convert(
+                                interfaceMethod.ContainingType,
+                                fieldReference),
+                            interfaceMethod,
+                            parameterReference));
+                }
             }
 
             // IList<T>.IndexOf(T)
