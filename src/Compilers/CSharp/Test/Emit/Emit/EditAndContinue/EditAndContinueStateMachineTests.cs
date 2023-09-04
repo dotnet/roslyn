@@ -6744,7 +6744,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                     generation0,
-                    [SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)]);
+                    ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -7009,7 +7009,7 @@ class C
                 NonDisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options, filename: "AsyncStreams.cs");
 
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource([source1.Tree, asyncStreamsTree]);
+            var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyDiagnostics();
@@ -7183,7 +7183,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                     generation0,
-                    [SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)]);
+                    ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
