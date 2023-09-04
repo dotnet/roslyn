@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var membersBuilder = ArrayBuilder<Symbol>.GetInstance();
             membersBuilder.Add(
-                new SynthesizedFieldSymbol(this, arrayType, "_items"));
+                new SynthesizedFieldSymbol(this, arrayType, "_items", isReadOnly: true));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListConstructor(this, arrayType));
             membersBuilder.Add(

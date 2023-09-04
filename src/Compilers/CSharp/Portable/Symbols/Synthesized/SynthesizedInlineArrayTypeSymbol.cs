@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arrayLength > 0);
 
             var typeParameter = new InlineArrayTypeParameterSymbol(this);
-            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
+            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0", isReadOnly: true);
 
             _containingModule = containingModule;
             _arrayLength = arrayLength;
