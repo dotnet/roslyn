@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 localSlots: [],
                 closures: [],
                 lambdas: [],
-                stateMachineStates: 
+                stateMachineStates:
                 [
                     new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(2), (StateMachineState)0),
                     new StateMachineStateDebugInfo(syntaxOffset: 0x30, new AwaitDebugId(0), (StateMachineState)5),
