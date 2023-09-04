@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <MainVersion>2023.3.5</MainVersion>
-        <PackageVersionSuffix>-preview</PackageVersionSuffix>
+        <PackageVersionSuffix>-rc</PackageVersionSuffix>
         <RoslynVersion>4.7.0</RoslynVersion>
     </PropertyGroup>
 </Project>
