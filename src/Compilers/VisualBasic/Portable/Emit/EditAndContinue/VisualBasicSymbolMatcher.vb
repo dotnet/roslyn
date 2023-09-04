@@ -515,6 +515,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Private Function VisitNamedTypeMember(Of T As Symbol)(member As T, predicate As Func(Of T, T, Boolean)) As Symbol
+                If member.ContainingType Is Nothing Then
+                    ' ContainingType is null for synthesized PrivateImplementationDetails helpers.
+                    ' For simplicity, these helpers are not reused across generations.
+                    ' Instead new ones are regenerated as needed.
+                    Debug.Assert(TypeOf member Is ISynthesizedGlobalMethodSymbol)
+
+                    Return Nothing
+                End If
+
                 Dim otherType As NamedTypeSymbol = DirectCast(Visit(member.ContainingType), NamedTypeSymbol)
                 If otherType Is Nothing Then
                     Return Nothing

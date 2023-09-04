@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,46 @@ public class CSharpTestMethodFinderTests
             }
             """;
         await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestMatchesXUnitFactInInnerClassMethod()
+    {
+        var code = """
+            using Xunit;
+            public class OuterClass
+            {
+                [Fact]
+                public void TestMethod1() { }
+            
+                public class InnerClass
+                {
+                    [Fact]
+                    public void Test$$Method2() { }
+                }
+            }
+            """;
+        await TestXunitMatchAsync(code, "OuterClass+InnerClass.TestMethod2");
+    }
+
+    [Fact]
+    public async Task TestMatchesXUnitFactInOuterClassMethod()
+    {
+        var code = """
+            using Xunit;
+            public class OuterClass
+            {
+                [Fact]
+                public void Test$$Method1() { }
+            
+                public class InnerClass
+                {
+                    [Fact]
+                    public void TestMethod2() { }
+                }
+            }
+            """;
+        await TestXunitMatchAsync(code, "OuterClass.TestMethod1");
     }
 
     [Fact]
@@ -452,6 +493,23 @@ public class CSharpTestMethodFinderTests
         return TestAsync(code, xunitDefinitions, expectedTestNames);
     }
 
+    private static Task TestXunitMatchAsync(string code, params string[] expectedQualifiedTestNames)
+    {
+        var xunitDefinitions = """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class TheoryAttribute : FactAttribute { }
+            }
+            """;
+
+        return TestMatchAsync(code, xunitDefinitions, expectedQualifiedTestNames);
+    }
+
     private static Task TestNUnitAsync(string code, params string[] expectedTestNames)
     {
         var nunitDefinitions = """
@@ -502,5 +560,30 @@ public class CSharpTestMethodFinderTests
         var testMethodNames = testMethods.Cast<MethodDeclarationSyntax>().Select(m => m.Identifier.Text).ToArray();
 
         AssertEx.Equal(expectedTestNames, testMethodNames);
+    }
+
+    private static async Task TestMatchAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
+    {
+        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+
+        var testDocument = workspace.Documents.First();
+        var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
+
+        var testMethodFinder = workspace.CurrentSolution.Projects.Single().GetRequiredLanguageService<ITestMethodFinder>();
+        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
+        var semanticModel = await workspace.CurrentSolution.GetRequiredDocument(testDocument.Id).GetRequiredSemanticModelAsync(CancellationToken.None);
+
+        List<string> unmatchedTestNames = new();
+
+        foreach (var expectedTestName in expectedTestNames)
+        {
+            var matchFound = testMethods.Any(m => testMethodFinder.IsMatch(semanticModel, m, expectedTestName, CancellationToken.None));
+            if (!matchFound)
+            {
+                unmatchedTestNames.Add(expectedTestName);
+            }
+        }
+
+        Assert.True(unmatchedTestNames.Count == 0, $"Unable to match the following test names: {string.Join(", ", unmatchedTestNames)}");
     }
 }

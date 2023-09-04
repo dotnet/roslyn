@@ -24,12 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         [Fact]
         public async Task Net6SdkLayout_InvalidXml()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -61,12 +62,13 @@ public class C
         [Fact]
         public async Task Net6SdkLayout()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -100,12 +102,13 @@ public class C
         [Fact]
         public async Task Net6SdkLayout_PacksInPath()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -141,15 +144,16 @@ public class C
         [Fact]
         public async Task FollowTypeForwards()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -191,24 +195,25 @@ public class C
         [Fact]
         public async Task FollowTypeForwards_Namespace()
         {
-            var source = @"
-namespace A
-{
-    namespace B
-    {
-        public class C
-        {
-            public class D
-            {
-                // A change
-                public event System.EventHandler [|E|] { add { } remove { } }
-            }
-        }
-    }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C))]
-";
+            var source = """
+                namespace A
+                {
+                    namespace B
+                    {
+                        public class C
+                        {
+                            public class D
+                            {
+                                // A change
+                                public event System.EventHandler [|E|] { add { } remove { } }
+                            }
+                        }
+                    }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -251,24 +256,25 @@ namespace A
         [Fact]
         public async Task FollowTypeForwards_Generics()
         {
-            var source = @"
-namespace A
-{
-    namespace B
-    {
-        public class C<T>
-        {
-            public class D
-            {
-                // A change
-                public event System.EventHandler [|E|] { add { } remove { } }
-            }
-        }
-    }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C<>))]
-";
+            var source = """
+                namespace A
+                {
+                    namespace B
+                    {
+                        public class C<T>
+                        {
+                            public class D
+                            {
+                                // A change
+                                public event System.EventHandler [|E|] { add { } remove { } }
+                            }
+                        }
+                    }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A.B.C<>))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -311,18 +317,19 @@ namespace A
         [Fact]
         public async Task FollowTypeForwards_NestedType()
         {
-            var source = @"
-public class C
-{
-    public class D
-    {
-        // A change
-        public event System.EventHandler [|E|] { add { } remove { } }
-    }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-";
+            var source = """
+                public class C
+                {
+                    public class D
+                    {
+                        // A change
+                        public event System.EventHandler [|E|] { add { } remove { } }
+                    }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -364,15 +371,16 @@ public class C
         [Fact]
         public async Task FollowTypeForwards_Cache()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -421,22 +429,23 @@ public class C
         [Fact]
         public async Task FollowTypeForwards_MultipleTypes_Cache()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
 
-public class D { }
-public class E { }
-public class F { }";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(D))]
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(E))]
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(F))]
-";
+                public class D { }
+                public class E { }
+                public class F { }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(D))]
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(E))]
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(F))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -485,15 +494,16 @@ public class F { }";
         [Fact]
         public async Task FollowTypeForwards_MultipleHops_Cache()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                """;
 
             await RunTestAsync(async path =>
             {

@@ -9202,5 +9202,29 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
             }.RunAsync();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
+        public async Task TestPrimaryConstructorParameterAssignment()
+        {
+            var source = """
+                class C(string str) {
+                	public void Reset() {
+                		str = string.Empty;
+                	}
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            }.RunAsync();
+        }
     }
 }

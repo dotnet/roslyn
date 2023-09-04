@@ -2,7 +2,7 @@
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData() -> void
-Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData(string! packageSource, string! packageName, string! packageVersionOpt, string! packageNamespaceName) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData(string? packageSource, string! packageName, string? packageVersionOpt, string! packageNamespaceName) -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult() -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan LeftSpan, Microsoft.CodeAnalysis.Text.TextSpan RightSpan) -> void
@@ -89,8 +89,8 @@ override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspN
 override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.ToString() -> string!
 readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageName -> string!
 readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageNamespaceName -> string!
-readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageSource -> string!
-readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageVersionOpt -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageSource -> string?
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageVersionOpt -> string?
 readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.VirtualChar -> Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualChar
 static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction.TryCreateCodeActionAsync(Microsoft.CodeAnalysis.Document! document, int position, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData installPackageData, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction?>!
 static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult left, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult right) -> bool

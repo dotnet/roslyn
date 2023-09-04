@@ -8,13 +8,13 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal partial class EditAndContinueTest
+    internal partial class EditAndContinueTest<TSelf> : IDisposable
     {
         internal sealed class GenerationInfo
         {
-            public readonly CSharpCompilation Compilation;
+            public readonly Compilation Compilation;
             public readonly MetadataReader MetadataReader;
             public readonly EmitBaseline Baseline;
             public readonly Action<GenerationVerifier> Verifier;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             /// </summary>
             public readonly CompilationDifference? CompilationDifference;
 
-            public GenerationInfo(CSharpCompilation compilation, MetadataReader reader, CompilationDifference? diff, CompilationVerifier? compilationVerifier, EmitBaseline baseline, Action<GenerationVerifier> verifier)
+            public GenerationInfo(Compilation compilation, MetadataReader reader, CompilationDifference? diff, CompilationVerifier? compilationVerifier, EmitBaseline baseline, Action<GenerationVerifier> verifier)
             {
                 Debug.Assert(diff is null ^ compilationVerifier is null);
 

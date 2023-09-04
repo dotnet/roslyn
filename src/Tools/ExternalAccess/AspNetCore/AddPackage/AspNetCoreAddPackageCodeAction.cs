@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage;
 /// <inheritdoc cref="InstallPackageData"/>
 /// <param name="packageNamespaceName">The fully qualified name of the namespace that should be added as a
 /// <c>using/Import</c> in the file if not already present. Should be of the form <c>A.B.C.D</c> only.</param>
-internal readonly struct AspNetCoreInstallPackageData(string packageSource, string packageName, string packageVersionOpt, string packageNamespaceName)
+internal readonly struct AspNetCoreInstallPackageData(string? packageSource, string packageName, string? packageVersionOpt, string packageNamespaceName)
 {
-    public readonly string PackageSource = packageSource;
+    public readonly string? PackageSource = packageSource;
     public readonly string PackageName = packageName;
-    public readonly string PackageVersionOpt = packageVersionOpt;
+    public readonly string? PackageVersionOpt = packageVersionOpt;
     public readonly string PackageNamespaceName = packageNamespaceName;
 }
 

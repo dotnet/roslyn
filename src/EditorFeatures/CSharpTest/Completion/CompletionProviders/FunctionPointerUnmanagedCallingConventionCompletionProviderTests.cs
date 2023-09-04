@@ -20,32 +20,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact]
         public async Task TypeFound()
         {
-            var markup = @"
-namespace System.Runtime.CompilerServices
-{
-    public class CallConvUnitTest { }
-}
+            var markup = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class CallConvUnitTest { }
+                }
 
-class C
-{
-    delegate* unmanaged[$$] <int, string> f;
-}";
+                class C
+                {
+                    delegate* unmanaged[$$] <int, string> f;
+                }
+                """;
             await VerifyItemExistsAsync(markup, "UnitTest");
         }
 
         [Fact]
         public async Task TypeFoundSecondCallingConvention()
         {
-            var markup = @"
-namespace System.Runtime.CompilerServices
-{
-    public class CallConvUnitTest { }
-}
+            var markup = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class CallConvUnitTest { }
+                }
 
-class C
-{
-    delegate* unmanaged[Thiscall, $$] <int, string> f;
-}";
+                class C
+                {
+                    delegate* unmanaged[Thiscall, $$] <int, string> f;
+                }
+                """;
             await VerifyItemExistsAsync(markup, "UnitTest");
         }
 
@@ -58,17 +60,18 @@ class C
         {
             // We explicitly create a project with no references (not even common references) to ensure we
             // get the defaults
-            var markup = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document>
-    class C
-    {
-        delegate* unmanaged[$$] &lt;int, string&gt; f;
-    }
-        </Document>
-    </Project>
-</Workspace>";
+            var markup = """
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                    class C
+                    {
+                        delegate* unmanaged[$$] &lt;int, string&gt; f;
+                    }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await VerifyItemExistsAsync(markup, callingConvention, glyph: (int)Glyph.Keyword);
         }
     }

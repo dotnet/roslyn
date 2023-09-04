@@ -118,9 +118,12 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         var workingDirectory = Path.GetDirectoryName(document.Project.FilePath);
         Contract.ThrowIfNull(workingDirectory, $"Unable to get working directory for project {document.Project.Name}");
 
+        var projectFileName = Path.GetFileName(document.Project.FilePath);
+        Contract.ThrowIfNull(projectFileName, $"Unable to get project file name for project {document.Project.Name}");
+
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
         // https://github.com/dotnet/vscode-csharp/issues/5725
-        var arguments = "build";
+        var arguments = $"build {projectFileName}";
         using var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
 
         process.OutputDataReceived += (sender, args) => ReportProgress(progress, args.Data);

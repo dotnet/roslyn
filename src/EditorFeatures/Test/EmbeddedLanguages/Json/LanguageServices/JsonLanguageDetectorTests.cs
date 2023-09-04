@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
             static void MatchWorker(string value, JsonOptions? expectedOptions)
             {
-                var detector = new EmbeddedLanguageCommentDetector(JsonLanguageDetector.LanguageIdentifiers);
-                Assert.True(detector.TryMatch(value, out _, out var captures));
+                Assert.True(JsonLanguageDetector.CommentDetector.TryMatch(value, out _, out var captures));
 
                 if (expectedOptions != null)
                 {
@@ -44,8 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
             static void NoMatchWorker(string value)
             {
-                var detector = new EmbeddedLanguageCommentDetector(JsonLanguageDetector.LanguageIdentifiers);
-                Assert.False(detector.TryMatch(value, out _, out var stringOptions) &&
+                Assert.False(JsonLanguageDetector.CommentDetector.TryMatch(value, out _, out var stringOptions) &&
                     EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(stringOptions, out _));
             }
         }
