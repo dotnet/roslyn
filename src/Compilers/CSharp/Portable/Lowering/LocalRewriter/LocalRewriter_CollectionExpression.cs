@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // fieldValue = new List<ElementType> { e1, ..., eN };
                         fieldValue = VisitCollectionInitializerCollectionExpression(
                             node,
-                            _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArgs)); // PROTOTYPE: Check for missing type.
+                            _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArgs));
                     }
 
                     // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);

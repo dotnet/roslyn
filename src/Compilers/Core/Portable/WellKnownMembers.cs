@@ -4182,6 +4182,46 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                // System_Collections_Generic_List_T__Count
+                (byte)MemberFlags.Property,                                                         // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
+
+                // System_Collections_Generic_List_T__Contains
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Collections_Generic_List_T__CopyTo
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Collections_Generic_List_T__Item
+                (byte)MemberFlags.Property,                                                         // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Collections_Generic_List_T__IndexOf
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Collections_Generic_List_T__ToArray
                 (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
@@ -4630,7 +4670,7 @@ namespace Microsoft.CodeAnalysis
                 "GetOffset",                                // System_Index__GetOffset
                 ".ctor",                                    // System_Range__ctor
                 "StartAt",                                  // System_Range__StartAt
-                "EndAt",                                    // System_Range__StartAt
+                "EndAt",                                    // System_Range__EndAt
                 "get_All",                                  // System_Range__get_All
                 "get_Start",                                // System_Range__get_Start
                 "get_End",                                  // System_Range__get_End
@@ -4706,6 +4746,11 @@ namespace Microsoft.CodeAnalysis
                 "IndexOf",                                  // System_Collections_Generic_IList_T__IndexOf,
                 "Insert",                                   // System_Collections_Generic_IList_T__Insert,
                 "RemoveAt",                                 // System_Collections_Generic_IList_T__RemoveAt,
+                "Count",                                    // System_Collections_Generic_List_T__Count,
+                "Contains",                                 // System_Collections_Generic_List_T__Contains,
+                "CopyTo",                                   // System_Collections_Generic_List_T__CopyTo,
+                "this[]",                                   // System_Collections_Generic_List_T__Item,
+                "IndexOf",                                  // System_Collections_Generic_List_T__IndexOf,
                 "ToArray",                                  // System_Collections_Generic_List_T__ToArray
             };
 
