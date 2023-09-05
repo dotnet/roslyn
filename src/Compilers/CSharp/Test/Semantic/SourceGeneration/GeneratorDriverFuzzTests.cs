@@ -350,9 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             {
                 // generate a random tree of operations
                 var provider = context.AdditionalTextsProvider;
-
-                // Adjust depth as needed to make a simpler reproducer
-                var depth = random.Next(4);
                 var finalProvider = rootOperator.Apply(provider);
 
                 context.RegisterSourceOutput(finalProvider, (context, text) =>
