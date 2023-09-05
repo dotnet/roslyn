@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         /// <summary>
-        /// isomorphic to the IncrementalValueProvider tree.
+        /// Isomorphic to the IncrementalValueProvider tree.
         /// Used to generate code which reconstructs the IncrementalValueProvider tree.
         /// </summary>
         abstract class Operator
