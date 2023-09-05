@@ -175,10 +175,10 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var pipeNameOption = new CliOption<string?>("--pipe")
+    var pipeNameOption = new CliOption<string>("--pipe")
     {
-        Description = "The name of the pipe to use for RPC with the parent process. If omitted, STDIN/STDOUT is used.",
-        Required = false
+        Description = "The name of the pipe to use for RPC with the parent process.",
+        Required = true
     };
 
     var rootCommand = new CliRootCommand()
