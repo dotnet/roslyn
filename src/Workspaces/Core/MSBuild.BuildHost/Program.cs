@@ -24,6 +24,11 @@ internal static class Program
         var loggerFactory = LoggerFactory.Create(builder =>
             builder.AddConsole(configure =>
             {
+                // DisableColors is deprecated in favor of us moving to simple console, but that loses the LogToStandardErrorThreshold
+                // which we also need
+#pragma warning disable CS0618
+                configure.DisableColors = true;
+#pragma warning restore CS0618
                 configure.LogToStandardErrorThreshold = LogLevel.Trace;
             }));
 
