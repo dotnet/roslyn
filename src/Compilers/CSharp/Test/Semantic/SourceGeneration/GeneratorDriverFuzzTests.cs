@@ -227,11 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 Source2.AppendTo(builder);
                 builder.AppendLine("""
                                         .Collect()
-                        """);
-                builder.AppendLine("""
                                         )
-                        """);
-                builder.AppendLine("""
                                         .Select((pair, _)
                                             => (AdditionalText)new InMemoryAdditionalText(
                                                 pair.Left.Path,
