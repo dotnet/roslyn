@@ -44,7 +44,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
-                builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+                builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
             })
@@ -101,7 +101,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
     // Named pipe server is actually created from the client, so here we create a client stream.
-    var pipeServer = new NamedPipeClientStream(".", GetDotNetPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
+    var pipeServer = new NamedPipeClientStream(serverName: ".", GetDotNetPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
     await pipeServer.ConnectAsync(cancellationToken);
 
     var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
