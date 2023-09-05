@@ -745,7 +745,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item,
-                         WellKnownMember.System_Collections_Generic_IList_T__Item
+                         WellKnownMember.System_Collections_Generic_IList_T__Item,
+                         WellKnownMember.System_Collections_Generic_List_T__Item
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -945,7 +946,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item,
-                         WellKnownMember.System_Collections_Generic_IList_T__Item
+                         WellKnownMember.System_Collections_Generic_IList_T__Item,
+                         WellKnownMember.System_Collections_Generic_List_T__Item
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
