@@ -5,20 +5,17 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Microsoft.ServiceHub.Framework;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -103,8 +100,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var pipeServer = new NamedPipeServerStream(serverConfiguration.PipeName, PipeDirection.InOut);
-    await pipeServer.WaitForConnectionAsync(cancellationToken);
+    // Named pipe server is actually created from the client, so here we create a client stream.
+    var pipeServer = new NamedPipeClientStream(".", GetDotNetPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
+    await pipeServer.ConnectAsync(cancellationToken);
 
     var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
     server.Start();
@@ -223,5 +221,10 @@ static CliRootCommand CreateCommandLineParser()
     });
 
     return rootCommand;
+}
+
+static string GetDotNetPipeConnectionString(string pipeName)
+{
+    return "\\\\.\\" + pipeName;
 }
 
