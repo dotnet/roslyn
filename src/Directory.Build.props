@@ -1,5 +1,5 @@
 <Project>
-  <!-- Include and reference README in nuge package, if a README is in the project directory. -->
+  <!-- Include and reference README in nuget package, if a README is in the project directory. -->
   <PropertyGroup>
     <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
   </PropertyGroup>
