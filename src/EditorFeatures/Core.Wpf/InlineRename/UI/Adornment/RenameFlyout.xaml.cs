@@ -209,12 +209,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            var start = IdentifierTextBox.SelectionStart;
-            var length = IdentifierTextBox.SelectionLength;
+            if (this.IdentifierTextBox.IsFocused)
+            {
+                var start = IdentifierTextBox.SelectionStart;
+                var length = IdentifierTextBox.SelectionLength;
 
-            var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
-            var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
-            _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
+                var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
+                var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
+                _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
+            }
         }
     }
 }
