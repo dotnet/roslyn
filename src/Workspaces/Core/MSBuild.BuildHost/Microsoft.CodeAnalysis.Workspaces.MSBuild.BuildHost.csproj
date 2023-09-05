@@ -2,28 +2,34 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
-    <!-- NuGet -->
-    <IsPackable>true</IsPackable>
-    <PackageDescription>
-      .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions. This should be used with at least one
-      of the following packages to add the appropriate language support:
-      - Microsoft.CodeAnalysis.CSharp.Workspaces
-      - Microsoft.CodeAnalysis.VisualBasic.Workspaces
-    </PackageDescription>
+    <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
+    <UseAppHost>false</UseAppHost>
+    <!-- List of runtime identifiers that we want to publish an executable for -->
+    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
+    </Compile>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -31,23 +37,14 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
-  <!--
-    Include the BuildHost binaries into this package as well. At the moment, we're including it in lib because we're internally using it as a library in-process. Once
-    we move to launching it, we'll need to move this to the content path instead, since we'll be deploying both the .NET Framework and .NET Core versions, no matter
-    which platform you are targeting.
-    -->
-    <PropertyGroup>
-      <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetBuildHostBinaries</TargetsForTfmSpecificBuildOutput>
-    </PropertyGroup>
-    <Target Name="GetBuildHostBinaries" DependsOnTargets="ResolveReferences">
-      <ItemGroup>
-        <BuildOutputInPackage Include="@(ReferencePath)" Condition="'%(ReferencePath.ProjectReferenceOriginalItemSpec)' == '..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj'" />
-      </ItemGroup>
-    </Target>
 </Project>
