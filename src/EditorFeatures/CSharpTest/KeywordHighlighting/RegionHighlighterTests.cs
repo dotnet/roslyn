@@ -22,92 +22,104 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"class C
-{
-    {|Cursor:[|#region|]|} Main
-    static void Main()
-    {
-    }
-    [|#endregion|]
-}");
+                """
+                class C
+                {
+                    {|Cursor:[|#region|]|} Main
+                    static void Main()
+                    {
+                    }
+                    [|#endregion|]
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample1_2()
         {
             await TestAsync(
-@"class C
-{
-    [|#region|] Main
-    static void Main()
-    {
-    }
-    {|Cursor:[|#endregion|]|}
-}");
+                """
+                class C
+                {
+                    [|#region|] Main
+                    static void Main()
+                    {
+                    }
+                    {|Cursor:[|#endregion|]|}
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNestedExample1_1()
         {
             await TestAsync(
-@"class C
-{
-    {|Cursor:[|#region|]|} Main
-    static void Main()
-    {
-        #region body
-        #endregion
-    }
-    [|#endregion|]
-}");
+                """
+                class C
+                {
+                    {|Cursor:[|#region|]|} Main
+                    static void Main()
+                    {
+                        #region body
+                        #endregion
+                    }
+                    [|#endregion|]
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNestedExample1_2()
         {
             await TestAsync(
-@"class C
-{
-    #region Main
-    static void Main()
-    {
-        {|Cursor:[|#region|]|} body
-        [|#endregion|]
-    }
-    #endregion
-}");
+                """
+                class C
+                {
+                    #region Main
+                    static void Main()
+                    {
+                        {|Cursor:[|#region|]|} body
+                        [|#endregion|]
+                    }
+                    #endregion
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNestedExample1_3()
         {
             await TestAsync(
-@"class C
-{
-    #region Main
-    static void Main()
-    {
-        [|#region|] body
-        {|Cursor:[|#endregion|]|}
-    }
-    #endregion
-}");
+                """
+                class C
+                {
+                    #region Main
+                    static void Main()
+                    {
+                        [|#region|] body
+                        {|Cursor:[|#endregion|]|}
+                    }
+                    #endregion
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNestedExample1_4()
         {
             await TestAsync(
-@"class C
-{
-    [|#region|] Main
-    static void Main()
-    {
-        #region body
-        #endregion
-    }
-    {|Cursor:[|#endregion|]|}
-}");
+                """
+                class C
+                {
+                    [|#region|] Main
+                    static void Main()
+                    {
+                        #region body
+                        #endregion
+                    }
+                    {|Cursor:[|#endregion|]|}
+                }
+                """);
         }
     }
 }

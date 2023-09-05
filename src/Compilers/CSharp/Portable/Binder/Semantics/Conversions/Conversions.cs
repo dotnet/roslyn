@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -145,6 +146,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
+
+#nullable enable
+        protected override Conversion GetCollectionExpressionConversion(
+            BoundUnconvertedCollectionExpression node,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var syntax = node.Syntax;
+            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out var elementType);
+
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.None:
+                    return Conversion.NoConversion;
+
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        _binder.TryGetCollectionIterationType((Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+                        elementType = elementTypeWithAnnotations.Type;
+                        if (elementType is null)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+                    break;
+            }
+
+            Debug.Assert(collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer || elementType is { });
+
+            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
+            {
+                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+                var diagnostics = BindingDiagnosticBag.Discarded;
+                var collectionInitializerAddMethodBinder = _binder.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+                foreach (var element in node.Elements)
+                {
+                    _ = _binder.BindCollectionExpressionElementAddMethod(
+                        element,
+                        collectionInitializerAddMethodBinder,
+                        implicitReceiver,
+                        diagnostics,
+                        out bool hasErrors);
+                    if (hasErrors)
+                    {
+                        return Conversion.NoConversion;
+                    }
+                }
+                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, default);
+            }
+            else
+            {
+                Debug.Assert(elementType is { });
+                var elements = node.Elements;
+                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    Conversion elementConversion = element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                        _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                    };
+                    if (!elementConversion.Exists)
+                    {
+                        builder.Free();
+                        return Conversion.NoConversion;
+                    }
+                    builder.Add(elementConversion);
+                }
+                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
+            }
+        }
+
+        internal Conversion GetCollectionExpressionSpreadElementConversion(
+            BoundCollectionExpressionSpreadElement element,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
+            return ClassifyImplicitConversionFromExpression(
+                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                targetType,
+                ref useSiteInfo);
+        }
+#nullable disable
 
         /// <summary>
         /// Resolve method group based on the optional delegate invoke method.

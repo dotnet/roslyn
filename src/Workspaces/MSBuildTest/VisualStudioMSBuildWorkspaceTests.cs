@@ -3251,6 +3251,44 @@ class C { }";
             Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceDocumentsFoldersProperty()
+        {
+            CreateFiles(GetNetCoreAppFiles()
+                .WithFile(@"dir1\dir2\dir3\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
+            var document = project.Documents.Single(d => d.Name == "MyClass.cs");
+            Assert.Equal(new[] { "dir1", "dir2", "dir3" }, document.Folders);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceLinkedDocumentHasFolders()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithLink)
+                .WithFile(@"OtherStuff\Foo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+            var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
+            Assert.Equal(new[] { "Blah" }, linkedDocument.Folders);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceWithDocumentInParentFolders()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithClassNotInProjectFolder)
+                .WithFile(@"MyDir\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+            var linkedDocument = project.Documents.Single(d => d.Name == "MyClass.cs");
+            Assert.Equal(new[] { "..", "MyDir" }, linkedDocument.Folders);
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)

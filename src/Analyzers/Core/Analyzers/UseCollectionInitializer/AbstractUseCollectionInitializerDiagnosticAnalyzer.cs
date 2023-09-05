@@ -2,21 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
+    /// <summary>
+    /// Represents statements following an object initializer that should be converted into
+    /// collection-initializer/expression elements.
+    /// </summary>
+    /// <param name="Statement">The statement that follows that contains the values to add to the new
+    /// collection-initializer or collection-expression</param>
+    /// <param name="UseSpread">Whether or not a spread (<c>.. x</c>) element should be created for this statement. This
+    /// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
+    /// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
+    /// what form it is.</param>
     internal readonly record struct Match<TStatementSyntax>(
         TStatementSyntax Statement,
         bool UseSpread) where TStatementSyntax : SyntaxNode;
@@ -29,8 +36,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -39,8 +46,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -72,6 +87,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
         protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
         protected abstract bool CanUseCollectionExpression(SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken);
+
+        protected abstract TAnalyzer GetAnalyzer();
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
@@ -111,12 +128,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
-            if (!option.Value)
-            {
-                // not point in analyzing if the option is off.
+            var preferInitializerOption = context.GetAnalyzerOptions().PreferCollectionInitializer;
+            var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
+
+            // not point in analyzing if both options are off.
+            if (!preferInitializerOption.Value && !preferExpressionOption.Value)
                 return;
-            }
 
             // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
@@ -127,121 +144,111 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (containingStatement == null)
                 return;
 
-            var (matches, shouldUseCollectionExpression) = GetMatches();
-            // If we got no matches, then we def can't convert this.
-            if (matches.IsDefaultOrEmpty)
+            // Analyze the surrounding statements. First, try a broader set of statements if the language supports
+            // collection expressions. 
+            var syntaxFacts = GetSyntaxFacts();
+            using var analyzer = GetAnalyzer();
+
+            var collectionExpressionMatches = GetCollectionExpressionMatches();
+            var collectionInitializerMatches = GetCollectionInitializerMatches();
+
+            // if both fail, we have nothing to offer.
+            if (collectionExpressionMatches is null && collectionInitializerMatches is null)
                 return;
 
+            // if one fails, prefer the other.  If both succeed, prefer the one with more matches.
+            var (matches, shouldUseCollectionExpression) =
+                collectionExpressionMatches is null ? collectionInitializerMatches!.Value :
+                collectionInitializerMatches is null ? collectionExpressionMatches!.Value :
+                collectionExpressionMatches.Value.matches.Length >= collectionInitializerMatches.Value.matches.Length
+                    ? collectionExpressionMatches.Value
+                    : collectionInitializerMatches.Value;
+
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
-            var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
+            var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
+            var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null));
+                properties));
 
-            FadeOutCode(context, matches, locations);
+            FadeOutCode(context, matches, locations, properties);
 
             return;
 
-            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression) GetMatches()
+            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
-                // Analyze the surrounding statements. First, try a broader set of statements if the language supports
-                // collection expressions. 
-                var analyzeForCollectionExpression = AreCollectionExpressionsSupported();
-                var matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
+                if (!preferInitializerOption.Value)
+                    return null;
 
-                // if this was a normal (non-collection-expr) analysis, then just return what we got.
-                if (!analyzeForCollectionExpression)
-                    return (matches, shouldUseCollectionExpression: false);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
-                // If we succeeded in finding matches, and this is a location a collection expression is legal in, then convert to that.
-                if (!matches.IsDefaultOrEmpty && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
-                    return (matches, analyzeForCollectionExpression);
+                // If analysis failed, we can't change this, no matter what.
+                if (matches.IsDefault)
+                    return null;
 
-                // we tried collection expression, and were not successful.  try again, this time without collection exprs.
-                analyzeForCollectionExpression = false;
-                matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
-                return (matches, analyzeForCollectionExpression);
+                return (matches, shouldUseCollectionExpression: false);
             }
 
-            bool AreCollectionExpressionsSupported()
+            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionExpressionMatches()
             {
+                if (!preferExpressionOption.Value)
+                    return null;
+
+                // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
                 if (!this.AreCollectionExpressionsSupported(context.Compilation))
-                    return false;
+                    return null;
 
-                var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-                if (!option.Value)
-                    return false;
-
-                var syntaxFacts = GetSyntaxFacts();
+                // TODO: support updating if there is a single 'int capacity' argument provided.
                 var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
                 if (arguments.Count != 0)
-                    return false;
+                    return null;
 
-                return true;
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
+
+                // If analysis failed, we can't change this, no matter what.
+                if (matches.IsDefault)
+                    return null;
+
+                // Check if it would actually be legal to use a collection expression here though.
+                if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+                    return null;
+
+                return (matches, shouldUseCollectionExpression: true);
             }
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             ImmutableArray<Match<TStatementSyntax>> matches,
-            ImmutableArray<Location> locations)
+            ImmutableArray<Location> locations,
+            ImmutableDictionary<string, string?>? properties)
         {
-            var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
 
-            foreach (var (match, _) in matches)
+            foreach (var match in matches)
             {
-                if (match is TExpressionStatementSyntax)
-                {
-                    var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
+                var additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
+                    syntaxFacts, match);
+                if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                    continue;
 
-                    if (syntaxFacts.IsInvocationExpression(expression))
-                    {
-                        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-                        var additionalUnnecessaryLocations = ImmutableArray.Create(
-                            syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
-                            syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
-
-                        // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                        // will be offered.
-                        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                            s_unnecessaryCodeDescriptor,
-                            additionalUnnecessaryLocations[0],
-                            ReportDiagnostic.Default,
-                            additionalLocations: locations,
-                            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
-                    }
-                }
-                else if (match is TForeachStatementSyntax)
-                {
-                    // For a `foreach (var x in expr) ...` statement, fade out the parts before and after `expr`.
-
-                    var expression = syntaxFacts.GetExpressionOfForeachStatement(match);
-                    var additionalUnnecessaryLocations = ImmutableArray.Create(
-                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, expression.SpanStart)),
-                        syntaxTree.GetLocation(TextSpan.FromBounds(expression.FullSpan.End, match.Span.End)));
-
-                    // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                    // will be offered.
-                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        s_unnecessaryCodeDescriptor,
-                        additionalUnnecessaryLocations[0],
-                        ReportDiagnostic.Default,
-                        additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
-                }
+                // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                // will be offered.
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    s_unnecessaryCodeDescriptor,
+                    additionalUnnecessaryLocations[0],
+                    ReportDiagnostic.Default,
+                    additionalLocations: locations,
+                    additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                    properties));
             }
         }
     }

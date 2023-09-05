@@ -987,28 +987,26 @@ class Program {
 }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,35): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (5,36): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x=>3").WithArguments("lambda expression", "object").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(5, 36),
                 // (6,43): error CS0428: Cannot convert method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(6, 43),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,35): error CS8917: The delegate type could not be inferred.
+                // (5,36): error CS8917: The delegate type could not be inferred.
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 36),
                 // (6,35): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 35),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
         }
 
         [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
@@ -6498,20 +6496,21 @@ literal:Literal");
         [InlineData(@"$""{1,2:f}"" + $""Literal""")]
         public void PassAsRefWithoutKeyword_02(string expression)
         {
-            var code = @"
-M(" + expression + @");
-M(ref " + expression + @");
+            var code = $$"""
+                M({{expression}});
+                M(ref {{expression}});
 
-void M(ref CustomHandler c) => System.Console.WriteLine(c);";
+                void M(ref CustomHandler c) => System.Console.WriteLine(c);
+                """;
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
-                // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                // (1,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // M($"{1,2:f}Literal");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(2, 3),
-                // (3,7): error CS1510: A ref or out value must be an assignable variable
+                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(1, 3),
+                // (2,7): error CS1510: A ref or out value must be an assignable variable
                 // M(ref $"{1,2:f}Literal");
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(3, 7)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(2, 7)
             );
         }
 
@@ -8019,9 +8018,9 @@ public partial struct CustomHandler
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn(string expression)
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(TestOptions.Regular11, "ref", "in", expression,
-                // 0.cs(5,9): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // 0.cs(5,9): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 // C.M(ref i, $"");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "preview").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "12.0").WithLocation(5, 9));
         }
 
         [Theory, CombinatorialData]
@@ -8492,7 +8491,8 @@ literal:literal
         [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_RefKindsMatch([CombinatorialValues("", ", out bool success")] string extraConstructorArg,
-            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression,
+            [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -8507,7 +8507,7 @@ Console.WriteLine(o);
 
 public class C
 {
-    public static void M(in int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
+    public static void M(" + modifier + @" int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
     { 
         Console.WriteLine(s);
         o = ""o in M"";
@@ -8518,7 +8518,7 @@ public class C
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
     {
         o = null;
         s = ""s in constructor"";
@@ -8539,7 +8539,14 @@ s in M
 o in M
 ");
 
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(modifier == "ref readonly"
+                ? new[]
+                {
+                    // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // C.M(i, ref s, out o, $"literal");
+                    Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
+                }
+                : DiagnosticDescription.None);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", (extraConstructorArg == "")
                 ? @"
@@ -8571,14 +8578,14 @@ o in M
   IL_0016:  ldloc.3
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
-  IL_001b:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object)""
+  IL_001b:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object)""
   IL_0020:  stloc.s    V_6
   IL_0022:  ldloca.s   V_6
   IL_0024:  ldstr      ""literal""
   IL_0029:  call       ""bool CustomHandler.AppendLiteral(string)""
   IL_002e:  pop
   IL_002f:  ldloc.s    V_6
-  IL_0031:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_0031:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_0036:  ldloc.1
   IL_0037:  call       ""void System.Console.WriteLine(string)""
   IL_003c:  ldloc.2
@@ -8617,7 +8624,7 @@ o in M
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
   IL_001b:  ldloca.s   V_7
-  IL_001d:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object, out bool)""
+  IL_001d:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object, out bool)""
   IL_0022:  stloc.s    V_6
   IL_0024:  ldloc.s    V_7
   IL_0026:  brfalse.s  IL_0036
@@ -8628,7 +8635,7 @@ o in M
   IL_0036:  ldc.i4.0
   IL_0037:  pop
   IL_0038:  ldloc.s    V_6
-  IL_003a:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_003a:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_003f:  ldloc.1
   IL_0040:  call       ""void System.Console.WriteLine(string)""
   IL_0045:  ldloc.2
@@ -15489,7 +15496,7 @@ class Program
                 readonly ref struct R
                 {
                     private readonly ref int _i;
-                    public R(ref int i) { _i = i; }
+                    public R(ref int i) { _i = ref i; }
                     public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
                         => this;
                 }
@@ -17575,8 +17582,8 @@ partial struct CustomHandler
 ");
         }
 
-        [Fact]
-        public void HandlerExtensionMethod_05()
+        [Theory, CombinatorialData]
+        public void HandlerExtensionMethod_05([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -17593,12 +17600,12 @@ public struct S1
 
 public static class S1Ext
 {
-    public static void M(in this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
+    public static void M(" + modifier + @" this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
 }
 
 partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
 }
 ";
 
@@ -17618,8 +17625,8 @@ partial struct CustomHandler
   IL_000b:  ldc.i4.0
   IL_000c:  ldc.i4.0
   IL_000d:  ldloc.1
-  IL_000e:  newobj     ""CustomHandler..ctor(int, int, in S1)""
-  IL_0013:  call       ""void S1Ext.M(in S1, CustomHandler)""
+  IL_000e:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" S1)""
+  IL_0013:  call       ""void S1Ext.M(" + modifier + @" S1, CustomHandler)""
   IL_0018:  ret
 }
 ");
@@ -17688,10 +17695,10 @@ partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // 0.cs(5,1): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // 0.cs(5,1): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 // s.M($"text");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("3", "11.0", "preview").WithLocation(5, 1)
-            );
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("3", "11.0", "12.0").WithLocation(5, 1)
+                );
 
             var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "literal:text");
@@ -17985,6 +17992,185 @@ class C
                     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
                   NextVariables(0)
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByVal(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByVal({{stringLiteral}});
+                        ByVal(ref {{stringLiteral}});
+                        ByVal(in {{stringLiteral}});
+                        ByVal(out {{stringLiteral}});
+                    }
+
+                    void ByVal(System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS9205: Expected interpolated string
+                //         ByVal("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByVal(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByVal(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByVal(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByRef(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByRef({{stringLiteral}});
+                        ByRef(ref {{stringLiteral}});
+                        ByRef(in {{stringLiteral}});
+                        ByRef(out {{stringLiteral}});
+                    }
+
+                    void ByRef(ref System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS9205: Expected interpolated string
+                //         ByRef("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByRef(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByRef(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByRef(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByIn(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByIn({{stringLiteral}});
+                        ByIn(ref {{stringLiteral}});
+                        ByIn(in {{stringLiteral}});
+                        ByIn(out {{stringLiteral}});
+                    }
+
+                    void ByIn(in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,14): error CS9205: Expected interpolated string
+                //         ByIn("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 14),
+                // (6,18): error CS1510: A ref or out value must be an assignable variable
+                //         ByIn(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 18),
+                // (7,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByIn(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 17),
+                // (8,18): error CS1510: A ref or out value must be an assignable variable
+                //         ByIn(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 18)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByOut(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByOut({{stringLiteral}});
+                        ByOut(ref {{stringLiteral}});
+                        ByOut(in {{stringLiteral}});
+                        ByOut(out {{stringLiteral}});
+                    }
+
+                    void ByOut(out System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { s = default; }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         ByOut("");
+                Diagnostic(ErrorCode.ERR_BadArgRef, stringLiteral).WithArguments("1", "out").WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByOut(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByOut(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByOut(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_NotStringLiteral()
+        {
+            var code = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        ByVal(s);
+                        ByRef(s);
+                        ByIn(s);
+                    }
+
+                    void ByVal(System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                    void ByRef(ref System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                    void ByIn(in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler'
+                //         ByVal(s);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(5, 15),
+                // (6,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         ByRef(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(6, 15),
+                // (7,14): error CS1503: Argument 1: cannot convert from 'string' to 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler'
+                //         ByIn(s);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(7, 14));
         }
     }
 }

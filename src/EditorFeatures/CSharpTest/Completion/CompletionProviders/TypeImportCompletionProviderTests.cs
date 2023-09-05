@@ -853,6 +853,8 @@ namespace Foo
 $$
 ";
             var expectedCodeAfterCommit = @"using Foo;
+
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -880,6 +882,7 @@ $$
             var expectedCodeAfterCommit = @"
 using System;
 using Foo;
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);

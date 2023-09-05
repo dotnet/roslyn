@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                Debug.Assert(node.IsKind(SyntaxKind.IsExpression) || node.IsKind(SyntaxKind.IsPatternExpression));
+                Debug.Assert(node.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
 
                 // Negate the result if requested.
                 var updatedNode = negate
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
                     : node;
 
                 var isNode = updatedNode.DescendantNodesAndSelf().First(
-                    n => n.IsKind(SyntaxKind.IsExpression) || n.IsKind(SyntaxKind.IsPatternExpression));
+                    n => n.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
                 var left = isNode switch
                 {
                     BinaryExpressionSyntax binary => binary.Left,

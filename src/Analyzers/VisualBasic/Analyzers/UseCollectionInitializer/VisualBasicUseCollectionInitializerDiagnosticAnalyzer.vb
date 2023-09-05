@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseCollectionInitializerDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicUseCollectionInitializerDiagnosticAnalyzer
         Inherits AbstractUseCollectionInitializerDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
@@ -20,8 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
-            ForEachStatementSyntax,
-            VariableDeclaratorSyntax)
+            VariableDeclaratorSyntax,
+            VisualBasicCollectionInitializerAnalyzer)
+
+        Protected Overrides Function GetAnalyzer() As VisualBasicCollectionInitializerAnalyzer
+            Return VisualBasicCollectionInitializerAnalyzer.Allocate()
+        End Function
 
         Protected Overrides Function AreCollectionInitializersSupported(compilation As Compilation) As Boolean
             Return True

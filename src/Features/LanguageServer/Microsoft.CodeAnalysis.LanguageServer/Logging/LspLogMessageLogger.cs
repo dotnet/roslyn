@@ -60,7 +60,7 @@ internal sealed class LspLogMessageLogger : ILogger
 
         if (message != null && logLevel != LogLevel.None)
         {
-            message = $"[{_categoryName}]{message}";
+            message = $"[{_categoryName}] {message}";
             var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = message,

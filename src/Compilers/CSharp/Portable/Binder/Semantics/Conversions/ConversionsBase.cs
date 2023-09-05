@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)corLibrary != null);
             Debug.Assert(otherNullabilityOpt == null || includeNullability != otherNullabilityOpt.IncludeNullability);
             Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
+            Debug.Assert(corLibrary == corLibrary.CorLibrary);
 
             this.corLibrary = corLibrary;
             this.currentRecursionDepth = currentRecursionDepth;
@@ -72,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+
+#nullable enable
+        protected abstract Conversion GetCollectionExpressionConversion(BoundUnconvertedCollectionExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+#nullable disable
 
         protected abstract bool IsAttributeArgumentBinding { get; }
 
@@ -1102,9 +1107,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionExpression:
-                    if (GetCollectionExpressionTypeKind(Compilation, destination, out _) != CollectionExpressionTypeKind.None)
+                    var collectionExpressionConversion = GetCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
+                    if (collectionExpressionConversion.Exists)
                     {
-                        return Conversion.CollectionExpression;
+                        return collectionExpressionConversion;
                     }
                     break;
             }

@@ -275,7 +275,7 @@ class X
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
-                        case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_WindowsExperimental:
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -321,6 +321,7 @@ class X
                         case ErrorCode.WRN_HidingDifferentRefness:
                         case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                        case ErrorCode.WRN_Experimental:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -425,6 +426,7 @@ class X
                         case ErrorCode.WRN_RefReturnOnlyParameter:
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
                         case ErrorCode.WRN_RefAssignValEscapeWider:
+                        case ErrorCode.WRN_UseDefViolationRefField:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

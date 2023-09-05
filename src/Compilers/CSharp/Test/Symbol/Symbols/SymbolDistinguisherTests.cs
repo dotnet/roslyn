@@ -513,9 +513,9 @@ public class C
                 // file.cs(7,16): warning CS0436: The type 'C' in 'file.cs' conflicts with the imported type 'C' in 'Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'file.cs'.
                 //         D d = (C c) => { };
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "C").WithArguments("file.cs", "C", "Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C").WithLocation(7, 16),
-                // file.cs(7,15): error CS1661: Cannot convert lambda expression to delegate type 'D' because the parameter types do not match the delegate parameter types
+                // file.cs(7,21): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = (C c) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(C c) => { }").WithArguments("lambda expression", "D").WithLocation(7, 15),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(7, 21),
                 // file.cs(7,18): error CS1678: Parameter 1 is declared as type 'C [file.cs(3)]' but should be 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'
                 //         D d = (C c) => { };
                 Diagnostic(ErrorCode.ERR_BadParamType, "c").WithArguments("1", "", "C [file.cs(3)]", "", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]").WithLocation(7, 18));

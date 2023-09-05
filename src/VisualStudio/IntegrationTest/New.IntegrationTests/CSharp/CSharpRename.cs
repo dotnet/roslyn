@@ -641,5 +641,37 @@ class p$$rogram
     }
 }", HangMitigatingCancellationToken);
         }
+
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68880")]
+        public async Task VerifyTextSync()
+        {
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
+@"
+public class Class2
+{
+    public int Field123;
+}", cancellationToken: HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("Field123", charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "F", "i" }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync(
+                @"
+public class Class2
+{
+    public int Fi$$;
+}", HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "e", "l", "d", "3", "2", "1" }, HangMitigatingCancellationToken);
+
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync(
+                @"
+public class Class2
+{
+    public int Field321$$;
+}", HangMitigatingCancellationToken);
+        }
     }
 }

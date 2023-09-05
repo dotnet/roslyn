@@ -432,6 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -448,6 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -826,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     RefKind argRefKind = argumentRefKindsOpt.RefKinds(argIndex);
                                     RefKind paramRefKind = parameters[paramIndex].RefKind;
                                     var visitedArgument = visitedArgumentsBuilder[argIndex];
-                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
                                     tempsOpt.Add(local.LocalSymbol);
                                     visitedArgumentsBuilder[argIndex] = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
                                     argumentsAssignedToTemp[argIndex] = true;
@@ -1469,36 +1471,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
             // point of which is just to represent the semantics of an operation, and we don't know that all consumers
             // of expression lambdas will appropriately understand Array.Empty<T>().
-            // We disable it for pointer types as well, since they cannot be used as Type Arguments.
             if (arrayArgs.Length == 0
                 && !_inExpressionLambda
-                && paramArrayType is ArrayTypeSymbol ats // could be false if there's a semantic error, e.g. the params parameter type isn't an array
-                && !ats.ElementType.IsPointerOrFunctionPointer())
+                && paramArrayType is ArrayTypeSymbol ats) // could be false if there's a semantic error, e.g. the params parameter type isn't an array
             {
-                MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
-                if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+                BoundExpression? arrayEmpty = CreateArrayEmptyCallIfAvailable(syntax, ats.ElementType);
+                if (arrayEmpty is { })
                 {
-                    _diagnostics.ReportUseSite(arrayEmpty, syntax);
-                    // return an invocation of "Array.Empty<T>()"
-                    arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
-                    return new BoundCall(
-                        syntax,
-                        null,
-                        arrayEmpty,
-                        ImmutableArray<BoundExpression>.Empty,
-                        default(ImmutableArray<string>),
-                        default(ImmutableArray<RefKind>),
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArguments: default(BitVector),
-                        resultKind: LookupResultKind.Viable,
-                        type: arrayEmpty.ReturnType);
+                    return arrayEmpty;
                 }
             }
 
             return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+        }
+
+        private BoundExpression CreateEmptyArray(SyntaxNode syntax, ArrayTypeSymbol arrayType)
+        {
+            BoundExpression? arrayEmpty = CreateArrayEmptyCallIfAvailable(syntax, arrayType.ElementType);
+            if (arrayEmpty is { })
+            {
+                return arrayEmpty;
+            }
+            // new T[0]
+            return new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(
+                    new BoundLiteral(
+                        syntax,
+                        ConstantValue.Create(0),
+                        _compilation.GetSpecialType(SpecialType.System_Int32))),
+                initializerOpt: null,
+                arrayType)
+            { WasCompilerGenerated = true };
+        }
+
+        private BoundExpression? CreateArrayEmptyCallIfAvailable(SyntaxNode syntax, TypeSymbol elementType)
+        {
+            if (elementType.IsPointerOrFunctionPointer())
+            {
+                // Pointer types cannot be used as type arguments.
+                return null;
+            }
+
+            MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+            if (arrayEmpty is null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+            {
+                return null;
+            }
+
+            _diagnostics.ReportUseSite(arrayEmpty, syntax);
+            // return an invocation of "Array.Empty<T>()"
+            arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
+            return new BoundCall(
+                syntax,
+                receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                arrayEmpty,
+                ImmutableArray<BoundExpression>.Empty,
+                default(ImmutableArray<string>),
+                default(ImmutableArray<RefKind>),
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
+                resultKind: LookupResultKind.Viable,
+                type: arrayEmpty.ReturnType);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,

@@ -47,6 +47,12 @@ namespace Microsoft.CodeAnalysis
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
+            /// <summary>
+            /// Set via a feature flag to enable strict validation of the compilations that are produced, in that they match the original states. This validation is expensive, so we don't want it
+            /// running in normal production scenarios.
+            /// </summary>
+            private readonly bool _validateStates;
+
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState state,
@@ -57,6 +63,10 @@ namespace Microsoft.CodeAnalysis
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
                 this.SkeletonReferenceCache = cachedSkeletonReferences;
+
+                _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
+
+                ValidateState(state);
             }
 
             /// <summary>
@@ -72,7 +82,10 @@ namespace Microsoft.CodeAnalysis
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(CompilationTrackerState state)
-                => Volatile.Write(ref _stateDoNotAccessDirectly, state);
+            {
+                Volatile.Write(ref _stateDoNotAccessDirectly, state);
+                ValidateState(state);
+            }
 
             public GeneratorDriver? GeneratorDriver
             {
@@ -1115,6 +1128,67 @@ namespace Microsoft.CodeAnalysis
 
             // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
             // need to be cleaned up.
+
+            /// <summary>
+            /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.
+            /// </summary>
+            private void ValidateState(CompilationTrackerState state)
+            {
+                if (!_validateStates)
+                    return;
+
+                if (state is FinalState finalState)
+                {
+                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, state.GeneratorInfo);
+                }
+                else if (state is InProgressState inProgressState)
+                {
+                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments!, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
+
+                    if (inProgressState.CompilationWithGeneratedDocuments != null)
+                    {
+                        ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, inProgressState.GeneratorInfo);
+                    }
+                }
+            }
+
+            private static void ValidateCompilationTreesMatchesProjectState(Compilation compilation, ProjectState projectState, CompilationTrackerGeneratorInfo? generatorInfo)
+            {
+                // We'll do this all in a try/catch so it makes validations easy to do with Contract.ThrowIfFalse().
+                try
+                {
+                    // Assert that all the trees we expect to see are in the Compilation...
+                    var syntaxTreesInWorkspaceStates = new HashSet<SyntaxTree>(
+#if NET
+                        capacity: projectState.DocumentStates.Count + generatorInfo?.Documents.Count ?? 0
+#endif
+                        );
+
+                    foreach (var documentInProjectState in projectState.DocumentStates.States)
+                    {
+                        Contract.ThrowIfFalse(documentInProjectState.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                        syntaxTreesInWorkspaceStates.Add(tree);
+                        Contract.ThrowIfFalse(compilation.ContainsSyntaxTree(tree), "The tree in the ProjectState should have been in the compilation.");
+                    }
+
+                    if (generatorInfo != null)
+                    {
+                        foreach (var generatedDocument in generatorInfo.Value.Documents.States)
+                        {
+                            Contract.ThrowIfFalse(generatedDocument.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                            syntaxTreesInWorkspaceStates.Add(tree);
+                            Contract.ThrowIfFalse(compilation.ContainsSyntaxTree(tree), "The tree for the generated document should have been in the compilation.");
+                        }
+                    }
+
+                    // ...and that the reverse is true too.
+                    foreach (var tree in compilation.SyntaxTrees)
+                        Contract.ThrowIfFalse(syntaxTreesInWorkspaceStates.Contains(tree), "The tree in the Compilation should have been from the workspace.");
+                }
+                catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
+                {
+                }
+            }
 
             #region Versions and Checksums
 

@@ -295,7 +295,7 @@ namespace BoundTreeGenerator
                 case TargetLanguage.CSharp:
                     {
                         string abstr = "";
-                        if (node is AbstractNode)
+                        if (node is AbstractNode and not Node)
                             abstr = "abstract ";
                         else if (CanBeSealed(node))
                             abstr = "sealed ";
@@ -307,7 +307,7 @@ namespace BoundTreeGenerator
                 case TargetLanguage.VB:
                     {
                         string abstr = "";
-                        if (node is AbstractNode)
+                        if (node is AbstractNode and not Node)
                             abstr = "MustInherit ";
                         else if (CanBeSealed(node))
                             abstr = "NotInheritable ";
@@ -692,19 +692,15 @@ namespace BoundTreeGenerator
 
         private static IEnumerable<Field> Fields(TreeType node)
         {
-            if (node is Node)
-                return from n in ((Node)node).Fields where !n.Override select n;
-            if (node is AbstractNode)
-                return from n in ((AbstractNode)node).Fields where !n.Override select n;
+            if (node is AbstractNode aNode)
+                return from n in aNode.Fields where !n.Override select n;
             return Enumerable.Empty<Field>();
         }
 
         private static IEnumerable<Field> FieldsIncludingOverrides(TreeType node)
         {
-            if (node is Node)
-                return ((Node)node).Fields;
-            if (node is AbstractNode)
-                return ((AbstractNode)node).Fields;
+            if (node is AbstractNode aNode)
+                return aNode.Fields;
             return Enumerable.Empty<Field>();
         }
 
@@ -897,12 +893,12 @@ namespace BoundTreeGenerator
 
         private void WriteType(TreeType node)
         {
-            if (node is not AbstractNode and not Node)
+            if (node is not AbstractNode)
                 return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
-            bool concrete = node is not AbstractNode;
+            bool concrete = node is Node;
             bool hasChildNodes = AllNodeOrNodeListFields(node).Any();
 
             if (unsealed)
@@ -932,7 +928,7 @@ namespace BoundTreeGenerator
         {
             if (!AllFields(node).Any())
                 return;
-            bool emitNew = (!Fields(node).Any()) && !(BaseType(node) is AbstractNode);
+            bool emitNew = (!Fields(node).Any()) && BaseType(node) is Node;
 
             switch (_targetLang)
             {

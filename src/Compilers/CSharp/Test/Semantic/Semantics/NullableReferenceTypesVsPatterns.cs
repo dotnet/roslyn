@@ -2499,15 +2499,15 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,21): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (9,24): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //             true => () => s.ToString(),
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => s.ToString()").WithArguments("lambda expression", "object").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(9, 24),
                 // (9,27): warning CS8602: Dereference of a possibly null reference.
                 //             true => () => s.ToString(),
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 27),
-                // (10,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (10,25): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //             false => () => s?.ToString()
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => s?.ToString()").WithArguments("lambda expression", "object").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(10, 25));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
