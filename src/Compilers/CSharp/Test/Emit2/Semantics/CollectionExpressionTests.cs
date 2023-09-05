@@ -2676,6 +2676,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_Nullable()
+        {
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+
+var a = Program.AsCollection([1, 2, 3]);
+a.Report();
+
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static partial class Program
+{
+    static S<T>? AsCollection<T>(S<T>? args) => args;
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.Equal("Program.AsCollection([1, 2, 3])", invocation.ToFullString());
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("S<System.Int32>? Program.AsCollection<System.Int32>(S<System.Int32>? args)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TypeInference_Nullable_ExtensionMethod()
+        {
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static class Program
+{
+    static S<T>? AsCollection<T>(this S<T>? args)
+    {
+        return args;
+    }
+    static void Main()
+    {
+        var a = AsCollection([1, 2, 3]);
+        var b = [4].AsCollection();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (27,17): error CS9176: There is no target type for the collection expression.
+                //         var b = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17)
+                );
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
@@ -4705,10 +4790,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (16,57): error CS9174: Cannot initialize type 'T?' with a collection expression because the type is not constructible.
-                //     static T? Create2<T, U>() where T : struct, I<U> => [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("Program.Create1<T, U>", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Create2<T, U>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  newobj     "T?..ctor(T)"
+                  IL_000a:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6231,37 +6333,319 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 #nullable enable
                 using System.Collections;
+
+                S<object>? x = [];
+                x.Report();
+                x = [];
+                S<object>? y = [1];
+                y = [2];
+
                 struct S<T> : IEnumerable
                 {
                     public void Add(T t) { }
                     public T this[int index] => default!;
-                    IEnumerator IEnumerable.GetEnumerator() => default!;
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S<object>? x = [];
-                        x = [];
-                        S<object>? y = [1];
-                        y = [2];
-                    }
+                    IEnumerator IEnumerable.GetEnumerator() { yield break; }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,24): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         S<object>? x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(13, 24),
-                // (14,13): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(14, 13),
-                // (15,24): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         S<object>? y = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("S<object>?").WithLocation(15, 24),
-                // (16,13): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         y = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("S<object>?").WithLocation(16, 13));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_ImplicitConversion()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return [1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0014:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var returnValue = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            var conversion = model.GetConversion(returnValue);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsNullable);
+            Assert.False(conversion.IsCollectionExpression);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(returnValue);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Int32>?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_ImplicitConversion_Nullability()
+        {
+            string src = """
+#nullable enable
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int>? x = [1, 2, 3];
+x.Value.ToString();
+x = null;
+x.Value.ToString(); // 1
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // 0.cs(11,1): warning CS8629: Nullable value type may be null.
+                // x.Value.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(11, 1)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_ExplicitCast()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return (MyCollection<int>?)[1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0014:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var cast = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            Assert.Equal("(MyCollection<int>?)[1, 2, 3]", cast.ToFullString());
+            var castConversion = model.GetConversion(cast);
+            Assert.True(castConversion.IsIdentity);
+
+            var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
+            Assert.Equal("[1, 2, 3]", value.ToFullString());
+            var conversion = model.GetConversion(value);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsNullable);
+            Assert.False(conversion.IsCollectionExpression);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_MissingSystemNullableCtor()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return (MyCollection<int>?)[1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            comp.VerifyDiagnostics(
+                // 0.cs(29,36): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         return (MyCollection<int>?)[1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Nullable`1", ".ctor").WithLocation(29, 36)
+                );
+        }
+
+        [Fact]
+        public void ExplicitCast_SemanticModel()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int> M()
+    {
+        return (MyCollection<int>)[1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var cast = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            Assert.Equal("(MyCollection<int>)[1, 2, 3]", cast.ToFullString());
+            var castConversion = model.GetConversion(cast);
+            Assert.True(castConversion.IsIdentity);
+
+            var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
+            Assert.Equal("[1, 2, 3]", value.ToFullString());
+            var conversion = model.GetConversion(value);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsCollectionExpression);
+            Assert.True(conversion.IsImplicit);
+            Assert.False(conversion.IsExplicit);
         }
 
         [Fact]

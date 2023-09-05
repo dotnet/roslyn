@@ -639,7 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (target.Type is null)
+            TypeSymbol targetType = target.Type;
+            if (targetType is null)
             {
                 return;
             }
@@ -649,7 +650,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            var underlyingTargetType = targetType.IsNullableType() ? targetType.GetNullableUnderlyingType() : targetType;
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, underlyingTargetType, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
