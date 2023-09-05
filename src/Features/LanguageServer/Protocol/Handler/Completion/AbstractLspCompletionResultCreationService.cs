@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             return builder.ToArray();
         }
 
-        private async static Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
+        private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
             try
             {

@@ -35,11 +35,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode CreateNewNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
-            var notImplementedExceptionTypeSyntax = compilation.NotImplementedExceptionType() is INamedTypeSymbol symbol ?
-                codeDefinitionFactory.TypeExpression(symbol, addImport: false) :
-                codeDefinitionFactory.QualifiedName(
-                    codeDefinitionFactory.IdentifierName(nameof(System)),
-                    codeDefinitionFactory.IdentifierName(nameof(NotImplementedException)));
+            var notImplementedExceptionTypeSyntax = compilation.NotImplementedExceptionType() is INamedTypeSymbol symbol
+                ? codeDefinitionFactory.TypeExpression(symbol, addImport: false)
+                : codeDefinitionFactory.QualifiedName(codeDefinitionFactory.IdentifierName(nameof(System)), codeDefinitionFactory.IdentifierName(nameof(NotImplementedException)));
 
             return codeDefinitionFactory.ObjectCreationExpression(
                             notImplementedExceptionTypeSyntax,

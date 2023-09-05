@@ -803,10 +803,7 @@ public class C
             extraExportedTypes: new[] { typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory) }.ToList());
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspThrowExceptionOnChangeCompletionService;
-
-
         var builder = ImmutableArray.CreateBuilder<CodeAnalysis.Completion.CompletionItem>();
-
         builder.Add(CodeAnalysis.Completion.CompletionItem.Create("SimpleItem"));
 
         var importItem = CodeAnalysis.Completion.CompletionItem.Create("ExpandedItem");
