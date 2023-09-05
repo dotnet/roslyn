@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         /// <summary>
-        /// isomorphic to the IncrementalValueProvider tree.
+        /// Isomorphic to the IncrementalValueProvider tree.
         /// Used to generate code which reconstructs the IncrementalValueProvider tree.
         /// </summary>
         abstract class Operator
@@ -346,9 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             {
                 // generate a random tree of operations
                 var provider = context.AdditionalTextsProvider;
-
-                // Adjust depth as needed to make a simpler reproducer
-                var depth = random.Next(4);
                 var finalProvider = rootOperator.Apply(provider);
 
                 context.RegisterSourceOutput(finalProvider, (context, text) =>
