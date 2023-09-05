@@ -409,7 +409,7 @@ namespace Roslyn.Utilities
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
-                var info =  new FileInfo(fullPath);
+                var info = new FileInfo(fullPath);
 
                 fileLength = info.Length;
                 timeStamp = info.LastWriteTimeUtc;
