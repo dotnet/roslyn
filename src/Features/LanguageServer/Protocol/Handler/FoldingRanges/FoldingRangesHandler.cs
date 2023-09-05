@@ -41,7 +41,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document is null)
                 return null;
 
-            var options = _globalOptions.GetBlockStructureOptions(document.Project);
+            var options = _globalOptions.GetBlockStructureOptions(document.Project) with
+            {
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true
+            };
+
             return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
