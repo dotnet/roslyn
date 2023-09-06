@@ -680,7 +680,7 @@ public class Class2
             await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
         public async Task VerifySelectionAsync()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
