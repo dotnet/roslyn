@@ -5,9 +5,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal partial class CSharpUseNotPatternDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpUseNotPatternDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseNotPatternDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNotPatternDiagnosticId,

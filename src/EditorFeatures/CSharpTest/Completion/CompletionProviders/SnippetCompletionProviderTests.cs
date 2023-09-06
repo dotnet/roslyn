@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public SnippetCompletionProviderTests()
+        {
+            ShowNewSnippetExperience = false;
+        }
+
         internal override Type GetCompletionProviderType()
             => typeof(SnippetCompletionProvider);
 
@@ -59,27 +64,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task SnippetsInExpression()
             => await VerifyItemExistsAsync(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact, WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
-            => await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut[1..], sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact, WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
             => await VerifyItemIsAbsentAsync(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact, WorkItem(770156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770156")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770156")]
         public async Task SnippetsNotInPreProcessorContextDirectiveNameAlreadyTyped()
             => await VerifyItemIsAbsentAsync(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact, WorkItem(839555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")]
         public async Task ShowRegionSnippetWithHashRTyped()
-            => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut[1..], sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact]
         public async Task SnippetsInLineSpanDirective()
             => await VerifyItemIsAbsentAsync(@"#line (1, 2) - (3, 4) $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact, WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         public async Task ShowSnippetsFromOtherContext()
         {
             var markup = @"<Workspace>
@@ -101,7 +106,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, MockSnippetInfoService.SnippetShortcut, null);
         }
 
-        [Fact, WorkItem(1140893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140893")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140893")]
         public async Task CommitWithEnterObeysOption()
         {
             await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
@@ -114,7 +119,7 @@ class C
             await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
         }
 
-        [Fact, WorkItem(6405, "https://github.com/dotnet/roslyn/issues/6405")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6405")]
         public async Task SnippetsNotInPreProcessorContextForScriptDirectives()
         {
             await VerifyItemIsAbsentAsync(@"#r f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);

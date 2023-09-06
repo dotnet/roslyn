@@ -40,7 +40,7 @@ $@"<Workspace>
             return workspace;
         }
 
-        [Theory, CombinatorialData, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+        [Theory, CombinatorialData, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
         public async Task TodoCommentInNoCompilationProject(TestHost host)
         {
             var code = @"(* [|Message|] *)";
@@ -64,7 +64,7 @@ $@"<Workspace>
                 descriptors.First().Priority,
                 "Message",
                 document.Id,
-                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
-                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
+                Span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
+                MappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
     }
 }

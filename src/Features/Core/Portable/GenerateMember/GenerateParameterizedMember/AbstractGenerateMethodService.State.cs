@@ -4,13 +4,18 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -159,10 +164,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 else
                 {
                     var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
-                    var delegateType = typeInference.InferDelegateType(semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken);
-                    if (delegateType != null && delegateType.DelegateInvokeMethod != null)
+                    var delegateInvokeMethod = typeInference.InferDelegateType(semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken)?.DelegateInvokeMethod;
+                    if (delegateInvokeMethod != null)
                     {
-                        SignatureInfo = new MethodSignatureInfo(semanticDocument, this, delegateType.DelegateInvokeMethod);
+                        // If we inferred Func/Action here, attempt to create better parameter names than the default
+                        // 'arg1/arg2/arg3' form that the delegate specifies.
+                        var parameterNames = delegateInvokeMethod.ContainingType is { Name: nameof(Action) or nameof(Func<int>), ContainingNamespace.Name: nameof(System) }
+                            ? GenerateParameterNamesBasedOnParameterTypes(delegateInvokeMethod.Parameters)
+                            : delegateInvokeMethod.Parameters.SelectAsArray(p => p.Name);
+
+                        SignatureInfo = new MethodSignatureInfo(semanticDocument, this, delegateInvokeMethod, parameterNames);
                     }
                     else
                     {
@@ -170,9 +181,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         // if the type inference service can directly infer the type for our expression.
                         var expressionType = service.DetermineReturnTypeForSimpleNameOrMemberAccessExpression(typeInference, semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken);
                         if (expressionType == null)
-                        {
                             return false;
-                        }
 
                         SignatureInfo = new MethodSignatureInfo(semanticDocument, this, CreateMethodSymbolWithReturnType(expressionType));
                     }
@@ -207,7 +216,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!TryDetermineTypeToGenerateIn(
                         semanticDocument, ContainingType, SimpleNameOrMemberAccessExpression, cancellationToken,
-                        out var typeToGenerateIn, out var isStatic))
+                        out var typeToGenerateIn, out var isStatic, out _))
                 {
                     return false;
                 }
@@ -218,6 +227,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 IsStatic = isStatic;
                 MethodGenerationKind = MethodGenerationKind.Member;
                 return true;
+            }
+
+            private static ImmutableArray<string> GenerateParameterNamesBasedOnParameterTypes(ImmutableArray<IParameterSymbol> parameters)
+            {
+                using var _1 = ArrayBuilder<string>.GetInstance(out var names);
+                using var _2 = ArrayBuilder<bool>.GetInstance(out var isFixed);
+
+                foreach (var parameter in parameters)
+                {
+                    var typeLocalName = parameter.Type.GetLocalName(fallback: parameter.Name);
+                    names.Add(new ParameterName(typeLocalName, isFixed: false).BestNameForParameter);
+                    isFixed.Add(false);
+                }
+
+                NameGenerator.EnsureUniquenessInPlace(names, isFixed);
+                return names.ToImmutable();
             }
 
             private static IMethodSymbol CreateMethodSymbolWithReturnType(

@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.Collections
@@ -52,7 +53,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
             Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
-                VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder.ToArray()
+                {SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
+                SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
+                SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
+                SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
+                SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
+                SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
+                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword}
 
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
@@ -66,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Private ReadOnly _cancellationToken As CancellationToken
+
+            Shared Sub New()
+                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder.Value)
+            End Sub
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)

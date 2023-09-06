@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
+        internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
         {
             Debug.Assert(_parameters.IsDefault);
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = syntax.ReturnType;
             Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
 
-            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:

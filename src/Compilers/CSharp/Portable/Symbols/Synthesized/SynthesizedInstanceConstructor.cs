@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()

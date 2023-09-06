@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             //     AnotherStatement();
             // }
 
-            while (statements.Count > 0 && statements[0].Parent is var parent &&
+            while (statements is [{ Parent: var parent }, ..] &&
                    blockFacts.IsScopeBlock(parent) &&
                    blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
             {

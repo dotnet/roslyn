@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var precedingModifiers = context.PrecedingModifiers;
             return
+                !precedingModifiers.Contains(SyntaxKind.FileKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.InternalKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword) &&

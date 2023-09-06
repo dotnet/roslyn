@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             if (position - start != 2)
                 return null;
 
-            if (start - 1 >= 0 && snapshot[start - 1] == '$')
+            while (start - 1 >= 0 && snapshot[start - 1] == '$')
                 start--;
 
             // hitting `"` after `@""` shouldn't do anything
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             if (token.SpanStart != start)
                 return null;
 
-            if (token.Kind() is not SyntaxKind.StringLiteralToken and not SyntaxKind.InterpolatedStringStartToken)
+            if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedSingleLineRawStringStartToken))
                 return null;
 
             return new TextChange(new TextSpan(position + 1, 0), "\"\"\"");

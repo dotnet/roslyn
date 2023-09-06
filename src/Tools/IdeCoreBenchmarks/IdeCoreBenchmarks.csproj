@@ -5,11 +5,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <!-- Automatically generate the necessary assembly binding redirects -->
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <LangVersion>9</LangVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>

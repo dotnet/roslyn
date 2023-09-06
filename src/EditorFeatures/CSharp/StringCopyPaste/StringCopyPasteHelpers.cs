@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Contract.ThrowIfTrue(spans.Length == 0);
 
             // Empty raw string must be multiline.
-            if (spans.Length == 1 && spans[0].IsEmpty)
+            if (spans is [{ IsEmpty: true }])
                 return true;
 
             // Or if it starts/ends with a quote 

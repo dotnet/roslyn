@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsMemberDeclarationContext(context, cancellationToken) ||
-                IsTypeDeclarationContext(context, cancellationToken) ||
-                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
+                IsTypeDeclarationContext(context, cancellationToken);
         }
 
         private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

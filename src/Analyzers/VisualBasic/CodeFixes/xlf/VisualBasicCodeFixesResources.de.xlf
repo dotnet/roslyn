@@ -22,9 +22,24 @@
         <target state="translated">"GetType" in "NameOf" konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">"{0}" in eine Async-Funktion umwandeln.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
         <target state="translated">"{0}" als vererbbar festlegen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">Funktion als asynchron definieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">Sub als asynchron definieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">

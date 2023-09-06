@@ -82,6 +82,11 @@
         <target state="translated">一律使用預設符號伺服器進行流覽</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">分析來源產生的檔案</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">分析器預設值</target>
@@ -425,6 +430,11 @@
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">從來源產生器中，啟用已開啟檔案中的所有功能 (實驗性)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">啟用文件大綱 (實驗性，需要重新開機)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -771,11 +781,6 @@
         <source>Namespace declarations</source>
         <target state="translated">命名空間宣告</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">已更新命名空間。</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1147,6 +1152,11 @@
         <target state="translated">偏好唯讀結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">偏好唯讀結構成員</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">優先使用唯讀欄位</target>
@@ -1486,6 +1496,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">同步命名空間</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">同步處理命名空間變更</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

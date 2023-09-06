@@ -194,7 +194,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As SyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken)
+            Dim methodRef = _module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken)
+            _builder.EmitToken(methodRef, syntaxNode, _diagnostics, If(encodeAsRawDefinitionToken, Cci.MetadataWriter.RawTokenEncoding.RowId, Cci.MetadataWriter.RawTokenEncoding.None))
         End Sub
 
         Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As SyntaxNode)

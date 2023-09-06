@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -19,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// </summary>
         public static ITextBuffer CreateTextBufferWithRoslynContentType(this SourceText sourceText, Workspace workspace)
         {
-            var cloneService = workspace.Services.GetService<ITextBufferCloneService>();
-            return cloneService.CloneWithRoslynContentType(sourceText);
+            var cloneServices = workspace.Services.SolutionServices.ExportProvider.GetExports<ITextBufferCloneService>();
+            foreach (var cloneService in cloneServices)
+                return cloneService.Value.CloneWithRoslynContentType(sourceText);
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -32,8 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             var contentTypeService = document.Project.Services.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            var cloneService = document.Project.Solution.Services.GetService<ITextBufferCloneService>();
-            return cloneService.Clone(sourceText, contentType);
+            var cloneServices = document.Project.Solution.Services.ExportProvider.GetExports<ITextBufferCloneService>();
+            foreach (var cloneService in cloneServices)
+                return cloneService.Value.Clone(sourceText, contentType);
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

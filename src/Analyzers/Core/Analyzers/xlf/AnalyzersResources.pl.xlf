@@ -262,6 +262,11 @@
         <target state="translated">Usuń niepotrzebne rzutowanie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Usuń modyfikatory ułatwień dostępu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Usuń nadmiarową równość</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Uprość nazwy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Uprość kontrolę</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

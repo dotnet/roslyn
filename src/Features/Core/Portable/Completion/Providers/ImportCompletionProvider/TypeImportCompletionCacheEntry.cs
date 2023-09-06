@@ -28,12 +28,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         private int PublicItemCount { get; }
 
+        /// <summary>
+        /// Only 1 entry (which corresponds to `System` namespace) can have items,
+        /// suitable for enum's base list. This flag allows to fast-skip other entries
+        /// without need to enumerate their items
+        /// </summary>
+        private bool HasEnumBaseTypes { get; }
+
         private TypeImportCompletionCacheEntry(
             SymbolKey assemblySymbolKey,
             Checksum checksum,
             string language,
             ImmutableArray<TypeImportCompletionItemInfo> items,
-            int publicItemCount)
+            int publicItemCount,
+            bool hasEnumBaseTypes)
         {
             AssemblySymbolKey = assemblySymbolKey;
             Checksum = checksum;
@@ -41,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             ItemInfos = items;
             PublicItemCount = publicItemCount;
+            HasEnumBaseTypes = hasEnumBaseTypes;
         }
 
         public ImmutableArray<CompletionItem> GetItemsForContext(
@@ -48,10 +57,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string language,
             string genericTypeSuffix,
             bool isAttributeContext,
+            bool isEnumBaseListContext,
             bool isCaseSensitive,
             bool hideAdvancedMembers)
         {
             if (AssemblySymbolKey.Resolve(originCompilation).Symbol is not IAssemblySymbol assemblySymbol)
+                return ImmutableArray<CompletionItem>.Empty;
+
+            if (isEnumBaseListContext && !HasEnumBaseTypes)
                 return ImmutableArray<CompletionItem>.Empty;
 
             var isSameLanguage = Language == language;
@@ -59,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
             // PERF: try set the capacity upfront to avoid allocation from Resize
-            if (!isAttributeContext)
+            if (!isAttributeContext && !isEnumBaseListContext)
             {
                 if (isInternalsVisible)
                 {
@@ -98,7 +111,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                 }
 
-                // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simpllicity, we only cache for one language.
+                // Skip item if not suitable for enum base list
+                if (isEnumBaseListContext && !info.IsEnumBaseType)
+                {
+                    continue;
+                }
+
+                // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simplicity, we only cache for one language.
                 // But when we trigger in a project with different language than when the cache entry was created for, we will need to
                 // change the generic suffix accordingly.
                 if (!isSameLanguage && info.IsGeneric)
@@ -133,6 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly EditorBrowsableInfo _editorBrowsableInfo;
 
             private int _publicItemCount;
+            private bool _hasEnumBaseTypes;
 
             private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
@@ -154,12 +174,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     _checksum,
                     _language,
                     _itemsBuilder.ToImmutable(),
-                    _publicItemCount);
+                    _publicItemCount,
+                    _hasEnumBaseTypes);
             }
 
             public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
             {
-                // We want to cache items with EditoBrowsableState == Advanced regardless of current "hide adv members" option value
+                // We want to cache items with EditorBrowsableState == Advanced regardless of current "hide adv members" option value
                 var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
                     hideAdvancedMembers: false,
                     _editorBrowsableInfo.Compilation,
@@ -181,6 +202,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
                 var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
+                var isEnumBaseType = symbol.SpecialType is >= SpecialType.System_SByte and <= SpecialType.System_UInt64;
+                _hasEnumBaseTypes |= isEnumBaseType;
+
                 var item = ImportCompletionItem.Create(
                     symbol.Name,
                     symbol.Arity,
@@ -193,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (isPublic)
                     _publicItemCount++;
 
-                _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced));
+                _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced, isEnumBaseType));
             }
 
             public void Dispose()
@@ -204,12 +228,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             private readonly ItemPropertyKind _properties;
 
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced)
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced, bool isEnumBaseType)
             {
                 Item = item;
                 _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
                             | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
                             | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
+                            | (isEnumBaseType ? ItemPropertyKind.IsEnumBaseType : 0)
                             | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
             }
 
@@ -224,19 +249,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public bool IsAttribute
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
+            public bool IsEnumBaseType
+                => (_properties & ItemPropertyKind.IsEnumBaseType) != 0;
+
             public bool IsEditorBrowsableStateAdvanced
                 => (_properties & ItemPropertyKind.IsEditorBrowsableStateAdvanced) != 0;
-
-            public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-                => new(item, IsPublic, IsGeneric, IsAttribute, IsEditorBrowsableStateAdvanced);
 
             [Flags]
             private enum ItemPropertyKind : byte
             {
-                IsPublic = 0x1,
-                IsGeneric = 0x2,
-                IsAttribute = 0x4,
-                IsEditorBrowsableStateAdvanced = 0x8,
+                IsPublic = 1,
+                IsGeneric = 2,
+                IsAttribute = 4,
+                IsEnumBaseType = 8,
+                IsEditorBrowsableStateAdvanced = 16
             }
         }
     }

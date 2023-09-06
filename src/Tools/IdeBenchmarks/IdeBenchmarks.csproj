@@ -5,9 +5,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <!-- Automatically generate the necessary assembly binding redirects -->
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <IsShipping>false</IsShipping>
     <NoWarn>$(NoWarn),CA2007</NoWarn>
+    <UseWpf>true</UseWpf>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />

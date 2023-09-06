@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingWhitespaceSettingsProvider()
         {
-            TestGettingSettingsProviderFromWorkspace<WhitespaceSetting>();
-            TestGettingSettingsProviderFromLanguageService<WhitespaceSetting>();
+            TestGettingSettingsProviderFromWorkspace<Setting>();
+            TestGettingSettingsProviderFromLanguageService<Setting>();
         }
 
         [Fact]
@@ -115,14 +115,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
 
             // We need to substract for string options that are not yet supported.
-            // CodeStyleOptions2.OperatorPlacementWhenWrapping
-            // CodeStyleOptions2.FileHeaderTemplate
-            // CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions
-            //
-            // We also subtract for this not-yet supported option, tracked by https://github.com/dotnet/roslyn/issues/62937
-            // CodeStyleOptions2.ForEachExplicitCastInSource
-            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 4;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+            // https://github.com/dotnet/roslyn/issues/62937
+            var optionsWithUI = CodeStyleOptions2.AllOptions
+                .Remove(CodeStyleOptions2.OperatorPlacementWhenWrapping)
+                .Remove(CodeStyleOptions2.FileHeaderTemplate)
+                .Remove(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions)
+                .Remove(CodeStyleOptions2.ForEachExplicitCastInSource);
+
+            AssertEx.Equal(
+                optionsWithUI.OrderBy(o => o.Definition.ConfigName),
+                dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.Definition.ConfigName));
         }
 
         [Fact]
@@ -162,21 +164,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            // We don't support PreferredModifierOrder yet so we subtract by one
-            var optionsCount = CSharpCodeStyleOptions.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 1;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+
+            // We don't support PreferredModifierOrder yet:
+            var optionsWithUI = CSharpCodeStyleOptions.AllOptions
+                .Remove(CSharpCodeStyleOptions.PreferredModifierOrder);
+
+            AssertEx.SetEqual(optionsWithUI, dataSnapShot.Select(setting => setting.Key.Option));
         }
 
         [Fact]
         public void TestGettingWhitespaceSettingProviderWorkspaceServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
 
-            var expectedOptions = new IOption[]
+            var expectedOptions = new IOption2[]
             {
                 FormattingOptions2.IndentationSize,
                 FormattingOptions2.InsertFinalNewLine,
@@ -186,27 +191,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 CodeStyleOptions2.OperatorPlacementWhenWrapping
             };
 
-            AssertEx.SetEqual(
-                expectedOptions.Select(option => option.Name),
-                dataSnapShot.Select(item => item.Key.Option.Name));
+            AssertEx.Equal(
+                expectedOptions.Select(option => option.Definition.ConfigName).OrderBy(n => n),
+                dataSnapShot.Select(item => item.Key.Option.Definition.ConfigName).OrderBy(n => n));
         }
 
         [Fact]
         public void TestGettingWhitespaceSettingProviderLanguageServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            var optionsCount = CSharpFormattingOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count();
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+            var dataSnapshot = settingsProvider.GetCurrentDataSnapshot();
+
+            // multiple settings may share the same option (e.g. settings representing flags of an enum):
+            var optionsForSettings = dataSnapshot.GroupBy(s => s.Key.Option).Select(g => g.Key).ToArray();
+            AssertEx.SetEqual(CSharpFormattingOptions2.AllOptions, optionsForSettings);
         }
 
         [Fact]
         public void TestGettingSettingProviderWithNullProjectPath1()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -217,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         [Fact]
         public void TestGettingSettingProviderWithNullProjectPath2()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);

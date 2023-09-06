@@ -145,7 +145,7 @@ $@"class C
         [InlineData("protected internal")]
         [InlineData("private")]
         [InlineData("protected private")]
-        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20907")]
         public async Task TestPascalCaseMethod_NoneAndDefaultAccessibilities(string accessibility)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -187,7 +187,7 @@ $@"class C
         [InlineData("event System.EventHandler [|m|];", "event System.EventHandler M;")]
         [InlineData("void Outer(int [|m|]) {}", "void Outer(int M) {}")]
         [InlineData("void Outer() { int [|m|]; }", "void Outer() { int M; }")]
-        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20907")]
         public async Task TestPascalCaseSymbol_NoneAndDefaultSymbolKinds(string camelCaseSymbol, string pascalCaseSymbol)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -228,7 +228,7 @@ $@"class C
         [InlineData("void Outer() { System.Action<int> action = (int [|m|]) => {} }", "void Outer() { System.Action<int> action = (int M) => {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
         [InlineData("void Outer() { System.Action<int> action = delegate (int [|m|]) {} }", "void Outer() { System.Action<int> action = delegate (int M) {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
         [InlineData("void Outer() { int [|m|]; }", "void Outer() { int M; }", SymbolKind.Local, Accessibility.NotApplicable)]
-        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/20907")]
         public async Task TestPascalCaseSymbol_ExpectedSymbolAndAccessibility(string camelCaseSymbol, string pascalCaseSymbol, object symbolKind, Accessibility accessibility)
         {
             var alternateSymbolKind = TypeKind.Class.Equals(symbolKind) ? TypeKind.Interface : TypeKind.Class;
@@ -1209,7 +1209,7 @@ class D : C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19106")]
         public async Task TestMissingOnSymbolsWithNoName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {
             var markup = @"public class [|c|] { }";
@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyInterfaceNamesStartWithI()
         {
             var markup = @"public interface [|test|] { }";
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
         {
             var markup = @"public class A
@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("TArg", symbolRenamedOperation._newName);
         }
 
-        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_ParameterFormattedAsProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1360,7 +1360,7 @@ $@"class C
 }}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49535")]
         public async Task TestGlobalDirectiveAsync()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1376,7 +1376,7 @@ class C : I
 }", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
 
-        [Fact, WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50734")]
         public async Task TestAsyncEntryPoint()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1391,7 +1391,7 @@ class C
 }", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact, WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49648")]
         public async Task TestAsyncEntryPoint_TopLevel()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1401,7 +1401,7 @@ using System.Threading.Tasks;
 ", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact, WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51727")]
         public async Task TestExternAsync()
         {
             await TestMissingInRegularAndScriptAsync(

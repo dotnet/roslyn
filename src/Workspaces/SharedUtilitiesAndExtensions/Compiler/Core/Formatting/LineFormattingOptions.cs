@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -30,16 +31,16 @@ internal interface LineFormattingOptionsProvider
 
 internal static partial class LineFormattingOptionsProviders
 {
-    public static LineFormattingOptions GetLineFormattingOptions(this AnalyzerConfigOptions options, LineFormattingOptions? fallbackOptions)
+    public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language, LineFormattingOptions? fallbackOptions)
     {
         fallbackOptions ??= LineFormattingOptions.Default;
 
         return new()
         {
-            UseTabs = options.GetEditorConfigOption(FormattingOptions2.UseTabs, fallbackOptions.UseTabs),
-            TabSize = options.GetEditorConfigOption(FormattingOptions2.TabSize, fallbackOptions.TabSize),
-            IndentationSize = options.GetEditorConfigOption(FormattingOptions2.IndentationSize, fallbackOptions.IndentationSize),
-            NewLine = options.GetEditorConfigOption(FormattingOptions2.NewLine, fallbackOptions.NewLine),
+            UseTabs = options.GetOption(FormattingOptions2.UseTabs, language, fallbackOptions.UseTabs),
+            TabSize = options.GetOption(FormattingOptions2.TabSize, language, fallbackOptions.TabSize),
+            IndentationSize = options.GetOption(FormattingOptions2.IndentationSize, language, fallbackOptions.IndentationSize),
+            NewLine = options.GetOption(FormattingOptions2.NewLine, language, fallbackOptions.NewLine),
         };
     }
 
@@ -47,7 +48,7 @@ internal static partial class LineFormattingOptionsProviders
     public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetLineFormattingOptions(fallbackOptions);
+        return configOptions.GetLineFormattingOptions(document.Project.Language, fallbackOptions);
     }
 
     public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

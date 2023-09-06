@@ -515,14 +515,14 @@ namespace N
 @"if (e is int)$$"));
         }
 
-        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is null or global::$$) { }"));
         }
 
-        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax_SwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +

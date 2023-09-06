@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+            settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
             await TaskScheduler.Default;

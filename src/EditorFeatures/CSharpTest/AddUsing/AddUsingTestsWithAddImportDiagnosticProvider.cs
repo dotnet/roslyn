@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
-        [Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
         public async Task TestUnknownIdentifierGenericName()
         {
             await TestInRegularAndScriptAsync(
@@ -44,7 +44,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
         public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
         {
             await TestInRegularAndScriptAsync(
@@ -77,7 +77,7 @@ class Program
     Func<FlowControl x }");
         }
 
-        [Fact, WorkItem(752640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
         public async Task TestUnknownIdentifierWithSyntaxError()
         {
             await TestInRegularAndScriptAsync(
@@ -93,7 +93,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(855748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
         public async Task TestGenericNameWithBrackets()
         {
             await TestInRegularAndScriptAsync(
@@ -133,7 +133,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
         public async Task TestMalformedGenericParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -157,7 +157,7 @@ class Class
     List<Y x; }");
         }
 
-        [Fact, WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
         public async Task TestIncompleteMemberWithAsyncTaskReturnType()
         {
             await TestInRegularAndScriptAsync(
@@ -200,7 +200,7 @@ namespace ConsoleApp282
 }");
         }
 
-        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23667")]
         public async Task TestMissingDiagnosticForNameOf()
         {
             await TestDiagnosticMissingAsync(

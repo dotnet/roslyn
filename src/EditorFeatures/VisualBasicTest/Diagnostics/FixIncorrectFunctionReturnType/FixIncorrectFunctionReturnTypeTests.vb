@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnType
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FixIncorrectFunctionReturnType
     <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
     Public Class FixIncorrectFunctionReturnTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return (Nothing, New IncorrectFunctionReturnTypeCodeFixProvider())
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -32,7 +32,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -49,7 +49,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -72,7 +72,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections
@@ -91,7 +91,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections
@@ -110,7 +110,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections

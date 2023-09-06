@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Top-level Code
 
-        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LineChange()
         {
             var src1 = @"
@@ -38,7 +38,7 @@ Console.ReadLine(1);
                 new[] { new SourceLineUpdate(1, 2) });
         }
 
-        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LocalFunction_LineChange()
         {
             var src1 = @"
@@ -1712,7 +1712,7 @@ class C
                 semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.E").RemoveMethod) });
         }
 
-        [Fact, WorkItem(53263, "https://github.com/dotnet/roslyn/issues/53263")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53263")]
         public void Event_ExpressionBody_MultipleBodiesOnTheSameLine1()
         {
             var src1 = @"

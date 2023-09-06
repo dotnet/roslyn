@@ -4,8 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!_editorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
             {
                 return null;
             }

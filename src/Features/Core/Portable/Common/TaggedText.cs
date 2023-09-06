@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// A piece of text with a descriptive tag.
     /// </summary>
     [DataContract]
-    public readonly struct TaggedText
+    public readonly record struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -100,11 +101,26 @@ namespace Microsoft.CodeAnalysis
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
-                    SymbolDisplayPartKindTags.GetTag(d.Kind),
+                    GetTag(d),
                     d.ToString(),
                     style,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
+        }
+
+        private static string GetTag(SymbolDisplayPart part)
+        {
+            // We don't actually have any specific classifications for aliases.  So if the compiler passed us that kind,
+            // attempt to map to the corresponding namespace/named-type kind that matches the underlying alias target.
+            if (part is { Symbol: IAliasSymbol alias, Kind: SymbolDisplayPartKind.AliasName })
+            {
+                if (alias.Target is INamespaceSymbol)
+                    return SymbolDisplayPartKindTags.GetTag(SymbolDisplayPartKind.NamespaceName);
+                else if (alias.Target is INamedTypeSymbol namedType)
+                    return SymbolDisplayPartKindTags.GetTag(namedType.GetSymbolDisplayPartKind());
+            }
+
+            return SymbolDisplayPartKindTags.GetTag(part.Kind);
         }
 
         private static string GetNavigationTarget(ISymbol symbol)

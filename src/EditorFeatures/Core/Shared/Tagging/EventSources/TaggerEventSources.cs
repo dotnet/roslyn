@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public static ITaggerEventSource OnReadOnlyRegionsChanged(ITextBuffer subjectBuffer)
             => new ReadOnlyRegionsChangedEventSource(subjectBuffer);
 
-        public static ITaggerEventSource OnGlobalOptionChanged(IGlobalOptionService globalOptions, IOption globalOption)
+        public static ITaggerEventSource OnGlobalOptionChanged(IGlobalOptionService globalOptions, IOption2 globalOption)
             => new GlobalOptionChangedEventSource(globalOptions, globalOption);
 
         public static ITaggerEventSource OnDiagnosticsChanged(ITextBuffer subjectBuffer, IDiagnosticService service)

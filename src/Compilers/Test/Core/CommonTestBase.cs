@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -24,15 +23,42 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Flags]
-    public enum Verification
+    public enum VerificationStatus
     {
-        Skipped = 0,
-        Passes = 1 << 1,
+        /// <summary>
+        /// default(<see cref="Verification"/>) should be passing.
+        /// </summary>
+        Passes = 0,
+
+        Skipped = 1 << 1,
 
         FailsPEVerify = 1 << 2,
         FailsILVerify = 1 << 3,
         Fails = FailsPEVerify | FailsILVerify,
+
+        PassesOrFailFast = 1 << 4,
     }
+
+    public readonly struct Verification
+    {
+        public VerificationStatus Status { get; init; }
+        public string? ILVerifyMessage { get; init; }
+        public string? PEVerifyMessage { get; init; }
+
+        /// <summary>
+        /// True if the expected messages include member tokens and MVIDs.
+        /// </summary>
+        public bool IncludeTokensAndModuleIds { get; init; }
+
+        public static readonly Verification Skipped = new() { Status = VerificationStatus.Skipped };
+        public static readonly Verification Passes = new() { Status = VerificationStatus.Passes };
+        public static readonly Verification FailsPEVerify = new() { Status = VerificationStatus.FailsPEVerify };
+        public static readonly Verification FailsILVerify = new() { Status = VerificationStatus.FailsILVerify };
+        public static readonly Verification Fails = new() { Status = VerificationStatus.Fails };
+        public static readonly Verification PassesOrFailFast = new() { Status = VerificationStatus.PassesOrFailFast };
+    }
+
+#nullable disable
 
     /// <summary>
     /// Base class for all language specific tests.
@@ -54,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             Assert.NotNull(compilation);
 
@@ -331,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = CSharp.SyntaxFactory.ParseSyntaxTree(code, options: parseOptions);
+            var tree = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(code, encoding: null, SourceHashAlgorithms.Default), options: parseOptions);
 
             return CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
@@ -414,9 +440,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var trees = new SyntaxTree[files.Length];
             for (int i = 0; i < files.Length; i++)
             {
-                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(files[i], options: parseOptions, encoding: encoding, path: sourceFileNames?[i]);
+                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(SourceText.From(files[i], encoding, SourceHashAlgorithms.Default), options: parseOptions, path: sourceFileNames?[i]);
             }
-
 
             return VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, compilationOptions);
         }

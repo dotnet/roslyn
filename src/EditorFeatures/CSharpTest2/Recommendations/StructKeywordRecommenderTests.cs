@@ -111,6 +111,25 @@ $$");
 $$");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
         [Fact]
         public async Task TestAfterTypeDeclaration()
         {
@@ -226,7 +245,7 @@ global using Goo;");
 @"class C { void M() { ref $$ } }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -234,7 +253,7 @@ global using Goo;");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -315,6 +334,13 @@ $$");
 @"public $$");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$");
+        }
+
         [Fact]
         public async Task TestAfterPrivate()
         {
@@ -352,21 +378,21 @@ $$");
         public async Task TestNotAfterStruct()
             => await VerifyAbsenceAsync(@"struct $$");
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
 @"class C<T> where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -375,7 +401,7 @@ $$");
     where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -384,7 +410,7 @@ $$");
     where U : U");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
@@ -393,7 +419,7 @@ $$");
       where T : $$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
@@ -402,7 +428,7 @@ $$");
       where T : IList<$$");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -412,7 +438,7 @@ $$");
       where U : T");
         }
 
-        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -420,6 +446,18 @@ $$");
     void Goo<T>()
       where T : IList<$$
       where U : T");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_AbstractModifier()
+        {
+            await VerifyAbsenceAsync("abstract record $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_SealedModifier()
+        {
+            await VerifyAbsenceAsync("sealed record $$");
         }
     }
 }

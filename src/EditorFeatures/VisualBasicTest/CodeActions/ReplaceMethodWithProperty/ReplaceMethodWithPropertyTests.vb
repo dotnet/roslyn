@@ -30,7 +30,7 @@ End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestMissingParameterList() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -704,7 +704,7 @@ index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14327")>
         Public Async Function TestUpdateChainedGet1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -788,7 +788,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         Public Async Function TestSystemObjectMetadataOverride() As Task
             Await TestMissingAsync(
 "class C
@@ -798,7 +798,7 @@ End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")>
         Public Async Function TestMetadataOverride() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -913,7 +913,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42699")>
         Public Async Function TestSameNameMemberAsProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -931,7 +931,7 @@ End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
-        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42699")>
         Public Async Function TestSameNameMemberAsPropertyDifferentCase() As Task
             Await TestInRegularAndScriptAsync(
 "class C

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
                 foreach (var peReference in GetAllRelevantPeReferences(project))
-                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, cancellationToken).ConfigureAwait(false);
+                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (forceCacheCreation)
                 {
                     symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        _originatingDocument.Project.Solution, peReference, cancellationToken).ConfigureAwait(false);
+                        _originatingDocument.Project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // First try to filter out types from already imported namespaces
                     var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
 
                     if (_namespaceInScope.Contains(qualifiedNamespaceName))
                     {
@@ -422,8 +422,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Since we are dealing with extension methods and their container (top level static class and modules), only public,
                 // internal and private modifiers are in play here. 
                 // Also, this check is called for a method symbol only when the container was checked and is accessible.
-                static bool IsAccessible(ISymbol symbol, bool internalsVisible) =>
-                    symbol.DeclaredAccessibility == Accessibility.Public ||
+                static bool IsAccessible(ISymbol symbol, bool internalsVisible)
+                    => symbol.DeclaredAccessibility == Accessibility.Public ||
                     (symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible);
             }
 

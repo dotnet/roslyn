@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Fact]
         public void Write()
         {
-            var log = new TraceLog(5, "log", logDirectory: null);
+            var log = new TraceLog(5, "log", "File.log");
 
             var projectId = ProjectId.CreateFromSerialized(Guid.Parse("5E40F37C-5AB3-495E-A3F2-4A244D177674"), debugName: "MyProject");
             var diagnostic = Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile), Location.None, "file", "error");

@@ -88,7 +88,7 @@ $$");
     int $$");
         }
 
-        [Fact, WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         public async Task TestAfterPublicStaticType()
         {
             await VerifyAbsenceAsync(
@@ -96,7 +96,7 @@ $$");
     public static int $$");
         }
 
-        [Fact, WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         public async Task TestAfterPublicStaticExternType()
         {
             await VerifyAbsenceAsync(
@@ -104,7 +104,7 @@ $$");
     public static extern int $$");
         }
 
-        [Fact, WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         public async Task TestAfterGenericType()
         {
             await VerifyAbsenceAsync(

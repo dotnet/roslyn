@@ -408,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         /// <summary>
         /// Is a protected symbol inside "originalContainingType" accessible from within "within",
         /// which much be a named type or an assembly.

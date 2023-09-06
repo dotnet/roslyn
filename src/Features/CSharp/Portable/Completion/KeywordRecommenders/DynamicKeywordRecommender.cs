@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsUsingAliasTypeContext ||
+                context.IsPossibleTupleContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces())
+            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces)
                 return;
 
             var cancellationToken = completionContext.CancellationToken;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
-                // Queue a backgound task to warm up cache and return immediately if this is not the context to trigger this provider.
+                // Queue a background task to warm up cache and return immediately if this is not the context to trigger this provider.
                 // `ForceExpandedCompletionIndexCreation` and `UpdateImportCompletionCacheInBackground` are both test only options to
                 // make test behavior deterministic.
                 var options = completionContext.CompletionOptions;
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // TODO: fallback options https://github.com/dotnet/roslyn/issues/60786
-            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-            var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
             var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);

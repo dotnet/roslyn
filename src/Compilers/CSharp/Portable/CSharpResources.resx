@@ -159,6 +159,9 @@
   <data name="IDS_XMLMISSINGINCLUDEPATH" xml:space="preserve">
     <value>Missing path attribute</value>
   </data>
+  <data name="IDS_Missing" xml:space="preserve">
+    <value>&lt;missing&gt;</value>
+  </data>
   <data name="IDS_GlobalNamespace" xml:space="preserve">
     <value>&lt;global namespace&gt;</value>
   </data>
@@ -985,7 +988,7 @@
     <value>Cannot call an abstract base member: '{0}'</value>
   </data>
   <data name="ERR_RefProperty" xml:space="preserve">
-    <value>A property or indexer may not be passed as an out or ref parameter</value>
+    <value>A non ref-returning property or indexer may not be used as an out or ref value</value>
   </data>
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
@@ -3038,7 +3041,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
   </data>
   <data name="ERR_BadAsyncReturnExpression" xml:space="preserve">
-    <value>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</value>
+    <value>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</value>
   </data>
   <data name="ERR_CantConvAsyncAnonFuncReturns" xml:space="preserve">
     <value>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</value>
@@ -3750,7 +3753,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}' does not implement '{1}'</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequired" xml:space="preserve">
-    <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
@@ -3808,6 +3811,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
+  </data>
+  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
+    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
@@ -4089,16 +4095,16 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Delay signing was specified and requires a public key, but no public key was specified</value>
   </data>
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
+    <value>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
   <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
-    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+    <value>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
+    <value>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</value>
   </data>
   <data name="WRN_InvalidVersionFormat_Title" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -4804,7 +4810,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Anonymous function converted to a void returning delegate cannot return a value</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequiredLambda" xml:space="preserve">
-    <value>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Async lambda expression converted to a '{0}' returning delegate cannot return a value</value>
   </data>
   <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
     <value>An instance of analyzer {0} cannot be created from {1} : {2}.</value>
@@ -5920,6 +5926,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_RefAssignNarrower_Title" xml:space="preserve">
     <value>This ref-assigns a value that has a narrower escape scope than the target.</value>
   </data>
+  <data name="ERR_RefAssignValEscapeWider" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+  </data>
+  <data name="WRN_RefAssignValEscapeWider" xml:space="preserve">
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+  </data>
+  <data name="WRN_RefAssignValEscapeWider_Title" xml:space="preserve">
+    <value>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</value>
+  </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
   </data>
@@ -6575,10 +6590,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
-    <value>Only a single record partial declaration may have a parameter list</value>
+    <value>Only a single partial type declaration may have a parameter list</value>
   </data>
   <data name="ERR_BadRecordBase" xml:space="preserve">
     <value>Records may only inherit from object or another record</value>
@@ -6832,8 +6847,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
     <value>Do not compare function pointer values</value>
   </data>
+  <data name="IDS_FeatureUsingTypeAlias" xml:space="preserve">
+    <value>using type alias</value>
+  </data>
+  <data name="ERR_BadRefInUsingAlias" xml:space="preserve">
+    <value>Using alias cannot be a 'ref' type.</value>
+  </data>
+  <data name="ERR_BadUnsafeInUsingDirective" xml:space="preserve">
+    <value>Only a 'using static' or 'using alias' can be 'unsafe'.</value>
+  </data>
+  <data name="ERR_BadNullableReferenceTypeInUsingAlias" xml:space="preserve">
+    <value>Using alias cannot be a nullable reference type.</value>
+  </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
@@ -7164,7 +7191,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A lambda expression with attributes cannot be converted to an expression tree</value>
   </data>
   <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
-    <value>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
+    <value>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
   </data>
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
@@ -7328,6 +7355,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
+  <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
+    <value>The default parameter value does not match in the target delegate type.</value>
+  </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
   </data>
@@ -7344,7 +7380,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>
@@ -7366,5 +7411,101 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
     <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
+  </data>
+  <data name="ERR_ScopedDiscard" xml:space="preserve">
+    <value>The 'scoped' modifier cannot be used with discard.</value>
+  </data>
+  <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
+    <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="IDS_FeaturePrimaryConstructors" xml:space="preserve">
+    <value>primary constructors</value>
+  </data>
+  <data name="ERR_InvalidPrimaryConstructorParameterReference" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' in this context.</value>
+  </data>
+  <data name="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver" xml:space="preserve">
+    <value>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseRefLike" xml:space="preserve">
+    <value>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRef" xml:space="preserve">
+    <value>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread.</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter_Title" xml:space="preserve">
+    <value>Parameter is unread.</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnPrimaryConstructorParameter" xml:space="preserve">
+    <value>Cannot return primary constructor parameter '{0}' by reference.</value>
+  </data>
+  <data name="ERR_StructLayoutCyclePrimaryConstructorParameter" xml:space="preserve">
+    <value>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</value>
+  </data>
+  <data name="ERR_UnexpectedParameterList" xml:space="preserve">
+    <value>Unexpected parameter list.</value>
+  </data>
+  <data name="WRN_AddressOfInAsync" xml:space="preserve">
+    <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
+  </data>
+  <data name="WRN_AddressOfInAsync_Title" xml:space="preserve">
+    <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
+  </data>
+  <data name="ERR_BadStaticAfterUnsafe" xml:space="preserve">
+    <value>'static' modifier must precede 'unsafe' modifier.</value>
+  </data>
+  <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
+    <value>A switch expression arm does not begin with a 'case' keyword.</value>
+  </data>
+  <data name="ERR_ConstantValueOfTypeExpected" xml:space="preserve">
+    <value>A constant value of type '{0}' is expected</value>
   </data>
 </root>

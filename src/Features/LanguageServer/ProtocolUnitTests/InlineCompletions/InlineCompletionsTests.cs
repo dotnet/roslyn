@@ -10,17 +10,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 {
+    public InlineCompletionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     protected override TestComposition Composition => base.Composition
         .AddParts(typeof(TestSnippetInfoService));
 
-    [Fact]
-    public async Task TestSimpleSnippet()
+    [Theory, CombinatorialData]
+    public async Task TestSimpleSnippet(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -36,11 +41,11 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
             $0
         }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetIgnoresCase()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetIgnoresCase(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -56,11 +61,11 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
             $0
         }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetUsesOptionsFromRequest()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetUsesOptionsFromRequest(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -76,11 +81,11 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
    $0
   }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
     }
 
-    [Fact]
-    public async Task TestSnippetWithMultipleDeclarations()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithMultipleDeclarations(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -96,11 +101,11 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
             $0
         }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -112,11 +117,11 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 }";
         var expectedSnippet = @"System.Console.WriteLine($0);";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithSimpleTypeNameFunctionWithUsing()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithSimpleTypeNameFunctionWithUsing(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -129,11 +134,11 @@ class A
 }";
         var expectedSnippet = @"Console.WriteLine($0);";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithClassNameFunction()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithClassNameFunction(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -146,11 +151,11 @@ class A
         $0
     }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithClassNameFunctionOutsideOfClass()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithClassNameFunctionOutsideOfClass(bool mutatingLspWorkspace)
     {
         var markup =
 @"ctor{|tab:|}";
@@ -160,11 +165,11 @@ class A
     $0
 }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -180,11 +185,11 @@ class A
             default:
         }$0";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetWithNoEditableFields()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetWithNoEditableFields(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -220,11 +225,11 @@ class A
         return base.GetHashCode();
     }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, mutatingLspWorkspace);
     }
 
-    [Fact]
-    public async Task TestSnippetCached()
+    [Theory, CombinatorialData]
+    public async Task TestSnippetCached(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -240,7 +245,7 @@ class A
             $0
         }";
 
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -263,9 +268,9 @@ class A
         Assert.Same(firstSnippet, secondSnippet);
     }
 
-    private async Task VerifyMarkupAndExpected(string markup, string expected, LSP.FormattingOptions? options = null)
+    private async Task VerifyMarkupAndExpected(string markup, string expected, bool mutatingLspWorkspace, LSP.FormattingOptions? options = null)
     {
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();

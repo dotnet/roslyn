@@ -109,6 +109,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
                 => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
+            public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
+                => Result.TryGetValue(analyzer, out result);
+
             public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;

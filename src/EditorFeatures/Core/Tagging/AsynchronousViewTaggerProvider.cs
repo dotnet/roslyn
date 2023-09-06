@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
+#pragma warning disable CS8765 // Nullability of type of 'textView' doesn't match overridden member (derivations of this type will never receive null in this call)
+        protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
+#pragma warning restore
+
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)

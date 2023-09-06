@@ -15,7 +15,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), Shared]
-    internal class CSharpConvertTypeOfToNameOfCodeFixProvider : AbstractConvertTypeOfToNameOfCodeFixProvider
+    internal class CSharpConvertTypeOfToNameOfCodeFixProvider : AbstractConvertTypeOfToNameOfCodeFixProvider<
+        MemberAccessExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -26,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         protected override string GetCodeFixTitle()
             => CSharpCodeFixesResources.Convert_typeof_to_nameof;
 
-        protected override SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        protected override SyntaxNode GetSymbolTypeExpression(SemanticModel model, MemberAccessExpressionSyntax node, CancellationToken cancellationToken)
         {
             // The corresponding analyzer (CSharpConvertTypeOfToNameOfDiagnosticAnalyzer) validated the syntax
-            var typeOfExpression = (TypeOfExpressionSyntax)((MemberAccessExpressionSyntax)node).Expression;
+            var typeOfExpression = (TypeOfExpressionSyntax)node.Expression;
             var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
             Contract.ThrowIfNull(typeSymbol);
-            return typeSymbol.GenerateExpressionSyntax();
+            return typeSymbol.GenerateExpressionSyntax(nameSyntax: true);
         }
     }
 }

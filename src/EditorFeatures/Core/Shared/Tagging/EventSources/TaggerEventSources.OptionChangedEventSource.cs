@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private sealed class GlobalOptionChangedEventSource : AbstractTaggerEventSource
         {
-            private readonly IOption _globalOption;
+            private readonly IOption2 _globalOption;
             private readonly IGlobalOptionService _globalOptions;
 
-            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption globalOption)
+            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption2 globalOption)
             {
                 _globalOptions = globalOptions;
                 _globalOption = globalOption;

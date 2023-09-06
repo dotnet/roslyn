@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 #pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/44225
             bool debugMode = false,
 #pragma warning restore IDE0060 // Remove unused parameter
-            OptionsCollection? changedOptionSet = null,
+            OptionsCollection? changedOptions = null,
             bool treeCompare = true,
             ParseOptions? parseOptions = null)
         {
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                 var document = project.AddDocument("Document", SourceText.From(code));
 
                 var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-                var formattingOptions = changedOptionSet != null ?
-                    formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null) :
-                    formattingService.DefaultOptions;
+                var formattingOptions = changedOptions != null
+                    ? formattingService.GetFormattingOptions(changedOptions, fallbackOptions: null)
+                    : formattingService.DefaultOptions;
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
                 var root = await syntaxTree.GetRootAsync();

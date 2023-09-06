@@ -82,6 +82,11 @@
         <target state="translated">Toujours utiliser les serveurs de symboles par défaut pour la navigation</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Analyser des fichiers générés par la source</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Valeurs par défaut de l’analyseur</target>
@@ -425,6 +430,11 @@
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">Activer toutes les fonctionnalités dans les fichiers ouverts à partir des générateurs de code source (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">Activer le plan du document (expérimental, nécessite un redémarrage)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -771,11 +781,6 @@
         <source>Namespace declarations</source>
         <target state="translated">Déclarations d'espaces de noms</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Les espaces de noms ont été mis à jour.</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1147,6 +1152,11 @@
         <target state="translated">Préférer le struct en lecture seule</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">Préférer le membre struct en lecture seule</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">Préférer les champs readonly</target>
@@ -1486,6 +1496,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Synchroniser les espaces de noms</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">Synchroniser les modifications apportées aux espaces de noms</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

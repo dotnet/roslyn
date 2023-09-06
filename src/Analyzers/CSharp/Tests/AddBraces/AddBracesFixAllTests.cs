@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
     public partial class AddBracesTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument1()
         {
@@ -45,8 +45,8 @@ class Program1
 
             await TestInRegularAndScriptAsync(input, expected);
         }
+
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument2()
         {
@@ -80,7 +80,6 @@ class Program1
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
@@ -167,7 +166,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
@@ -251,7 +249,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
@@ -338,7 +335,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMember()
         {
@@ -406,7 +402,6 @@ class OtherType
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingType_AcrossSingleFile()
         {
@@ -480,7 +475,6 @@ class OtherType
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingType_AcrossMultipleFiles()
         {
@@ -595,6 +589,7 @@ class Program2
         [InlineData("FixAllInContainingMember")]
         [InlineData("FixAllInContainingType")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMemberAndType_TopLevelStatements(string fixAllScope)
         {
@@ -642,7 +637,6 @@ class OtherType
         [Theory]
         [InlineData("FixAllInContainingMember")]
         [InlineData("FixAllInContainingType")]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_02(string fixAllScope)
         {
@@ -700,7 +694,6 @@ namespace N
         [Theory]
         [InlineData("FixAllInContainingMember")]
         [InlineData("FixAllInContainingType")]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_ErrorCase(string fixAllScope)
         {

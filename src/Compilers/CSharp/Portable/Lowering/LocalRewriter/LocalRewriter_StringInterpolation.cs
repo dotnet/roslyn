@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private InterpolationHandlerResult RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
         {
             Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
-            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, syntax);
+            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
@@ -222,13 +222,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stringBuilder.Append('{').Append(nextFormatPosition++);
                     if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                     {
-                        Debug.Assert(fillin.Alignment.ConstantValue is { });
-                        stringBuilder.Append(',').Append(fillin.Alignment.ConstantValue.Int64Value);
+                        Debug.Assert(fillin.Alignment.ConstantValueOpt is { });
+                        stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value);
                     }
                     if (fillin.Format != null && !fillin.Format.HasErrors)
                     {
-                        Debug.Assert(fillin.Format.ConstantValue is { });
-                        stringBuilder.Append(':').Append(fillin.Format.ConstantValue.StringValue);
+                        Debug.Assert(fillin.Format.ConstantValueOpt is { });
+                        stringBuilder.Append(':').Append(fillin.Format.ConstantValueOpt.StringValue);
                     }
                     stringBuilder.Append('}');
                     var value = fillin.Value;
@@ -241,10 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
+                    Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue != null);
                     // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
                     // they're treated the same way in string.Format.
-                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValueOpt.StringValue));
                 }
             }
 
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue is not null);
-                        part = _factory.StringLiteral(part.ConstantValue.StringValue);
+                        Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue is not null);
+                        part = _factory.StringLiteral(part.ConstantValueOpt.StringValue);
                     }
 
                     result = result == null ?
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
                 // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
                 // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue.IsString: true }))
+                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValueOpt.IsString: true }))
                 {
                     Debug.Assert(result is not null);
                     Debug.Assert(result.Type is not null);

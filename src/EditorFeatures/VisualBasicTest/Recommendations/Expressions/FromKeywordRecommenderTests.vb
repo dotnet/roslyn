@@ -145,12 +145,12 @@ Module Program
 End Module</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(542741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
         Public Sub FromAfterLambdaHeaderTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 As Func(Of Integer()) = Function() |</MethodBody>, "From")
         End Sub
 
-        <Fact, WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         Public Sub NoFromAfterDotTest()
             Dim code = <File>
 Class C
@@ -163,7 +163,7 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <Fact, WorkItem(542252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
         Public Sub NoFromIfNotCollectionInitializerTest()
             Dim code = <File>
 System
@@ -183,7 +183,7 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <File>Imports System.Collections.Generic
@@ -199,7 +199,7 @@ Class C
 End Class</File>, "From")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <File>Imports System.Collections.Generic
@@ -231,7 +231,7 @@ Class C
 End Class</File>, "From")
         End Sub
 
-        <Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternTest()
             Dim code = <File>
 Imports System.Collections
@@ -263,7 +263,7 @@ End Class
             VerifyRecommendationsContain(code, "From")
         End Sub
 
-        <Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternInAccessibleTest()
             Dim code = <File>
 Imports System.Collections
@@ -295,7 +295,7 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternAccessibleTest()
             Dim code = <File>
 Imports System.Collections

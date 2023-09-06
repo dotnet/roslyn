@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
     {
+        public abstract ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target, CancellationToken cancellationToken);
+
         public async Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
             Document document,
             SyntaxNode leftSide,

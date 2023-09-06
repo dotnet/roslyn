@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Public Function GetName() As String Implements IUnifiedArgumentSyntax.GetName
             Return If(_argument.IsNamed,
-                      DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ToString(),
+                      DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText,
                       Nothing)
         End Function
 

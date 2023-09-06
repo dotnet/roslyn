@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         internal static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
+        private readonly ICompilerServerLogger _logger;
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
         private readonly CompileOnServerFunc _compileOnServerFunc;
@@ -57,8 +58,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
+        internal BuildClient(ICompilerServerLogger logger, RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
         {
+            _logger = logger;
             _language = language;
             _compileFunc = compileFunc;
             _compileOnServerFunc = compileOnServerFunc;
@@ -93,7 +95,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
+        internal static int Run(
+            IEnumerable<string> arguments,
+            RequestLanguage language,
+            CompileFunc compileFunc,
+            CompileOnServerFunc compileOnServerFunc,
+            ICompilerServerLogger logger)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -103,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new BuildClient(language, compileFunc, compileOnServerFunc);
+            var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
             var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
@@ -153,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     Debug.Assert(serverResult.Value.RanOnServer);
                     return serverResult.Value;
                 }
+
+                _logger.Log("Server build failed, falling back to local build");
             }
 
             // It's okay, and expected, for the server compilation to fail.  In that case just fall 
@@ -235,11 +244,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return null;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogException(ex, "Server compilation failed");
                 return null;
             }
 
+            _logger.Log($"Server compilation completed: {buildResponse.Type}");
             switch (buildResponse.Type)
             {
                 case BuildResponse.ResponseType.Completed:

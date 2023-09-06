@@ -732,11 +732,29 @@ class C
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(1, expr.Errors().Length);
+            Assert.Equal(0, expr.Errors().Length);
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
             Assert.Equal(".c.d?[1]?.e()?.f", e.WhenNotNull.ToString());
+
+            var testWithStatement = @$"class C {{ void M() {{ var v = {text}; }} }}";
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,33): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 33),
+                // (1,38): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 38),
+                // (1,42): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 42),
+                // (1,47): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 47));
         }
 
         [Fact]
@@ -1347,6 +1365,468 @@ class C
             Assert.NotNull(ac.Type);
             Assert.Equal("a[1]", ac.Type.ToString());
             Assert.Null(ac.Initializer);
+        }
+
+        [Fact]
+        public void TopLevel_NewPartialArray_Incomplete()
+        {
+            UsingTree("new partial[",
+                // (1,13): error CS1003: Syntax error, ']' expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 13),
+                // (1,13): error CS1002: ; expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                [
+                """,
+                // (2,2): error CS1003: Syntax error, ']' expected
+                // [
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewScopedArray()
+        {
+            UsingTree($"""
+                new scoped[1];
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}[1
+                ];
+                """,
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // ];
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new scoped
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualKeywordObjectCreation_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                (
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1733: Expected expression
+                // (
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation()
+        {
+            UsingTree($"new scoped();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualModifierObjectCreation(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                ();
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1525: Invalid expression term ')'
+                // ();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewPartialArray()
+        {
+            UsingTree($"new partial[1];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new partial
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation()
+        {
+            UsingTree($"new partial();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -4754,10 +5234,21 @@ select t";
         [Fact]
         public void NullCoalescingAssignmentCSharp7_3()
         {
-            UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            var test = "a ??= b";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,32): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 32),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36));
+
+            UsingExpression(test, TestOptions.Regular7_3);
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -5928,9 +6419,9 @@ select t";
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5951,9 +6442,9 @@ select t";
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {

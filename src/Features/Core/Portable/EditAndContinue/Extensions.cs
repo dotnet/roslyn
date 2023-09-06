@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return false;
                 }
+
+                // Razor generated documents are added to the Workspace by the Web Tools editor but aren't used at runtime,
+                // so don't need to be considered for edit and continue.
+                if (IsRazorDesignTimeOnlyDocument(textDocumentState.FilePath))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -119,5 +126,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 LanguageNames.VisualBasic => filePath.EndsWith(".g.i.vb", StringComparison.OrdinalIgnoreCase),
                 _ => false
             };
+
+        private static bool IsRazorDesignTimeOnlyDocument(string filePath)
+            => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
+                filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
     }
 }

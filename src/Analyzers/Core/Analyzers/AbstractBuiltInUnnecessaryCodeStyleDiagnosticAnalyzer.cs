@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -96,11 +97,43 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
         }
 
+        /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style options that can be used to configure each descriptor.
+        /// </summary>
+        protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
+            : base(supportedDiagnosticsWithOptions)
+        {
+            AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Keys, fadingOption);
+        }
+
+        /// <summary>
+        /// Constructor for a code style analyzer with multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
+        /// </summary>
+        protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
+            : base(supportedDiagnosticsWithOptions)
+        {
+            AddDescriptorsToFadingOptionMapping(supportedDiagnosticsWithOptions.Keys, fadingOption);
+        }
+
         private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)
         {
             if (fadingOption != null)
             {
                 IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(diagnosticId, fadingOption);
+            }
+        }
+
+        private static void AddDescriptorsToFadingOptionMapping(IEnumerable<DiagnosticDescriptor> descriptors, PerLanguageOption2<bool>? fadingOption)
+        {
+            if (fadingOption != null)
+            {
+                foreach (var descriptor in descriptors)
+                {
+                    if (descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary))
+                    {
+                        IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(descriptor.Id, fadingOption);
+                    }
+                }
             }
         }
     }

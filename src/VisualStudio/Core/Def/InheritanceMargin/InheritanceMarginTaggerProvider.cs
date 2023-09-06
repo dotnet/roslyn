@@ -54,13 +54,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfNull(textView);
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
-            // Note: Also generate tags when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
+            // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
             // because we want to refresh the glyphs in indicator margin.
             return new CompilationAvailableTaggerEventSource(
                subjectBuffer,
@@ -68,8 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, FeatureOnOffOptions.ShowInheritanceMargin),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin),
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
@@ -103,10 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (inheritanceMarginInfoService == null)
                 return;
 
-            if (GlobalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, document.Project.Language) == false)
+            if (GlobalOptions.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, document.Project.Language) == false)
                 return;
 
-            var includeGlobalImports = GlobalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, document.Project.Language);
+            var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, document.Project.Language);
 
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
@@ -150,5 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
             }
         }
+
+        protected override bool TagEquals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
+            => tag1.Equals(tag2);
     }
 }

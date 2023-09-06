@@ -78,224 +78,250 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
         public async Task TestProtectedBase()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    protected B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    protected C(int x) : base(x)
-    {
-    }
-}
+                class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    protected C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    protected B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPublicBase()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    public B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    public B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestInternalBase()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    internal C(int x) : base(x)
-    {
-    }
-}
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPrivateBase()
         {
             await TestRefactoringMissingAsync(
-@"class {|CS1729:C|} : [||]B
-{
-}
+                """
+                class {|CS1729:C|} : [||]B
+                {
+                }
 
-class B
-{
-    private B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    private B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefOutParams()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(ref int x, out string s, params bool[] b)
-    {
-        s = null;
-    }
-}",
-@"class C : B
-{
-    internal C(ref int x, out string s, params bool[] b) : base(ref x, out s, b)
-    {
-    }
-}
+                class B
+                {
+                    internal B(ref int x, out string s, params bool[] b)
+                    {
+                        s = null;
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    internal C(ref int x, out string s, params bool[] b) : base(ref x, out s, b)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(ref int x, out string s, params bool[] b)
-    {
-        s = null;
-    }
-}");
+                class B
+                {
+                    internal B(ref int x, out string s, params bool[] b)
+                    {
+                        s = null;
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix1()
         {
             await TestCodeFixAsync(
-@"class {|CS1729:C|} : [||]B
-{
-}
+                """
+                class {|CS1729:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
-@"class C : B
-{
-    internal C(int x) : base(x)
-    {
-    }
-}
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}");
+                    public B(bool x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix2()
         {
             await TestCodeFixAsync(
-@"class {|CS1729:C|} : [||]B
-{
-}
+                """
+                class {|CS1729:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
-@"class C : B
-{
-    protected C(string x) : base(x)
-    {
-    }
-}
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    protected C(string x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
 index: 1);
         }
 
@@ -303,45 +329,49 @@ index: 1);
         public async Task TestRefactoring1()
         {
             await TestCodeFixAsync(
-@"class {|CS1729:C|} : [||]B
-{
-}
+                """
+                class {|CS1729:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(bool x) : base(x)
-    {
-    }
-}
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(bool x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
 index: 2);
         }
 
@@ -349,53 +379,57 @@ index: 2);
         public async Task TestFixAll1()
         {
             await TestCodeFixAsync(
-@"class {|CS1729:C|} : [||]B
-{
-}
+                """
+                class {|CS1729:C|} : [||]B
+                {
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(bool x) : base(x)
-    {
-    }
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(bool x) : base(x)
+                    {
+                    }
 
-    protected C(string x) : base(x)
-    {
-    }
+                    protected C(string x) : base(x)
+                    {
+                    }
 
-    internal C(int x) : base(x)
-    {
-    }
-}
+                    internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
 index: 3);
         }
 
@@ -403,56 +437,60 @@ index: 3);
         public async Task TestFixAll2()
         {
             await TestRefactoringAsync(
-@"class C : [||]B
-{
-    public {|CS1729:C|}(bool x)
-    {
-    }
-}
+                """
+                class C : [||]B
+                {
+                    public {|CS1729:C|}(bool x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
-@"class C : B
-{
-    public {|CS1729:C|}(bool x)
-    {
-    }
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public {|CS1729:C|}(bool x)
+                    {
+                    }
 
-    protected C(string x) : base(x)
-    {
-    }
+                    protected C(string x) : base(x)
+                    {
+                    }
 
-    internal C(int x) : base(x)
-    {
-    }
-}
+                    internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
 
-    protected B(string x)
-    {
-    }
+                    protected B(string x)
+                    {
+                    }
 
-    public B(bool x)
-    {
-    }
-}",
+                    public B(bool x)
+                    {
+                    }
+                }
+                """,
 index: 2);
         }
 
@@ -460,56 +498,60 @@ index: 2);
         public async Task TestFixAll_WithTuples()
         {
             await TestRefactoringAsync(
-@"class C : [||]B
-{
-    public {|CS1729:C|}((bool, bool) x)
-    {
-    }
-}
+                """
+                class C : [||]B
+                {
+                    public {|CS1729:C|}((bool, bool) x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B((int, int) x)
-    {
-    }
+                class B
+                {
+                    internal B((int, int) x)
+                    {
+                    }
 
-    protected B((string, string) x)
-    {
-    }
+                    protected B((string, string) x)
+                    {
+                    }
 
-    public B((bool, bool) x)
-    {
-    }
-}",
-@"class C : B
-{
-    public {|CS1729:C|}((bool, bool) x)
-    {
-    }
+                    public B((bool, bool) x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public {|CS1729:C|}((bool, bool) x)
+                    {
+                    }
 
-    protected C((string, string) x) : base(x)
-    {
-    }
+                    protected C((string, string) x) : base(x)
+                    {
+                    }
 
-    internal C((int, int) x) : base(x)
-    {
-    }
-}
+                    internal C((int, int) x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B((int, int) x)
-    {
-    }
+                class B
+                {
+                    internal B((int, int) x)
+                    {
+                    }
 
-    protected B((string, string) x)
-    {
-    }
+                    protected B((string, string) x)
+                    {
+                    }
 
-    public B((bool, bool) x)
-    {
-    }
-}",
+                    public B((bool, bool) x)
+                    {
+                    }
+                }
+                """,
 index: 2);
         }
 
@@ -517,125 +559,139 @@ index: 2);
         public async Task TestMissing1()
         {
             await TestRefactoringMissingAsync(
-@"class C : [||]B
-{
-    public {|CS7036:C|}(int x)
-    {
-    }
-}
+                """
+                class C : [||]B
+                {
+                    public {|CS7036:C|}(int x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestDefaultConstructorGeneration_1()
         {
             await TestRefactoringAsync(
-@"class C : [||]B
-{
-    public {|CS7036:C|}(int y)
-    {
-    }
-}
+                """
+                class C : [||]B
+                {
+                    public {|CS7036:C|}(int y)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public {|CS7036:C|}(int y)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public {|CS7036:C|}(int y)
+                    {
+                    }
 
-    internal {|CS0111:C|}(int x) : base(x)
-    {
-    }
-}
+                    internal {|CS0111:C|}(int x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestDefaultConstructorGeneration_2()
         {
             await TestRefactoringAsync(
-@"class C : [||]B
-{
-    private {|CS7036:C|}(int y)
-    {
-    }
-}
+                """
+                class C : [||]B
+                {
+                    private {|CS7036:C|}(int y)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    internal C(int x) : base(x)
-    {
-    }
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    internal C(int x) : base(x)
+                    {
+                    }
 
-    private {|CS0111:{|CS7036:C|}|}(int y)
-    {
-    }
-}
+                    private {|CS0111:{|CS7036:C|}|}(int y)
+                    {
+                    }
+                }
 
-class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
             await TestRefactoringAsync(
-@"using System;
-class Program : Excep[||]tion
-{
-}",
-@"using System;
-using System.Runtime.Serialization;
+                """
+                using System;
+                class Program : Excep[||]tion
+                {
+                }
+                """,
+                """
+                using System;
+                using System.Runtime.Serialization;
 
-class Program : Exception
-{
-    public Program()
-    {
-    }
+                class Program : Exception
+                {
+                    public Program()
+                    {
+                    }
 
-    public Program(string message) : base(message)
-    {
-    }
+                    public Program(string message) : base(message)
+                    {
+                    }
 
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-}",
+                    protected Program(SerializationInfo info, StreamingContext context) : base(info, context)
+                    {
+                    }
+                }
+                """,
 index: 4);
         }
 
@@ -643,47 +699,51 @@ index: 4);
         public async Task TestException2()
         {
             await TestRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program : [||]Exception
-{
-    public Program()
-    {
-    }
+                class Program : [||]Exception
+                {
+                    public Program()
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}",
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Runtime.Serialization;
 
-class Program : Exception
-{
-    public Program()
-    {
-    }
+                class Program : Exception
+                {
+                    public Program()
+                    {
+                    }
 
-    public Program(string message) : base(message)
-    {
-    }
+                    public Program(string message) : base(message)
+                    {
+                    }
 
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
+                    protected Program(SerializationInfo info, StreamingContext context) : base(info, context)
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}",
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
 index: 3);
         }
 
@@ -691,104 +751,112 @@ index: 3);
         public async Task TestException3()
         {
             await TestRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program : [||]Exception
-{
-    public Program(string message) : base(message)
-    {
-    }
+                class Program : [||]Exception
+                {
+                    public Program(string message) : base(message)
+                    {
+                    }
 
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
-    {
-    }
+                    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}",
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program : Exception
-{
-    public Program()
-    {
-    }
+                class Program : Exception
+                {
+                    public Program()
+                    {
+                    }
 
-    public Program(string message) : base(message)
-    {
-    }
+                    public Program(string message) : base(message)
+                    {
+                    }
 
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
-    {
-    }
+                    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}");
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException4()
         {
             await TestRefactoringAsync(
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program : [||]Exception
-{
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                class Program : [||]Exception
+                {
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
-    {
-    }
+                    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}",
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program : Exception
-{
-    public Program()
-    {
-    }
+                class Program : Exception
+                {
+                    public Program()
+                    {
+                    }
 
-    public Program(string message) : base(message)
-    {
-    }
+                    public Program(string message) : base(message)
+                    {
+                    }
 
-    public Program(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+                    public Program(string message, Exception innerException) : base(message, innerException)
+                    {
+                    }
 
-    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
-    {
-    }
+                    protected Program(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
+                    {
+                    }
 
-    static void Main(string[] args)
-    {
-    }
-}",
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
 index: 2);
         }
 
@@ -796,640 +864,722 @@ index: 2);
         public async Task Tuple()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    public B((int, string) x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C((int, string) x) : base(x)
-    {
-    }
-}
+                class B
+                {
+                    public B((int, string) x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C((int, string) x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    public B((int, string) x)
-    {
-    }
-}");
+                class B
+                {
+                    public B((int, string) x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-class B
-{
-    public B((int a, string b) x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C((int a, string b) x) : base(x)
-    {
-    }
-}
+                class B
+                {
+                    public B((int a, string b) x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C((int a, string b) x) : base(x)
+                    {
+                    }
+                }
 
-class B
-{
-    public B((int a, string b) x)
-    {
-    }
-}");
+                class B
+                {
+                    public B((int a, string b) x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
         public async Task TestGenerateFromDerivedClass()
         {
             await TestCodeFixAsync(
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
+                """
+                class Base
+                {
+                    public Base(string value)
+                    {
+                    }
+                }
 
-class [||]{|CS7036:Derived|} : Base
-{
-}",
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
+                class [||]{|CS7036:Derived|} : Base
+                {
+                }
+                """,
+                """
+                class Base
+                {
+                    public Base(string value)
+                    {
+                    }
+                }
 
-class Derived : Base
-{
-    public Derived(string value) : base(value)
-    {
-    }
-}");
+                class Derived : Base
+                {
+                    public Derived(string value) : base(value)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [WorkItem("https://github.com/dotnet/Roslyn/issues/6541")]
         public async Task TestGenerateFromDerivedClass2()
         {
             await TestCodeFixAsync(
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
+                """
+                class Base
+                {
+                    public Base(int a, string value = null)
+                    {
+                    }
+                }
 
-class [||]{|CS7036:Derived|} : Base
-{
-}",
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
+                class [||]{|CS7036:Derived|} : Base
+                {
+                }
+                """,
+                """
+                class Base
+                {
+                    public Base(int a, string value = null)
+                    {
+                    }
+                }
 
-class Derived : Base
-{
-    public Derived(int a, string value = null) : base(a, value)
-    {
-    }
-}");
+                class Derived : Base
+                {
+                    public Derived(int a, string value = null) : base(a, value)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19953")]
         public async Task TestNotOnEnum()
         {
             await TestRefactoringMissingAsync(
-@"enum [||]E
-{
-}");
+                """
+                enum [||]E
+                {
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedConstructor()
         {
             await TestCodeFixAsync(
-@"abstract class {|CS7036:C|} : [||]B
-{
-}
+                """
+                abstract class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}",
-@"abstract class C : B
-{
-    protected C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                abstract class C : B
+                {
+                    protected C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedConstructor2()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
         public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
         {
             await TestRefactoringOnlyAsync(
-@"class {|CS7036:C|} : B
-{
+                """
+                class {|CS7036:C|} : B
+                {
 
-[||]
+                [||]
 
-}
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48318")]
         public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
         {
             await TestRefactoringOnlyAsync(
-@"class {|CS7036:C|} : B
-{
-    int X;
-[||]
-    int Y;
-}
+                """
+                class {|CS7036:C|} : B
+                {
+                    int X;
+                [||]
+                    int Y;
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    int X;
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    int X;
 
-    int Y;
+                    int Y;
 
-    public C(int x) : base(x)
-    {
-    }
-}
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35208")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
         {
             await TestCodeFixAsync(
-@"abstract class {|CS7036:C|} : [||]B
-{
-}
+                """
+                abstract class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    public B(int x)
-    {
-    }
-}",
-@"abstract class C : B
-{
-    protected C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                abstract class C : B
+                {
+                    protected C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    public B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPublicConstructor2()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    public B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    public B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromInternalConstructor()
         {
             await TestCodeFixAsync(
-@"abstract class {|CS7036:C|} : [||]B
-{
-}
+                """
+                abstract class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    internal B(int x)
-    {
-    }
-}",
-@"abstract class C : B
-{
-    internal C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                abstract class C : B
+                {
+                    internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromInternalConstructor2()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    internal B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    internal B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor()
         {
             await TestCodeFixAsync(
-@"abstract class {|CS7036:C|} : [||]B
-{
-}
+                """
+                abstract class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    protected internal B(int x)
-    {
-    }
-}",
-@"abstract class C : B
-{
-    protected internal C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    protected internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                abstract class C : B
+                {
+                    protected internal C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected internal B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    protected internal B(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    protected internal B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    protected internal B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    protected internal B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
         {
             await TestCodeFixAsync(
-@"abstract class {|CS7036:C|} : [||]B
-{
-}
+                """
+                abstract class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    private protected B(int x)
-    {
-    }
-}",
-@"abstract class C : B
-{
-    private protected C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    private protected B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                abstract class C : B
+                {
+                    private protected C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    private protected B(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    private protected B(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25238")]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
         {
             await TestCodeFixAsync(
-@"class {|CS7036:C|} : [||]B
-{
-}
+                """
+                class {|CS7036:C|} : [||]B
+                {
+                }
 
-abstract class B
-{
-    private protected internal {|CS0107:B|}(int x)
-    {
-    }
-}",
-@"class C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                abstract class B
+                {
+                    private protected internal {|CS0107:B|}(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                class C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-abstract class B
-{
-    private protected internal {|CS0107:B|}(int x)
-    {
-    }
-}");
+                abstract class B
+                {
+                    private protected internal {|CS0107:B|}(int x)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
         {
             await TestRefactoringAsync(
-@"class Base
-{
-    protected Base()
-    {
-    }
-}
+                """
+                class Base
+                {
+                    protected Base()
+                    {
+                    }
+                }
 
-sealed class Program : [||]Base
-{
-}",
-@"class Base
-{
-    protected Base()
-    {
-    }
-}
+                sealed class Program : [||]Base
+                {
+                }
+                """,
+                """
+                class Base
+                {
+                    protected Base()
+                    {
+                    }
+                }
 
-sealed class Program : Base
-{
-    public Program()
-    {
-    }
-}");
+                sealed class Program : Base
+                {
+                    public Program()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
         {
             await TestRefactoringAsync(
-@"class Base
-{
-    protected internal Base()
-    {
-    }
-}
+                """
+                class Base
+                {
+                    protected internal Base()
+                    {
+                    }
+                }
 
-sealed class Program : [||]Base
-{
-}",
-@"class Base
-{
-    protected internal Base()
-    {
-    }
-}
+                sealed class Program : [||]Base
+                {
+                }
+                """,
+                """
+                class Base
+                {
+                    protected internal Base()
+                    {
+                    }
+                }
 
-sealed class Program : Base
-{
-    internal Program()
-    {
-    }
-}");
+                sealed class Program : Base
+                {
+                    internal Program()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/40586")]
         public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
         {
             await TestRefactoringAsync(
-@"class Base
-{
-    private protected Base()
-    {
-    }
-}
+                """
+                class Base
+                {
+                    private protected Base()
+                    {
+                    }
+                }
 
-sealed class Program : [||]Base
-{
-}",
-@"class Base
-{
-    private protected Base()
-    {
-    }
-}
+                sealed class Program : [||]Base
+                {
+                }
+                """,
+                """
+                class Base
+                {
+                    private protected Base()
+                    {
+                    }
+                }
 
-sealed class Program : Base
-{
-    internal Program()
-    {
-    }
-}");
+                sealed class Program : Base
+                {
+                    internal Program()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRecord()
         {
             await TestCodeFixAsync(
-@"record {|CS1729:C|} : [||]B
-{
-}
+                """
+                record {|CS1729:C|} : [||]B
+                {
+                }
 
-record B
-{
-    public B(int x)
-    {
-    }
-}",
-@"record C : B
-{
-    public C(int x) : base(x)
-    {
-    }
-}
+                record B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """,
+                """
+                record C : B
+                {
+                    public C(int x) : base(x)
+                    {
+                    }
+                }
 
-record B
-{
-    public B(int x)
-    {
-    }
-}", index: 1);
+                record B
+                {
+                    public B(int x)
+                    {
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
         public async Task TestStructWithFieldInitializer()
         {
-            var source = @"
-struct [||]{|CS8983:S|}
-{
-    object X = 1;
-}
-";
-            var fixedSource = @"
-struct S
-{
-    object X = 1;
+            var source = """
+                struct [||]{|CS8983:S|}
+                {
+                    object X = 1;
+                }
+                """;
+            var fixedSource = """
+                struct S
+                {
+                    object X = 1;
 
-    public S()
-    {
-    }
-}
-";
+                    public S()
+                    {
+                    }
+                }
+                """;
 
             await new VerifyCodeFix.Test
             {
@@ -1442,15 +1592,15 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58593")]
         public async Task TestMissingInStructWithoutFieldInitializer()
         {
-            var source = @"
-struct [||]S
-{
-    object X;
-}
-";
+            var source = """
+                struct [||]S
+                {
+                    object X;
+                }
+                """;
 
             await TestCodeFixMissingAsync(source);
             await TestRefactoringMissingAsync(source);

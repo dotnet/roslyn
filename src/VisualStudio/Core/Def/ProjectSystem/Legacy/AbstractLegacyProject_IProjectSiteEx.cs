@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Roslyn.Utilities;
 
@@ -14,10 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 {
     internal abstract partial class AbstractLegacyProject : IProjectSiteEx
     {
-        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new();
+        private readonly Stack<ProjectSystemProject.BatchScope> _batchScopes = new();
 
         public void StartBatch()
-            => _batchScopes.Push(VisualStudioProject.CreateBatchScope());
+            => _batchScopes.Push(ProjectSystemProject.CreateBatchScope());
 
         public void EndBatch()
         {

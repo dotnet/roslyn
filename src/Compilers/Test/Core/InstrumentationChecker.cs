@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Runtime
 
         public static void FlushPayload()
         {
-            Console.WriteLine(""Flushing"");
+            System.Console.WriteLine(""Flushing"");
             if (_payloads == null)
             {
                 return;
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.Runtime
                 bool[] payload = _payloads[i];
                 if (payload != null)
                 {
-                    Console.WriteLine(""Method "" + i.ToString());
+                    System.Console.WriteLine(""Method "" + i.ToString());
                     for (int j = 0; j < _fileIndices[i].Length; j++)
                     {
-                        Console.WriteLine(""File "" + _fileIndices[i][j].ToString());
+                        System.Console.WriteLine(""File "" + _fileIndices[i][j].ToString());
                     }
                     for (int j = 0; j < payload.Length; j++)
                     {
-                        Console.WriteLine(payload[j]);
+                        System.Console.WriteLine(payload[j]);
                         payload[j] = false;
                     }
                 }

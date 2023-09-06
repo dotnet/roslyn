@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 customTags: ImmutableArray.Create("Test3"),
                 properties: ImmutableDictionary<string, string?>.Empty,
                 document.Project.Id,
-                new DiagnosticDataLocation(new(sourcePath, new(0, 1), new(0, 5)), document.Id, mappedFileSpan: null),
+                new DiagnosticDataLocation(new(sourcePath, new(0, 1), new(0, 5)), document.Id),
                 language: "C#",
                 title: "title",
                 description: "description",

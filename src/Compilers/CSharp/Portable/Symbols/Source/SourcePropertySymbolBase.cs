@@ -355,19 +355,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType != null)
-                {
-
-                    var hasPointerType = _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
-                    Debug.Assert(hasPointerType == HasPointerTypeSyntactically);
-                    return hasPointerType;
-                }
-
-                return HasPointerTypeSyntactically;
+                return TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
             }
         }
-
-        protected abstract bool HasPointerTypeSyntactically { get; }
 
         /// <remarks>
         /// To facilitate lookup, all indexer symbols have the same name.
@@ -1321,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

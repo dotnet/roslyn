@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -136,7 +137,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

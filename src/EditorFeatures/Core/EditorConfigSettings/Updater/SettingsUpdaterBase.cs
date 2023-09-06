@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public async Task<SourceText?> GetChangedEditorConfigAsync(AnalyzerConfigDocument analyzerConfigDocument, CancellationToken token)
+        public async Task<SourceText?> GetChangedEditorConfigAsync(AnalyzerConfigDocument? analyzerConfigDocument, CancellationToken token)
         {
             if (analyzerConfigDocument is null)
                 return null;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 return null;
             }
 
-            var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
+            var originalText = await analyzerConfigDocument!.GetTextAsync(token).ConfigureAwait(false);
             return newText.GetTextChanges(originalText);
         }
 

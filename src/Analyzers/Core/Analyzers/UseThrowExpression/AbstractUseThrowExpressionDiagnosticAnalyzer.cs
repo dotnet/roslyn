@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
                 throwOperation.Exception.Syntax.GetLocation(),
-                assignmentExpression.Value.Syntax.GetLocation());
+                assignmentExpression.Value.Syntax.GetLocation(),
+                expressionStatement.Syntax.GetLocation());
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));

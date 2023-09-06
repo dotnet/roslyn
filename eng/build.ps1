@@ -33,9 +33,9 @@ param (
   # Options
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
+  [string]$bootstrapToolset = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
-  [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -81,7 +81,6 @@ function Print-Usage() {
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -174,9 +173,6 @@ function Process-Arguments() {
 
   if ($ci) {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
   }
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
@@ -209,6 +205,10 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
+  if ($sourceBuild) {
+    $script:msbuildEngine = "dotnet"
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
@@ -231,10 +231,7 @@ function BuildSolution() {
       Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
       throw "Overwriting binary log files"
     }
-  }
 
-  if ($buildServerLog) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -258,11 +255,11 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+ # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -296,7 +293,6 @@ function BuildSolution() {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
   }
 }
-
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
@@ -392,7 +388,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -405,7 +401,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0"
+    $args += " --tfm net6.0 --tfm net7.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -491,6 +487,14 @@ function TestUsingRunTests() {
         Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
       } else {
         Write-Host "No ServiceHub logs found to copy"
+      }
+
+      $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
+      if (Test-Path $projectFaultLogs) {
+        Write-Host "Copying VsProjectFault logs to $LogDir"
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
+      } else {
+        Write-Host "No VsProjectFault logs found to copy"
       }
 
       if ($lspEditor) {
@@ -742,8 +746,7 @@ try {
   try
   {
     if ($bootstrap) {
-      $force32 = $testArch -eq "x86"
-      $bootstrapDir = Make-BootstrapBuild -force32:$force32
+      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
     }
   }
   catch

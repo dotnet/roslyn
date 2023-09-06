@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
+        internal static string MakePrimaryConstructorParameterFieldName(string parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+            return "<" + parameterName + ">P";
+        }
+
         internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
             Debug.Assert((int)finalizeState < -2);
@@ -319,6 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
+        internal static string MakeStateMachineStateIdFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.StateMachineStateIdField == 'I');
+            return "<>I";
+        }
+
         internal static string ThisProxyFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.ThisProxyField == '4');
@@ -494,6 +506,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string AnonymousDelegateParameterName(int index, int parameterCount)
+        {
+            // SPEC: parameter names arg1, ..., argn or arg if a single parameter
+            if (parameterCount == 1)
+            {
+                return "arg";
+            }
+            return "arg" + StringExtensions.GetNumeral(index + 1);
         }
 
         internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)

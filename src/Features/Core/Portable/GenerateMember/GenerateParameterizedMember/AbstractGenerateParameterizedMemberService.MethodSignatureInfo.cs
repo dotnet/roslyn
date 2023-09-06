@@ -15,14 +15,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected class MethodSignatureInfo : SignatureInfo
         {
             private readonly IMethodSymbol _methodSymbol;
+            private readonly ImmutableArray<string> _parameterNames;
 
             public MethodSignatureInfo(
                 SemanticDocument document,
                 State state,
-                IMethodSymbol methodSymbol)
+                IMethodSymbol methodSymbol,
+                ImmutableArray<string> parameterNames = default)
                 : base(document, state)
             {
                 _methodSymbol = methodSymbol;
+                _parameterNames = parameterNames;
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
@@ -44,7 +47,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 => _methodSymbol.Parameters.SelectAsArray(p => p.Type);
 
             protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
-                => _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true));
+                => _parameterNames.IsDefault
+                    ? _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true))
+                    : _parameterNames.SelectAsArray(p => new ParameterName(p, isFixed: true));
 
             protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
                 => ImmutableArray<ITypeSymbol>.Empty;

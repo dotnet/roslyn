@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
             internal readonly bool includeDiagnosticsOutsideSelection;
+            internal readonly bool includeNonLocalDocumentDiagnostics;
             internal readonly string title;
 
             internal TestParameters(
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
                 TestHost testHost = TestHost.InProcess,
-                string workspaceKind = null)
+                string workspaceKind = null,
+                bool includeNonLocalDocumentDiagnostics = false)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -90,36 +92,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.title = title;
                 this.testHost = testHost;
                 this.workspaceKind = workspaceKind;
+                this.includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
             }
 
             public static readonly TestParameters Default = new(parseOptions: null);
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             internal TestParameters WithOptions(OptionsCollection options)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             internal TestParameters WithGlobalOptions(OptionsCollection globalOptions)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithIndex(int index)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
 
             public TestParameters WithWorkspaceKind(string workspaceKind)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
+
+            public TestParameters WithIncludeNonLocalDocumentDiagnostics(bool includeNonLocalDocumentDiagnostics)
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics);
         }
 
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
@@ -596,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (TestWorkspace.IsWorkspaceElement(expectedText))
             {
                 var newSolutionWithLinkedFiles = await newSolution.WithMergedLinkedFileChangesAsync(oldSolution);
-                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.ExportProvider);
+                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolutionWithLinkedFiles, workspace.Composition);
                 return Tuple.Create(oldSolution, newSolution);
             }
 
@@ -661,9 +667,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, ExportProvider exportProvider)
+        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, TestComposition composition)
         {
-            using (var expectedWorkspace = TestWorkspace.Create(expectedText, exportProvider: exportProvider))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
@@ -756,7 +762,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(parameters.title, action.Title);
             }
 
-            return await action.GetOperationsAsync(CancellationToken.None);
+            return await action.GetOperationsAsync(
+                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
         }
 
         protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(

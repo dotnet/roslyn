@@ -250,78 +250,40 @@ record struct Point(int x, int y);
 
             var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS1514: { expected
+                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
+                // (2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS8805: Program using top-level statements must be an executable.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 13),
-                // (2,14): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 14),
-                // (2,14): error CS0165: Use of unassigned local variable 'x'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 14),
-                // (2,21): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 21),
-                // (2,21): error CS0165: Use of unassigned local variable 'y'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                // record struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS1514: { expected
+                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
+                // (2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS8805: Program using top-level statements must be an executable.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 13),
-                // (2,13): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 13),
-                // (2,14): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 14),
-                // (2,14): error CS0165: Use of unassigned local variable 'x'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 14),
-                // (2,21): error CS8185: A declaration is not allowed in this context.
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 21),
-                // (2,21): error CS0165: Use of unassigned local variable 'y'
-                // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
@@ -360,55 +322,43 @@ namespace NS
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,17): error CS1514: { expected
+                // (4,17): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 17),
-                // (4,17): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 17),
+                // (4,22): warning CS9113: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 17),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS9113: Parameter 'y' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 29)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //     record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                //     record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                // (4,17): error CS1514: { expected
+                // (4,22): warning CS9113: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 17),
-                // (4,17): error CS1513: } expected
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS9113: Parameter 'y' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 17),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31),
-                // (4,31): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 29)
                 );
 
             comp = CreateCompilation(src2);
@@ -1025,7 +975,7 @@ record struct S2
                 // (3,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(3, 5),
-                // (3,5): error CS8938: The parameterless struct constructor must be 'public'.
+                // (3,5): error CS8958: The parameterless struct constructor must be 'public'.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
                 // (5,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
@@ -1034,7 +984,7 @@ record struct S2
                 // (7,14): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 14),
-                // (7,14): error CS8938: The parameterless struct constructor must be 'public'.
+                // (7,14): error CS8958: The parameterless struct constructor must be 'public'.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
 
@@ -1080,10 +1030,10 @@ record struct S6(object o)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (13,5): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     S3(object o) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(13, 5),
-                // (21,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (21,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S5() { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S5").WithLocation(21, 12)
                 );
@@ -1328,13 +1278,13 @@ partial record struct S3();
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (3,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S(int i);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(3, 24),
-                // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
-                // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (9,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S3();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );
@@ -1914,7 +1864,7 @@ record struct C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -2668,9 +2618,9 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,20): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
                 //     static int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 20)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2680,9 +2630,9 @@ record struct C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
@@ -2699,9 +2649,12 @@ record struct C(int X)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                // (4,19): error CS9105: Cannot use primary constructor parameter 'int X' in this context.
                 //     const int Z = X + 1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "X").WithArguments("int X").WithLocation(4, 19),
+                // (4,19): error CS0133: The expression being assigned to 'C.Z' must be constant
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "X + 1").WithArguments("C.Z").WithLocation(4, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -2711,9 +2664,9 @@ record struct C(int X)
             Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
 
             var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Property, symbol!.Kind);
-            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
-            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
@@ -3250,7 +3203,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedPrimaryConstructor>().Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -5377,21 +5330,24 @@ record struct C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""int C1.field""
-  IL_0013:  constrained. ""int""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_000e:  ldfld      ""int C1.field""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""int""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
         }
@@ -6530,7 +6486,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -10589,8 +10545,7 @@ record struct A(int X)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(8, 8),
                 // (8,17): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
@@ -10855,13 +10810,13 @@ record class Boxed(string Text)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(int X) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(4, 13),
-                // (5,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(Value original) { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(5, 13),
-                // (10,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (10,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Boxed(int X) { } // 3
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Boxed").WithLocation(10, 13),
                 // (11,13): error CS8878: A copy constructor 'Boxed.Boxed(Boxed)' must be public or protected because the record is not sealed.
@@ -10955,13 +10910,13 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(7, 12),
-                // (11,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(11, 12),
-                // (15,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (15,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S4(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S4").WithLocation(15, 12));
         }
@@ -11048,10 +11003,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (3,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
-                // (7,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (7,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
         }
@@ -11073,10 +11028,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
-                // (9,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (9,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
         }
@@ -11189,7 +11144,7 @@ S4 { A = a, B = b }
                 // (4,12): error CS2111: Type 'S2' already defines a member called 'S2' with the same parameter types
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(4, 12));
         }
@@ -11218,13 +11173,13 @@ record struct S3(char A)
                 // (7,12): error CS0522: 'S2': structs cannot call base class constructors
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S2").WithArguments("S2").WithLocation(7, 12),
-                // (7,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(7, 27),
                 // (11,12): error CS0522: 'S3': structs cannot call base class constructors
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S3").WithArguments("S3").WithLocation(11, 12),
-                // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
         }
@@ -11247,7 +11202,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
 
@@ -11256,7 +11211,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
         }

@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -126,8 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             if (name == "CSharp-Specific")
             {
-                var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                return new Options.AutomationObject(workspace);
+                return new Options.AutomationObject(ComponentModel.GetService<ILegacyGlobalOptionService>());
             }
 
             return base.GetAutomationObject(name);

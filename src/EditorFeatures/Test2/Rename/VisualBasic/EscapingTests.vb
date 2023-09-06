@@ -185,7 +185,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <CombinatorialData>
         Public Sub EscapeWhenRenamingPropertyToMid(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -210,7 +210,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <CombinatorialData>
         Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -235,7 +235,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <CombinatorialData>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -261,7 +261,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <CombinatorialData>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -311,7 +311,7 @@ End Module
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeRemKeywordWhenDoingTypeNameQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -337,7 +337,7 @@ End Module
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeNewKeywordWhenDoingTypeNameQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -363,7 +363,7 @@ End Module
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeRemKeywordWhenDoingMeQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -389,7 +389,7 @@ End Class
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub DoNotEscapeIfKeywordWhenDoingMeQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -413,7 +413,7 @@ End Class
             End Using
         End Sub
 
-        <Theory, WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <CombinatorialData>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -434,7 +434,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <CombinatorialData>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -456,7 +456,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
         <CombinatorialData>
         Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -476,7 +476,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(529932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
         <CombinatorialData>
         Public Sub EscapeContextualKeywordsInQuery1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -514,7 +514,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(530805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
         <CombinatorialData>
         Public Sub EscapeMidIfNeeded(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -536,7 +536,7 @@ End Module
             End Using
         End Sub
 
-        <Theory, WorkItem(607067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
         <CombinatorialData>
         Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

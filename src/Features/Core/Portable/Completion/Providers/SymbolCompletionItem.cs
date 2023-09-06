@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayTextPrefix: displayTextPrefix,
                 inlineDescription: inlineDescription,
                 rules: rules,
-                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
+                filterText: filterText ?? (displayText is ['@', ..] ? displayText : firstSymbol.Name),
                 sortText: sortText ?? firstSymbol.Name,
                 glyph: glyph ?? firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,

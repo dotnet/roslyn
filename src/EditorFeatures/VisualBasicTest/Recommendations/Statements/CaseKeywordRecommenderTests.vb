@@ -61,7 +61,7 @@ Case
 End Select</MethodBody>, "Case Else")
         End Sub
 
-        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         Public Sub NoCaseInSelectBlockIfAfterCaseElseTest()
             VerifyRecommendationsMissing(<MethodBody>
 Select Case goo
@@ -71,7 +71,7 @@ Select Case goo
 End Select</MethodBody>, "Case")
         End Sub
 
-        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         Public Sub CaseInSelectBlockBeforeCaseElseTest()
             VerifyRecommendationsContain(<MethodBody>
 Select Case goo

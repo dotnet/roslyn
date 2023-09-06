@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
-            if (!PathUtilities.IsUnixLikePlatform && directoryPath.Length == 1 && directoryPath[0] == '\\')
+            if (!PathUtilities.IsUnixLikePlatform && directoryPath == "\\")
             {
                 // The user has typed only "\".  In this case, we want to add "\\" to the list.  
                 return ImmutableArray.Create(CreateNetworkRoot());

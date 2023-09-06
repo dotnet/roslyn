@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 Position = 0;
             }
 
-            public bool IsDone => Position >= _headerText.Length;
+            public readonly bool IsDone => Position >= _headerText.Length;
 
             public TokenKind Lex()
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 return tokenKind;
             }
 
-            public bool TryPeekNext(out TokenKind kind)
+            public readonly bool TryPeekNext(out TokenKind kind)
             {
                 var position = Position;
                 position++;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 return false;
             }
 
-            public bool TryPeekPrevious(out TokenKind kind)
+            public readonly bool TryPeekPrevious(out TokenKind kind)
             {
                 var position = Position;
                 position--;
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 }
             }
 
-            public char CurrentCharacter => _headerText[Position];
+            public readonly char CurrentCharacter => _headerText[Position];
 
             public char EatCurrentCharacter() => _headerText[Position++];
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 }
             }
 
-            public char this[int position] => _headerText[position];
+            public readonly char this[int position] => _headerText[position];
 
             public string? TryLexNumber()
             {

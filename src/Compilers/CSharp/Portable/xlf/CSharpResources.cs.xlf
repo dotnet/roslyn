@@ -57,9 +57,29 @@
         <target state="translated">Operátor {0} nejde použít pro default a operand typu {1}, protože se jedná o parametr typu, který není znám jako odkazový typ.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="translated">Identifikátor {0} je v tomto kontextu nejednoznačný mezi typem {1} a parametrem {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">K vytvoření objektu nejde použít typ odkazu s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnonDelegateCantUseRefLike">
+        <source>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</source>
+        <target state="translated">Parametr {0}, který má typ podobný odkazu, nejde použít uvnitř anonymní metody, výrazu lambda, výrazu dotazu nebo místní funkce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured">
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</source>
+        <target state="translated">Anonymní metody, výrazy lambda, výrazy dotazů a místní funkce uvnitř struktury nemají přístup k parametru primárního konstruktoru, který se používá také uvnitř členu instance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember">
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</source>
+        <target state="translated">Anonymní metody, výrazy lambda, výrazy dotazů a místní funkce uvnitř členu instance struktury nemají přístup k parametru primárního konstruktoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNameInITuplePattern">
@@ -70,6 +90,16 @@
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
         <target state="translated">Ve výrazu as se nepovoluje použití typu odkazu s možnou hodnotou null {0}?; místo toho použijte základní typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
+        <target state="translated">Parametr primárního konstruktoru typu jen pro čtení nejde přiřadit (s výjimkou nastavovacího kódu typu jenom pro inicializaci nebo inicializátoru proměnné).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
+        <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
+        <target state="translated">Členy parametru primárního konstruktoru {0} typu jen pro čtení nejde změnit (s výjimkou nastavovacího kódu typu jenom pro inicializaci nebo inicializátoru proměnné).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
@@ -162,6 +192,11 @@
         <target state="translated">CallerArgumentExpressionAttribute jde použít jenom pro parametry s výchozími hodnotami.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCaseInSwitchArm">
+        <source>A switch expression arm does not begin with a 'case' keyword.</source>
+        <target state="translated">Arm výrazu přepínače nezačíná klíčovým slovem case.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">V asynchronním příkazu foreach nejde použít kolekce dynamického typu.</target>
@@ -197,6 +232,11 @@
         <target state="translated">Neplatná možnost {0} pro /nullable. Je třeba použít disable, enable, warnings nebo annotations.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
+        <source>Using alias cannot be a nullable reference type.</source>
+        <target state="translated">Použití aliasu nemůže být odkazový typ s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
         <target state="translated">Operátor typeof nejde použít na typ odkazů s možnou hodnotou null.</target>
@@ -222,9 +262,29 @@
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="translated">Prostředek použitého příkazu typu {0} nejde použít v asynchronních metodách ani v asynchronních výrazech lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadRefInUsingAlias">
+        <source>Using alias cannot be a 'ref' type.</source>
+        <target state="translated">Použitý alias nemůže být typu ref.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadStaticAfterUnsafe">
+        <source>'static' modifier must precede 'unsafe' modifier.</source>
+        <target state="translated">Modifikátor „static“ musí předcházet modifikátoru „unsafe“.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadUnsafeInUsingDirective">
+        <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
+        <target state="translated">Pouze „using static“ nebo „using alias“ může být „nebezpečný“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -347,6 +407,11 @@
         <target state="translated">Výraz typu {0} nelze zpracovat vzorem typu {1}. Použijte prosím verzi jazyka {2} nebo vyšší, aby odpovídala otevřenému typu se vzorem konstanty.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantValueOfTypeExpected">
+        <source>A constant value of type '{0}' is expected</source>
+        <target state="translated">Očekává se konstantní hodnota typu „{0}“.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
         <target state="translated">Kopírovací konstruktor v záznamu musí volat kopírovací konstruktor základní třídy, případně konstruktor objektu bez parametrů, pokud záznam dědí z objektu.</target>
@@ -360,6 +425,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Název {0} neodpovídá příslušnému parametru Deconstruct {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">Dekonstrukční proměnná nemůže být deklarovaná jako místní odkaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -658,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="translated">Použití typu ukazatele funkce v tomto kontextu není podporováno.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -745,6 +815,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Volání implicitního indexeru rozsahů nemůže pojmenovat argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">Implicitně zadaný parametr lambda {0} nemůže mít výchozí hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -850,6 +925,11 @@
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">Vytvoření neplatného objektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPrimaryConstructorParameterReference">
+        <source>Cannot use primary constructor parameter '{0}' in this context.</source>
+        <target state="translated">V tomto kontextu nejde použít parametr primárního konstruktoru {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
@@ -1003,8 +1083,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
-        <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Seznam parametrů může mít jenom částečná deklarace jednoho záznamu.</target>
+        <source>Only a single partial type declaration may have a parameter list</source>
+        <target state="translated">Seznam parametrů může obsahovat pouze jedna deklarace částečného typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1278,8 +1358,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
-        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Konstruktor deklarovaný v „record struct“ se seznamem parametrů musí mít inicializátor „this“, který volá primární konstruktor nebo explicitně deklarovaný konstruktor.</target>
+        <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="translated">Konstruktor deklarovaný ve „struct“ se seznamem parametrů musí mít inicializátor „this“, který volá primární konstruktor nebo explicitně deklarovaný konstruktor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1290,6 +1370,11 @@
       <trans-unit id="ERR_RefAssignReturnOnly">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
         <target state="translated">Není možné znovu přiřadit {1} k {0}, protože {1} může opustit aktuální metodu pouze prostřednictvím příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Tento odkaz přiřazuje {1} k {0}, protože {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1307,6 +1392,16 @@
         <target state="translated">Levá strana přiřazení odkazu musí být parametr Ref.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
+        <target state="translated">Parametr primárního konstruktoru typu jen pro čtení nejde použít jako hodnotu odkazu nebo výstupu (s výjimkou nastavovacího kódu typu jenom pro inicializaci nebo inicializátoru proměnné).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter2">
+        <source>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
+        <target state="translated">Členy parametru primárního konstruktoru {0} typu jen pro čtení nejde použít jako hodnotu odkazu nebo výstupu (s výjimkou nastavovacího kódu typu jenom pro inicializaci nebo inicializátoru proměnné).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
         <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
         <target state="translated">Člen parametru {0} není možné vrátit podle odkazu prostřednictvím parametru odkazu; je ho možné vrátit pouze v příkazu return</target>
@@ -1315,6 +1410,21 @@
       <trans-unit id="ERR_RefReturnOnlyParameter2">
         <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
         <target state="translated">Člen parametru {0} není možné vrátit podle odkazu prostřednictvím parametru odkazu; je ho možné vrátit pouze v příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
+        <source>Cannot return primary constructor parameter '{0}' by reference.</source>
+        <target state="translated">Parametr primárního konstruktoru {0} nejde vrátit pomocí odkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
+        <target state="translated">Parametr primárního konstruktoru typu jen pro čtení nejde vrátit zapisovatelným odkazem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter2">
+        <source>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</source>
+        <target state="translated">Členy parametru primárního konstruktoru {0} typu jen pro čtení nejde vrátit zapisovatelným odkazem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
@@ -1410,6 +1520,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Cílový modul runtime nepodporuje rozšiřitelné konvence volání ani konvence volání výchozí pro prostředí modulu runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">Modifikátor scoped nejde použít s proměnnou typu discard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1527,6 +1642,11 @@
         <target state="translated">Položka „struct“ s inicializátory pole musí obsahovat explicitně deklarovaný konstruktor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
+        <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
+        <target state="translated">Parametr primárního konstruktoru struktury {0} typu{1} způsobuje cyklus v rozložení struktury.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Vzor není dostupný. Už se zpracoval v jiné části výrazu switch nebo není možné pro něj najít shodu.</target>
@@ -1607,6 +1727,11 @@
         <target state="translated">Před vrácením řízení volajícímu se musí plně přiřadit pole {0}. Zvažte aktualizaci jazykové verze {1} na automatické výchozí nastavení pole.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedParameterList">
+        <source>Unexpected parameter list.</source>
+        <target state="translated">Neočekávaný seznam parametrů.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se volat napřímo. Pro tuto metodu získejte ukazatel na funkci.</target>
@@ -1617,9 +1742,24 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="translated">{0} se definuje v modulu s nerozpoznanou verzí RefSafetyRulesAttribute, očekává se hodnota 11.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">UnscopedRefAttribute nelze použít na implementaci rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">Atribut UnscopedRefAttribute lze použít pouze pro metody a vlastnosti instance struktury a nelze ho použít u konstruktorů nebo členů init-only.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">U této položky není možné použít atribut UnscopedRefAttribute, protože ve výchozím nastavení není nastaven obor.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">U tohoto parametru není možné použít atribut UnscopedRefAttribute, protože ve výchozím nastavení není nastaven obor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1630,6 +1770,16 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru C# nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
+        <source>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</source>
+        <target state="translated">Uvnitř členu instance nejde použít parametr primárního konstruktoru {0} typu odkaz, výstup nebo vstup.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
+        <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
+        <target state="translated">Nejde použít parametr primárního konstruktoru {0}, který má uvnitř členu instance typ podobný odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
@@ -1757,6 +1907,16 @@
         <target state="translated">atributy lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">volitelné parametry lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">pole parametrů lambda</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">návratový typ lambda</target>
@@ -1780,6 +1940,11 @@
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">pozice polí v záznamech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePrimaryConstructors">
+        <source>primary constructors</source>
+        <target state="translated">primární konstruktory</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
@@ -1827,6 +1992,11 @@
         <target state="translated">Řetězcové literály UTF-8</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUsingTypeAlias">
+        <source>using type alias</source>
+        <target state="translated">pomocí aliasu typu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">s anonymními typy</target>
@@ -1847,9 +2017,24 @@
         <target state="translated">vzor odpovídající ReadOnly/Span&lt;char&gt; na konstantním řetězci</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">přístup k elementu ukazatele</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync">
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="translated">Operátor „&amp;“ by se neměl používat u parametrů nebo místních proměnných v asynchronních metodách.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync_Title">
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="translated">Operátor „&amp;“ by se neměl používat u parametrů nebo místních proměnných v asynchronních metodách.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1950,6 +2135,16 @@
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</source>
         <target state="translated">Agument CallerArgumentExpressionAttribute nebude mít žádný účinek. Přepisuje ho atribut CallerMemberNameAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
+        <target state="translated">Parametr {0} se zachytil do stavu nadřazeného typu a jeho hodnota se také předala základnímu konstruktoru. Hodnotu může zachytit i základní třída.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
+        <target state="translated">Parametr se zachytil do stavu nadřazeného typu a jeho hodnota se také předala základnímu konstruktoru. Hodnotu může zachytit i základní třída.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2082,6 +2277,16 @@
         <target state="translated">Členy s atributem ObsoleteAttribute by se neměly vyžadovat, pokud není nadřazený typ zastaralý nebo nejsou všechny konstruktory zastaralé.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">Parametr {0} má výchozí hodnotu {1:10} ve výrazu lambda, ale v cílovém typu delegáta má {2:10}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">Výchozí hodnota parametru neodpovídá v cílovém typu delegáta.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Parametr {0} musí mít při ukončení hodnotu jinou než null, protože parametr {1} není null.</target>
@@ -2100,6 +2305,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Po parametru obslužné rutiny dojde k převodu parametru na obslužnou rutinu interpolovaného řetězce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr {0} má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2155,6 +2370,16 @@
       <trans-unit id="WRN_RefAssignReturnOnly_Title">
         <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
         <target state="translated">Tento příkaz přiřazuje hodnotu, která může opustit aktuální metodu pouze prostřednictvím příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Tento odkaz přiřazuje {1} k {0}, ale {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">Tento odkaz přiřazuje hodnotu, která má širší řídicí obor hodnot než cíl, který povoluje přiřazení prostřednictvím cíle hodnot s užšími řídicími obory.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -2323,8 +2548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Konstruktor deklarovaný v záznamu se seznamem parametrů musí mít inicializátor konstruktoru this.</target>
+        <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
+        <target state="translated">Konstruktor deklarovaný v typu se seznamem parametrů musí mít inicializátor konstruktoru this.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">
@@ -4206,6 +4431,16 @@
         <target state="translated">Pole, které nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte možnost deklarovat ho jako pole s možnou hodnotou null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
+        <source>Parameter '{0}' is unread.</source>
+        <target state="translated">Parametr {0} je nepřečtený.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
+        <source>Parameter is unread.</source>
+        <target state="translated">Parametr je nepřečtený.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Parametr {0} se nepřečetl. Nezapomněli jste ho použít k inicializaci vlastnosti s daným názvem?</target>
@@ -5237,8 +5472,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Vlastnost nebo indexer nejde předat jako parametr ref nebo out.</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">Vlastnost nebo indexer nevracející odkaz nejde použít jako hodnotu out nebo ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8445,8 +8680,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Protože se jedná o asynchronní metodu, vrácený výraz musí být typu {0} a ne typu Task&lt;{0}&gt;.</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Protože se jedná o asynchronní metodu, vrácený výraz musí být typu {0} a ne typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9608,8 +9843,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Protože metoda {0} je asynchronní a její návratový typ je Task, za klíčovým slovem return nesmí následovat objektový výraz. Měli jste v úmyslu vrátit hodnotu typu Task&lt;T&gt;?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">Protože {0} je asynchronní metoda, která vrací {1}, nesmí za klíčovým slovem return následovat výraz objektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -10145,23 +10380,23 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat">
-        <source>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</source>
-        <target state="translated">Zadaný řetězec verze není v souladu s požadovaným formátem – hlavní_verze[.dílčí_verze[.build[.revize]]].</target>
+        <source>The specified version string '{0}' does not conform to the required format - major[.minor[.build[.revision]]]</source>
+        <target state="translated">Zadaný řetězec verze „{0}“ neodpovídá požadovanému formátu – hlavní_verze[.podverze[.build[.revize]]]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
-        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="translated">Zadaný řetězec verze obsahuje zástupné znaky, které nejsou kompatibilní s determinismem. Odeberte zástupné znaky z řetězce verze nebo pro tuto kompilaci zakažte determinismus.</target>
+        <source>The specified version string '{0}' contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">Zadaný řetězec verze „{0}“ obsahuje zástupné znaky, které nejsou kompatibilní s determinismem. Odeberte zástupné znaky z řetězce verze nebo zakažte determinismus pro tuto kompilaci.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</source>
-        <target state="translated">Zadaný řetězec verze není v souladu s požadovaným formátem – hlavní_verze.dílčí_verze.build.revize (bez zástupných znaků).</target>
+        <source>The specified version string '{0}' does not conform to the required format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">Zadaný řetězec verze „{0}“ neodpovídá požadovanému formátu – major.minor.build.revision (bez zástupných znaků).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Zadaný řetězec verze není v souladu s doporučeným formátem – hlavní_verze.dílčí_verze.build.revize.</target>
+        <source>The specified version string '{0}' does not conform to the recommended format - major.minor.build.revision</source>
+        <target state="translated">Zadaný řetězec verze „{0}“ neodpovídá doporučenému formátu – major.minor.build.revision.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidVersionFormat_Title">
@@ -11038,8 +11273,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Asynchronní lambda výraz převedený na Task a vracející delegáta nemůže vrátit hodnotu. Měli jste v úmyslu vrátit Task&lt;T&gt;?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">Asynchronní výraz lambda převedený na návratový delegát {0}nemůže vrátit hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

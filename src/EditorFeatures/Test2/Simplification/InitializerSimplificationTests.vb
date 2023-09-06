@@ -84,7 +84,7 @@ End Class
 #End Region
 
         Private Shared Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
-            Using workspace = CreateTestWorkspace(input)
+            Using workspace = Await CreateTestWorkspaceAsync(input)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 
                 Dim semanticModel = Await simplifiedDocument.GetSemanticModelAsync()

@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return
                     Hash.Combine(location.UnmappedFileSpan.GetHashCode(),
                     Hash.Combine(data.IsSuppressed,
-                    Hash.Combine(data.Id, data.Severity.GetHashCode())));
+                    Hash.Combine(data.Id, ((int)data.Severity).GetHashCode())));
             }
 
             public bool Equals(DiagnosticTableItem left, DiagnosticTableItem right)

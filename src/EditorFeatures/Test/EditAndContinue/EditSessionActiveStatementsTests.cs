@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 solution,
                 mockDebuggerService,
                 mockCompilationOutputsProvider,
+                NullPdbMatchingSourceTextProvider.Instance,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
                 reportDiagnostics: true);
 
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return debuggingSession.EditSession;
         }
 
-        private static Solution AddDefaultTestSolution(TestWorkspace workspace, string[] markedSources)
+        private static async Task<Solution> AddDefaultTestSolutionAsync(TestWorkspace workspace, string[] markedSources)
         {
             var solution = workspace.CurrentSolution;
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 solution = solution.AddDocument(id, name, text, filePath: Path.Combine(TempRoot.Root, name));
             }
 
-            workspace.ChangeSolution(solution);
+            await workspace.ChangeSolutionAsync(solution);
             return solution;
         }
 
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             using var workspace = new TestWorkspace(composition: s_composition);
 
-            var solution = AddDefaultTestSolution(workspace, markedSources);
+            var solution = await AddDefaultTestSolutionAsync(workspace, markedSources);
             var projectId = solution.ProjectIds.Single();
             var dummyProject = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
             solution = dummyProject.Solution.AddDocument(DocumentId.CreateNewId(dummyProject.Id, NoCompilationConstants.LanguageName), "a.dummy", "");
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(InspectActiveStatementUpdate));
         }
 
-        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24439")]
         public async Task BaseActiveStatementsAndExceptionRegions2()
         {
             var baseSource =
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, new[] { baseSource });
+            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { baseSource });
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -517,7 +518,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }.ToImmutableDictionary();
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, new[] { markedSourceV2 });
+            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { markedSourceV2 });
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -586,12 +587,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 $"0x06000001 v2 | AS {document.FilePath}: (6,18)-(6,22) => (6,18)-(6,22)",
                 $"0x06000002 v2 | ER {document.FilePath}: (18,16)-(21,9) => (17,16)-(20,9)",
                 $"0x06000002 v2 | AS {document.FilePath}: (20,18)-(20,22) => (19,18)-(19,22)",
-                $"0x06000003 v1 | AS {document.FilePath}: (30,22)-(30,26) => (29,22)-(29,26)", // AS:2 moved -1 in first edit, 0 in second
+                $"0x06000003 v1 | AS {document.FilePath}: (30,22)-(30,26) => (29,22)-(29,26)",  // AS:2 moved -1 in first edit, 0 in second
                 $"0x06000003 v1 | ER {document.FilePath}: (32,20)-(34,13) => (34,20)-(36,13)",  // ER:2.0 moved +2 in first edit, 0 in second
-                $"0x06000003 v1 | ER {document.FilePath}: (36,16)-(38,9) => (38,16)-(40,9)",   // ER:2.0 moved +2 in first edit, 0 in second
+                $"0x06000003 v1 | ER {document.FilePath}: (36,16)-(38,9) => (38,16)-(40,9)",    // ER:2.0 moved +2 in first edit, 0 in second
                 $"0x06000004 v1 | ER {document.FilePath}: (50,20)-(53,13) => (53,20)-(56,13)",  // ER:3.0 moved +1 in first edit, +2 in second              
                 $"0x06000004 v1 | AS {document.FilePath}: (52,22)-(52,26) => (55,22)-(55,26)",  // AS:3 moved +1 in first edit, +2 in second
-                $"0x06000004 v1 | ER {document.FilePath}: (55,16)-(57,9) => (58,16)-(60,9)",   // ER:3.1 moved +1 in first edit, +2 in second     
+                $"0x06000004 v1 | ER {document.FilePath}: (55,16)-(57,9) => (58,16)-(60,9)",    // ER:3.1 moved +1 in first edit, +2 in second     
             }, nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
@@ -652,7 +653,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = AddDefaultTestSolution(workspace, markedSources);
+            var solution = await AddDefaultTestSolutionAsync(workspace, markedSources);
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 

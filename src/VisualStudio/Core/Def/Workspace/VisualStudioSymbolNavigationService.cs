@@ -91,19 +91,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // See if there's another .Net language service that can handle navigating to this metadata symbol (for example, F#).
             var docCommentId = symbol.GetDocumentationCommentId();
-            if (docCommentId != null)
+            var assemblyName = symbol.ContainingAssembly.Identity.Name;
+            if (docCommentId != null && assemblyName != null)
             {
                 foreach (var lazyService in solution.Services.ExportProvider.GetExports<ICrossLanguageSymbolNavigationService>())
                 {
                     var crossLanguageService = lazyService.Value;
-                    var crossLanguageLocation = await crossLanguageService.TryGetNavigableLocationAsync(docCommentId, cancellationToken).ConfigureAwait(false);
+                    var crossLanguageLocation = await crossLanguageService.TryGetNavigableLocationAsync(
+                        assemblyName, docCommentId, cancellationToken).ConfigureAwait(false);
                     if (crossLanguageLocation != null)
                         return crossLanguageLocation;
                 }
             }
 
             // Should we prefer navigating to the Object Browser over metadata-as-source?
-            if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
+            if (_globalOptions.GetOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, project.Language))
             {
                 var libraryService = project.Services.GetService<ILibraryService>();
                 if (libraryService == null)

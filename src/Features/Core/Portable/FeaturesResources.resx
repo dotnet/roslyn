@@ -828,9 +828,6 @@ Do you want to continue?</value>
   <data name="Unable_to_load_Analyzer_assembly_0_colon_1" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -928,12 +925,6 @@ This version used in: {2}</value>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
   </data>
-  <data name="Remove_tag" xml:space="preserve">
-    <value>Remove tag</value>
-  </data>
-  <data name="Add_missing_param_nodes" xml:space="preserve">
-    <value>Add missing param nodes</value>
-  </data>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
@@ -986,18 +977,6 @@ This version used in: {2}</value>
   <data name="Add_tuple_element_name_0" xml:space="preserve">
     <value>Add tuple element name '{0}'</value>
   </data>
-  <data name="Take_0" xml:space="preserve">
-    <value>Take '{0}'</value>
-  </data>
-  <data name="Take_both" xml:space="preserve">
-    <value>Take both</value>
-  </data>
-  <data name="Take_bottom" xml:space="preserve">
-    <value>Take bottom</value>
-  </data>
-  <data name="Take_top" xml:space="preserve">
-    <value>Take top</value>
-  </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>
   </data>
@@ -1021,18 +1000,6 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
-  </data>
-  <data name="Add_parameter_to_0" xml:space="preserve">
-    <value>Add parameter to '{0}'</value>
-  </data>
-  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
-    <value>Add parameter to '{0}' (and overrides/implementations)</value>
-  </data>
-  <data name="Add_to_0" xml:space="preserve">
-    <value>Add to '{0}'</value>
-  </data>
-  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
-    <value>Related method signatures found in metadata will not be updated.</value>
   </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
@@ -1141,9 +1108,6 @@ This version used in: {2}</value>
   </data>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
-  </data>
-  <data name="Add_member_name" xml:space="preserve">
-    <value>Add member name</value>
   </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
@@ -2702,9 +2666,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
   </data>
-  <data name="Remove_async_modifier" xml:space="preserve">
-    <value>Remove 'async' modifier</value>
-  </data>
   <data name="Extract_base_class" xml:space="preserve">
     <value>Extract base class...</value>
   </data>
@@ -3169,5 +3130,59 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="struct_" xml:space="preserve">
     <value>struct</value>
+  </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
+  <data name="while_loop" xml:space="preserve">
+    <value>while loop</value>
+  </data>
+  <data name="else_statement" xml:space="preserve">
+    <value>else statement</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
+  </data>
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
+    <value>Please resolve errors in your code before renaming this element.</value>
+  </data>
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
+    <value>Renaming anonymous type members is not yet supported.</value>
+  </data>
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
+    <value>You cannot rename elements from previous submissions.</value>
+  </data>
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
+    <value>You cannot rename elements that are defined in metadata.</value>
+  </data>
+  <data name="You_cannot_rename_operators" xml:space="preserve">
+    <value>You cannot rename operators.</value>
+  </data>
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
+    <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
+    <value>You must rename an identifier.</value>
+  </data>
+  <data name="get_only_property" xml:space="preserve">
+    <value>get-only property</value>
+  </data>
+  <data name="This_0_has_1_references" xml:space="preserve">
+    <value>This {0} has {1} reference(s).</value>
+  </data>
+  <data name="_0_reference_unquoted" xml:space="preserve">
+    <value>{0} reference</value>
+  </data>
+  <data name="CSharp_VisualBasic_References" xml:space="preserve">
+    <value>C# and Visual Basic References</value>
+  </data>
+  <data name="_0_references_unquoted" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="Find_All_References_not_invoked_on_applicable_symbol" xml:space="preserve">
+    <value>'Find All References' not invoked on applicable symbol</value>
+  </data>
+  <data name="Deconstruct_locals_for_0" xml:space="preserve">
+    <value>Deconstruct locals for '{0}'</value>
   </data>
 </root>

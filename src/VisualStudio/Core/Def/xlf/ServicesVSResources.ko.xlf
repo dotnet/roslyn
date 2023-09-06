@@ -82,6 +82,11 @@
         <target state="translated">탐색에 항상 기본 기호 서버 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">소스에서 생성된 파일 분석</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">분석기 기본값</target>
@@ -425,6 +430,11 @@
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">소스 생성기에서 열린 파일의 모든 기능 사용 (실험적)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">문서 개요 사용(실험적, 다시 시작해야 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -771,11 +781,6 @@
         <source>Namespace declarations</source>
         <target state="translated">네임스페이스 선언</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">네임스페이스가 업데이트되었습니다.</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1147,6 +1152,11 @@
         <target state="translated">읽기 전용 구조체 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">읽기 전용 구조체 멤버 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">읽기 전용 필드 선호</target>
@@ -1486,6 +1496,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">네임스페이스 동기화</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">동기화 네임스페이스 변경 내용</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

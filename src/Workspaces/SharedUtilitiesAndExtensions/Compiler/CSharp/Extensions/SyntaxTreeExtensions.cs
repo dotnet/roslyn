@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
-#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             CancellationToken cancellationToken,
             out int positionBeforeModifiers)
@@ -52,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RefKeyword:
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
+                    case SyntaxKind.RequiredKeyword:
+                    case SyntaxKind.FileKeyword:
                         result.Add(token.Kind());
                         positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
@@ -60,6 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
+                            token = token.GetPreviousToken(includeSkipped: true);
+                            continue;
+                        }
+                        if (token.HasMatchingText(SyntaxKind.FileKeyword))
+                        {
+                            result.Add(SyntaxKind.FileKeyword);
                             positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;

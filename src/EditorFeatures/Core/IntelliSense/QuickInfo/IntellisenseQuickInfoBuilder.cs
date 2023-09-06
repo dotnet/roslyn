@@ -107,9 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, context.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    // We don't present additive-spans (like static/reassigned-variable) any differently, so strip them
+                    // out of the classifications we get back.
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
+                        document, span, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
 
-                    var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                    var tabSize = context.LineFormattingOptions.TabSize;
+
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize);
                     var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
@@ -141,13 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
             ClassificationOptions classificationOptions,
+            LineFormattingOptions lineFormattingOptions,
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListener asyncListener,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             CancellationToken cancellationToken)
         {
-            var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
+            var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
             var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);

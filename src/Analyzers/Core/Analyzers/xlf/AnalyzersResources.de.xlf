@@ -262,6 +262,11 @@
         <target state="translated">Nicht erforderliche Umwandlung entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Barrierefreiheitsmodifizierer entfernen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Redundante Gleichheit entfernen</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Namen vereinfachen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Überprüfung vereinfachen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
 
         protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
-            => parts.Length == 1 && parts[0].Length == 0;
+            => parts is [""];
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {

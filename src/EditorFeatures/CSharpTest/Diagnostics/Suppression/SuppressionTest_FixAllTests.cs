@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         public abstract partial class CSharpPragmaWarningDisableSuppressionTests : CSharpSuppressionTests
         {
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             public partial class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInDocument()
                 {
@@ -120,7 +120,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInProject()
                 {
@@ -216,7 +215,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInSolution()
                 {
@@ -316,7 +314,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingMember()
                 {
@@ -346,7 +343,6 @@ class Class3 { }
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingType()
                 {
@@ -452,7 +448,6 @@ class Class4
             public partial class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInDocument()
                 {
@@ -558,7 +553,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInProject()
                 {
@@ -665,7 +659,6 @@ class Class2
                 }
 
                 [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInSolution()
                 {
@@ -788,7 +781,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingMember()
                 {
@@ -817,7 +809,6 @@ class Class2
                 }
 
                 [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingType()
                 {
@@ -910,10 +901,10 @@ class Class3
             }
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
         {
             [Fact]
-            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             public async Task TestFixAllInProject()
             {

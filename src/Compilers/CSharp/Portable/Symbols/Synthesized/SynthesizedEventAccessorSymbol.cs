@@ -92,5 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
     }
 }

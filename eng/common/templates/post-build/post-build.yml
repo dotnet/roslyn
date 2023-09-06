@@ -99,7 +99,7 @@ stages:
     jobs:
     - job:
       displayName: NuGet Validation
-      condition: eq( ${{ parameters.enableNugetValidation }}, 'true')
+      condition: and(succeededOrFailed(), eq( ${{ parameters.enableNugetValidation }}, 'true'))
       pool:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
@@ -171,12 +171,6 @@ stages:
         # otherwise it'll complain about accessing a private feed.
         - task: NuGetAuthenticate@0
           displayName: 'Authenticate to AzDO Feeds'
-
-        - task: PowerShell@2
-          displayName: Enable cross-org publishing
-          inputs:
-            filePath: eng\common\enable-cross-org-publishing.ps1
-            arguments: -token $(dn-bot-dnceng-artifact-feeds-rw)
 
         # Signing validation will optionally work with the buildmanifest file which is downloaded from
         # Azure DevOps above.

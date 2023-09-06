@@ -44,18 +44,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
     }
-
-    [ExportStatelessXamlLspService(typeof(RunCodeActionHandler)), Shared]
-    internal class XamlRunCodeActionHandler : RunCodeActionHandler
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRunCodeActionHandler(
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, globalOptions, threadingContext)
-        {
-        }
-    }
 }

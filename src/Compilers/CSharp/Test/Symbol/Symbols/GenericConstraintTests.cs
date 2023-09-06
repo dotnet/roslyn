@@ -1480,45 +1480,63 @@ B.M");
             compilation.VerifyIL("C<T1, T2>.M<U1, U2>(T1, T2, U1, U2)",
 @"
 {
-  // Code size      145 (0x91)
+  // Code size      193 (0xc1)
   .maxstack  2
+  .locals init (T1 V_0,
+            U1 V_1)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarga.s   V_0
-  IL_0004:  constrained. ""T1""
-  IL_000a:  callvirt   ""object I.P.get""
-  IL_000f:  constrained. ""T1""
-  IL_0015:  callvirt   ""void I.P.set""
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T1""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T1""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldobj      ""T1""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
   IL_001a:  ldarga.s   V_0
   IL_001c:  constrained. ""T1""
-  IL_0022:  callvirt   ""void I.M()""
-  IL_0027:  ldarg.1
-  IL_0028:  box        ""T2""
-  IL_002d:  ldarg.1
-  IL_002e:  box        ""T2""
-  IL_0033:  callvirt   ""object A.P.get""
-  IL_0038:  callvirt   ""void A.P.set""
-  IL_003d:  ldarg.1
-  IL_003e:  box        ""T2""
-  IL_0043:  callvirt   ""void A.M()""
-  IL_0048:  ldarga.s   V_2
-  IL_004a:  ldarga.s   V_2
-  IL_004c:  constrained. ""U1""
-  IL_0052:  callvirt   ""object I.P.get""
-  IL_0057:  constrained. ""U1""
-  IL_005d:  callvirt   ""void I.P.set""
-  IL_0062:  ldarga.s   V_2
-  IL_0064:  constrained. ""U1""
-  IL_006a:  callvirt   ""void I.M()""
-  IL_006f:  ldarg.3
-  IL_0070:  box        ""U2""
-  IL_0075:  ldarg.3
-  IL_0076:  box        ""U2""
-  IL_007b:  callvirt   ""object A.P.get""
-  IL_0080:  callvirt   ""void A.P.set""
-  IL_0085:  ldarg.3
-  IL_0086:  box        ""U2""
-  IL_008b:  callvirt   ""void A.M()""
-  IL_0090:  ret
+  IL_0022:  callvirt   ""object I.P.get""
+  IL_0027:  constrained. ""T1""
+  IL_002d:  callvirt   ""void I.P.set""
+  IL_0032:  ldarga.s   V_0
+  IL_0034:  constrained. ""T1""
+  IL_003a:  callvirt   ""void I.M()""
+  IL_003f:  ldarg.1
+  IL_0040:  box        ""T2""
+  IL_0045:  ldarg.1
+  IL_0046:  box        ""T2""
+  IL_004b:  callvirt   ""object A.P.get""
+  IL_0050:  callvirt   ""void A.P.set""
+  IL_0055:  ldarg.1
+  IL_0056:  box        ""T2""
+  IL_005b:  callvirt   ""void A.M()""
+  IL_0060:  ldarga.s   V_2
+  IL_0062:  ldloca.s   V_1
+  IL_0064:  initobj    ""U1""
+  IL_006a:  ldloc.1
+  IL_006b:  box        ""U1""
+  IL_0070:  brtrue.s   IL_007a
+  IL_0072:  ldobj      ""U1""
+  IL_0077:  stloc.1
+  IL_0078:  ldloca.s   V_1
+  IL_007a:  ldarga.s   V_2
+  IL_007c:  constrained. ""U1""
+  IL_0082:  callvirt   ""object I.P.get""
+  IL_0087:  constrained. ""U1""
+  IL_008d:  callvirt   ""void I.P.set""
+  IL_0092:  ldarga.s   V_2
+  IL_0094:  constrained. ""U1""
+  IL_009a:  callvirt   ""void I.M()""
+  IL_009f:  ldarg.3
+  IL_00a0:  box        ""U2""
+  IL_00a5:  ldarg.3
+  IL_00a6:  box        ""U2""
+  IL_00ab:  callvirt   ""object A.P.get""
+  IL_00b0:  callvirt   ""void A.P.set""
+  IL_00b5:  ldarg.3
+  IL_00b6:  box        ""U2""
+  IL_00bb:  callvirt   ""void A.M()""
+  IL_00c0:  ret
 }");
         }
 
@@ -1571,19 +1589,28 @@ S[0]");
             compilation.VerifyIL("C.M<T, U>(T, U)",
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       61 (0x3d)
   .maxstack  4
+  .locals init (T V_0)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldc.i4.0
-  IL_0003:  box        ""int""
-  IL_0008:  ldarg.1
-  IL_0009:  box        ""U""
-  IL_000e:  ldc.i4.1
-  IL_000f:  box        ""int""
-  IL_0014:  callvirt   ""object A.this[object].get""
-  IL_0019:  constrained. ""T""
-  IL_001f:  callvirt   ""void I.this[object].set""
-  IL_0024:  ret
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldc.i4.0
+  IL_001b:  box        ""int""
+  IL_0020:  ldarg.1
+  IL_0021:  box        ""U""
+  IL_0026:  ldc.i4.1
+  IL_0027:  box        ""int""
+  IL_002c:  callvirt   ""object A.this[object].get""
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I.this[object].set""
+  IL_003c:  ret
 }");
         }
 
@@ -3896,35 +3923,35 @@ class C : I
                     AssemblySymbol asm = i2.ContainingAssembly;
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3938,7 +3965,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3952,35 +3979,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
@@ -3994,35 +4021,35 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4036,7 +4063,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4050,35 +4077,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4099,7 +4126,7 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4116,10 +4143,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4130,10 +4154,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4179,10 +4200,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4221,24 +4239,15 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4249,10 +4258,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 2);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4270,10 +4276,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4`2", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4284,17 +4287,11 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I4`2", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4312,10 +4309,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
                 };
 
             CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Mscorlib40);
@@ -4550,73 +4544,11 @@ class B
             compilation.VerifyIL("B.M1<T>(T)",
 @"
 {
-  // Code size      166 (0xa6)
+  // Code size      216 (0xd8)
   .maxstack  4
   .locals init (int V_0,
-  T& V_1)
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. ""T""
-  IL_0009:  callvirt   ""int I.P.get""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.1
-  IL_0011:  add
-  IL_0012:  constrained. ""T""
-  IL_0018:  callvirt   ""void I.P.set""
-  IL_001d:  ldarga.s   V_0
-  IL_001f:  dup
-  IL_0020:  ldc.i4.0
-  IL_0021:  constrained. ""T""
-  IL_0027:  callvirt   ""int I.this[int].get""
-  IL_002c:  stloc.0
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldloc.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""void I.this[int].set""
-  IL_003c:  ldarga.s   V_0
-  IL_003e:  dup
-  IL_003f:  constrained. ""T""
-  IL_0045:  callvirt   ""int I.P.get""
-  IL_004a:  ldc.i4.2
-  IL_004b:  add
-  IL_004c:  constrained. ""T""
-  IL_0052:  callvirt   ""void I.P.set""
-  IL_0057:  ldarga.s   V_0
-  IL_0059:  stloc.1
-  IL_005a:  ldloc.1
-  IL_005b:  ldc.i4.0
-  IL_005c:  ldloc.1
-  IL_005d:  ldc.i4.0
-  IL_005e:  constrained. ""T""
-  IL_0064:  callvirt   ""int I.this[int].get""
-  IL_0069:  ldc.i4.2
-  IL_006a:  add
-  IL_006b:  constrained. ""T""
-  IL_0071:  callvirt   ""void I.this[int].set""
-  IL_0076:  ldstr      ""{0}, {1}""
-  IL_007b:  ldarga.s   V_0
-  IL_007d:  constrained. ""T""
-  IL_0083:  callvirt   ""int I.P.get""
-  IL_0088:  box        ""int""
-  IL_008d:  ldarga.s   V_0
-  IL_008f:  ldc.i4.0
-  IL_0090:  constrained. ""T""
-  IL_0096:  callvirt   ""int I.this[int].get""
-  IL_009b:  box        ""int""
-  IL_00a0:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00a5:  ret
-}
-");
-            compilation.VerifyIL("B.M2<T>(T)",
-@"
-{
-  // Code size      164 (0xa4)
-  .maxstack  4
-  .locals init (int V_0,
-                T& V_1)
+            T& V_1,
+            T V_2)
   IL_0000:  ldarga.s   V_0
   IL_0002:  dup
   IL_0003:  constrained. ""T""
@@ -4642,37 +4574,125 @@ class B
   IL_003c:  ldarga.s   V_0
   IL_003e:  stloc.1
   IL_003f:  ldloc.1
-  IL_0040:  ldloc.1
-  IL_0041:  constrained. ""T""
-  IL_0047:  callvirt   ""int I.P.get""
-  IL_004c:  ldc.i4.2
-  IL_004d:  add
-  IL_004e:  constrained. ""T""
-  IL_0054:  callvirt   ""void I.P.set""
-  IL_0059:  ldarga.s   V_0
-  IL_005b:  stloc.1
-  IL_005c:  ldloc.1
-  IL_005d:  ldc.i4.0
-  IL_005e:  ldloc.1
-  IL_005f:  ldc.i4.0
-  IL_0060:  constrained. ""T""
-  IL_0066:  callvirt   ""int I.this[int].get""
-  IL_006b:  ldc.i4.2
-  IL_006c:  add
-  IL_006d:  constrained. ""T""
-  IL_0073:  callvirt   ""void I.this[int].set""
-  IL_0078:  ldstr      ""{0}, {1}""
-  IL_007d:  ldarg.0
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  initobj    ""T""
+  IL_0048:  ldloc.2
+  IL_0049:  box        ""T""
+  IL_004e:  brtrue.s   IL_0058
+  IL_0050:  ldobj      ""T""
+  IL_0055:  stloc.2
+  IL_0056:  ldloca.s   V_2
+  IL_0058:  ldloc.1
+  IL_0059:  constrained. ""T""
+  IL_005f:  callvirt   ""int I.P.get""
+  IL_0064:  ldc.i4.2
+  IL_0065:  add
+  IL_0066:  constrained. ""T""
+  IL_006c:  callvirt   ""void I.P.set""
+  IL_0071:  ldarga.s   V_0
+  IL_0073:  stloc.1
+  IL_0074:  ldloc.1
+  IL_0075:  ldloca.s   V_2
+  IL_0077:  initobj    ""T""
+  IL_007d:  ldloc.2
   IL_007e:  box        ""T""
-  IL_0083:  callvirt   ""int I.P.get""
-  IL_0088:  box        ""int""
+  IL_0083:  brtrue.s   IL_008d
+  IL_0085:  ldobj      ""T""
+  IL_008a:  stloc.2
+  IL_008b:  ldloca.s   V_2
+  IL_008d:  ldc.i4.0
+  IL_008e:  ldloc.1
+  IL_008f:  ldc.i4.0
+  IL_0090:  constrained. ""T""
+  IL_0096:  callvirt   ""int I.this[int].get""
+  IL_009b:  ldc.i4.2
+  IL_009c:  add
+  IL_009d:  constrained. ""T""
+  IL_00a3:  callvirt   ""void I.this[int].set""
+  IL_00a8:  ldstr      ""{0}, {1}""
+  IL_00ad:  ldarga.s   V_0
+  IL_00af:  constrained. ""T""
+  IL_00b5:  callvirt   ""int I.P.get""
+  IL_00ba:  box        ""int""
+  IL_00bf:  ldarga.s   V_0
+  IL_00c1:  ldc.i4.0
+  IL_00c2:  constrained. ""T""
+  IL_00c8:  callvirt   ""int I.this[int].get""
+  IL_00cd:  box        ""int""
+  IL_00d2:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00d7:  ret
+}
+");
+            compilation.VerifyIL("B.M2<T>(T)",
+@"
+{
+  // Code size      180 (0xb4)
+  .maxstack  4
+  .locals init (int V_0,
+            T& V_1,
+            T V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  dup
+  IL_0003:  constrained. ""T""
+  IL_0009:  callvirt   ""int I.P.get""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I.P.set""
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I.this[int].get""
+  IL_002c:  stloc.0
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I.this[int].set""
+  IL_003c:  ldarga.s   V_0
+  IL_003e:  stloc.1
+  IL_003f:  ldloc.1
+  IL_0040:  ldobj      ""T""
+  IL_0045:  stloc.2
+  IL_0046:  ldloca.s   V_2
+  IL_0048:  ldloc.1
+  IL_0049:  constrained. ""T""
+  IL_004f:  callvirt   ""int I.P.get""
+  IL_0054:  ldc.i4.2
+  IL_0055:  add
+  IL_0056:  constrained. ""T""
+  IL_005c:  callvirt   ""void I.P.set""
+  IL_0061:  ldarga.s   V_0
+  IL_0063:  stloc.1
+  IL_0064:  ldloc.1
+  IL_0065:  ldobj      ""T""
+  IL_006a:  stloc.2
+  IL_006b:  ldloca.s   V_2
+  IL_006d:  ldc.i4.0
+  IL_006e:  ldloc.1
+  IL_006f:  ldc.i4.0
+  IL_0070:  constrained. ""T""
+  IL_0076:  callvirt   ""int I.this[int].get""
+  IL_007b:  ldc.i4.2
+  IL_007c:  add
+  IL_007d:  constrained. ""T""
+  IL_0083:  callvirt   ""void I.this[int].set""
+  IL_0088:  ldstr      ""{0}, {1}""
   IL_008d:  ldarg.0
   IL_008e:  box        ""T""
-  IL_0093:  ldc.i4.0
-  IL_0094:  callvirt   ""int I.this[int].get""
-  IL_0099:  box        ""int""
-  IL_009e:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00a3:  ret
+  IL_0093:  callvirt   ""int I.P.get""
+  IL_0098:  box        ""int""
+  IL_009d:  ldarg.0
+  IL_009e:  box        ""T""
+  IL_00a3:  ldc.i4.0
+  IL_00a4:  callvirt   ""int I.this[int].get""
+  IL_00a9:  box        ""int""
+  IL_00ae:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00b3:  ret
 }
 ");
             compilation.VerifyIL("B.M3<T>(T)",
@@ -5767,8 +5787,7 @@ class B : A<S>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
-        [WorkItem(11243, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
         public void ConstraintGenericForPoint()
         {
             var source = @"
@@ -5790,7 +5809,39 @@ class @c
 ";
             // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(11243, "DevDiv_Projects/Roslyn")]
+        public void ConstraintGenericForPoint_WithUnsafeContext()
+        {
+            var source = @"
+class A
+{
+    public interface I { }
+}
+unsafe class F<T> : A where T : F<object*>.I
+{
+}
+
+unsafe class G<T> : A where T : G<void*>.I
+{
+}
+class @c
+{
+    static void Main() { }
+}
+";
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class F<T> : A where T : F<object*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class G<T> : A where T : G<void*>.I
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6408,8 +6459,7 @@ public interface IC<T> : IB where T : IB { }";
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("IA", "e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 7));
         }
 
-        [WorkItem(577251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
         public void Bug577251()
         {
             var source =
@@ -6424,7 +6474,17 @@ class C<T>
     public void F<U>() where U : IA<E*[]> { }
 }
 class D : C<int>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T>() where T : IA<C<int>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
+                // (9,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U>() where U : IA<E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E*").WithLocation(9, 37));
+
             source =
 @"interface IA<T> { }
 interface IB
@@ -6437,7 +6497,50 @@ class C<T>
     public void F<U, V>() where U : IA<C<V>.E*[]> { }
 }
 class D<T> : C<T>, IB { }";
-            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void F<T, U>() where T : IA<C<U>.E*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
+                // (9,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public void F<U, V>() where U : IA<C<V>.E*[]> { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<V>.E*").WithLocation(9, 40));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577251")]
+        public void Bug577251_UnsafeContext()
+        {
+            var source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T>() where T : IA<C<int>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U>() where U : IA<E*[]> { }
+}
+class D : C<int>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            source =
+@"interface IA<T> { }
+unsafe interface IB
+{
+    void F<T, U>() where T : IA<C<U>.E*[]>;
+}
+unsafe class C<T>
+{
+    public enum E { }
+    public void F<U, V>() where U : IA<C<V>.E*[]> { }
+}
+class D<T> : C<T>, IB { }";
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
@@ -6843,8 +6946,7 @@ partial class Class4
                 );
         }
 
-        [Fact]
-        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
         public void IntPointerConstraintIntroducedBySubstitution()
         {
             string source = @"
@@ -6865,12 +6967,58 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int *>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'int*' may not be used as a type argument
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution_UnsafeContext()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+unsafe class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation.VerifyDiagnostics(
+                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R2").WithLocation(6, 14),
+                // (6,14): error CS0306: The type 'int*' may not be used as a type argument
+                // unsafe class R2 : R1<int*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
         }
 
         [Fact]
@@ -7023,7 +7171,6 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadArity, "GetService<>").WithArguments("K.GetService<T1, T2>()", "method", "2").WithLocation(33, 18)
             );
         }
-
 
         [Fact]
         [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]

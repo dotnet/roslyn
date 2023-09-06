@@ -53,6 +53,8 @@
                     </StackPanel>
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
                     <CheckBox x:Name="Enable_file_logging_for_diagnostics"
@@ -352,6 +354,14 @@
                     <CheckBox x:Uid="IncludeGlobalImports"
                               x:Name="IncludeGlobalImports"
                               Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
+                <StackPanel>
+                    <CheckBox x:Uid="EnableDocumentOutline"
+                              x:Name="EnableDocumentOutline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

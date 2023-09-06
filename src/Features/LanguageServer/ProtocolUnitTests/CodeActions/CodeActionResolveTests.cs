@@ -12,14 +12,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     {
-        [WpfFact]
-        public async Task TestCodeActionResolveHandlerAsync()
+        public CodeActionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestCodeActionResolveHandlerAsync(bool mutatingLspWorkspace)
         {
             var initialMarkup =
 @"class A
@@ -29,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
@@ -69,8 +75,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
-        [WpfFact]
-        public async Task TestCodeActionResolveHandlerAsync_NestedAction()
+        [WpfTheory, CombinatorialData]
+        public async Task TestCodeActionResolveHandlerAsync_NestedAction(bool mutatingLspWorkspace)
         {
             var initialMarkup =
 @"class A
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),

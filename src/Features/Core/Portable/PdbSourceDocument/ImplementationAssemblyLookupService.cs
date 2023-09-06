@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // eg. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.5\data\FrameworkList.xml
             var frameworkXml = Path.Combine(referencedDllPath, "..", "..", "..", "data", "FrameworkList.xml");
 
-            string sdkName;
+            string? sdkName;
             try
             {
                 using var fr = File.OpenRead(frameworkXml);
@@ -169,6 +169,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // use a heuristic to provide better results, we don't have to be super resiliant to all things.
                 return false;
             }
+
+            if (sdkName is null)
+                return false;
 
             // If it exists, the implementation dll will be in the shared sdk folder for this pack
             // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Foo.dll

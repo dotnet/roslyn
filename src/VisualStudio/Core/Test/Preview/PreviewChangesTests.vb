@@ -59,7 +59,7 @@ Class C
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestListStructure_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -166,7 +166,7 @@ Class C
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestCheckedItems_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>

@@ -6,14 +6,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
+        // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
+        // which TypeScript does not need.
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace.Services.SolutionServices)
+            : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
         {
         }
 
@@ -39,8 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-            var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var helper = new PatternMatchHelper(filterText);
+            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
     }
 }

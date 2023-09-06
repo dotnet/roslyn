@@ -7,6 +7,8 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
+
+#pragma warning disable RS0030 // Do not used banned APIs
     /// <summary>
     /// A <see cref="CodeActionOperation"/> for navigating to a specific position in a document.
     /// When <see cref="CodeAction.GetOperationsAsync(CancellationToken)"/> is called an implementation
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// in one <see cref="CodeActionOperation"/> and then have the host editor navigate to that
     /// <see cref="Document"/> using this operation.
     /// </summary>
+#pragma warning restore RS0030 // Do not used banned APIs
     public class DocumentNavigationOperation : CodeActionOperation
     {
         internal DocumentId DocumentId { get; }

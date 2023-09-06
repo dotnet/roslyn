@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         private readonly RemoteServiceConnection<IRemoteSymbolSearchUpdateService> _connection;
 
-        public SymbolSearchUpdateEngineProxy(RemoteHostClient client, ISymbolSearchLogService logService)
-            => _connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(logService);
+        public SymbolSearchUpdateEngineProxy(RemoteHostClient client)
+            => _connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
 
         public void Dispose()
             => _connection.Dispose();
@@ -48,13 +48,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return result.HasValue ? result.Value : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
         }
 
-        public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, ISymbolSearchLogService logService, CancellationToken cancellationToken)
+        public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
         {
-            // logService parameter is ignored since it's already set on the connection as a callback
-            _ = logService;
-
             _ = await _connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, sourceName, localSettingsDirectory, cancellationToken),
+                (service, cancellationToken) => service.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }

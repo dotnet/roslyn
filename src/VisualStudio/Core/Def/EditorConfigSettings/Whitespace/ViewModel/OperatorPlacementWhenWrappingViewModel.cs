@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
             _key = new OptionKey2(CodeStyleOptions2.OperatorPlacementWhenWrapping);
         }
 
-        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
+        public IEnumSettingViewModel CreateViewModel(Setting setting)
         {
             return new OperatorPlacementWhenWrappingViewModel(setting);
         }
@@ -36,9 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         private class OperatorPlacementWhenWrappingViewModel : EnumSettingViewModel<OperatorPlacementWhenWrappingPreference>
         {
-            private readonly WhitespaceSetting _setting;
+            private readonly Setting _setting;
 
-            public OperatorPlacementWhenWrappingViewModel(WhitespaceSetting setting)
+            public OperatorPlacementWhenWrappingViewModel(Setting setting)
             {
                 _setting = setting;
             }

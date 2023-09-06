@@ -163,18 +163,20 @@ namespace Microsoft.Cci
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+        public ImmutableArray<SourceSpan> CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
+
+        public bool IsPrimaryConstructor => false;
 
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

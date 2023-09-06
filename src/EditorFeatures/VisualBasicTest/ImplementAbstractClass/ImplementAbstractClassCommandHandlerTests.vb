@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
     Public Class ImplementAbstractClassCommandHandlerTests
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact>
         Public Sub TestSimpleCases()
             Dim code = <text>
@@ -49,7 +49,7 @@ End Class</text>
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
@@ -128,7 +128,7 @@ End Class</text>
             End Using
         End Sub
 
-        <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
         <WpfFact>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>

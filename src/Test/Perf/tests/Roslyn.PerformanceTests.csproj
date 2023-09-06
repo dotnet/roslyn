@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Performance.Tests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup>

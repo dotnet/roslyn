@@ -7,22 +7,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 [DataContract]
-internal readonly record struct CleanCodeGenerationOptions(
-    [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
-    [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions)
+internal readonly record struct CleanCodeGenerationOptions
 {
+    [DataMember]
+    public required CodeGenerationOptions GenerationOptions { get; init; }
+
+    [DataMember]
+    public required CodeCleanupOptions CleanupOptions { get; init; }
+
 #if !CODE_STYLE
     public static CleanCodeGenerationOptions GetDefault(LanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices),
-               CodeCleanupOptions.GetDefault(languageServices));
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            CleanupOptions = CodeCleanupOptions.GetDefault(languageServices)
+        };
 
     public CodeAndImportGenerationOptions CodeAndImportGenerationOptions
-        => new(GenerationOptions, CleanupOptions.AddImportOptions);
+        => new()
+        {
+            GenerationOptions = GenerationOptions,
+            AddImportOptions = CleanupOptions.AddImportOptions
+        };
 #endif
 }
 
@@ -60,9 +74,11 @@ internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCod
 internal static class CleanCodeGenerationOptionsProviders
 {
     public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptions fallbackOptions, CancellationToken cancellationToken)
-        => new(
-            await document.GetCodeGenerationOptionsAsync(fallbackOptions.GenerationOptions, cancellationToken).ConfigureAwait(false),
-            await document.GetCodeCleanupOptionsAsync(fallbackOptions.CleanupOptions, cancellationToken).ConfigureAwait(false));
+        => new()
+        {
+            GenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.GenerationOptions, cancellationToken).ConfigureAwait(false),
+            CleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.CleanupOptions, cancellationToken).ConfigureAwait(false)
+        };
 
     public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await document.GetCleanCodeGenerationOptionsAsync(await ((OptionsProvider<CleanCodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);

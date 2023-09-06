@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -74,17 +75,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            for (var m = this.CurrentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
+            Symbol current = CurrentSymbol;
+            bool ignoreThisParameter = false;
+
+            while (current?.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
             {
-                foreach (var p in m.Parameters)
+                if (current is MethodSymbol m)
                 {
-                    if (p.RefKind != RefKind.None) _readOutside.Add(p);
+                    foreach (var p in m.Parameters)
+                    {
+                        if (p.RefKind != RefKind.None) _readOutside.Add(p);
+                    }
+
+                    Debug.Assert(!ignoreThisParameter || m is SynthesizedPrimaryConstructor);
+
+                    if (!ignoreThisParameter)
+                    {
+                        var thisParameter = m.ThisParameter;
+                        if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
+                        {
+                            _readOutside.Add(thisParameter);
+                        }
+                    }
                 }
 
-                var thisParameter = m.ThisParameter;
-                if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
+                Symbol containing = current.ContainingSymbol;
+
+                if (!current.IsStatic &&
+                    containing is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } &&
+                    (object)current != primaryConstructor)
                 {
-                    _readOutside.Add(thisParameter);
+                    current = primaryConstructor;
+                    ignoreThisParameter = true;
+                }
+                else
+                {
+                    current = containing;
                 }
             }
 

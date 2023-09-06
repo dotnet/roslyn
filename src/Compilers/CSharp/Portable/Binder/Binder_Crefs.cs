@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name: memberName,
                     arity: arity,
                     basesBeingResolved: null,
-                    options: LookupOptions.AllMethodsOnArityZero,
+                    options: LookupOptions.AllMethodsOnArityZero | LookupOptions.MustNotBeParameter,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
 
@@ -874,7 +874,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return viable.ToImmutableAndFree();
         }
-
 
         /// <summary>
         /// If the member is generic, construct it with the CrefTypeParameterSymbols that should be in scope.

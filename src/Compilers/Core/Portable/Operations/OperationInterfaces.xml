@@ -3349,4 +3349,21 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IAttributeOperation" Base="IOperation">
+    <Comments>
+      <summary>
+        Represents the application of an attribute.
+        <para>
+          Current usage:
+          (1) C# attribute application.
+          (2) VB attribute application.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Operation" Type="IOperation">
+      <Comments>
+        <summary>The operation representing the attribute. This can be a <see cref="IObjectCreationOperation" /> in non-error cases, or an <see cref="IInvalidOperation" /> in error cases.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

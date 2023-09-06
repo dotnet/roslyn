@@ -315,6 +315,58 @@ class Program
                             """""" );
     }
 }";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_A()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+  {
+                            world }.
+                            """""" );
+    }
+}";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_B()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+                            {
+                            world }.
+                            """""" );
+    }
+}";
         string expectedOutput = @"Hello,
 world.";
         CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -1263,7 +1315,6 @@ class C
         return $""""""hello + {other}"""""";
     }
 }";
-
 
         CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
             // (6,24): error CS8026: Feature 'raw string literals' is not available in C# 5. Please use language version 11.0 or greater.

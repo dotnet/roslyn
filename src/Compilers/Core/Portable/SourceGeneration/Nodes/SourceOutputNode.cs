@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                     var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
                     var diagnostics = DiagnosticBag.GetInstance();
 
-                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);
+                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, cancellationToken);
                     try
                     {
                         var stopwatch = SharedStopwatch.StartNew();
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis
             return nodeTable.ToImmutableAndFree();
         }
 
-        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
+        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();
 
-        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
+        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {

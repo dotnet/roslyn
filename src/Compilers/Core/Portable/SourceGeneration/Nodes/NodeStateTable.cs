@@ -60,24 +60,24 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true, isCached: false);
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps, bool isCached)
         {
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
+            IsCached = isCached;
             HasTrackedSteps = hasTrackedSteps;
         }
 
         public int Count => _states.Length;
 
         /// <summary>
-        /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
+        /// Indicates that this table is unchanged from the previous version.
         /// </summary>
         public bool IsCached { get; }
 
@@ -108,12 +108,16 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var nonRemovedCount = _states.Count(static e => !e.IsRemoved);
+            // If the input to an entry was removed, we also need to remove the entry.
+            // However, if the input was present, but the entry didn't produce any values (or removed them all),
+            // we need to keep the empty entry as a placeholder, so that on the next generation pass
+            // we can retrieve it as the cached value of the input.
+            var nonRemovedCount = _states.Count(static e => !e.IsRemovedDueToInputRemoval);
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
             foreach (var entry in _states)
             {
-                if (!entry.IsRemoved)
+                if (!entry.IsRemovedDueToInputRemoval)
                     compacted.Add(entry.AsCached());
             }
 
@@ -122,14 +126,14 @@ namespace Microsoft.CodeAnalysis
 
             // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
             Debug.Assert(compacted.Count == nonRemovedCount);
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false, isCached: true);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
 
         public (T item, IncrementalGeneratorRunStep? step) Single()
         {
-            Debug.Assert((_states.Length == 1 || _states.Length == 2 && _states[0].IsRemoved) && _states[^1].Count == 1);
+            Debug.Assert((_states.Length == 1 || _states.Length == 2 && _states[0].IsRemovedDueToInputRemoval) && _states[^1].Count == 1);
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
@@ -199,7 +203,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Mark the corresponding entries to this node execution in the previous table as removed.
-                var previousEntries = _previous._states[_states.Count].AsRemoved();
+                // Since they are removed due to their input having been removed, we won't have to keep placeholders for them.
+                var previousEntries = _previous._states[_states.Count].AsRemovedDueToInputRemoval();
                 _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
                 return true;
@@ -446,7 +451,8 @@ namespace Microsoft.CodeAnalysis
                 return new NodeStateTable<T>(
                     finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    hasTrackedSteps: TrackIncrementalSteps);
+                    hasTrackedSteps: TrackIncrementalSteps,
+                    isCached: finalStates.All(static s => s.IsCached) && _previous.GetTotalEntryItemCount() == finalStates.Sum(static s => s.Count));
             }
 
             private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
@@ -464,9 +470,19 @@ namespace Microsoft.CodeAnalysis
             private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
             private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
             private static readonly ImmutableArray<EntryState> s_allModifiedEntries = ImmutableArray.Create(EntryState.Modified);
+
+            /// <summary>
+            /// All items removed as part of a transformation from non-empty input.
+            /// </summary>
             private static readonly ImmutableArray<EntryState> s_allRemovedEntries = ImmutableArray.Create(EntryState.Removed);
 
+            /// <summary>
+            /// All items removed because the input has been removed.
+            /// </summary>
+            private static readonly ImmutableArray<EntryState> s_allRemovedDueToInputRemoval = ImmutableArray.Create(EntryState.Removed);
+
             private readonly OneOrMany<T> _items;
+            private readonly bool _anyRemoved;
 
             /// <summary>
             /// Represents the corresponding state of each item in <see cref="_items"/>, or contains a single state when
@@ -475,15 +491,16 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableArray<EntryState> _states;
 
             public TableEntry(OneOrMany<T> items, EntryState state)
-                : this(items, GetSingleArray(state)) { }
+                : this(items, GetSingleArray(state), anyRemoved: state == EntryState.Removed) { }
 
-            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states)
+            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states, bool anyRemoved)
             {
                 Debug.Assert(!states.IsDefault);
                 Debug.Assert(states.Length == 1 || states.Distinct().Length > 1);
 
                 _items = items;
                 _states = states;
+                _anyRemoved = anyRemoved;
             }
 
             public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
@@ -505,7 +522,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
 
-            public bool IsRemoved => this._states == s_allRemovedEntries || this._states.All(s => s == EntryState.Removed);
+            public bool IsRemovedDueToInputRemoval => this._states == s_allRemovedDueToInputRemoval;
 
             public int Count => _items.Count;
 
@@ -515,9 +532,27 @@ namespace Microsoft.CodeAnalysis
 
             public OneOrMany<T> Items => _items;
 
-            public TableEntry AsCached() => new(_items, s_allCachedEntries);
+            public TableEntry AsCached()
+            {
+                if (!_anyRemoved)
+                {
+                    return new TableEntry(_items, s_allCachedEntries, anyRemoved: false);
+                }
 
-            public TableEntry AsRemoved() => new(_items, s_allRemovedEntries);
+                var itemBuilder = ArrayBuilder<T>.GetInstance();
+                for (int i = 0; i < this.Count; i++)
+                {
+                    if (this.GetState(i) != EntryState.Removed)
+                    {
+                        itemBuilder.Add(this.GetItem(i));
+                    }
+                }
+
+                Debug.Assert(itemBuilder.Count < this.Count);
+                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries, anyRemoved: false);
+            }
+
+            public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
             {
@@ -525,7 +560,7 @@ namespace Microsoft.CodeAnalysis
                 EntryState.Cached => s_allCachedEntries,
                 EntryState.Modified => s_allModifiedEntries,
                 EntryState.Removed => s_allRemovedEntries,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             public Enumerator GetEnumerator()
@@ -549,7 +584,6 @@ namespace Microsoft.CodeAnalysis
 
                 public T Current => _entry.GetItem(_index);
             }
-
 
 #if DEBUG
             public override string ToString()
@@ -588,6 +622,7 @@ namespace Microsoft.CodeAnalysis
 
                 private ArrayBuilder<EntryState>? _states;
                 private EntryState? _currentState;
+                private bool _anyRemoved;
 
                 private readonly int _requestedCapacity;
 
@@ -600,6 +635,7 @@ namespace Microsoft.CodeAnalysis
                 public void Add(T item, EntryState state)
                 {
                     _items.Add(item);
+                    _anyRemoved |= state == EntryState.Removed;
                     if (!_currentState.HasValue)
                     {
                         _currentState = state;
@@ -641,7 +677,7 @@ namespace Microsoft.CodeAnalysis
                         items = OneOrMany.Create(_items.ToImmutableAndFree());
                     }
 
-                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value), anyRemoved: _anyRemoved);
                 }
             }
         }

@@ -357,6 +357,9 @@ namespace Microsoft.DiaSymReader
 
         private unsafe void DefineLocalConstantImpl(ISymUnmanagedWriter5 symWriter, string name, object value, int constantSignatureToken)
         {
+#if NET6_0_OR_GREATER
+            Debug.Assert(OperatingSystem.IsWindows());
+#endif
             VariantStructure variant = new VariantStructure();
 #pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));

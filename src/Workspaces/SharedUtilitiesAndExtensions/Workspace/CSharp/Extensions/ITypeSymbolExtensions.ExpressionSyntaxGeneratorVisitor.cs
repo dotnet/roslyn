@@ -12,14 +12,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new();
+            private static readonly ExpressionSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
+            private static readonly ExpressionSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
-            private ExpressionSyntaxGeneratorVisitor()
-            {
-            }
+            private readonly bool _nameOnly;
+
+            private ExpressionSyntaxGeneratorVisitor(bool nameOnly)
+                => _nameOnly = nameOnly;
+
+            public static ExpressionSyntaxGeneratorVisitor Create(bool nameOnly)
+                => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create())!;
+                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_nameOnly))!;
 
             private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
+                if (!_nameOnly && TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
 
                 typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            private static ExpressionSyntax CreateMemberAccessExpression(
+            private static MemberAccessExpressionSyntax CreateMemberAccessExpression(
                 ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(SyntaxFactory.MemberAccessExpression(

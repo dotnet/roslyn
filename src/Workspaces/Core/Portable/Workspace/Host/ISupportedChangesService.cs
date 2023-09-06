@@ -55,13 +55,4 @@ namespace Microsoft.CodeAnalysis
                 => _workspace.CanApplyParseOptionChange(oldOptions, newOptions, project);
         }
     }
-
-    internal static class SupportedChangesServiceExtensions
-    {
-        public static bool CanApplyChange(this Solution solution, ApplyChangesKind kind)
-            => solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyChange(kind);
-
-        public static bool CanApplyParseOptionChange(this Project project, ParseOptions oldOptions, ParseOptions newOptions)
-            => project.Solution.Services.GetRequiredService<ISupportedChangesService>().CanApplyParseOptionChange(oldOptions, newOptions, project);
-    }
 }

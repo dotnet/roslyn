@@ -6,20 +6,6 @@
     <!-- Inherit Themed Dialog styles -->
     <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}" />
 
-    <Style x:Key="ControlsFocusVisualStyle" TargetType="{x:Type Control}">
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Rectangle x:Name="ControlFocusVisualRectangle"
-                      Stroke="{TemplateBinding Foreground}"
-                      StrokeThickness="1"
-                      StrokeDashArray="1 2"
-                      SnapsToDevicePixels="true"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
     <Style TargetType="TabItem">
         <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
         <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontSizeKey}}"/>

@@ -48,14 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                 {
                     var expressionType = context.Compilation.ExpressionOfTType();
+                    var conditionalAttributeType = context.Compilation.ConditionalAttribute();
+
                     context.RegisterSyntaxNodeAction(
-                        c => AnalyzeSyntax(c, expressionType),
+                        c => AnalyzeSyntax(c, expressionType, conditionalAttributeType),
                         SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
                 }
             });
         }
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType, INamedTypeSymbol? conditionalAttributeType)
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
@@ -169,6 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (!IsIdentityOrImplicitConversion(compilation, lambdaParameter.Type, invokedParameter.Type))
                     return;
             }
+
+            // If invoked method is conditional, converting lambda to method group produces compiler error
+            if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, conditionalAttributeType)))
+                return;
 
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that

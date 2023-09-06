@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             => symbol.GenerateTypeSyntax(allowVar);
 
         protected override ExpressionSyntax GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value)
-            => ExpressionGenerator.GenerateExpression(typeSymbol, value, canUseFieldReference: true);
+            => ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, typeSymbol, value, canUseFieldReference: true);
 
         protected override bool IsFieldDeclarationSyntax(SyntaxNode node)
             => node.IsKind(SyntaxKind.FieldDeclaration);

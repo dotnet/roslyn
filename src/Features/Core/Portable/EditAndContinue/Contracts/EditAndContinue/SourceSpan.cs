@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
 
         public static bool operator !=(SourceSpan left, SourceSpan right) => !(left == right);
 
-        internal string GetDebuggerDisplay() =>
-            (StartColumn >= 0) ?
-                $"({StartLine},{StartColumn})-({EndLine},{EndColumn})" :
-                $"{StartLine}-{EndLine}";
+        internal string GetDebuggerDisplay()
+            => (StartColumn >= 0)
+                ? $"({StartLine},{StartColumn})-({EndLine},{EndColumn})"
+                : $"{StartLine}-{EndLine}";
     }
 }

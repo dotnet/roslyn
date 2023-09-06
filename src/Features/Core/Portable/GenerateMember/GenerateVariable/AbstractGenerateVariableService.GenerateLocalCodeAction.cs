@@ -71,17 +71,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var localStatement = syntaxFactory.LocalDeclarationStatement(type, _state.IdentifierToken.ValueText, initializer);
                 localStatement = localStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
+                var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
+                var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var options = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                var info = options.GetInfo(
-                    new CodeGenerationContext(
-                        beforeThisLocation: _state.IdentifierToken.GetLocation()),
-                    _document.Project);
-
-                return codeGenService.AddStatements(
+                return info.Service.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
                     info,

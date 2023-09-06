@@ -50,6 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Ag
         public void TestGettingAnalyzerProvider() => TestGettingProvider<AnalyzerSetting>();
 
         [Fact]
-        public void TestGettingWhitespaceProvider() => TestGettingProvider<WhitespaceSetting>();
+        public void TestGettingWhitespaceProvider() => TestGettingProvider<Setting>();
     }
 }

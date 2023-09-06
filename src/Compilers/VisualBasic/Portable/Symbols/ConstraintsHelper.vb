@@ -759,6 +759,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
+        <Extension()>
+        Public Function HasInterfaceConstraint(typeParameter As TypeParameterSymbol) As Boolean
+            Dim result As TypeSymbol = Nothing
+
+            For Each constraint In typeParameter.ConstraintTypesNoUseSiteDiagnostics
+                Select Case constraint.Kind
+                    Case SymbolKind.ErrorType
+                        Continue For
+
+                    Case SymbolKind.TypeParameter
+                        If DirectCast(constraint, TypeParameterSymbol).HasInterfaceConstraint() Then
+                            Return True
+                        End If
+
+                    Case Else
+                        If constraint.IsInterfaceType() Then
+                            Return True
+                        End If
+                End Select
+            Next
+
+            Return False
+        End Function
+
         ''' <summary>
         ''' Return the most derived class type from the set of constraint types on this type
         ''' parameter and any type parameter it depends on. Returns Nothing if there are

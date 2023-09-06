@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -46,20 +47,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         }
 
         public static Encoding Encoding => Encoding.UTF8;
+        public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.
         /// </summary>
-        /// <param name="workspace">The containing workspace.</param>
+        /// <param name="services">Solution services.</param>
         /// <param name="loadFileFromDisk">Whether the source file already exists on disk and should be included. If
         /// this is a false, a document is still created, but it's not backed by the file system and thus we won't
         /// try to load it.</param>
-        public Tuple<ProjectInfo, DocumentId> GetProjectInfoAndDocumentId(Workspace workspace, bool loadFileFromDisk)
+        public (ProjectInfo, DocumentId) GetProjectInfoAndDocumentId(SolutionServices services, bool loadFileFromDisk)
         {
             var projectId = ProjectId.CreateNewId();
 
             // Just say it's always a DLL since we probably won't have a Main method
-            var compilationOptions = workspace.Services.GetLanguageServices(LanguageName).CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            var compilationOptions = services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageName).GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
             var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
@@ -70,32 +72,40 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 ? string.Format(@"[assembly: System.Reflection.AssemblyVersion(""{0}"")]", AssemblyIdentity.Version)
                 : string.Format(@"<Assembly: System.Reflection.AssemblyVersion(""{0}"")>", AssemblyIdentity.Version);
 
-            var assemblyInfoSourceTextContainer = SourceText.From(assemblyInfoString, Encoding).Container;
+            var assemblyInfoSourceText = SourceText.From(assemblyInfoString, Encoding, ChecksumAlgorithm);
 
             var assemblyInfoDocument = DocumentInfo.Create(
                 assemblyInfoDocumentId,
                 assemblyInfoFileName,
-                loader: TextLoader.From(assemblyInfoSourceTextContainer, VersionStamp.Default));
+                loader: TextLoader.From(assemblyInfoSourceText.Container, VersionStamp.Default),
+                filePath: null,
+                isGenerated: true)
+                .WithDesignTimeOnly(true);
 
             var generatedDocumentId = DocumentId.CreateNewId(projectId);
             var generatedDocument = DocumentInfo.Create(
                 generatedDocumentId,
                 Path.GetFileName(TemporaryFilePath),
+                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(services, TemporaryFilePath, Encoding) : null,
                 filePath: TemporaryFilePath,
-                loader: loadFileFromDisk ? new FileTextLoader(TemporaryFilePath, Encoding) : null);
+                isGenerated: true)
+                .WithDesignTimeOnly(true);
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: AssemblyIdentity.Name,
-                assemblyName: AssemblyIdentity.Name,
-                language: LanguageName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Default,
+                    name: AssemblyIdentity.Name,
+                    assemblyName: AssemblyIdentity.Name,
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: ChecksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: _parseOptions,
                 documents: new[] { assemblyInfoDocument, generatedDocument },
                 metadataReferences: References);
 
-            return Tuple.Create(projectInfo, generatedDocumentId);
+            return (projectInfo, generatedDocumentId);
         }
     }
 }

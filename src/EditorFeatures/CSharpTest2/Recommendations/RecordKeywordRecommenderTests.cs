@@ -112,6 +112,25 @@ $$");
 $$");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
         [Fact]
         public async Task TestAfterTypeDeclaration()
         {
@@ -163,7 +182,7 @@ $$");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -179,7 +198,7 @@ using Goo;");
 global using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -245,7 +264,7 @@ $$");
    $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord2()
         {
             // The recommender doesn't work in record in script
@@ -255,7 +274,7 @@ $$");
    public $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord3()
         {
             // The recommender doesn't work in record in script
@@ -285,6 +304,13 @@ $$");
         {
             await VerifyKeywordAsync(
 @"abstract $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$");
         }
 
         [Fact]
@@ -365,7 +391,7 @@ $$");
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -375,7 +401,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -385,7 +411,7 @@ $$
 using Bar;");
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214

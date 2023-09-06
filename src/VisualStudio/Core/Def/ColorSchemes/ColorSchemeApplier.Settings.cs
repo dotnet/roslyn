@@ -114,29 +114,29 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             public ColorSchemeName GetConfiguredColorScheme()
             {
-                var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
+                var schemeName = _globalOptions.GetOption(ColorSchemeOptionsStorage.ColorScheme);
                 return schemeName != ColorSchemeName.None
                     ? schemeName
-                    : ColorSchemeOptions.ColorScheme.DefaultValue;
+                    : ColorSchemeOptionsStorage.ColorScheme.Definition.DefaultValue;
             }
 
             public void MigrateToColorSchemeSetting()
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptionsStorage.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
-                if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
+                if (useEnhancedColorsSetting == ColorSchemeOptionsStorage.UseEnhancedColors.Migrated)
                 {
                     return;
                 }
 
-                var colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
+                var colorScheme = useEnhancedColorsSetting == ColorSchemeOptionsStorage.UseEnhancedColors.DoNotUse
                     ? ColorSchemeName.VisualStudio2017
                     : ColorSchemeName.VisualStudio2019;
 
-                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
-                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
+                _globalOptions.SetGlobalOption(ColorSchemeOptionsStorage.ColorScheme, colorScheme);
+                _globalOptions.SetGlobalOption(ColorSchemeOptionsStorage.LegacyUseEnhancedColors, ColorSchemeOptionsStorage.UseEnhancedColors.Migrated);
             }
         }
     }

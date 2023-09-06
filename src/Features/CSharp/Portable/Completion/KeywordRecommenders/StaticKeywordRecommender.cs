@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.PrivateKeyword,
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
         };
 
         private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

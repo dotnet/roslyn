@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
-            return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
+            return $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
         public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable
@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             protected override string GetText(IFormatProvider? formatProvider)
             {
                 var messageFormat = _messageFormat.ToString(formatProvider);
-                return messageFormat != null ?
-                    (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat) :
-                    string.Empty;
+                return messageFormat != null
+                    ? (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat)
+                    : string.Empty;
             }
 
             protected override bool AreEqual(object? other)

@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (testData != null)
             {
-                this.SetMethodTestData(testData.Methods);
-                testData.Module = this;
+                SetTestData(testData);
             }
         }
 

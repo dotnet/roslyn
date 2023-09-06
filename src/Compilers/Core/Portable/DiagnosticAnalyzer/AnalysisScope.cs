@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -59,6 +60,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool IsPartialAnalysis { get; }
 
+        /// <summary>
+        /// True if we are performing semantic analysis for a single source file with a single analyzer in scope,
+        /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
+        /// </summary>
+        public bool IsSemanticSingleFileAnalysisForCompilerAnalyzer =>
+            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
+
         public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
             : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
                    analyzers, isPartialAnalysis: !hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: concurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics)
@@ -77,6 +85,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(isPartialAnalysis || FilterFileOpt == null);
             Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
             Debug.Assert(isPartialAnalysis || !isSyntacticSingleFileAnalysis);
+
+            if (filterSpanOpt.HasValue)
+            {
+                Debug.Assert(filterFile.HasValue);
+                Debug.Assert(filterFile.GetValueOrDefault().SourceTree != null);
+
+                // PERF: Clear out filter span if the span length is equal to the entire tree span, and the filter span starts at 0.
+                //       We are basically analyzing the entire tree, and clearing out the filter span
+                //       avoids span intersection checks for each symbol/node/operation in the tree
+                //       to determine if it falls in the analysis scope.
+                if (filterSpanOpt.GetValueOrDefault().Start == 0 && filterSpanOpt.GetValueOrDefault().Length == filterFile.GetValueOrDefault().SourceTree!.Length)
+                {
+                    filterSpanOpt = null;
+                }
+            }
 
             SyntaxTrees = trees;
             AdditionalFiles = additionalFiles;
@@ -110,6 +133,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
         }
 
+        public AnalysisScope WithFilterSpan(TextSpan? filterSpan)
+            => new AnalysisScope(SyntaxTrees, AdditionalFiles, Analyzers, IsPartialAnalysis, FilterFileOpt, filterSpan, IsSyntacticSingleFileAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {
             // Skip symbol actions for implicitly declared symbols and non-source symbols.
@@ -125,31 +151,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool ShouldAnalyze(SyntaxTree tree)
         {
-            return !FilterFileOpt.HasValue || FilterFileOpt.Value.SourceTree == tree;
+            return !FilterFileOpt.HasValue || FilterFileOpt.GetValueOrDefault().SourceTree == tree;
         }
 
         public bool ShouldAnalyze(AdditionalText file)
         {
-            return !FilterFileOpt.HasValue || FilterFileOpt.Value.AdditionalFile == file;
+            return !FilterFileOpt.HasValue || FilterFileOpt.GetValueOrDefault().AdditionalFile == file;
         }
 
-        public bool ShouldAnalyze(ISymbol symbol)
+        public bool ShouldAnalyze(
+            SymbolDeclaredCompilationEvent symbolEvent,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopmostNodeForAnalysis,
+            CancellationToken cancellationToken)
         {
             if (!FilterFileOpt.HasValue)
             {
                 return true;
             }
 
-            if (FilterFileOpt.Value.SourceTree == null)
+            var filterTree = FilterFileOpt.GetValueOrDefault().SourceTree;
+            if (filterTree == null)
             {
                 return false;
             }
 
-            foreach (var location in symbol.Locations)
+            foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
             {
-                if (FilterFileOpt.Value.SourceTree == location.SourceTree && ShouldInclude(location.SourceSpan))
+                if (syntaxRef.SyntaxTree == filterTree)
                 {
-                    return true;
+                    var node = getTopmostNodeForAnalysis(symbolEvent.Symbol, syntaxRef, symbolEvent.Compilation, cancellationToken);
+                    if (ShouldInclude(node.FullSpan))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -163,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            if (FilterFileOpt.Value.SourceTree == null)
+            if (FilterFileOpt.GetValueOrDefault().SourceTree == null)
             {
                 return false;
             }
@@ -171,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ShouldInclude(node.FullSpan);
         }
 
-        private bool ShouldInclude(TextSpan filterSpan)
+        public bool ShouldInclude(TextSpan filterSpan)
         {
-            return !FilterSpanOpt.HasValue || FilterSpanOpt.Value.IntersectsWith(filterSpan);
+            return !FilterSpanOpt.HasValue || FilterSpanOpt.GetValueOrDefault().IntersectsWith(filterSpan);
         }
 
         public bool ContainsSpan(TextSpan filterSpan)
         {
-            return !FilterSpanOpt.HasValue || FilterSpanOpt.Value.Contains(filterSpan);
+            return !FilterSpanOpt.HasValue || FilterSpanOpt.GetValueOrDefault().Contains(filterSpan);
         }
 
         public bool ShouldInclude(Diagnostic diagnostic)
@@ -188,17 +222,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
+            var filterFile = FilterFileOpt.GetValueOrDefault();
             if (diagnostic.Location.IsInSource)
             {
-                if (diagnostic.Location.SourceTree != FilterFileOpt.Value.SourceTree)
+                if (diagnostic.Location.SourceTree != filterFile.SourceTree)
                 {
                     return false;
                 }
             }
             else if (diagnostic.Location is ExternalFileLocation externalFileLocation)
             {
-                if (FilterFileOpt.Value.AdditionalFile == null ||
-                    !PathUtilities.Comparer.Equals(externalFileLocation.FilePath, FilterFileOpt.Value.AdditionalFile.Path))
+                if (filterFile.AdditionalFile == null ||
+                    !PathUtilities.Comparer.Equals(externalFileLocation.GetLineSpan().Path, filterFile.AdditionalFile.Path))
                 {
                     return false;
                 }

@@ -121,14 +121,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
-            public ITypeSymbol GetVariableType(SemanticDocument document)
-                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
+            public ITypeSymbol GetVariableType()
+                => _variableSymbol.OriginalType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+
+            public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
             public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {

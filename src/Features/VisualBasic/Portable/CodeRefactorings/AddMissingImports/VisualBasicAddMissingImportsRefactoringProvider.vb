@@ -18,7 +18,7 @@ Friend Class VisualBasicAddMissingImportsRefactoringProvider
 
     <ImportingConstructor>
     <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-    Public Sub New(pasteTrackingService As IPasteTrackingService)
+    Public Sub New(<Import(AllowDefault:=True)> pasteTrackingService As IPasteTrackingService)
         MyBase.New(pasteTrackingService)
     End Sub
 End Class

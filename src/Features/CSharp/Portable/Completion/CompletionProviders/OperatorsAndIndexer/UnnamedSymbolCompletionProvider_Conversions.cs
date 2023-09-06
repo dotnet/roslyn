@@ -141,10 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (item.Properties.ContainsKey(RehydrateName))
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length == 3 &&
-                    symbols[0] is INamedTypeSymbol containingType &&
-                    symbols[1] is ITypeSymbol fromType &&
-                    symbols[2] is ITypeSymbol toType)
+                if (symbols is [INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType])
                 {
                     return CodeGenerationSymbolFactory.CreateConversionSymbol(
                         toType: toType,

@@ -42,6 +42,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests"/>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
@@ -72,7 +73,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Threading.Tasks"/>
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>

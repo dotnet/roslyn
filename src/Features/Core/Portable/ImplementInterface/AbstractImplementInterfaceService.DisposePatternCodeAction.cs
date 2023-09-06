@@ -153,19 +153,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-
                 var context = new CodeGenerationContext(
                     addImports: false,
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var options = await document.GetCodeGenerationOptionsAsync(Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
+                var typeDeclarationWithAllMembers = info.Service.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    options.GetInfo(context, document.Project),
+                    info,
                     cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(

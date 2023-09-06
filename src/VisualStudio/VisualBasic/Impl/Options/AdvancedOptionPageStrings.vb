@@ -19,6 +19,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
 
+        Public ReadOnly Property Option_analyze_source_generated_files As String =
+             ServicesVSResources.Analyze_source_generated_files
+
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             ServicesVSResources.None
 
@@ -377,5 +380,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
             ServicesVSResources.Show_UI_as_dashboard_in_top_right
+
+        Public ReadOnly Property Document_Outline As String =
+            ServicesVSResources.Document_Outline
+
+        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
+            ServicesVSResources.Enable_document_outline_experimental_requires_restart
     End Module
 End Namespace

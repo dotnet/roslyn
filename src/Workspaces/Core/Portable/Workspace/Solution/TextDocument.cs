@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis
         /// Gets the current text for the document asynchronously.
         /// </summary>
         public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
-            => State.GetTextAsync(cancellationToken).AsTask();
+            => GetValueTextAsync(cancellationToken).AsTask();
+
+        internal ValueTask<SourceText> GetValueTextAsync(CancellationToken cancellationToken)
+            => State.GetTextAsync(cancellationToken);
 
         /// <summary>
         /// Fetches the current text for the document synchronously.

@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
+#pragma warning disable RS0030 // Do not used banned APIs
     /// <summary>
     /// A <see cref="CodeActionOperation"/> for applying solution changes to a workspace.
     /// <see cref="CodeAction.GetOperationsAsync(CancellationToken)"/> may return at most one
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     ///   to use the built-in preview mechanism</text></description>
     /// </list>
     /// </summary>
+#pragma warning restore RS0030 // Do not used banned APIs
     public sealed class ApplyChangesOperation : CodeActionOperation
     {
         public Solution ChangedSolution { get; }

@@ -3,44 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal sealed class DocumentSymbolData
-    {
-        public string Name { get; }
-        public SymbolKind SymbolKind { get; }
-        public SnapshotSpan RangeSpan { get; }
-        public SnapshotSpan SelectionRangeSpan { get; }
-        public ImmutableArray<DocumentSymbolData> Children { get; }
-
-        public DocumentSymbolData(DocumentSymbol documentSymbol, SnapshotSpan rangeSpan, SnapshotSpan selectionRangeSpan, ImmutableArray<DocumentSymbolData> children)
-        {
-            Name = documentSymbol.Name;
-            SymbolKind = documentSymbol.Kind;
-            RangeSpan = rangeSpan;
-            SelectionRangeSpan = selectionRangeSpan;
-            Children = children;
-        }
-
-        private DocumentSymbolData(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolData> children)
-        {
-            Name = documentSymbolData.Name;
-            SymbolKind = documentSymbolData.SymbolKind;
-            RangeSpan = documentSymbolData.RangeSpan;
-            SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
-            Children = children;
-        }
-
-        public DocumentSymbolData WithChildren(ImmutableArray<DocumentSymbolData> children)
-            => new(this, children);
-    }
+    /// <summary>
+    /// Represents the immutable symbol returned from the LSP request to get document symbols, but mapped into
+    /// editor/text-snapshot concepts.
+    /// </summary>
+    internal sealed record DocumentSymbolData(
+        string Name,
+        SymbolKind SymbolKind,
+        Glyph Glyph,
+        SnapshotSpan RangeSpan,
+        SnapshotSpan SelectionRangeSpan,
+        ImmutableArray<DocumentSymbolData> Children);
 }

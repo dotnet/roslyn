@@ -71,8 +71,6 @@ namespace BuildValidator
 
             var excludes = new List<string>(exclude ?? Array.Empty<string>());
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
-            excludes.Add(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar);
-            excludes.Add(Path.DirectorySeparatorChar + "refint" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
@@ -159,13 +157,19 @@ namespace BuildValidator
 
                     if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
                     {
-                        logger.LogError($"Skipping non-pe file {filePath}");
+                        logger.LogInformation($"Skipping non-pe file {filePath}");
                         continue;
                     }
 
                     if (peInfo.IsReadyToRun)
                     {
-                        logger.LogError($"Skipping ReadyToRun file {filePath}");
+                        logger.LogInformation($"Skipping ReadyToRun file {filePath}");
+                        continue;
+                    }
+
+                    if (peInfo.IsReferenceAssembly)
+                    {
+                        logger.LogInformation($"Skipping reference assembly {filePath}");
                         continue;
                     }
 
@@ -195,7 +199,7 @@ namespace BuildValidator
         private static bool ValidateFiles(IEnumerable<AssemblyInfo> assemblyInfos, Options options, ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger<Program>();
-            var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
+            var referenceResolver = LocalReferenceResolver.Create(options, loggerFactory);
 
             var assembliesCompiled = new List<CompilationDiff>();
             foreach (var assemblyInfo in assemblyInfos)
@@ -315,6 +319,7 @@ namespace BuildValidator
             }
             catch (Exception ex)
             {
+                logger.LogError(ex.Message);
                 return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
             }
         }

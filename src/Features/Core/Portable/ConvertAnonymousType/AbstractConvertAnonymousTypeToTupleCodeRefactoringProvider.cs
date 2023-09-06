@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             if (allAnonymousNodes.Any(t => !anonymousType.Equals(t.symbol, SymbolEqualityComparer.Default)))
             {
                 context.RegisterRefactoring(
-                    CodeAction.CodeActionWithNestedActions.Create(
+                    CodeAction.Create(
                         FeaturesResources.Convert_to_tuple,
                         ImmutableArray.Create(
                             CodeAction.Create(FeaturesResources.just_this_anonymous_type, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c), nameof(FeaturesResources.just_this_anonymous_type)),

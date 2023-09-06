@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using static AnalyzerRunner.Program;
@@ -91,7 +92,8 @@ namespace AnalyzerRunner
 
                     foreach (var codeAction in codeActions)
                     {
-                        var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                        var operations = await codeAction.GetOperationsAsync(
+                            document.Project.Solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
                         foreach (var operation in operations)
                         {
                             if (operation is not ApplyChangesOperation applyChangesOperation)

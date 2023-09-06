@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp</PackageId>
@@ -41,6 +41,8 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>

@@ -350,7 +350,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me._lazyStaticLambdaFrame
         End Function
 
-
         ''' <summary>
         ''' Produces a bound expression representing a pointer to a frame of a particular frame type.
         ''' </summary>
@@ -548,7 +547,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         prologue.Add(assignment)
                     End If
-
 
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame.GetCciAdapter())
 
@@ -1205,7 +1203,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
         ' This helper checks syntactically whether there is a loop or lambda expression
         ' between given lambda syntax and the syntax that corresponds to its closure.

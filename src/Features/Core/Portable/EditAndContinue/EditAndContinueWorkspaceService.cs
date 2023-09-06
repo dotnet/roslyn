@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        internal static readonly TraceLog Log = new(2048, "EnC", GetLogDirectory());
+        internal static readonly TraceLog Log;
+        internal static readonly TraceLog AnalysisLog;
 
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
 
@@ -41,6 +42,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public EditAndContinueWorkspaceService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
+        }
+
+        static EditAndContinueWorkspaceService()
+        {
+            Log = new(2048, "EnC", "Trace.log");
+            AnalysisLog = new(1024, "EnC", "Analysis.log");
+
+            var logDir = GetLogDirectory();
+            if (logDir != null)
+            {
+                Log.SetLogDirectory(logDir);
+                AnalysisLog.SetLogDirectory(logDir);
+            }
         }
 
         private static string? GetLogDirectory()
@@ -60,6 +74,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return null;
             }
+        }
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            Log.SetLogDirectory(logDirectory ?? GetLogDirectory());
         }
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -94,19 +113,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void OnSourceFileUpdated(Document document)
-        {
-            // notify all active debugging sessions
-            foreach (var debuggingSession in GetActiveDebuggingSessions())
-            {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
-            }
-        }
-
         public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
             Solution solution,
             IManagedHotReloadService debuggerService,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             ImmutableArray<DocumentId> captureMatchingDocuments,
             bool captureAllMatchingDocuments,
             bool reportDiagnostics,
@@ -120,11 +130,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
                 {
-                    var documentsByProject = captureAllMatchingDocuments ?
-                        solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
-                        GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+                    var documentsByProject = captureAllMatchingDocuments
+                        ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
+                        : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
 
-                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -132,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
+                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
 
                 lock (_debuggingSessions)
                 {
@@ -145,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

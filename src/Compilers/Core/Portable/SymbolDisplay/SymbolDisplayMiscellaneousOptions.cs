@@ -78,5 +78,11 @@ namespace Microsoft.CodeAnalysis
         /// to how anonymous types are inserted).
         /// </summary>
         CollapseTupleTypes = 1 << 9,
+
+        /// <summary>
+        /// Displays <see cref="System.ValueTuple"/> as a normal generic type, rather than with the special
+        /// parenthetical syntax (e.g. <code>ValueTuple&lt;int, string&gt;</code> instead of <code>(int, string)</code>)
+        /// </summary>
+        ExpandValueTuple = 1 << 10,
     }
 }

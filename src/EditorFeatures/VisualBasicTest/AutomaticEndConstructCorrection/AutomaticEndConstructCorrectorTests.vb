@@ -212,7 +212,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
         End Sub
 
-        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact>
         Public Sub TestMultiLineLambdaSubToFunction()
             Dim code = <code>Class A
@@ -228,7 +228,7 @@ End Class</code>.Value
             Verify(code, "Function")
         End Sub
 
-        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact>
         Public Sub TestMultiLineLambdaFunctionToSub()
             Dim code = <code>Class A
@@ -243,7 +243,7 @@ End Class</code>.Value
             Verify(code, "Sub")
         End Sub
 
-        <WorkItem(539365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
         <WpfFact>
         Public Sub BugFix5290()
             Dim code = <code>Public Class Class1
@@ -256,7 +256,7 @@ End [|Class|]</code>.Value
             VerifyEnd(code, "Structure", "Class")
         End Sub
 
-        <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         <WpfFact>
         Public Sub TestBugFix5276()
             Dim code = <code>Class A
@@ -267,7 +267,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "  ", Function(s) "Function", removeOriginalContent:=False)
         End Sub
 
-        <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         <WpfFact>
         Public Sub TestBugFix5283()
             Dim code = <code>Class A
@@ -278,7 +278,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
         End Sub
 
-        <WpfFact, WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
         Public Sub TestDontThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]

@@ -984,7 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything2);
         }
 
-
         // find the nearest symbol in list to the symbol 'type'.  It may be the same symbol if its the only one.
         private static Symbol GetNearestOtherSymbol(ConsList<TypeSymbol> list, TypeSymbol type)
         {
@@ -1305,6 +1304,10 @@ symIsHidden:;
             {
                 return ImmutableArray<Symbol>.Empty;
             }
+            else if (nsOrType is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+            {
+                return sourceMemberContainerTypeSymbol.GetCandidateMembersForLookup(name);
+            }
             else
             {
                 return nsOrType.GetMembers(name);
@@ -1372,7 +1375,7 @@ symIsHidden:;
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1392,7 +1395,11 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
+            if ((options & LookupOptions.MustNotBeParameter) != 0 && unwrappedSymbol is ParameterSymbol)
+            {
+                return LookupResult.Empty();
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }

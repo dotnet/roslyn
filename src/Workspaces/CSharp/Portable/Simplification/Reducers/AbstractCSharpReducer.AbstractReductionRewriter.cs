@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var topMostCref = cref
                     .AncestorsAndSelf()
                     .OfType<CrefSyntax>()
-                    .LastOrDefault();
+                    .Last();
 
                 Contract.ThrowIfNull(topMostCref.Parent);
                 return topMostCref.Parent;

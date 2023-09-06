@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -133,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         {
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,

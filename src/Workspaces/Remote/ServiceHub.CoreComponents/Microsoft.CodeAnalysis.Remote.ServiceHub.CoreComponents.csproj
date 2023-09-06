@@ -132,6 +132,16 @@
   <Target Name="BeforePublishProjectOutputGroup" DependsOnTargets="LocateDependencies;LocateCrossgenTargets" />
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="BeforePublishProjectOutputGroup;CompileReadyToRun" Returns="@(_PublishedFiles)">
+    <PropertyGroup>
+      <!-- 
+        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
+        This might not be possible if Roslyn is referencing a higher version than the one shipped as part of runtime in VS.
+        For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
+        two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
+        Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
+      -->
+      <_PublishRuntimeLibraries>true</_PublishRuntimeLibraries>
+    </PropertyGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
       <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
@@ -139,12 +149,8 @@
 
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)runtimes\**\*.*" />
-      <!-- 
-        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
-        However, we can't safely exclude shared dependencies from ServiceHub host folder: we might be referencing
-        a higher version, or back-compat might not be guaranteed in the version shipped by host.
-      -->
-      <_ExcludedFiles Include="@(_RuntimeLibrariesInPublishDir)" />
+
+      <_ExcludedFiles Condition="'$(_PublishRuntimeLibraries)' == 'false'" Include="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->

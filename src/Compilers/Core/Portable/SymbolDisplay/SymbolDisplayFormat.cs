@@ -27,14 +27,16 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
+
+        internal static SymbolDisplayFormat CSharpErrorMessageNoParameterNamesFormat { get; } = CSharpErrorMessageFormat
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -52,14 +54,13 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
@@ -227,7 +228,8 @@ namespace Microsoft.CodeAnalysis
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
         /// <summary>
         /// A succinct format for displaying symbols.
@@ -254,8 +256,10 @@ namespace Microsoft.CodeAnalysis
                 kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple);
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.
@@ -764,6 +768,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal SymbolDisplayFormat AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
             => WithCompilerInternalOptions(this.CompilerInternalOptions | options);
+
+        /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with a set of <see cref="SymbolDisplayCompilerInternalOptions"/> stripped away from the original object.
+        /// </summary>
+        internal SymbolDisplayFormat RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions options)
+            => WithCompilerInternalOptions(this.CompilerInternalOptions & ~options);
 
         /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="SymbolDisplayCompilerInternalOptions"/>.

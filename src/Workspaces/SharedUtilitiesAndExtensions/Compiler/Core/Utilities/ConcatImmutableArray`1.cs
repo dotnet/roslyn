@@ -65,7 +65,7 @@ namespace Roslyn.Utilities
                 return _current.MoveNext();
             }
 
-            void IDisposable.Dispose()
+            readonly void IDisposable.Dispose()
             {
             }
 

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal interface IAddImportsService : ILanguageService
     {
-        AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
+        AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
 
         /// <summary>
         /// Returns true if the tree already has an existing import syntactically equivalent to

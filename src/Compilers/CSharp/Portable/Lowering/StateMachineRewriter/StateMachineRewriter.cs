@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -23,29 +22,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly BindingDiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
-        protected readonly VariableSlotAllocator slotAllocatorOpt;
+        protected readonly VariableSlotAllocator? slotAllocatorOpt;
         protected readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals;
         protected readonly ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder;
 
-        protected FieldSymbol stateField;
-        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
+        protected FieldSymbol? stateField;
+        protected FieldSymbol? instanceIdField;
+        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement>? nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
-        protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
-        protected FieldSymbol initialThreadIdField;
+        protected IOrderedReadOnlySet<Symbol>? hoistedVariables;
+        protected Dictionary<Symbol, CapturedSymbolReplacement>? initialParameters;
+        protected FieldSymbol? initialThreadIdField;
 
         protected StateMachineRewriter(
             BoundStatement body,
             MethodSymbol method,
             SynthesizedContainer stateMachineType,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert((object)stateMachineType != null);
+            Debug.Assert(stateMachineType is not null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(F.Syntax == body.Syntax);
         }
 
+#nullable disable
         /// <summary>
         /// True if the initial values of locals in the rewritten method and the initial thread ID need to be preserved. (e.g. enumerable iterator methods and async-enumerable iterator methods)
         /// </summary>

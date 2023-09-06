@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    globalOptions,
                    workspace,
                    listenerProvider,
-                   SymbolSearchGlobalOptions.Enabled,
+                   SymbolSearchGlobalOptionsStorage.Enabled,
                    ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;

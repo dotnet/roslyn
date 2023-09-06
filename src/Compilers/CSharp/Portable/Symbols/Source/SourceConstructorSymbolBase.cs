@@ -27,10 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIterator)
             : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), isIterator)
         {
-            Debug.Assert(
-                syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                syntax.IsKind(SyntaxKind.RecordDeclaration) ||
-                syntax.IsKind(SyntaxKind.RecordStructDeclaration));
+            Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
         }
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
@@ -242,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // we haven't found the constructor part that declares the variable:
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract override bool IsNullableAnalysisEnabled();

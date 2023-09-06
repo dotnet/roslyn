@@ -62,19 +62,14 @@ namespace Microsoft.Cci
             _blobHeapSize = 1;
         }
 
-        internal void SerializeMethodDynamicAnalysisData(IMethodBody bodyOpt)
+#nullable enable
+        internal void SerializeMethodCodeCoverageData(IMethodBody? body)
         {
-            var data = bodyOpt?.DynamicAnalysisData;
-
-            if (data == null)
-            {
-                _methodTable.Add(default(MethodRow));
-                return;
-            }
-
-            BlobHandle spanBlob = SerializeSpans(data.Spans, _documentIndex);
+            var spans = body?.CodeCoverageSpans ?? ImmutableArray<SourceSpan>.Empty;
+            BlobHandle spanBlob = SerializeSpans(spans, _documentIndex);
             _methodTable.Add(new MethodRow { Spans = spanBlob });
         }
+#nullable disable
 
         #region Heaps
 

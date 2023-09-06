@@ -29,5 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
         Protected Overrides Function GetCompilerDiagnosticAnalyzerInfo() As (assembly As Assembly, typeName As String)
             Return (GetType(SyntaxKind).Assembly, CompilerDiagnosticAnalyzerNames.VisualBasicCompilerAnalyzerTypeName)
         End Function
+
+        Protected Overrides Function ContainsPragmaDirective(root As SyntaxNode) As Boolean
+            Return root.ContainsDirective(SyntaxKind.DisableWarningDirectiveTrivia) Or
+                root.ContainsDirective(SyntaxKind.EnableWarningDirectiveTrivia)
+        End Function
     End Class
 End Namespace

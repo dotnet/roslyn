@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private CustomAttributesBag<CSharpAttributeData> _lazyNetModuleAttributesBag;
 
+#nullable enable 
+
         private IDictionary<string, NamedTypeSymbol> _lazyForwardedTypesFromSource;
+
+#nullable disable
 
         /// <summary>
         /// Indices of attributes that will not be emitted for one of two reasons:
@@ -692,7 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // UnverifiableCodeAttribute is found.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
                 WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor, diagnostics, NoLocation.Singleton);
-
 
             TypeSymbol securityPermissionAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute);
             Debug.Assert((object)securityPermissionAttribute != null, "GetWellKnownType unexpectedly returned null");
@@ -1844,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
@@ -1858,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SourceAssemblySymbol is never used directly as a reference
             // when it is or any of its references is linked.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsLinked
@@ -2373,7 +2376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
-                    diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation, verString ?? "<null>");
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyVersionAttributeSetting = version;
@@ -2385,7 +2388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParse(verString, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation, verString ?? "<null>");
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFileVersionAttributeSetting = verString;
@@ -2437,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation, verString ?? "<null>");
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyCopyrightAttribute))
@@ -2752,7 +2755,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+#nullable enable
+
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             int forcedArity = emittedName.ForcedArity;
 
@@ -2800,7 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyForwardedTypesFromSource = forwardedTypesFromSource;
             }
 
-            NamedTypeSymbol result;
+            NamedTypeSymbol? result;
 
             if (_lazyForwardedTypesFromSource.TryGetValue(emittedName.FullName, out result))
             {
@@ -2836,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                         }
                     }
                 }
@@ -2844,6 +2849,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {

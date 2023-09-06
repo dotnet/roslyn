@@ -91,10 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var options = new IndentationOptions(
                 new CSharpSyntaxFormattingOptions
                 {
-                    Common = new SyntaxFormattingOptions.CommonOptions()
-                    {
-                        LineFormatting = new LineFormattingOptions { UseTabs = useTabs }
-                    }
+                    LineFormatting = new() { UseTabs = useTabs }
                 });
 
             var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);

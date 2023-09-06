@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dataFlowsIn;
         }
 
+        protected override LocalState TopState()
+        {
+            return new LocalState(BitVector.Empty);
+        }
+
         private LocalState ResetState(LocalState state)
         {
             bool unreachable = !state.Reachable;

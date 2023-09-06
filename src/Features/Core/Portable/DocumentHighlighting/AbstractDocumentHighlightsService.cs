@@ -117,8 +117,10 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-                await SymbolFinder.FindReferencesAsync(
+                // We're running in the background.  So set us as 'Explicit = false' to avoid running in parallel and
+                // using too many resources.
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol) with { Explicit = false };
+                await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 

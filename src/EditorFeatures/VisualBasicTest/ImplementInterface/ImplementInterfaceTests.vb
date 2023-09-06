@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider)
         End Function
 
-        <Fact, WorkItem(540085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540085")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540085")>
         Public Async Function TestSimpleMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -114,7 +114,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542012")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542012")>
         Public Async Function TestMethodConflictWithField() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -137,7 +137,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
         Public Async Function TestAutoPropertyConflict() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -165,7 +165,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
         Public Async Function TestFullPropertyConflict() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -205,7 +205,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         Public Async Function TestConflictFromBaseClass1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -236,7 +236,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         Public Async Function TestConflictFromBaseClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -265,7 +265,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         Public Async Function TestConflictFromBaseClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -447,7 +447,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/472")>
         Public Async Function TestImplementThroughFieldMemberRemoveUnnecessaryCast() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections
@@ -467,7 +467,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/472")>
         Public Async Function TestImplementThroughFieldMemberRemoveUnnecessaryCastAndMe() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections
@@ -534,7 +534,7 @@ End Class
             Await TestAsync(source, expected, index:=1)
         End Function
 
-        <Fact, WorkItem(540355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
         Public Async Function TestMissingOnImplementationWithDifferentName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1(Of T)
@@ -548,7 +548,7 @@ Class M
 End Class")
         End Function
 
-        <Fact, WorkItem(540366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540366")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540366")>
         Public Async Function TestWithMissingEndBlock() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -565,7 +565,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(540367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540367")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540367")>
         Public Async Function TestSimpleProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -683,7 +683,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(540403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540403")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540403")>
         Public Async Function TestMissingOnInterfaceWithJustADelegate() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1
@@ -694,7 +694,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(540381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540381")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540381")>
         Public Async Function TestOrdering1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -723,7 +723,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, WorkItem(540415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540415")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540415")>
         Public Async Function TestDefaultProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -778,7 +778,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(540402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540402")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540402")>
         Public Async Function TestArrayRankSpecifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -799,7 +799,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(540398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540398")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540398")>
         Public Async Function TestSimplifyImplementsClause() As Task
             Await TestAsync(
 "Namespace ConsoleApplication
@@ -825,7 +825,7 @@ End Namespace",
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Function
 
-        <Fact, WorkItem(541078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541078")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541078")>
         Public Async Function TestParamArray() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I2
@@ -857,7 +857,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         Public Async Function TestDoNotShowForImplementedPrivateInterfaceMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1
@@ -871,7 +871,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, WorkItem(542010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542010")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542010")>
         Public Async Function TestNoImplementThroughSynthesizedFields() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -925,7 +925,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementIReadOnlyListThroughField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -962,7 +962,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementIReadOnlyListThroughProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -1000,7 +1000,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementInterfaceThroughField() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -1036,7 +1036,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementInterfaceThroughField_FieldImplementsMultipleInterfaces() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1161,7 +1161,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementInterfaceThroughField_MultipleFieldsCanImplementInterface() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1251,7 +1251,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestImplementInterfaceThroughField_MultipleFieldsForMultipleInterfaces() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1418,7 +1418,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestNoImplementThroughDefaultProperty() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1441,7 +1441,7 @@ End Class",
 count:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestNoImplementThroughParameterizedProperty() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1464,7 +1464,7 @@ End Class",
 count:=1)
         End Function
 
-        <Fact, WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         Public Async Function TestNoImplementThroughWriteOnlyProperty() As Task
             Await TestActionCountAsync(
 "Interface I
@@ -1486,7 +1486,7 @@ End Class",
 count:=1)
         End Function
 
-        <Fact, WorkItem(540469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540469")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540469")>
         Public Async Function TestInsertBlankLineAfterImplementsAndInherits() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Interface I1
@@ -1509,7 +1509,7 @@ Class M
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(542290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542290")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542290")>
         Public Async Function TestMethodShadowsProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -1540,7 +1540,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(542606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542606")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542606")>
         Public Async Function TestRemMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -1561,7 +1561,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(543425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543425")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543425")>
         Public Async Function TestMissingIfEventAlreadyImplemented() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.ComponentModel
@@ -1571,7 +1571,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(543506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543506")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543506")>
         Public Async Function TestAddEvent1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.ComponentModel
@@ -1628,7 +1628,7 @@ Class Boss
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(543588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543588")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543588")>
         Public Async Function TestNameSimplifyGenericType() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I(Of In T, Out R)
@@ -1649,7 +1649,7 @@ Class C(Of T, R)
 End Class")
         End Function
 
-        <Fact, WorkItem(544156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544156")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544156")>
         Public Async Function TestInterfacePropertyRedefinition() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -1692,7 +1692,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(544208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544208")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544208")>
         Public Async Function TestMissingOnWrongArity() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1(Of T)
@@ -1703,7 +1703,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(529328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529328")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529328")>
         Public Async Function TestPropertyShadowing() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -1743,7 +1743,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(544206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544206")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544206")>
         Public Async Function TestEventWithImplicitDelegateCreation() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
@@ -1783,7 +1783,7 @@ Class Bar
 End Class")
         End Function
 
-        <Fact, WorkItem(545643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545643"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545643"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBConstantValue1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Microsoft.VisualBasic
@@ -1840,7 +1840,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <Fact, WorkItem(545679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBConstantValue3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1867,7 +1867,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545674")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545674")>
         Public Async Function TestDateTimeLiteral1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -1888,7 +1888,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545675"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545675"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumConstant1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1915,7 +1915,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545644")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545644")>
         Public Async Function TestMultiDimensionalArray1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -1938,7 +1938,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestUnicodeQuote() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1965,7 +1965,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545563")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545563")>
         Public Async Function TestLongMinValue() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2166,7 +2166,7 @@ Class C
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumParameters() As Task
             Await TestInRegularAndScriptAsync(
 <Text><![CDATA[Imports System
@@ -2221,7 +2221,7 @@ Class C
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumParameters2() As Task
             Await TestInRegularAndScriptAsync(
 <Text><![CDATA[
@@ -2280,7 +2280,7 @@ Class C
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(545691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545691")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545691")>
         Public Async Function TestMultiDimArray1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2303,7 +2303,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestQuoteEscaping1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2328,7 +2328,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545866")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545866")>
         Public Async Function TestQuoteEscaping2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2351,7 +2351,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545689")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545689")>
         Public Async Function TestDecimalLiteral1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2378,7 +2378,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545687"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545687"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestRemoveParenthesesAroundTypeReference1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2409,7 +2409,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545694"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545694"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestNullableDefaultValue1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2436,7 +2436,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
         Public Async Function TestHighPrecisionDouble() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2461,7 +2461,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545729"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545729"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestCharSurrogates() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2488,7 +2488,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545733"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545733"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestReservedChar() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2517,7 +2517,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545685")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545685")>
         Public Async Function TestCastEnumValue() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2544,7 +2544,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545756")>
         Public Async Function TestArrayOfNullables() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2567,7 +2567,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545753")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545753")>
         Public Async Function TestOptionalArrayParameterWithDefault() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2590,7 +2590,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545742"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545742"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestRemFieldEnum() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2625,7 +2625,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545790")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545790")>
         Public Async Function TestByteParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2648,7 +2648,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545789")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545789")>
         Public Async Function TestDefaultParameterSuffix1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2671,7 +2671,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545809")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545809")>
         Public Async Function TestZeroValuedEnum() As Task
             Await TestInRegularAndScriptAsync(
 "Enum E
@@ -2702,7 +2702,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545824")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545824")>
         Public Async Function TestByteCast() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2725,7 +2725,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545825")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545825")>
         Public Async Function TestDecimalValues() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Option Strict On
@@ -2784,7 +2784,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(545693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545693")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545693")>
         Public Async Function TestSmallDecimal() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2811,7 +2811,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545771")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545771")>
         Public Async Function TestEventConflict() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IA
@@ -2839,7 +2839,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545826")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545826")>
         Public Async Function TestDecimalField() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2866,7 +2866,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545827")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545827")>
         Public Async Function TestDoubleInObjectContext() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2893,7 +2893,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545860")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545860")>
         Public Async Function TestLargeDecimal() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2920,7 +2920,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545870")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545870")>
         Public Async Function TestSurrogatePair1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2941,7 +2941,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545893"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545893"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBTab() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2968,7 +2968,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545912")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545912")>
         Public Async Function TestEscapeTypeParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -2991,7 +2991,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545892")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545892")>
         Public Async Function TestLargeUnsignedLong() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -3018,7 +3018,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545865")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545865")>
         Public Async Function TestSmallDecimalValues() As Task
             Dim markup =
 <File>
@@ -3167,7 +3167,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         Public Async Function TestClassStatementTerminators1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3181,7 +3181,7 @@ Class C : Implements IServiceProvider
 End Class")
         End Function
 
-        <Fact, WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         Public Async Function TestClassStatementTerminators2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3201,7 +3201,7 @@ Class C : Inherits D : Implements IServiceProvider
 End Class")
         End Function
 
-        <Fact, WorkItem(544652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544652"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544652"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestConvertNonprintableCharToString() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3228,7 +3228,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestSimplifyModuleNameWhenPossible1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3255,7 +3255,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestSimplifyModuleNameWhenPossible2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3286,7 +3286,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(544676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544676")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544676")>
         Public Async Function TestDoubleWideREM() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3309,7 +3309,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545917")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545917")>
         Public Async Function TestDoubleWideREM2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3330,7 +3330,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
         Public Async Function TestGenericEnumWithRenamedTypeParameters1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -3363,7 +3363,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(545953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
         Public Async Function TestGenericEnumWithRenamedTypeParameters2() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -3396,7 +3396,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(546197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546197")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546197")>
         Public Async Function TestDoubleQuoteChar() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3421,7 +3421,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(530165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530165")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530165")>
         Public Async Function TestGenerateIntoAppropriatePartial() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3456,7 +3456,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(546325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546325")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546325")>
         Public Async Function TestAttributes() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
@@ -3483,7 +3483,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(530564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530564")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530564")>
         Public Async Function TestShortenedDecimal() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -3506,7 +3506,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(530713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530713")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530713")>
         Public Async Function TestImplementAbstractly2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3534,7 +3534,7 @@ MustInherit Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         Public Async Function TestOptionalNullableStructParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3561,7 +3561,7 @@ Structure S
 End Structure")
         End Function
 
-        <Fact, WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         Public Async Function TestOptionalNullableLongParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
@@ -3584,7 +3584,7 @@ Class c
 End Class")
         End Function
 
-        <Fact, WorkItem(530345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530345")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530345")>
         Public Async Function TestAttributeFormattingInNonStatementContext() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports System.Runtime.InteropServices
@@ -3613,7 +3613,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(546779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
         Public Async Function TestPropertyReturnTypeAttributes() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
@@ -3645,7 +3645,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(847464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")>
         Public Async Function TestImplementInterfaceForPartialType() As Task
             Await TestInRegularAndScriptAsync(
 "Public Interface I
@@ -3670,7 +3670,7 @@ Partial Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(617698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617698")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617698")>
         Public Async Function TestBugfix_617698_RecursiveSimplificationOfQualifiedName() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Interface A(Of B)
@@ -3725,7 +3725,7 @@ End Class
 index:=1)
         End Function
 
-        <Fact, WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9760")>
         Public Async Function TestImplementInterfaceForIDisposable_WithExistingDisposedValueField() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports System
@@ -3814,7 +3814,7 @@ End Class
 index:=1)
         End Function
 
-        <Fact, WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         Public Async Function TestNoComAliasNameAttributeOnMethodParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
@@ -3841,7 +3841,7 @@ MustInherit Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         Public Async Function TestNoComAliasNameAttributeOnMethodReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
@@ -3868,7 +3868,7 @@ MustInherit Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         Public Async Function TestNoComAliasNameAttributeOnPropertyParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
@@ -3900,7 +3900,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")>
         Public Async Function TestNewLineBeforeDirective() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3918,7 +3918,7 @@ End Class
 #Disable Warning")
         End Function
 
-        <Fact, WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
         Public Async Function TestCommentAfterInterfaceList1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3935,7 +3935,7 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
         Public Async Function TestCommentAfterInterfaceList2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3953,8 +3953,8 @@ End Class
 REM Comment")
         End Function
 
-        <Fact, WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
-        <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         Public Async Function TestImplementIDisposable_NoDisposePattern() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3969,8 +3969,8 @@ End Class
 ")
         End Function
 
-        <Fact, WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
-        <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         Public Async Function TestImplementIDisposable1_DisposePattern() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3984,8 +3984,8 @@ End Class
 ", index:=1)
         End Function
 
-        <Fact, WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
-        <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         Public Async Function TestImplementIDisposableAbstractly_NoDisposePattern() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3998,8 +3998,8 @@ End Class
 ", index:=2)
         End Function
 
-        <Fact, WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
-        <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         Public Async Function TestImplementIDisposableThroughMember_NoDisposePattern() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4016,7 +4016,7 @@ Class C : Implements IDisposable
 End Class", index:=2)
         End Function
 
-        <Fact, WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")>
         Public Async Function TestImplementIDisposable2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4035,7 +4035,7 @@ Class C : Implements System.IDisposable
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         Public Async Function TestImplementIDisposable_NoNamespaceImportForSystem() As Task
             Await TestInRegularAndScriptAsync(
 "Class C : Implements [|System.IDisposable|]
@@ -4048,7 +4048,7 @@ End Class
 ", index:=1)
         End Function
 
-        <Fact, WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         Public Async Function TestImplementIDisposableViaBaseInterface_NoDisposePattern() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4073,7 +4073,7 @@ Class C : Implements I
 End Class")
         End Function
 
-        <Fact, WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         Public Async Function TestImplementIDisposableViaBaseInterface() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4097,7 +4097,7 @@ Class C : Implements I
 End Class", index:=1)
         End Function
 
-        <Fact, WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         Public Async Function TestDontImplementDisposePatternForLocallyDefinedIDisposable() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace System
@@ -4136,7 +4136,7 @@ End Structure
 ")
         End Function
 
-        <Fact, WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced1() As Task
             Await TestInRegularAndScriptAsync(
 $"Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4210,7 +4210,7 @@ End Class",
  index:=1)
         End Function
 
-        <Fact, WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced2() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -4322,7 +4322,7 @@ End Interface",
             Return code
         End Function
 
-        <Fact, WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")>
         Public Async Function TestInaccessibleAttributes() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4361,7 +4361,7 @@ Public Class Holder
 End Class")
         End Function
 
-        <Fact, WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2785")>
         Public Async Function TestImplementInterfaceThroughStaticMemberInGenericClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4441,7 +4441,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(11444, "https://github.com/dotnet/roslyn/issues/11444")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11444")>
         Public Async Function TestAbstractConflictingMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Friend Interface IFace
@@ -4466,7 +4466,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16793")>
         Public Async Function TestMethodWithValueTupleArity1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -4500,8 +4500,8 @@ Namespace System
 End Namespace")
         End Function
 
-        <Fact, WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
-        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5898")>
         Public Async Function TestAutoProperties() As Task
             Await TestInRegularAndScript1Async(
 "interface IInterface

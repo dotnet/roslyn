@@ -70,14 +70,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == nameof(SimplificationOptions) ||
-                e.Option.Feature == nameof(CodeStyleOptions) ||
+            if (e.Option == NamingStyleOptions.NamingPreferences ||
+                e.Option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
                 e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                 e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                 e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
             {
-                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                {
+                    var service = Workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                }
             }
         }
 
@@ -213,10 +216,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind);
 
         private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind, stateSet.ErrorSourceName);
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
             => project.GetDependentVersionAsync(cancellationToken);

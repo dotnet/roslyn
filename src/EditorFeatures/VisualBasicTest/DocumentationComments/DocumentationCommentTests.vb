@@ -81,7 +81,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact>
         Public Sub TestTypingCharacter_NoReturnType()
             Const code = "
@@ -144,7 +144,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
         <WpfFact>
         Public Sub TestTypingCharacter_NotAfterClassName()
             Const code = "
@@ -158,7 +158,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
         <WpfFact>
         Public Sub TestTypingCharacter_NotInsideClass()
             Const code = "
@@ -174,7 +174,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
         <WpfFact>
         Public Sub TestTypingCharacter_NotAfterConstructorName()
             Const code = "
@@ -190,7 +190,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
         <WpfFact>
         Public Sub TestTypingCharacter_NotInsideConstructor()
             Const code = "
@@ -210,7 +210,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         <WpfFact>
         Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
@@ -230,7 +230,7 @@ End Class
             VerifyTypingCharacter(code, expected)
         End Sub
 
-        <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         <WpfFact>
         Public Sub TestTypingCharacter_NoReturnsOnWriteOnlyProperty()
             Const code = "
@@ -324,7 +324,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(538717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
         <WpfFact>
         Public Sub TestPressingEnter_Module()
             Const code = "
@@ -526,7 +526,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes8()
             Const code = "
@@ -543,7 +543,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4817")>
         <WpfFact>
         Public Sub TestPressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
             Const code = "
@@ -563,7 +563,7 @@ End Class
             })
         End Sub
 
-        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact>
         Public Sub TestPressingEnter_DontInsertApostrophes1()
             Const code = "
@@ -602,7 +602,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(537534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
         <WpfFact>
         Public Sub TestPressingEnter_NotInsideMethodBody()
             Const code = "
@@ -623,7 +623,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
         <WpfFact>
         Public Sub TestPressingEnter_NotBeforeDocComment()
             Const code = "
@@ -652,7 +652,7 @@ Public Async Function TestGoo() As Task
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2091")>
         <WpfFact>
         Public Sub TestPressingEnter_InTextBeforeSpace()
             Const code = "
@@ -677,7 +677,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact>
         Public Sub TestPressingEnter_Indentation1()
             Const code = "
@@ -702,7 +702,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact>
         Public Sub TestPressingEnter_Indentation2()
             Const code = "
@@ -727,7 +727,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact>
         Public Sub TestPressingEnter_Indentation3()
             Const code = "
@@ -752,7 +752,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact>
         Public Sub TestPressingEnter_Indentation4()
             Const code = "
@@ -777,7 +777,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact>
         Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
@@ -802,7 +802,7 @@ End Class
             VerifyPressingEnter(code, expected, useTabs:=True)
         End Sub
 
-        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5486")>
         <WpfFact>
         Public Sub TestPressingEnter_Selection1()
             Const code = "
@@ -823,7 +823,7 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5486")>
         <WpfFact>
         Public Sub TestPressingEnter_Selection2()
             Const code = "
@@ -862,7 +862,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4817")>
         <WpfFact>
         Public Sub TestCommand_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
@@ -901,7 +901,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact>
         Public Sub TestCommand_Method1()
             Const code = "
@@ -969,7 +969,7 @@ End Class
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact>
         Public Sub TestCommand_FirstModuleOnLine()
             Const code = "
@@ -985,7 +985,7 @@ Module M : End Module : Module N : End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact>
         Public Sub TestCommand_NotOnSecondModuleOnLine()
             Const code = "Module M : End Module : $$Module N : End Module"
@@ -994,7 +994,7 @@ Module M : End Module : Module N : End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact>
         Public Sub TestCommand_FirstPropertyOnLine()
             Const code = "
@@ -1014,7 +1014,7 @@ End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineAbove1()
             Const code = "
@@ -1039,7 +1039,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineAbove2()
             Const code = "
@@ -1064,7 +1064,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <Fact, WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_NotOnSecondPropertyOnLine()
             Dim code =
                 StringFromLines("Module M",
@@ -1072,7 +1072,7 @@ End Class
                                 "End Module")
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineAbove3()
             Const code = "
@@ -1099,7 +1099,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
@@ -1124,7 +1124,7 @@ End Class
             VerifyOpenLineAbove(code, expected, useTabs:=True)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineBelow1()
             Const code = "
@@ -1149,7 +1149,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineBelow2()
             Const code = "
@@ -1174,7 +1174,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineBelow3()
             Const code = "
@@ -1189,7 +1189,7 @@ End Class
             VerifyOpenLineBelow(code, expected)
         End Sub
 
-        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact>
         Public Sub TestOpenLineBelow4_Tabs()
             Const code = "

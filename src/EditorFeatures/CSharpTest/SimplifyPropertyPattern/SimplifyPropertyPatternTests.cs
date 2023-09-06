@@ -24,20 +24,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
         [Fact]
         public async Task NotInCSharp9()
         {
-            var code = @"
-using System;
-using System.Reflection;
+            var code = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: { EntryPoint: { CallingConvention: CallingConventions.Any } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: { EntryPoint: { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -52,34 +53,36 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
-using System.Reflection;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -87,20 +90,21 @@ class C
         [Fact]
         public async Task TestNotWithoutPropertyPattern1()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: not null })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: not null })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -113,20 +117,21 @@ class C
         [Fact]
         public async Task TestNotWithoutPropertyPattern2()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint: not null })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint: not null })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -138,20 +143,21 @@ class C
         [Fact]
         public async Task TestNotWithTypePatterm()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: Assembly { EntryPoint: not null } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: Assembly { EntryPoint: not null } })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -163,20 +169,21 @@ class C
         [Fact]
         public async Task TestNotWithOuterDesignation()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: { EntryPoint: not null } A })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: { EntryPoint: not null } A })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -188,20 +195,21 @@ class C
         [Fact]
         public async Task TestNotWithoutInnerSubpatterns()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: { } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: { } })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -213,20 +221,21 @@ class C
         [Fact]
         public async Task TestNotWithMultipleInnerSubpatterns()
         {
-            var testCode = @"
-using System;
-using System.Reflection;
+            var testCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: { EntryPoint: { }, Location: { } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly: { EntryPoint: { }, Location: { } } })
+                        {
 
-        }
-    }
-}";
+                        }
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -240,34 +249,36 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { EntryPoint: { } E } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { EntryPoint: { } E } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
-using System.Reflection;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint: { } E })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint: { } E })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -277,32 +288,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { [|DeclaringType:|] { Name: """" } } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { [|DeclaringType:|] { Name: "" } } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -312,32 +325,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { DeclaringType.Name: """" } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { DeclaringType.Name: "" } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -347,32 +362,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint.DeclaringType:|] { Name: """" } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint.DeclaringType:|] { Name: "" } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -382,32 +399,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { EntryPoint.DeclaringType.Name: """" } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { EntryPoint.DeclaringType.Name: "" } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -417,32 +436,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly.EntryPoint:|] { [|DeclaringType:|] { Name: """" } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly.EntryPoint:|] { [|DeclaringType:|] { Name: "" } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -452,32 +473,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly.EntryPoint:|] { DeclaringType.Name: """" } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly.EntryPoint:|] { DeclaringType.Name: "" } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -487,32 +510,34 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly.EntryPoint.DeclaringType:|] { Name: """" } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly.EntryPoint.DeclaringType:|] { Name: "" } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.DeclaringType.Name: """" })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -522,45 +547,47 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is
-            {
-                [|Assembly:|]
+                class C
                 {
-                    EntryPoint:
-                    { }
+                    void S(Type t)
+                    {
+                        if (t is
+                            {
+                                [|Assembly:|]
+                                {
+                                    EntryPoint:
+                                    { }
+                                }
+                            })
+                        {
+
+                        }
+                    }
                 }
-            })
-        {
+                """,
+                FixedCode = """
+                using System;
+                using System.Reflection;
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
-using System.Reflection;
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is
+                            {
+                                Assembly.EntryPoint:
+                                { }
+                            })
+                        {
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is
-            {
-                Assembly.EntryPoint:
-                { }
-            })
-        {
-
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -570,44 +597,46 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
+                        }
 
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-        {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
-using System.Reflection;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                        {
 
-        }
+                        }
 
-        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-        {
+                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
@@ -617,34 +646,36 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
-    }
-}",
-                FixedCode = @"
-using System;
-using System.Reflection;
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne,
                 DiagnosticSelector = ds => ds[0],
@@ -656,43 +687,45 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-using System.Reflection;
+                TestCode = """
+                using System;
+                using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-        {
+                class C
+                {
+                    void S(Type t)
+                    {
+                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                        {
 
-        }
-    }
-}",
+                        }
+                    }
+                }
+                """,
                 FixedState =
                 {
                     Sources =
                     {
-@"
-using System;
-using System.Reflection;
+                        """
+                        using System;
+                        using System.Reflection;
 
-class C
-{
-    void S(Type t)
-    {
-        if (t is { Assembly: { EntryPoint.CallingConvention: CallingConventions.Any } })
-        {
+                        class C
+                        {
+                            void S(Type t)
+                            {
+                                if (t is { Assembly: { EntryPoint.CallingConvention: CallingConventions.Any } })
+                                {
 
-        }
-    }
-}",
+                                }
+                            }
+                        }
+                        """,
                     },
                     ExpectedDiagnostics =
                     {
-                        // /0/Test0.cs(9,20): info IDE0170: Simplify property pattern
-                        VerifyCS.Diagnostic().WithSpan(9, 20, 9, 29).WithSpan(9, 20, 9, 86).WithSeverity(DiagnosticSeverity.Info),
+                        // /0/Test0.cs(8,20): info IDE0170: Simplify property pattern
+                        VerifyCS.Diagnostic("IDE0170").WithSpan(8, 20, 8, 29).WithSpan(8, 20, 8, 86).WithSeverity(DiagnosticSeverity.Info),
                     }
                 },
                 LanguageVersion = LanguageVersion.CSharp10,
@@ -701,19 +734,20 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestTuplePattern()
         {
-            var testCode = @"
-record R(int Prop);
+            var testCode = """
+                record R(int Prop);
 
-class C
-{
-    void S(R r)
-    {
-        _ = (A: r, r) is (A: { Prop: { } }, _);
-    }
-}";
+                class C
+                {
+                    void S(R r)
+                    {
+                        _ = (A: r, r) is (A: { Prop: { } }, _);
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,
@@ -723,19 +757,20 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestPositionalPattern()
         {
-            var testCode = @"
-record R(R Child, int Value);
+            var testCode = """
+                record R(R Child, int Value);
 
-class C
-{
-    void S(R r)
-    {
-        _ = r is R(Child: { Child: { } }, _);
-    }
-}";
+                class C
+                {
+                    void S(R r)
+                    {
+                        _ = r is R(Child: { Child: { } }, _);
+                    }
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = testCode,

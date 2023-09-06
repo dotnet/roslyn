@@ -10,13 +10,22 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicPreferFrameworkTypeDiagnosticAnalyzer
-        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax)
+        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of
+            SyntaxKind,
+            ExpressionSyntax,
+        TypeSyntax,
+        IdentifierNameSyntax,
+        PredefinedTypeSyntax)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
             ImmutableArray.Create(SyntaxKind.PredefinedType)
 
         Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
             Return node.IsDirectChildOfMemberAccessExpression() OrElse node.InsideCrefReference()
+        End Function
+
+        Protected Overrides Function IsIdentifierNameReplaceableWithFrameworkType(semanticModel As SemanticModel, node As IdentifierNameSyntax) As Boolean
+            Return False
         End Function
 
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean

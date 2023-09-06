@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
         public void HelpersInstrumentation()
         {
             string source = @"
-using System;
-
 public class Program
 {
     public static void Main(string[] args)
@@ -690,8 +688,6 @@ True
         public void NonStaticImplicitBlockMethodsCoverage()
         {
             string source = @"
-using System;
-
 public class Program
 {
     public int Prop { get; }
@@ -962,8 +958,6 @@ public class D
         public void MultipleFilesCoverage()
         {
             string source = @"
-using System;
-
 public class Program
 {
 #line 10 ""File1.cs""
@@ -1142,7 +1136,6 @@ True
         public void UsingAndFixedCoverage()
         {
             string source = @"
-using System;
 using System.IO;
 
 public class Program
@@ -1426,8 +1419,6 @@ True
         public void PatternsCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()
@@ -1461,7 +1452,7 @@ public class C
 }
 
 class Person { public string Name; }
-class Teacher : Person { public string Subject; }
+class Teacher : Person { public string Subject = string.Empty; }
 class Student : Person { public double GPA; }
 
     // Methods 7 and 9 are implicit constructors.
@@ -1513,7 +1504,7 @@ True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
+            verifier.VerifyDiagnostics();
         }
 
         /// <see cref="DynamicAnalysisResourceTests.TestPatternSpans_WithSharedWhenExpression"/>
@@ -2034,8 +2025,6 @@ True
         public void TestFieldInitializerCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()                                   // Method 1
@@ -2141,14 +2130,79 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("C..ctor", @"
+{
+  // Code size      120 (0x78)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  // sequence point: <hidden>
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..ctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..ctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..ctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.5
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  // sequence point: int _x = Init();
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.1
+  IL_003b:  stelem.i1
+  IL_003c:  ldarg.0
+  IL_003d:  call       ""int C.Init()""
+  IL_0042:  stfld      ""int C._x""
+  // sequence point: int _y = Init() + 12;
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4.2
+  IL_0049:  ldc.i4.1
+  IL_004a:  stelem.i1
+  IL_004b:  ldarg.0
+  IL_004c:  call       ""int C.Init()""
+  IL_0051:  ldc.i4.s   12
+  IL_0053:  add
+  IL_0054:  stfld      ""int C._y""
+  // sequence point: 15
+  IL_0059:  ldloc.0
+  IL_005a:  ldc.i4.3
+  IL_005b:  ldc.i4.1
+  IL_005c:  stelem.i1
+  IL_005d:  ldarg.0
+  IL_005e:  ldc.i4.s   15
+  IL_0060:  stfld      ""int C.<Prop1>k__BackingField""
+  // sequence point: C()
+  IL_0065:  ldarg.0
+  IL_0066:  call       ""object..ctor()""
+  // sequence point: _z = 12;
+  IL_006b:  ldloc.0
+  IL_006c:  ldc.i4.4
+  IL_006d:  ldc.i4.1
+  IL_006e:  stelem.i1
+  IL_006f:  ldarg.0
+  IL_0070:  ldc.i4.s   12
+  IL_0072:  stfld      ""int C._z""
+  // sequence point: }
+  IL_0077:  ret
+}
+");
         }
 
         [Fact]
         public void TestImplicitConstructorCoverage()
         {
             string source = @"
-using System;
-
 public class C
 {
     public static void Main()                                   // Method 1
@@ -2879,7 +2933,6 @@ class C
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
         {
             string source = @"
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Diagnostics.CodeAnalysis
@@ -2916,7 +2969,6 @@ class D
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Bad()
         {
             string source = @"
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Diagnostics.CodeAnalysis
@@ -3514,7 +3566,7 @@ static void Test()
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = default)
         {
             return base.CompileAndVerify(
                 source,

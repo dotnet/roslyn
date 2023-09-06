@@ -27,6 +27,8 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.AddFileBanner
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -566,13 +568,13 @@ End Class
 
                 ' must set global options since incremental analyzer infra reads from global options
                 Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), separateImportsGroups)
-                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), systemImportsFirst)
+                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
+                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
                     New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                    New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(AbstractAddFileBannerCodeRefactoringProvider).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
                     New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 })
 

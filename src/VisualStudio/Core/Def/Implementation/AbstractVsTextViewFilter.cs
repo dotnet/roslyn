@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                     {
                                         // case a.
                                         var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                                        var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
+                                        var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                     }
 
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                                         // case b.
                                         var openingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.End, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                                        var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
+                                        var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                         pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                     }
 

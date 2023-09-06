@@ -86,7 +86,7 @@ End Module</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")})
         End Function
 
-        <Fact, WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsExpression() As Task
             Dim text = <File>Imports System
 Public Class Class1
@@ -98,7 +98,7 @@ End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean")})
         End Function
 
-        <Fact, WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsNotExpression() As Task
             Dim text = <File>Imports System
 Public Class Class1
@@ -274,7 +274,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(547161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547161")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547161")>
         Public Async Function TestNotForOverloadResolutionFailure() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -292,7 +292,7 @@ End Module</File>
             Await TestMissingAsync(text)
         End Function
 
-        <Fact, WorkItem(547169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547169")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547169")>
         Public Async Function TestHandlePredefinedTypeKeywordCorrectly() As Task
             Dim text = <File>
 Imports System
@@ -320,7 +320,7 @@ End Module</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <Fact, WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         Public Async Function TestKeepEscapedIdentifiersEscaped() As Task
             Dim text = <File>
 Module Program
@@ -347,7 +347,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         Public Async Function TestNoDuplicateCorrections() As Task
             Dim text = <File>
 Module Program
@@ -375,7 +375,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5391")>
         Public Async Function TestSuggestEscapedPredefinedTypes() As Task
             Dim text = <File>
 Imports System
@@ -424,7 +424,7 @@ End Module</File>
             Await TestAsync(text, expected1, index:=1)
         End Function
 
-        <Fact, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
 
@@ -458,7 +458,7 @@ End Class</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <Fact, WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
         Public Async Function TestObjectConstruction() As Task
             Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
@@ -473,7 +473,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6338")>
         Public Async Function TestTestMissingName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<Assembly: Microsoft.CodeAnalysis.[||]>")
@@ -503,7 +503,7 @@ End Class")
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
-            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
+            <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             Public Async Function TestIncompleteStatement() As Task
                 Await TestInRegularAndScriptAsync(
 "Class AwesomeClass

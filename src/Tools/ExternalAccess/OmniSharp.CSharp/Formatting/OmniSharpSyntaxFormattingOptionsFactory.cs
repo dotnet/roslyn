@@ -78,20 +78,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             bool newLineForMembersInObjectInit,
             bool newLineForMembersInAnonymousTypes,
             bool newLineForClausesInQuery)
-            => new(new(
-                FormattingOptions: new CSharpSyntaxFormattingOptions()
+            => new(new()
+            {
+                FormattingOptions = new CSharpSyntaxFormattingOptions()
                 {
-                    Common = new SyntaxFormattingOptions.CommonOptions()
+                    LineFormatting = new()
                     {
-                        LineFormatting = new LineFormattingOptions()
-                        {
-                            UseTabs = useTabs,
-                            TabSize = tabSize,
-                            IndentationSize = indentationSize,
-                            NewLine = newLine
-                        },
-                        SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                        UseTabs = useTabs,
+                        TabSize = tabSize,
+                        IndentationSize = indentationSize,
+                        NewLine = newLine
                     },
+                    SeparateImportDirectiveGroups = separateImportDirectiveGroups,
                     Spacing =
                         (spacingAfterMethodDeclarationName ? SpacePlacement.AfterMethodDeclarationName : 0) |
                         (spaceBetweenEmptyMethodDeclarationParentheses ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
@@ -142,6 +140,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                     WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine,
                     WrappingPreserveSingleLine = wrappingPreserveSingleLine
                 },
-                SimplifierOptions: CSharpSimplifierOptions.Default));
+                SimplifierOptions = CSharpSimplifierOptions.Default
+            });
     }
 }

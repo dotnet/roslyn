@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 {
                     ThrowExpressionSyntax throwExpression => throwExpression.Expression,
                     ThrowStatementSyntax throwStatement => throwStatement.Expression,
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
                 if (expression.IsKind(SyntaxKind.NullLiteralExpression))
@@ -296,10 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             existingCommentText = textTokens.Count == 1 ? "" : firstTextToken.ValueText;
 
             return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
-                && firstTextToken.LeadingTrivia.Count == 1
-                && firstTextToken.LeadingTrivia.ElementAt(0).Kind() == SyntaxKind.DocumentationCommentExteriorTrivia
-                && firstTextToken.LeadingTrivia.ElementAt(0).ToString() == ExteriorTriviaText
-                && lastTextToken.TrailingTrivia.Count == 0;
+                && lastTextToken.TrailingTrivia.Count == 0
+                && firstTextToken.LeadingTrivia is [(kind: SyntaxKind.DocumentationCommentExteriorTrivia) firstTrivia]
+                && firstTrivia.ToString() == ExteriorTriviaText;
         }
 
         private static IList<SyntaxToken> GetTextTokensFollowingExteriorTrivia(XmlTextSyntax xmlText)

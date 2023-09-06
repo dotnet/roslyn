@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
         {
-            var constantValue = source.ConstantValue;
+            var constantValue = source.ConstantValueOpt;
 
             if (constantValue == null || (object)source.Type == null)
             {
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             return sourceConstantValue != null &&
                 source.Type is object &&
                 IsNumericType(source.Type) &&

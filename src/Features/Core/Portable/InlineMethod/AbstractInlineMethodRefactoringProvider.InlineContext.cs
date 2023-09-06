@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .GenerateUniqueLocalName(
                         callerSemanticModel,
                         calleeInvocationNode,
-                        containerOpt: null,
+                        container: null,
                         symbol.Name,
                         usedNames,
                         cancellationToken).Text;

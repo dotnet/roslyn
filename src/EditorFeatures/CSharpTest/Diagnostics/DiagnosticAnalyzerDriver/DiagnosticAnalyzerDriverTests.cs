@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
         }
 
-        [Fact, WorkItem(908658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")]
         public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
@@ -112,7 +112,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -129,7 +129,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
             var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
@@ -137,7 +137,7 @@ class C
             AccessSupportedDiagnostics(analyzer);
         }
 
-        [Fact, WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
             var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
@@ -356,7 +356,7 @@ class C
                 => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_ReportsSameId()
         {
             // NuGet and VSIX analyzer reporting same diagnostic IDs.
@@ -415,7 +415,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_NuGetAnalyzerReportsSubsetOfVsixAnalyzerIds()
         {
             // NuGet analyzer reports subset of diagnostic IDs reported by VSIX analyzer.
@@ -467,7 +467,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_VsixAnalyzerReportsSubsetOfNuGetAnalyzerIds()
         {
             // VSIX analyzer reports subset of diagnostic IDs reported by NuGet analyzer.
@@ -518,7 +518,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_MultipleNuGetAnalyzersCollectivelyReportSameIds()
         {
             // Multiple NuGet analyzers collectively report same diagnostic IDs reported by Vsix analyzer.
@@ -591,7 +591,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(46942, "https://github.com/dotnet/roslyn/issues/46942")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46942")]
         public async Task TestNuGetAndVsixAnalyzer_SuppressorSuppressesVsixAnalyzer()
         {
             // Multiple NuGet analyzers do not overlap with the VSIX analyzer or suppressor
