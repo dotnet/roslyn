@@ -15,6 +15,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -567,13 +568,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
             }
 
-            private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
+            private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, ImmutableSortedSet<string> analyzerTypeNames, ref bool reportedError)
             {
                 var analyzers = ImmutableArray.CreateBuilder<TExtension>();
 
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
                 // Randomize the order we instantiate analyzers to avoid static constructor/JIT contention.
-                foreach (var typeName in analyzerTypeNames.Shuffle())
+                foreach (var typeName in shuffle(analyzerTypeNames))
                 {
                     Type? type;
                     try
@@ -623,6 +624,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return analyzers.ToImmutable();
+
+                static IEnumerable<string> shuffle(ImmutableSortedSet<string> source)
+                {
+                    var random =
+#if NET6_0_OR_GREATER
+                        Random.Shared;
+#else
+                new Random();
+#endif
+                    var builder = ArrayBuilder<string>.GetInstance(source.Count);
+                    builder.AddRange(source);
+
+                    for (var i = builder.Count - 1; i >= 0; i--)
+                    {
+                        var swapIndex = random.Next(i + 1);
+                        yield return builder[swapIndex];
+                        builder[swapIndex] = builder[i];
+                    }
+
+                    builder.Free();
+                }
             }
         }
 
