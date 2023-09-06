@@ -101,7 +101,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
     // Named pipe server is actually created from the client, so here we create a client stream.
-    var pipeServer = new NamedPipeClientStream(serverName: ".", GetDotNetPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
+    var pipeServer = new NamedPipeClientStream(serverName: ".", GetPlatformPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
     await pipeServer.ConnectAsync(cancellationToken);
 
     var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
@@ -223,8 +223,19 @@ static CliRootCommand CreateCommandLineParser()
     return rootCommand;
 }
 
-static string GetDotNetPipeConnectionString(string pipeName)
+static string GetPlatformPipeConnectionString(string pipeName)
 {
-    return "\\\\.\\" + pipeName;
+    var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    if (isWindows)
+    {
+        return @"\\.\" + pipeName;
+    }
+    else
+    {
+        // For Linux-type systems, the "pipe" is actually a shared file.
+        // Point to the same file as on the client
+        var pipeFile = pipeName + ".sock";
+        return Path.Combine(Path.GetTempPath(), pipeFile);
+    }
 }
 
