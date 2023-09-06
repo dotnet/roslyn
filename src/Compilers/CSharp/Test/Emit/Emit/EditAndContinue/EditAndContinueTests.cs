@@ -16920,7 +16920,7 @@ file class C
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
-        public void PrivateImplDetails_CollectionExpressions()
+        public void PrivateImplDetails_CollectionExpressions_InlineArrays()
         {
             var commonSource = """
                 using System;
@@ -17127,6 +17127,125 @@ file class C
                             Handle(16, TableIndex.GenericParam),
                             Handle(17, TableIndex.GenericParam)
                         });
+                    })
+                .Verify();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        using System.Collections.Generic;
+                        class C
+                        {
+                            static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y];
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames(
+                            "<Module>",
+                            "C",
+                            "<PrivateImplementationDetails>",
+                            "<>z__ReadOnlyArray`1");
+
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+                    })
+
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, default];
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>z__ReadOnlyArray#1`1");
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+
+                        // Many EncLog and EncMap entries added.
+                    })
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, ..e];
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>z__ReadOnlyList#2`1");
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+
+                        // Many EncLog and EncMap entries added.
                     })
                 .Verify();
         }
