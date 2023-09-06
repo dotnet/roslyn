@@ -645,6 +645,8 @@ class p$$rogram
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68880")]
         public async Task VerifyTextSync()
         {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
 @"
 public class Class2
@@ -663,15 +665,18 @@ public class Class2
 {
     public int Fi$$;
 }", HangMitigatingCancellationToken);
+            await TestServices.InlineRename.VerifyStringInFlyout("Fi", HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "e", "l", "d", "3", "2", "1" }, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+
             await TestServices.EditorVerifier.TextEqualsAsync(
                 @"
 public class Class2
 {
     public int Field321$$;
 }", HangMitigatingCancellationToken);
+            await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
         }
     }
 }

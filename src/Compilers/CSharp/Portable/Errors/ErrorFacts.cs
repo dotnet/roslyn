@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2402,6 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FeatureNotAvailableInVersion12:
                 case ErrorCode.ERR_CollectionExpressionEscape:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.ERR_ExpectedInterpolatedString:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

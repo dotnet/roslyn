@@ -499,7 +499,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
+            using var matchSpans = TemporaryArray<TextSpan>.Empty;
+
             while (true)
             {
                 // Let's consider our termination cases
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
-                        ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
+                        ? new NormalizedTextSpanCollection(matchSpans.ToImmutableAndClear()).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
