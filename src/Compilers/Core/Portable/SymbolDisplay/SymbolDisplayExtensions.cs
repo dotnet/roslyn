@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (parts.IsDefault)
             {
-                throw new ArgumentException("parts");
+                throw new ArgumentException(nameof(parts));
             }
 
             if (parts.Length == 0)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (parts is null)
             {
-                throw new ArgumentException("parts");
+                throw new ArgumentException(nameof(parts));
             }
 
             if (parts.Count == 0)
