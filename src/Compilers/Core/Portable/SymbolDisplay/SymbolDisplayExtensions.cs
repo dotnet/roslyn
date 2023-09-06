@@ -38,20 +38,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             var pool = PooledStringBuilder.GetInstance();
-            try
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
             {
-                var actualBuilder = pool.Builder;
-                foreach (var part in parts)
-                {
-                    actualBuilder.Append(part.ToString());
-                }
+                actualBuilder.Append(part.ToString());
+            }
 
-                return actualBuilder.ToString();
-            }
-            finally
-            {
-                pool.Free();
-            }
+            return pool.ToStringAndFree();
         }
 
         /// <summary>
@@ -78,20 +71,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             var pool = PooledStringBuilder.GetInstance();
-            try
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
             {
-                var actualBuilder = pool.Builder;
-                foreach (var part in parts)
-                {
-                    actualBuilder.Append(part.ToString());
-                }
+                actualBuilder.Append(part.ToString());
+            }
 
-                return actualBuilder.ToString();
-            }
-            finally
-            {
-                pool.Free();
-            }
+            return pool.ToStringAndFree();
         }
 
         /// <summary>
