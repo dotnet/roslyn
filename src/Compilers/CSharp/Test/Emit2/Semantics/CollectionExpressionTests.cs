@@ -6180,6 +6180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensions },
+                symbolValidator: module =>
+                {
+                    var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlyArray");
+                    Assert.Equal("<>z__ReadOnlyArray<T>", synthesizedType.ToTestDisplayString());
+                    Assert.Equal("<>z__ReadOnlyArray`1", synthesizedType.MetadataName);
+                },
                 expectedOutput: """
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
                     IEnumerable<object>.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
@@ -11796,6 +11802,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensionsWithSpan },
                 targetFramework: targetFramework,
                 verify: Verification.Skipped,
+                symbolValidator: module =>
+                {
+                    if (targetFramework == TargetFramework.Net80)
+                    {
+                        var synthesizedType = module.GlobalNamespace.GetTypeMember("<>y__InlineArray1");
+                        Assert.Equal("<>y__InlineArray1<T>", synthesizedType.ToTestDisplayString());
+                        Assert.Equal("<>y__InlineArray1`1", synthesizedType.MetadataName);
+                    }
+                },
                 expectedOutput: IncludeExpectedOutput("[1], [2], [3], [4], "));
             if (targetFramework == TargetFramework.Net80)
             {

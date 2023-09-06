@@ -13,6 +13,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// A synthesized type used for collection expressions where the target type
+    /// is IEnumerable&lt;T&gt;, IReadOnlyCollection&lt;T&gt;, or IReadOnlyList&lt;T&gt;.
+    /// If the collection expression has a known length, the type is generated with
+    /// an array field; otherwise the type is generated with a List&lt;T&gt; field.
+    /// <code>
+    /// sealed class &lt;&gt;z__ReadOnlyArray&lt;T&gt; { private readonly T[] _items; }
+    /// sealed class &lt;&gt;z__ReadOnlyList&lt;T&gt; { private readonly List&lt;T&gt; _items; }
+    /// </code>
+    /// </summary>
     internal sealed class SynthesizedReadOnlyListTypeSymbol : NamedTypeSymbol
     {
         private static readonly SpecialType[] s_requiredSpecialTypes = new[]
@@ -488,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        internal override bool MangleName => false;
+        internal override bool MangleName => true;
 
         internal override bool HasDeclaredRequiredMembers => false;
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A synthesized type used during emit to allow temp locals of Span&lt;T&gt;
     /// of a specific length where the span storage is on the stack.
     /// <code>
-    /// [InlineArray(N)] struct &lt;&gt;y__InlineArrayN&lt;T&gt; { private T _element0; }
+    /// [InlineArray(N)] struct &lt;&gt;y__InlineArrayN&lt;T&gt; { private readonly T _element0; }
     /// </code>
     /// </summary>
     internal sealed class SynthesizedInlineArrayTypeSymbol : NamedTypeSymbol
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        internal override bool MangleName => false;
+        internal override bool MangleName => true;
 
         internal override bool HasDeclaredRequiredMembers => false;
 
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => GetMembersUnordered();
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => GetMembers(name);
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => throw ExceptionUtilities.Unreachable();
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
