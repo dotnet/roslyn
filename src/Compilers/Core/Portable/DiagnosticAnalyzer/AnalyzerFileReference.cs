@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #if NET6_0_OR_GREATER
                         Random.Shared;
 #else
-                new Random();
+                        new Random();
 #endif
                     var builder = ArrayBuilder<string>.GetInstance(source.Count);
                     builder.AddRange(source);
