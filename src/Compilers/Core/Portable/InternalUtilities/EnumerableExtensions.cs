@@ -752,6 +752,30 @@ namespace Roslyn.Utilities
 
             return result;
         }
+
+        internal static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random? random = null)
+        {
+            if (random is null)
+            {
+#if NET6_0_OR_GREATER
+                random = Random.Shared;
+#else
+                random = new Random();
+#endif
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(source.Count());
+            builder.AddRange(source);
+
+            for (int i = builder.Count - 1; i >= 0; i--)
+            {
+                int swapIndex = random.Next(i + 1);
+                yield return builder[swapIndex];
+                builder[swapIndex] = builder[i];
+            }
+
+            builder.Free();
+        }
     }
 
     /// <summary>

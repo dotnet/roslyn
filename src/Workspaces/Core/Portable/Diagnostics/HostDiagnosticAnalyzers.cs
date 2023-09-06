@@ -220,7 +220,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticAnalyzer>>();
 
-            foreach (var reference in analyzerReferencesMap)
+            // Randomize the order we process analyzer references to minimize static constructor/JIT contention during analyzer instantiation.
+            foreach (var reference in analyzerReferencesMap.Shuffle())
             {
                 var analyzers = language == null ? reference.Value.GetAnalyzersForAllLanguages() : reference.Value.GetAnalyzers(language);
                 if (analyzers.Length == 0)

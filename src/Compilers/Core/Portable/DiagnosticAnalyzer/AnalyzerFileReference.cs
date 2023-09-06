@@ -572,7 +572,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var analyzers = ImmutableArray.CreateBuilder<TExtension>();
 
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
-                foreach (var typeName in analyzerTypeNames)
+                // Randomize the order we instantiate analyzers to avoid static constructor/JIT contention.
+                foreach (var typeName in analyzerTypeNames.Shuffle())
                 {
                     Type? type;
                     try
