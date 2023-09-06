@@ -16971,7 +16971,7 @@ file class C
                             "C",
                             "CollectionBuilderAttribute",
                             "<PrivateImplementationDetails>",
-                            "<>y__InlineArray3");
+                            "<>y__InlineArray3`1");
 
                         g.VerifyMethodDefNames(
                             ".ctor",
@@ -16999,7 +16999,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1");
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1`1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -17070,7 +17070,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2");
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2`1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
