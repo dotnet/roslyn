@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         new Random();
 #endif
 
-                var builder = ArrayBuilder<KeyValuePair<object, AnalyzerReference>>.GetInstance(source.Count);
+                using var _ = ArrayBuilder<KeyValuePair<object, AnalyzerReference>>.GetInstance(source.Count, out var builder);
                 builder.AddRange(source);
 
                 for (var i = builder.Count - 1; i >= 0; i--)
@@ -254,8 +254,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     yield return builder[swapIndex];
                     builder[swapIndex] = builder[i];
                 }
-
-                builder.Free();
             }
         }
 
