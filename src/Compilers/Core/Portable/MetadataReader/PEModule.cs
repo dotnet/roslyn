@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
         private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+        private static readonly Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>();
 
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         /// requested. We only keep the first instance of a type name, regardless of case, as this is only used for error recovery purposes
         /// in VB.
         /// </summary>
-        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
+        private Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -3629,8 +3630,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var value))
                 {
-                    matchedName = fullName;
-                    return value;
+                    matchedName = value.OriginalName;
+                    return (value.FirstIndex, value.SecondIndex);
                 }
             }
             else
@@ -3654,15 +3655,15 @@ namespace Microsoft.CodeAnalysis
 
                 if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
                 {
-                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyCaseInsensitiveForwardedTypes;
                     return;
                 }
 
-                var caseInsensitiveMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
+                var caseInsensitiveMap = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var (key, indexPair) in _lazyForwardedTypesToAssemblyIndexMap)
+                foreach (var (key, (firstIndex, secondIndex)) in _lazyForwardedTypesToAssemblyIndexMap)
                 {
-                    _ = caseInsensitiveMap.TryAdd(key, indexPair);
+                    _ = caseInsensitiveMap.TryAdd(key, (key, firstIndex, secondIndex));
                 }
 
                 _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap;
