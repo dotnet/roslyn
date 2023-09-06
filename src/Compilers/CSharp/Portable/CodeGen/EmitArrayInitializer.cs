@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
                 if (!IsTypeAllowedInBlobWrapper(specialElementType))
                 {
-                    return start is null && length is null && tryEmitAsCachedArrayOfConstants(ac, arrayType, elementType, spanType, used, inPlaceTarget);
+                    return start is null && length is null && tryEmitAsCachedArrayOfConstants(ac, arrayType, elementType, spanType, used, inPlaceTarget, out avoidInPlace);
                 }
 
                 // Get the data and number of elements that compose the initialization.
@@ -678,8 +678,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // Emit: new ReadOnlySpan<ElementType>(PrivateImplementationDetails.cachingField ??= new ElementType[] { ... constants ... })
-            bool tryEmitAsCachedArrayOfConstants(BoundArrayCreation arrayCreation, ArrayTypeSymbol arrayType, TypeSymbol elementType, NamedTypeSymbol spanType, bool used, BoundExpression? inPlaceTarget)
+            bool tryEmitAsCachedArrayOfConstants(BoundArrayCreation arrayCreation, ArrayTypeSymbol arrayType, TypeSymbol elementType, NamedTypeSymbol spanType, bool used, BoundExpression? inPlaceTarget, out bool avoidInPlace)
             {
+                avoidInPlace = false;
                 var initializer = arrayCreation.InitializerOpt;
                 if (initializer == null)
                 {
@@ -705,6 +706,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     emitEmptyReadonlySpan(spanType, arrayCreation, used, inPlaceTarget);
                     return true;
+                }
+
+                if (inPlaceTarget is not null)
+                {
+                    // We can use the optimization, but not for in-place initialization. Fail to optimize,
+                    // but tell the caller they can call this again with a null inPlaceTarget, at which point this
+                    // should be able to optimize the call.
+                    avoidInPlace = true;
+                    return false;
                 }
 
                 Cci.IFieldReference cachingField = _builder.module.GetArrayCachingFieldForConstants(constants, _module.Translate(arrayType),

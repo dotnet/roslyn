@@ -2657,7 +2657,7 @@ class Test
         [InlineData("string", "11")]
         [InlineData("object", "18")]
         [InlineData("C", "18")]
-        public void ReadOnlySpanFromArryOfConstants_Null(string type, string typeCode)
+        public void ReadOnlySpanFromArrayOfConstants_Null(string type, string typeCode)
         {
             var src = $$"""
 var values = C.M();
@@ -2698,8 +2698,51 @@ public class C
             verifier.VerifyIL("C.M", expectedIL);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        [InlineData("string", "11")]
+        [InlineData("object", "18")]
+        [InlineData("C", "18")]
+        public void ReadOnlySpanFromArrayOfConstants_Null_CollectionExpression(string type, string typeCode)
+        {
+            var src = $$"""
+System.Console.Write(C.M());
+
+public class C
+{
+    public static int M()
+    {
+        System.ReadOnlySpan<{{type}}> values = [ null, null ];
+        return values.Length;
+    }
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2", verify: Verification.Skipped);
+
+            verifier.VerifyIL("C.M", $$"""
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<{{type}}> V_0) //values
+  IL_0000:  ldsfld     "{{type}}[] <PrivateImplementationDetails>.96A296D224F285C67BEE93C30F8A309157F0DAA35DC5B87E410B78630A09CFC7_B{{typeCode}}"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0015
+  IL_0008:  pop
+  IL_0009:  ldc.i4.2
+  IL_000a:  newarr     "{{type}}"
+  IL_000f:  dup
+  IL_0010:  stsfld     "{{type}}[] <PrivateImplementationDetails>.96A296D224F285C67BEE93C30F8A309157F0DAA35DC5B87E410B78630A09CFC7_B{{typeCode}}"
+  IL_0015:  newobj     "System.ReadOnlySpan<{{type}}>..ctor({{type}}[])"
+  IL_001a:  stloc.0
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       "int System.ReadOnlySpan<{{type}}>.Length.get"
+  IL_0022:  ret
+}
+""");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_OtherStrings()
+        public void ReadOnlySpanFromArrayOfConstants_OtherStrings()
         {
             var src = """
 var values = C.M();
@@ -2769,7 +2812,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_VariableStrings()
+        public void ReadOnlySpanFromArrayOfConstants_VariableStrings()
         {
             var src = """
 public class C
@@ -2811,7 +2854,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_NoInitializer()
+        public void ReadOnlySpanFromArrayOfConstants_NoInitializer()
         {
             var src = """
 public class C
@@ -2828,7 +2871,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_NativeInts()
+        public void ReadOnlySpanFromArrayOfConstants_NativeInts()
         {
             var src = """
 var values = C.M();
@@ -2871,7 +2914,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_NativeUnsignedInts()
+        public void ReadOnlySpanFromArrayOfConstants_NativeUnsignedInts()
         {
             var src = """
 var values = C.M();
@@ -2914,7 +2957,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_Decimals()
+        public void ReadOnlySpanFromArrayOfConstants_Decimals()
         {
             var src = """
 var values = C.M();
@@ -2956,7 +2999,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_DateTime_NotConstant()
+        public void ReadOnlySpanFromArrayOfConstants_DateTime_NotConstant()
         {
             var src = """
 using System;
@@ -2990,7 +3033,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_DateTime_WithConst()
+        public void ReadOnlySpanFromArrayOfConstants_DateTime_WithConst()
         {
             var src = """
 using System;
@@ -3013,7 +3056,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
-        public void ReadOnlySpanFromArryOfConstants_WithoutConst()
+        public void ReadOnlySpanFromArrayOfConstants_WithoutConst()
         {
             var src = """
 public struct S { public int i; }
