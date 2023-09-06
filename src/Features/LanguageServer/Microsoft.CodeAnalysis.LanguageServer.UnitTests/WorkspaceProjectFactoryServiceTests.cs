@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BrokeredServices;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BrokeredServices;
 
 internal class WorkspaceProject : IWorkspaceProject
 {
