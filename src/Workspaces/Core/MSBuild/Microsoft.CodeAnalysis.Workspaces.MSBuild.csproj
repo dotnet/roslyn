@@ -23,7 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
+    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -44,10 +44,16 @@
     -->
     <PropertyGroup>
       <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetBuildHostBinaries</TargetsForTfmSpecificBuildOutput>
+      <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificBuildOutput);GetBuildHostDebugSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
     </PropertyGroup>
     <Target Name="GetBuildHostBinaries" DependsOnTargets="ResolveReferences">
-      <ItemGroup>
-        <BuildOutputInPackage Include="@(ReferencePath)" Condition="'%(ReferencePath.ProjectReferenceOriginalItemSpec)' == '..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj'" />
-      </ItemGroup>
+        <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetBuildOutputFilesWithTfm">
+          <Output TaskParameter="TargetOutputs" ItemName="BuildOutputInPackage" />
+        </MSBuild>
+    </Target>
+    <Target Name="GetBuildHostDebugSymbols">
+      <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetDebugSymbolsWithTfm">
+        <Output TaskParameter="TargetOutputs" ItemName="_TargetPathsToSymbolsWithTfm" />
+      </MSBuild>
     </Target>
 </Project>
