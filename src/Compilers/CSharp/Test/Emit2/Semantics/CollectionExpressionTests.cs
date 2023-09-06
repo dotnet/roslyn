@@ -6566,6 +6566,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IList<T>.RemoveAt(int)", expectedNotSupportedIL);
         }
 
+        // Compare members of synthesized types to a similar type from source.
+        [Fact]
+        public void SynthesizedReadOnlyList_Members()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                internal sealed class ReadOnlyArray<T> :
+                    IEnumerable<T>,
+                    IReadOnlyCollection<T>,
+                    IReadOnlyList<T>,
+                    ICollection<T>,
+                    IList<T>
+                {
+                    private readonly T[] _items;
+                    public ReadOnlyArray(T[] items) { _items = items; }
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException();
+                    int IReadOnlyCollection<T>.Count => _items.Length;
+                    T IReadOnlyList<T>.this[int index] => _items[index];
+                    int ICollection<T>.Count => _items.Length;
+                    bool ICollection<T>.IsReadOnly => true;
+                    void ICollection<T>.Add(T item) => throw new NotSupportedException();
+                    void ICollection<T>.Clear() => throw new NotSupportedException();
+                    bool ICollection<T>.Contains(T item) => throw new NotSupportedException();
+                    void ICollection<T>.CopyTo(T[] array, int arrayIndex) { }
+                    T IList<T>.this[int index]
+                    {
+                        get => _items[index];
+                        set => throw new NotSupportedException();
+                    }
+                    int IList<T>.IndexOf(T t) => Array.IndexOf<T>(_items, t);
+                    void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+                    bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
+                    void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0];
+                        IEnumerable<int> y = [..x];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                new[] { sourceA, sourceB },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify);
+
+            var sourceType = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("ReadOnlyArray");
+            verifier.TestData.TryGetMethodData("<>z__ReadOnlyArray<T>..ctor(T[])", out var arrayMemberData);
+            verifier.TestData.TryGetMethodData("<>z__ReadOnlyList<T>..ctor(System.Collections.Generic.List<T>)", out var listMemberData);
+
+            compareTypes(sourceType, ((MethodSymbol)arrayMemberData.Method).ContainingType);
+            compareTypes(sourceType, ((MethodSymbol)listMemberData.Method).ContainingType);
+
+            static void compareTypes(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType)
+            {
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.IsReadOnly");
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.get_IsReadOnly");
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.Contains");
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.this[]");
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.get_Item");
+                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.set_Item");
+            }
+
+            static void compareMembers(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType, string memberName)
+            {
+                var sourceMember = sourceType.GetMembers(memberName).Single();
+                var synthesizedMember = synthesizedType.GetMembers(memberName).Single();
+                Assert.Equal(sourceMember.IsAbstract, synthesizedMember.IsAbstract);
+                Assert.Equal(sourceMember.IsVirtual, synthesizedMember.IsVirtual);
+                Assert.Equal(sourceMember.IsOverride, synthesizedMember.IsOverride);
+            }
+        }
+
         [Theory]
         [InlineData(SpecialType.System_Collections_IEnumerable, "System.Collections.IEnumerable")]
         [InlineData(SpecialType.System_Collections_Generic_IEnumerable_T, "System.Collections.Generic.IEnumerable`1")]
