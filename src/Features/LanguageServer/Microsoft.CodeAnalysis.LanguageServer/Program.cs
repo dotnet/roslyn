@@ -101,7 +101,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
     // Named pipe server is actually created from the client, so here we create a client stream.
-    var pipeServer = new NamedPipeClientStream(serverName: ".", GetPlatformPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
+    var pipeServer = new NamedPipeClientStream(serverName: ".", GetPlatformPipeConnectionString(serverConfiguration.PipeName), PipeDirection.InOut, PipeOptions.CurrentUserOnly);
     await pipeServer.ConnectAsync(cancellationToken);
 
     var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
