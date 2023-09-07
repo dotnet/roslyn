@@ -1682,8 +1682,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
-                if (targetType is
-                    NamedTypeSymbol {
+                if (targetType is NamedTypeSymbol
+                    {
                         OriginalDefinition.SpecialType:
                             SpecialType.System_Collections_Generic_IEnumerable_T or
                             SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
