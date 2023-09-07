@@ -2844,6 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "string").WithLocation(7, 31));
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69839")]
         [Fact]
         public void ListInterfaces_01()
         {
@@ -2895,6 +2896,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 1.cs(7,16): error CS9174: Cannot initialize type 'IA' with a collection expression because the type is not constructible.
                 //         IA a = [2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IA").WithLocation(7, 16),
+                // 1.cs(8,24): error CS9174: Cannot initialize type 'IB<object>' with a collection expression because the type is not constructible.
+                //         IB<object> b = [3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IB<object>").WithLocation(8, 24),
                 // 1.cs(9,24): error CS9174: Cannot initialize type 'IC<object>' with a collection expression because the type is not constructible.
                 //         IC<object> c = [4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IC<object>").WithLocation(9, 24),
@@ -2996,10 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // 1.cs(7,23): error CS9174: Cannot initialize type 'List<int>' with a collection expression because the type is not constructible.
                 //         List<int> l = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
-                // 1.cs(8,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection expression because the type is not constructible.
-                //         IEnumerable<int> e = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23));
         }
 
         [Fact]
@@ -3022,21 +3023,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection expression because the type is not constructible.
+                // (6,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IEnumerable<int> a = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // (7,30): error CS9174: Cannot initialize type 'ICollection<int>' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(6, 30),
+                // (7,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         ICollection<int> b = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
-                // (8,24): error CS9174: Cannot initialize type 'IList<int>' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[2]").WithArguments("System.Collections.Generic.List`1").WithLocation(7, 30),
+                // (8,24): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IList<int> c = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
-                // (9,38): error CS9174: Cannot initialize type 'IReadOnlyCollection<int>' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 24),
+                // (9,38): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IReadOnlyCollection<int> d = [3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
-                // (10,32): error CS9174: Cannot initialize type 'IReadOnlyList<int>' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[3]").WithArguments("System.Collections.Generic.List`1").WithLocation(9, 38),
+                // (10,32): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IReadOnlyList<int> e = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(10, 32));
         }
 
         [Fact]
