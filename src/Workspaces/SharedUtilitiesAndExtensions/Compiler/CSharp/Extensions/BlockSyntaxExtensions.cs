@@ -28,23 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (preference != ExpressionBodyPreference.Never &&
                 block is { Statements: [var statement] } &&
                 TryGetExpression(statement, languageVersion, out expression, out semicolonToken) &&
-                MatchesPreference(expression, preference))
+                MatchesPreference(expression, preference) &&
+                HasAcceptableDirectiveShape(statement, block.CloseBraceToken))
             {
-                // If there are ifdef'ed sections of code below the single statement, then we can't convert.
-                if (!block.CloseBraceToken.LeadingTrivia.Any(IsAnyCodeDirective))
-                {
-                    // We can have an ifdef'ed section around the statement, as long as each segment of the ifdef
-                    // contains an expression-statement or throw-statement.
-                    if (HasAcceptableDirectiveShape(statement))
-                    {
-                        // The close brace of the block may have important trivia on it (like 
-                        // comments or directives).  Preserve them on the semicolon when we
-                        // convert to an expression body.
-                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                        return true;
-                    }
-                }
+                // The close brace of the block may have important trivia on it (like 
+                // comments or directives).  Preserve them on the semicolon when we
+                // convert to an expression body.
+                semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                    block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                return true;
             }
 
             expression = null;
@@ -54,11 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             static bool IsAnyCodeDirective(SyntaxTrivia trivia)
                 => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia;
 
-            bool HasAcceptableDirectiveShape(StatementSyntax statement)
+            // We can have an ifdef'ed section around the statement, as long as each segment of the ifdef
+            // contains an expression-statement or throw-statement.
+            bool HasAcceptableDirectiveShape(StatementSyntax statement, SyntaxToken closeBrace)
             {
                 var leadingDirectives = statement.GetLeadingTrivia().Where(IsAnyCodeDirective).ToImmutableArray();
+                var closeBraceLeadingDirectives = block.CloseBraceToken.LeadingTrivia.Where(IsAnyCodeDirective).ToImmutableArray();
+
                 if (leadingDirectives.Length == 0)
-                    return true;
+                {
+                    // If we don't have any leading directives, our close brace token better not have any as well.
+                    return closeBraceLeadingDirectives.Length == 0;
+                }
 
                 // Ok, we have some if/elif/else/endif pp directives above us.  If we're one of hte branches, and all
                 // the rest of the branches are ok as well, we can convert this.
@@ -96,11 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             var parsed = SyntaxFactory.ParseStatement(nextTrivia.ToFullString());
                             if (parsed.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                                 return false;
-
-                            if (parsed is not ExpressionStatementSyntax and not ThrowStatementSyntax { Expression: not null })
-                                return false;
                         }
                     }
+                }
+
+                // Make sure there aren't any *new* pp directives before the close brace.
+                foreach (var closeBraceDirective in closeBraceLeadingDirectives)
+                {
+                    if (!conditionalDirectives.Contains((DirectiveTriviaSyntax)closeBraceDirective.GetStructure()!))
+                        return false;
                 }
 
                 return true;
