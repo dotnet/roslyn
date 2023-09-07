@@ -3023,21 +3023,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (6,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         IEnumerable<int> a = [];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(6, 30),
                 // (7,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         ICollection<int> b = [2];
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[2]").WithArguments("System.Collections.Generic.List`1").WithLocation(7, 30),
                 // (8,24): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IList<int> c = [];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 24),
-                // (9,38): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         IReadOnlyCollection<int> d = [3];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[3]").WithArguments("System.Collections.Generic.List`1").WithLocation(9, 38),
-                // (10,32): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         IReadOnlyList<int> e = [];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(10, 32));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 24));
         }
 
         [Fact]
@@ -6589,7 +6580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
-                expectedOutput: "1, 2, ");
+                expectedOutput: IncludeExpectedOutput("1, 2, "));
         }
 
         [Fact]
@@ -6614,7 +6605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
-                expectedOutput: "1, 2, 3, ");
+                expectedOutput: IncludeExpectedOutput("1, 2, 3, "));
         }
 
         // Compare members of synthesized types to a similar type from source.
@@ -6774,12 +6765,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection expression because the type is not constructible.
-                //         IEnumerable<int> x = [0];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[0]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // (7,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection expression because the type is not constructible.
+                // (7,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
                 //         IEnumerable<int> y = [..x];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..x]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(7, 30));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..x]").WithArguments("System.Collections.Generic.List`1").WithLocation(7, 30));
         }
 
         [Theory]
@@ -6796,10 +6784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__IndexOf, "System.Collections.Generic.IList`1", "IndexOf")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Insert, "System.Collections.Generic.IList`1", "Insert")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__RemoveAt, "System.Collections.Generic.IList`1", "RemoveAt")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Contains, "System.Collections.Generic.List`1", "Contains")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__CopyTo, "System.Collections.Generic.List`1", "CopyTo")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Item, "System.Collections.Generic.List`1", "this[]")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__IndexOf, "System.Collections.Generic.List`1", "IndexOf")]
         [InlineData((int)WellKnownMember.System_NotSupportedException__ctor, "System.NotSupportedException", ".ctor")]
         public void SynthesizedReadOnlyList_MissingWellKnownMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
         {
@@ -6820,6 +6804,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.IReadOnlyCollection`1.Count'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(6, 30),
+                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.IReadOnlyCollection`1.Count'
+                //         IEnumerable<int> y = [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(7, 30));
+        }
+
+        [Theory]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Contains, "System.Collections.Generic.List`1", "Contains")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__CopyTo, "System.Collections.Generic.List`1", "CopyTo")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Item, "System.Collections.Generic.List`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__IndexOf, "System.Collections.Generic.List`1", "IndexOf")]
+        public void SynthesizedReadOnlyList_MissingWellKnownMembers_UnknownLength(int missingMember, string missingMemberTypeName, string missingMemberName)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0];
+                        IEnumerable<int> y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            comp.VerifyEmitDiagnostics(
                 // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.IReadOnlyCollection`1.Count'
                 //         IEnumerable<int> y = [..x];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(7, 30));
