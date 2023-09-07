@@ -43,7 +43,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetBlockStructureOptions(document.Project) with
             {
-                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true
+                // Need to set the block structure guide options to true since the concept does not exist in vscode
+                // but we still want to categorize them as the correct BlockType.
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true,
+                ShowBlockStructureGuidesForDeclarationLevelConstructs = true,
+                ShowBlockStructureGuidesForCodeLevelConstructs = true
             };
 
             return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
