@@ -1,3 +1,4 @@
+T:System.Console; Analyzers should not be reading / writing to the console
 T:System.Diagnostics.Process; Analyzers should not inspect or create processes
 T:System.Diagnostics.ProcessStartInfo; Analyzers should not inspect or create processes
 T:System.Environment; Analyzers should not read their settings directly from environment variables
