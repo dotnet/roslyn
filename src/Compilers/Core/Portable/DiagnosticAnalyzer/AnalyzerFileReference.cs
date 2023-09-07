@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, ImmutableHashSet<string> analyzerTypeNames, ref bool reportedError)
             {
-                var analyzers = ArrayBuilder<(string typeName, TExtension analyzer)>.GetInstance();
+                var builder = ArrayBuilder<(string typeName, TExtension analyzer)>.GetInstance();
 
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
                 // Randomize the order we instantiate analyzers to avoid static constructor/JIT contention, but still return
@@ -620,12 +620,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     TExtension? analyzer = typeInstance as TExtension ?? _coerceFunction?.Invoke(typeInstance);
                     if (analyzer != null)
                     {
-                        analyzers.Add((typeName, analyzer));
+                        builder.Add((typeName, analyzer));
                     }
                 }
 
-                analyzers.Sort(static (x, y) => string.Compare(x.typeName, y.typeName, StringComparison.OrdinalIgnoreCase));
-                return analyzers.SelectAsArray(x => x.analyzer);
+                builder.Sort(static (x, y) => string.Compare(x.typeName, y.typeName, StringComparison.OrdinalIgnoreCase));
+                var analyzers = builder.SelectAsArray(x => x.analyzer);
+                builder.Free();
+
+                return analyzers;
 
                 static IEnumerable<string> shuffle(ImmutableHashSet<string> source)
                 {
