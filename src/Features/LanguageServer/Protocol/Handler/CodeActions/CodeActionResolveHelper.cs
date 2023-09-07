@@ -4,83 +4,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionFixAllResolveHandler)), Shared]
-    [Method("codeAction/resolveFixAll")]
-    internal class CodeActionFixAllResolveHandler : ILspServiceDocumentRequestHandler<RoslynFixAllCodeAction, RoslynFixAllCodeAction>
+    internal class CodeActionResolveHelper
     {
-        private readonly ICodeFixService _codeFixService;
-        private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionFixAllResolveHandler(
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            IGlobalOptionService globalOptions)
+        public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
-            _codeFixService = codeFixService;
-            _codeRefactoringService = codeRefactoringService;
-            _globalOptions = globalOptions;
-        }
-
-        public bool MutatesSolutionState => false;
-
-        public bool RequiresLSPSolution => true;
-
-
-        public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynFixAllCodeAction request)
-            => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
-
-        public async Task<RoslynFixAllCodeAction> HandleRequestAsync(RoslynFixAllCodeAction request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var document = context.GetRequiredDocument();
-            var data = ((JToken)request.Data!).ToObject<CodeActionResolveData>();
-            Assumes.Present(data);
-
-            var options = _globalOptions.GetCodeActionOptionsProvider();
-
-            var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                document,
-                data.Range,
-                options,
-                _codeFixService,
-                _codeRefactoringService,
-                cancellationToken,
-                request.Scope).ConfigureAwait(false);
-
-            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
-            Contract.ThrowIfNull(codeActionToResolve);
-
-            var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
-            Contract.ThrowIfNull(fixAllCodeAction);
-
-            var operations = await fixAllCodeAction.ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
-            var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(context, data, operations, cancellationToken).ConfigureAwait(false);
-
-            request.Edit = edit;
-            return request;
-            /*
+            var solution = context.Solution;
+            Contract.ThrowIfNull(solution);
 
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
@@ -129,8 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         || projectChange.GetRemovedAnalyzerReferences().Any())
                     {
                         // Changes to references are not currently supported
-                        request.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                        return request;
+                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
                     }
 
                     if (projectChange.GetRemovedDocuments().Any()
@@ -141,8 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             || !resourceOperations.Contains(ResourceOperationKind.Delete))
                         {
                             // Removing documents is not supported by this workspace
-                            request.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                            return request;
+                            return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
                         }
                     }
 
@@ -154,8 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             || !resourceOperations.Contains(ResourceOperationKind.Create))
                         {
                             // Adding documents is not supported by this workspace
-                            request.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                            return request;
+                            return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
                         }
                     }
 
@@ -167,8 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             || !resourceOperations.Contains(ResourceOperationKind.Rename))
                         {
                             // Rename documents is not supported by this workspace
-                            request.Edit = new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                            return request;
+                            return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
                         }
                     }
                 }
@@ -250,9 +189,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     solution.GetAdditionalDocument).ConfigureAwait(false);
             }
 
-            request.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
+            return new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
 
-            return request;
 
             Task AddTextDocumentDeletionsAsync<TTextDocument>(
                 IEnumerable<DocumentId> removedDocuments,
@@ -371,8 +309,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var newDocument = newSolution.GetRequiredTextDocument(documentId);
             var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
             return newDocument.Name != oldDocument.Name;
-        }
-            */
         }
     }
 }

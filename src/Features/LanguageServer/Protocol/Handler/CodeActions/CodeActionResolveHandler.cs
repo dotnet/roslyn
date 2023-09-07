@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -83,6 +84,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var operations = await codeActionToResolve.GetOperationsAsync(
                 solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+
+            var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(context, data, operations, cancellationToken).ConfigureAwait(false);
+
+            codeAction.Edit = edit;
+            return codeAction;
+            /*
 
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
@@ -373,6 +380,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var newDocument = newSolution.GetRequiredTextDocument(documentId);
             var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
             return newDocument.Name != oldDocument.Name;
+        }
+            */
         }
     }
 }
