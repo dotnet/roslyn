@@ -213,12 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationContextInfo info, AccessorDeclarationSyntax declaration)
+            CSharpCodeGenerationContextInfo info, AccessorDeclarationSyntax declaration, CancellationToken cancellationToken)
         {
             if (declaration.ExpressionBody == null)
             {
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedAccessors.Value,
+                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedAccessors.Value, cancellationToken,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     declaration = declaration.WithBody(null)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool TryGetArrowExpressionBody(
-            SyntaxKind declaratoinKind, AccessorDeclarationSyntax accessor, LanguageVersion languageVersion, ExpressionBodyPreference preference,
+            SyntaxKind declarationKind, AccessorDeclarationSyntax accessor, LanguageVersion languageVersion, ExpressionBodyPreference preference, CancellationToken cancellationToken,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression, out SyntaxToken semicolonToken)
         {
             // If the accessor has an expression body already, then use that as the expression body
@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return accessor.Body.TryConvertToArrowExpressionBody(
-                declaratoinKind, languageVersion, preference, out arrowExpression, out semicolonToken);
+                declarationKind, languageVersion, preference, cancellationToken, out arrowExpression, out semicolonToken);
         }
 
         private static AccessorListSyntax? GenerateAccessorList(
             IPropertySymbol property, CodeGenerationDestination destination,
-            CSharpCodeGenerationContextInfo info)
+            CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
             var setAccessorKind = property.SetMethod?.IsInitOnly == true ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration;
             var accessors = new[]
@@ -275,12 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol? accessor,
             SyntaxKind kind,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationContextInfo info)
+            CSharpCodeGenerationContextInfo info,
+            CancellationToken cancellationToken)
         {
             var hasBody = info.Context.GenerateMethodBodies && HasAccessorBodies(property, destination, accessor);
             return accessor == null
                 ? null
-                : GenerateAccessorDeclaration(property, accessor, kind, hasBody, info);
+                : GenerateAccessorDeclaration(property, accessor, kind, hasBody, info, cancellationToken);
         }
 
         private static AccessorDeclarationSyntax GenerateAccessorDeclaration(
@@ -288,14 +289,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol accessor,
             SyntaxKind kind,
             bool hasBody,
-            CSharpCodeGenerationContextInfo info)
+            CSharpCodeGenerationContextInfo info,
+            CancellationToken cancellationToken)
         {
             var declaration = SyntaxFactory.AccessorDeclaration(kind)
                                            .WithModifiers(GenerateAccessorModifiers(property, accessor, info))
                                            .WithBody(hasBody ? GenerateBlock(accessor) : null)
                                            .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            declaration = UseExpressionBodyIfDesired(info, declaration);
+            declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
             return AddAnnotationsTo(accessor, declaration);
         }

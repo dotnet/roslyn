@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -19,29 +21,90 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this BlockSyntax? block,
             LanguageVersion languageVersion,
             ExpressionBodyPreference preference,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out ExpressionSyntax? expression,
             out SyntaxToken semicolonToken)
         {
             if (preference != ExpressionBodyPreference.Never &&
-                block != null && block.Statements.Count == 1)
+                block is { Statements: [var statement] } &&
+                TryGetExpression(statement, languageVersion, out expression, out semicolonToken) &&
+                MatchesPreference(expression, preference))
             {
-                var firstStatement = block.Statements[0];
-
-                if (TryGetExpression(firstStatement, languageVersion, out expression, out semicolonToken) &&
-                    MatchesPreference(expression, preference))
+                // If there are ifdef'ed sections of code below the single statement, then we can't convert.
+                if (!block.CloseBraceToken.LeadingTrivia.Any(IsAnyCodeDirective))
                 {
-                    // The close brace of the block may have important trivia on it (like 
-                    // comments or directives).  Preserve them on the semicolon when we
-                    // convert to an expression body.
-                    semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                        block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                    return true;
+                    // We can have an ifdef'ed section around the statement, as long as each segment of the ifdef
+                    // contains an expression-statement or throw-statement.
+                    if (HasAcceptableDirectiveShape(statement))
+                    {
+                        // The close brace of the block may have important trivia on it (like 
+                        // comments or directives).  Preserve them on the semicolon when we
+                        // convert to an expression body.
+                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                        return true;
+                    }
                 }
             }
 
             expression = null;
             semicolonToken = default;
             return false;
+
+            static bool IsAnyCodeDirective(SyntaxTrivia trivia)
+                => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia;
+
+            bool HasAcceptableDirectiveShape(StatementSyntax statement)
+            {
+                var leadingDirectives = statement.GetLeadingTrivia().Where(IsAnyCodeDirective).ToImmutableArray();
+                if (leadingDirectives.Length == 0)
+                    return true;
+
+                // Ok, we have some if/elif/else/endif pp directives above us.  If we're one of hte branches, and all
+                // the rest of the branches are ok as well, we can convert this.
+
+                if (leadingDirectives.Any(t => t.Kind() == SyntaxKind.EndIfDirectiveTrivia))
+                    return false;
+
+                var firstDirective = (DirectiveTriviaSyntax)leadingDirectives.First().GetStructure()!;
+                var conditionalDirectives = firstDirective.GetMatchingConditionalDirectives(cancellationToken);
+
+                // The sequence of conditionals have to all be within the method body.
+                if (conditionalDirectives.First().SpanStart <= block.OpenBraceToken.SpanStart ||
+                    conditionalDirectives.Last().Span.End >= block.CloseBraceToken.Span.End)
+                {
+                    return false;
+                }
+
+                // Last directive has to come after our statement.
+                if (conditionalDirectives.Last().Span.End <= statement.Span.Start)
+                    return false;
+
+                // Now, check each part of the conditional chain
+                foreach (var conditionalDirective in conditionalDirectives)
+                {
+                    var parentTrivia = conditionalDirective.ParentTrivia;
+                    var parentToken = parentTrivia.Token;
+                    var triviaIndex = parentToken.LeadingTrivia.IndexOf(parentTrivia);
+                    if (triviaIndex + 1 < parentToken.LeadingTrivia.Count)
+                    {
+                        var nextTrivia = parentToken.LeadingTrivia[triviaIndex + 1];
+                        if (nextTrivia.Kind() == SyntaxKind.DisabledTextTrivia)
+                        {
+                            // This was a conditional before a disabled section.  Parse out the disabled section and make
+                            // sure it can legally become the body of a expression-bodied member.
+                            var parsed = SyntaxFactory.ParseStatement(nextTrivia.ToFullString());
+                            if (parsed.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+                                return false;
+
+                            if (parsed is not ExpressionStatementSyntax and not ThrowStatementSyntax { Expression: not null })
+                                return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
         }
 
         public static bool TryConvertToArrowExpressionBody(
@@ -49,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SyntaxKind declarationKind,
             LanguageVersion languageVersion,
             ExpressionBodyPreference preference,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
@@ -59,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (languageVersion >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
 
             if (acceptableVersion &&
-                block.TryConvertToExpressionBody(languageVersion, preference, out var expression, out semicolonToken))
+                block.TryConvertToExpressionBody(languageVersion, preference, cancellationToken, out var expression, out semicolonToken))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
 
