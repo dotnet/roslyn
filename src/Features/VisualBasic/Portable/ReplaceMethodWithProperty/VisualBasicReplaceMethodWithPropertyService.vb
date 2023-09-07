@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -35,12 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
-            options As CodeGenerationOptions,
-            parseOptions As ParseOptions,
-            editor As SyntaxEditor,
-            semanticModel As SemanticModel,
-            getAndSetMethods As GetAndSetMethods,
-            propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
+                options As CodeGenerationOptions,
+                parseOptions As ParseOptions,
+                editor As SyntaxEditor,
+                semanticModel As SemanticModel,
+                getAndSetMethods As GetAndSetMethods,
+                propertyName As String, nameChanged As Boolean,
+                cancellationToken As CancellationToken) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
 
             Dim getMethodDeclaration = TryCast(getAndSetMethods.GetMethodDeclaration, MethodStatementSyntax)
             If getMethodDeclaration Is Nothing Then

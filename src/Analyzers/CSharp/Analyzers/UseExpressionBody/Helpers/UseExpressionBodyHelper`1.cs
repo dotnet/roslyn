@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         public bool CanOfferUseExpressionBody(
-            CodeStyleOption2<ExpressionBodyPreference> preference, TDeclaration declaration, bool forAnalyzer)
+            CodeStyleOption2<ExpressionBodyPreference> preference, TDeclaration declaration, bool forAnalyzer, CancellationToken cancellationToken)
         {
             var userPrefersExpressionBodies = preference.Value != ExpressionBodyPreference.Never;
             var analyzerDisabled = preference.Notification.Severity == ReportDiagnostic.Suppress;
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                     var conversionPreference = forAnalyzer ? preference.Value : ExpressionBodyPreference.WhenPossible;
 
-                    return TryConvertToExpressionBody(declaration, conversionPreference,
+                    return TryConvertToExpressionBody(declaration, conversionPreference, cancellationToken,
                         expressionWhenOnSingleLine: out _, semicolonWhenOnSingleLine: out _);
                 }
             }
@@ -115,16 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
             ExpressionBodyPreference conversionPreference,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
-                declaration, conversionPreference,
+                declaration, conversionPreference, cancellationToken,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         private bool TryConvertToExpressionBodyWorker(
-            SyntaxNode declaration, ExpressionBodyPreference conversionPreference,
+            SyntaxNode declaration, ExpressionBodyPreference conversionPreference, CancellationToken cancellationToken,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
             var body = GetBody(declaration);
@@ -138,17 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var languageVersion = body.SyntaxTree.Options.LanguageVersion();
 
             return body.TryConvertToArrowExpressionBody(
-                declaration.Kind(), languageVersion, conversionPreference,
+                declaration.Kind(), languageVersion, conversionPreference, cancellationToken,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         protected bool TryConvertToExpressionBodyForBaseProperty(
             BasePropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
+            CancellationToken cancellationToken,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, out arrowExpression, out semicolonToken))
+            if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
             {
                 return true;
             }
@@ -221,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
         }
 
-        public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody)
+        public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody, CancellationToken cancellationToken)
         {
             if (useExpressionBody)
             {
-                TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
+                TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, cancellationToken, out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
