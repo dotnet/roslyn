@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool IsRelevantDeclarationNode(SyntaxNode node)
             => node is TDeclaration;
 
-        public override bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer)
-            => CanOfferUseExpressionBody(preference, (TDeclaration)declaration, forAnalyzer);
+        public override bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, CancellationToken cancellationToken)
+            => CanOfferUseExpressionBody(preference, (TDeclaration)declaration, forAnalyzer, cancellationToken);
 
         public override bool CanOfferUseBlockBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
             => CanOfferUseBlockBody(preference, (TDeclaration)declaration, forAnalyzer, out fixesError, out expressionBody);
 
-        public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody)
-            => Update(semanticModel, (TDeclaration)declaration, useExpressionBody);
+        public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody, CancellationToken cancellationToken)
+            => Update(semanticModel, (TDeclaration)declaration, useExpressionBody, cancellationToken);
 
         public override Location GetDiagnosticLocation(SyntaxNode declaration)
             => GetDiagnosticLocation((TDeclaration)declaration);
