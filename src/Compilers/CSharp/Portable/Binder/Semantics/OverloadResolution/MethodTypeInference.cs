@@ -615,6 +615,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.CollectionExpressionSpreadElement)
+            {
+                MakeSpreadElementTypeInferences((BoundCollectionExpressionSpreadElement)argument, target, ref useSiteInfo);
+            }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
@@ -639,6 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(target.Type is { });
             if (target.Type is null)
             {
                 return;
@@ -658,6 +663,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
             }
+        }
+
+        private void MakeSpreadElementTypeInferences(
+            BoundCollectionExpressionSpreadElement argument,
+            TypeWithAnnotations target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(target.Type is { });
+            if (target.Type is null)
+            {
+                return;
+            }
+
+            var enumeratorInfo = argument.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return;
+            }
+
+            // https://github.com/dotnet/roslyn/issues/68786: Ignoring top-level nullability of enumeratorInfo.ElementType.
+            LowerBoundInference(TypeWithAnnotations.Create(enumeratorInfo.ElementType), target, ref useSiteInfo);
         }
 #nullable disable
 
