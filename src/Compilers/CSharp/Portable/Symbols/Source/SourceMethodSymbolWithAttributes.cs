@@ -1150,13 +1150,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
             {
-                var recommendedProperty = namespaceNames.Count == 0
-                    ? "<InterceptorsPreviewNamespaces>global</InterceptorsPreviewNamespaces>"
-                    : $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
-                diagnostics.Add(
-                    ErrorCode.ERR_InterceptorsFeatureNotEnabled,
-                    attributeSyntax,
-                    recommendedProperty);
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                }
             }
         }
 
