@@ -3508,6 +3508,16 @@ record Program : Base
                 """, "M()");
         }
 
+        [WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6308")]
+        public async Task NoOverrideItemsWhenNotInTypeDeclaration()
+        {
+            await VerifyNoItemsExistAsync(@"
+namespace NS
+{
+    override $$
+}");
+        }
+
         private Task VerifyItemExistsAsync(string markup, string expectedItem)
         {
             return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
