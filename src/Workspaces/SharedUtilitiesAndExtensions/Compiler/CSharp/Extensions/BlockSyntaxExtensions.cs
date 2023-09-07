@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
 
             static bool IsAnyCodeDirective(SyntaxTrivia trivia)
-                => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia;
+                => trivia.GetStructure() is ConditionalDirectiveTriviaSyntax;
 
             // We can have an ifdef'ed section around the statement, as long as each segment of the ifdef
             // contains an expression-statement or throw-statement.
