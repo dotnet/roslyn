@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 if (declaration.Initializer == null)
                 {
-                    if (TryGetExpressionBody( 
+                    if (TryGetExpressionBody(
                             declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
                             out var expressionBody, out var semicolonToken))
                     {
