@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 DiagnosticHelper.Create(
                     Descriptor,
                     binaryExpression.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     ImmutableArray<Location>.Empty,
                     ImmutableDictionary<string, string?>.Empty));
         }

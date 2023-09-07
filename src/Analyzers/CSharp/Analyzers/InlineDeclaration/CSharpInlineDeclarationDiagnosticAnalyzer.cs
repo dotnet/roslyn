@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 reportNode.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: allLocations,
                 properties: null));
         }

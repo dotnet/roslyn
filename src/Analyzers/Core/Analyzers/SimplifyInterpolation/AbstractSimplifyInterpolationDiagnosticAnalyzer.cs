@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 firstUnnecessaryLocation,
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
                 additionalUnnecessaryLocations: remainingUnnecessaryLocations));
         }

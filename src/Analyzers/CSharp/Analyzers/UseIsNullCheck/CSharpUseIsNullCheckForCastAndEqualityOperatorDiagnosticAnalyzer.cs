@@ -58,13 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var severity = option.Notification.Severity;
             var properties = binaryExpression.Kind() == SyntaxKind.EqualsExpression
                 ? s_properties
                 : s_NegatedProperties;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, properties));
+                    Descriptor, binaryExpression.GetLocation(), option.Notification, additionalLocations: null, properties));
         }
 
         private static bool IsObjectCastAndNullCheck(

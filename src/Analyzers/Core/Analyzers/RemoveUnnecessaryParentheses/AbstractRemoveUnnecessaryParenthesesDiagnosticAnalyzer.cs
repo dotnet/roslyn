@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Debug.Assert(preference.Value == ParenthesesPreference.NeverIfUnnecessary ||
                          !clarifiesPrecedence);
 
-            var severity = preference.Notification.Severity;
-
             var additionalLocations = ImmutableArray.Create(
                 parenthesizedExpression.GetLocation());
             var additionalUnnecessaryLocations = ImmutableArray.Create(
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
-                severity,
+                preference.Notification,
                 additionalLocations,
                 additionalUnnecessaryLocations));
         }

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 diagnosticLocation,
-                option.Notification.Severity,
+                option.Notification,
                 new[] { operationLocation, declarationLocation },
                 ImmutableDictionary<string, string?>.Empty));
         }

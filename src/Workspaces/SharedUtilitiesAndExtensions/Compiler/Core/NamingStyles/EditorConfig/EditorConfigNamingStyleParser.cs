@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
-            var ruleNames = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), string>();
+            var ruleNames = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel, bool isExplicitlySpecifiedEnforcementLevel), string>();
 
             foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     namingStyles.Add(namingStyle);
                     namingRules.Add(serializableNamingRule);
 
-                    var ruleKey = (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel);
+                    var ruleKey = (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel, serializableNamingRule.IsExplicitlySpecifiedEnforcementLevel);
                     if (ruleNames.TryGetValue(ruleKey, out var existingName))
                     {
                         // For duplicated rules, only preserve the one with a name that would sort first
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 .OrderBy(rule => rule, NamingRuleModifierListComparer.Instance)
                 .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
                 .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
-                .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.OrdinalIgnoreCase)
-                .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.Ordinal);
+                .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel, rule.IsExplicitlySpecifiedEnforcementLevel)], StringComparer.OrdinalIgnoreCase)
+                .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel, rule.IsExplicitlySpecifiedEnforcementLevel)], StringComparer.Ordinal);
 
             return new NamingStylePreferences(
                 preferences.SymbolSpecifications,
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         SymbolSpecificationID = rule.SymbolSpecification.ID,
                         NamingStyleID = rule.NamingStyle.ID,
                         EnforcementLevel = rule.EnforcementLevel,
+                        IsExplicitlySpecifiedEnforcementLevel = rule.IsExplicitlySpecifiedEnforcementLevel
                     }));
         }
 

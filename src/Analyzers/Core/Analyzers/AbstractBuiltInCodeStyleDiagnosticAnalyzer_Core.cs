@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -19,12 +21,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString title,
             LocalizableString? messageFormat,
             bool isUnnecessary,
-            bool configurable)
+            bool configurable,
+            bool hasAnyCodeStyleOption)
         {
             // 'isUnnecessary' should be true only for sub-types of AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.
             Debug.Assert(!isUnnecessary || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
 
-            Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, hasAnyCodeStyleOption, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,
             EnforceOnBuild enforceOnBuild,
+            bool hasAnyCodeStyleOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     isEnabledByDefault: true,
                     description: description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: hasAnyCodeStyleOption, enforceOnBuild));
 #pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>

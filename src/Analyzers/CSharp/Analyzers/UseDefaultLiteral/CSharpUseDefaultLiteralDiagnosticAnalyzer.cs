@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(defaultExpression.SyntaxTree.GetLocation(fadeSpan))));
         }

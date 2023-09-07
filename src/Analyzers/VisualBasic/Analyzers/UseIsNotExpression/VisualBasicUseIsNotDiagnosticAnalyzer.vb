@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 isKeyword.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 ImmutableArray.Create(notExpression.GetLocation()),
                 properties:=Nothing))
         End Sub

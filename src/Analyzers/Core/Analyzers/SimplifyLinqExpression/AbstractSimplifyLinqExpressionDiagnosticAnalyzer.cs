@@ -146,13 +146,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return;
             }
 
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    nextInvocation.Syntax.GetLocation(),
-                    Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                    additionalLocations: null,
-                    properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, nextInvocation.Syntax.GetLocation()));
 
             return;
 

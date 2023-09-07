@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 ImmutableArray.Create(
                     expressionToCoalesce.GetLocation(),
                     ifStatement.GetLocation(),

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 coalesceExpression.OperatorToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(coalesceExpression.GetLocation()),
                 properties: null));
         }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.IfKeyword.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: null));
         }

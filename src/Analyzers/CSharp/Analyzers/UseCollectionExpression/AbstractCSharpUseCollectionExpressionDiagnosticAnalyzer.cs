@@ -36,6 +36,7 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
         => CreateDescriptorWithId(
             diagnosticId,
             enforceOnBuild,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: isUnnecessary);

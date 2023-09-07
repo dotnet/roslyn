@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localFunction.Identifier.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
                     properties: null));
             }

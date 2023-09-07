@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             this.Descriptor,
                             token.GetLocation(),
-                            ReportDiagnostic.Hidden,
+                            NotificationOption2.Silent,
                             additionalLocations: null,
                             properties));
                     }

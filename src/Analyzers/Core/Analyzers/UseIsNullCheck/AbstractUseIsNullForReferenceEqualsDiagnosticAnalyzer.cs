@@ -137,11 +137,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(UseIsNullConstants.Negated, "");
             }
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, nameNode.GetLocation(),
-                    severity,
+                    option.Notification,
                     additionalLocations, properties));
         }
 

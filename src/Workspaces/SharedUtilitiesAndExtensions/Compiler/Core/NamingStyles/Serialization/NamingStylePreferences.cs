@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     [DataContract]
     internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        private const int s_serializationVersion = 5;
+        private const int s_serializationVersion = 6;
 
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{CompilerExtensionsResources.Begins_with_I}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
   </NamingStyles>
   <NamingRules>
-    <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" />
-    <SerializableNamingRule SymbolSpecificationID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
-    <SerializableNamingRule SymbolSpecificationID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
+    <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" IsExplicitlySpecifiedEnforcementLevel=""false"" />
+    <SerializableNamingRule SymbolSpecificationID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" IsExplicitlySpecifiedEnforcementLevel=""false"" />
+    <SerializableNamingRule SymbolSpecificationID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" IsExplicitlySpecifiedEnforcementLevel=""false"" />
   </NamingRules>
 </NamingPreferencesInfo>
 ";
@@ -384,12 +384,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 UpgradeSerialization_4To5(rootElement = new XElement(rootElement));
                 serializationVersion = 5;
             }
+            else if (serializationVersion == 5)
+            {
+                UpgradeSerialization_5To6(rootElement = new XElement(rootElement));
+                serializationVersion = 6;
+            }
 
             // Add future version checks here. If the version is off by more than 1, these upgrades will run in sequence.
-            // The next one should check serializationVersion == 5 and update it to 6.
+            // The next one should check serializationVersion == 6 and update it to 7.
             // It is also important to create a new roaming location in NamingStyleOptions.NamingPreferences
             // so that we never store the new format in an older version.
-            Debug.Assert(s_serializationVersion == 5, "After increasing the serialization version, add an upgrade path here.");
+            Debug.Assert(s_serializationVersion == 6, "After increasing the serialization version, add an upgrade path here.");
 
             return serializationVersion == s_serializationVersion
                 ? rootElement
@@ -405,6 +410,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var element in methodElements)
             {
                 element.ReplaceWith(XElement.Parse("<MethodKind>Ordinary</MethodKind>"));
+            }
+        }
+
+        private static void UpgradeSerialization_5To6(XElement rootElement)
+        {
+            var methodElements = rootElement
+                .Descendants()
+                .Where(e => e.Name.LocalName == "SerializableNamingRule").ToList();
+
+            foreach (var element in methodElements)
+            {
+                element.SetAttributeValue("IsExplicitlySpecifiedEnforcementLevel", "false");
             }
         }
     }

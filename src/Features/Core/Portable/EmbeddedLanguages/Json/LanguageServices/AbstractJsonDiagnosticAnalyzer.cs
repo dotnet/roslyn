@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                                 context.ReportDiagnostic(DiagnosticHelper.Create(
                                     this.Descriptor,
                                     Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                    ReportDiagnostic.Warn,
+                                    NotificationOption2.Warning,
                                     additionalLocations: null,
                                     properties: null,
                                     diag.Message));

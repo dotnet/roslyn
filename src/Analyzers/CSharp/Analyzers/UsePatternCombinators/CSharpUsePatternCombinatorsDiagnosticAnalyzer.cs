@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
             EnforceOnBuildValues.UsePatternCombinators,
+            hasAnyCodeStyleOption: true,
             s_unsafePatternTitle);
 
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
                 expression.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations: null,
                 properties: isSafe ? s_safeProperties : null));
         }

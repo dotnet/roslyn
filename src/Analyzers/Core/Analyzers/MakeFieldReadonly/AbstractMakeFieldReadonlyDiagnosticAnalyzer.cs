@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                 var diagnostic = DiagnosticHelper.Create(
                                     Descriptor,
                                     GetDiagnosticLocation(field),
-                                    option.Notification.Severity,
+                                    option.Notification,
                                     additionalLocations: null,
                                     properties: null);
                                 symbolEndContext.ReportDiagnostic(diagnostic);

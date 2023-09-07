@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             if (option.Value)
                 return;
 
-            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(
             SyntaxTreeAnalysisContext context,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
                     continue;
 
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!, cancellationToken);
+                    Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
                 else if (child.IsToken)
-                    CheckToken(context, severity, child.AsToken());
+                    CheckToken(context, notificationOption, child.AsToken());
             }
         }
 
-        private void CheckToken(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxToken token)
+        private void CheckToken(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxToken token)
         {
             if (token.ContainsDiagnostics)
                 return;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
-                severity,
+                notificationOption,
                 additionalLocations: ImmutableArray.Create(token.GetLocation()),
                 properties: null));
         }

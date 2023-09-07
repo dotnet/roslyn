@@ -58,7 +58,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             objectCreation.Type.GetLocation(),
-            styleOption.Notification.Severity,
+            styleOption.Notification,
             ImmutableArray.Create(objectCreation.GetLocation()),
             properties: null));
     }

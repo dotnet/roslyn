@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
             EnforceOnBuildValues.UseCollectionInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: false);
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
             EnforceOnBuildValues.UseCollectionInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: locations,
                 properties));
 
@@ -245,7 +247,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                     s_unnecessaryCodeDescriptor,
                     additionalUnnecessaryLocations[0],
-                    ReportDiagnostic.Default,
+                    NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
                     additionalLocations: locations,
                     additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                     properties));

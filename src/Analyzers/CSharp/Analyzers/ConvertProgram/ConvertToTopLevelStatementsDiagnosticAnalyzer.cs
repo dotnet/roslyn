@@ -69,12 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                     if (canConvertToTopLevelStatement)
                     {
                         // Looks good.  Let the user know this type/method can be converted to a top level program.
-                        var severity = option.Notification.Severity;
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             this.Descriptor,
                             GetUseTopLevelStatementsDiagnosticLocation(
-                                methodDeclaration, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
-                            severity,
+                                methodDeclaration, isHidden: option.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
+                            option.Notification,
                             ImmutableArray.Create(methodDeclaration.GetLocation()),
                             ImmutableDictionary<string, string?>.Empty));
                     }

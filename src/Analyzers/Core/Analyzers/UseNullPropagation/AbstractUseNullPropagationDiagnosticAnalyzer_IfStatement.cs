@@ -94,7 +94,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             ImmutableArray.Create(
                 ifStatement.GetLocation(),
                 trueStatement.GetLocation(),

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly DiagnosticDescriptor s_outsideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
             EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            hasAnyCodeStyleOption: true,
             s_localizableTitle, s_localizableOutsideMessage);
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new(
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
             EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            hasAnyCodeStyleOption: true,
             s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     descriptor,
                     usingDirective.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     additionalLocations: null,
                     properties: null));
             }

@@ -44,7 +44,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
 
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification.Severity));
+                    context => AnalyzeBlock(context, option.Notification));
             }, SymbolKind.NamedType);
 
             static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
@@ -96,7 +96,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        ReportDiagnostic severity)
+        NotificationOption2 notificationOption)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -122,7 +122,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             location,
-            severity,
+            notificationOption,
             additionalLocations: ImmutableArray.Create(additionalLocation),
             properties: null));
     }

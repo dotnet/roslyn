@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 isKeywordLocation,
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }

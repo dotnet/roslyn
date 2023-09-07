@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return DiagnosticHelper.Create(
                 this.Descriptor,
                 diagnosticLocation,
-                severity,
+                option.Notification,
                 ImmutableArray.Create(declaration.GetLocation()),
                 ImmutableDictionary<string, string?>.Empty);
         }

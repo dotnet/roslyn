@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
             // helper diagnostic which is not otherwise influenced by the severity settings.
-            var severity = preferAutoProps.Notification.Severity;
-            if (severity == ReportDiagnostic.Suppress)
+            var notification = preferAutoProps.Notification;
+            if (notification.Severity == ReportDiagnostic.Suppress)
                 return;
 
             var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
+            analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var diagnostic1 = DiagnosticHelper.Create(
                 Descriptor,
                 fieldNode.GetLocation(),
-                result.Severity,
+                result.Notification,
                 additionalLocations: additionalLocations,
                 properties: null);
 
@@ -378,6 +378,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             TPropertyDeclaration PropertyDeclaration,
             TFieldDeclaration FieldDeclaration,
             TVariableDeclarator VariableDeclarator,
-            ReportDiagnostic Severity);
+            NotificationOption2 Notification);
     }
 }

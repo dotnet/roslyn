@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 asExpression.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations: null,
                 properties: null));
 

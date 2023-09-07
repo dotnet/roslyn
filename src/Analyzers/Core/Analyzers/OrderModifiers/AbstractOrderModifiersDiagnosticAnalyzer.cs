@@ -46,25 +46,25 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 return;
             }
 
-            Recurse(context, preferredOrder, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
+            Recurse(context, preferredOrder, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         protected abstract void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode root);
 
         protected void CheckModifiers(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode memberDeclaration)
         {
             var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
             if (!AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
             {
-                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
+                if (notificationOption.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
                 {
                     // If the severity is hidden, put the marker on all the modifiers so that the
                     // user can bring up the fix anywhere in the modifier list.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                     // If the Severity is not hidden, then just put the user visible portion on the
                     // first token.  That way we don't 
                     context.ReportDiagnostic(
-                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
+                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), notificationOption, additionalLocations: null, properties: null));
                 }
             }
         }

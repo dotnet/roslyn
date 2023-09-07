@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                 => context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     conditionalExpression.GetLocation(),
-                    styleOption.Notification.Severity,
+                    styleOption.Notification,
                     additionalLocations: null,
                     properties));
 

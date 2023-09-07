@@ -54,7 +54,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
             properties: null));
 

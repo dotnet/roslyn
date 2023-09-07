@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 firstStatementLocation,
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                 additionalLocations: ImmutableArray<Location>.Empty,
                 additionalUnnecessaryLocations: additionalLocations));
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     location,
-                    ReportDiagnostic.Default,
+                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                     additionalLocations,
                     additionalUnnecessaryLocations,
                     s_subsequentSectionProperties));

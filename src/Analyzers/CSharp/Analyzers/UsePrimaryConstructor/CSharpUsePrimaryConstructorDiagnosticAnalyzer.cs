@@ -178,7 +178,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 _diagnosticAnalyzer.Descriptor,
                 _primaryConstructorDeclaration.Identifier.GetLocation(),
-                _styleOption.Notification.Severity,
+                _styleOption.Notification,
                 ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
                 properties));
 

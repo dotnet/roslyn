@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColon.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
         }

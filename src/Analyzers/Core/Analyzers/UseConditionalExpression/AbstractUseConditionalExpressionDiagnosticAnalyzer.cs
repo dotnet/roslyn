@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: canSimplify ? UseConditionalExpressionHelpers.CanSimplifyProperties : null));
         }

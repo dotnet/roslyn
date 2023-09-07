@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 outermostUsing.UsingKeyword.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(outermostUsing.GetLocation()),
                 properties: null));
         }

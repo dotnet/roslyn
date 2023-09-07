@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption2>();
             foreach (var helper in _helpers)
             {
-                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
+                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
                 builder.Add(descriptor, helper.Option);
             }
 
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
             }
 
             if (helper.CanOfferUseBlockBody(preference, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;

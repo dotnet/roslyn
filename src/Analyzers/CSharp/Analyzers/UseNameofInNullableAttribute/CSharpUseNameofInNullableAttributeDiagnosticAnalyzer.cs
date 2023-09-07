@@ -103,7 +103,7 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     this.Descriptor,
                     argument.Expression.GetLocation(),
-                    ReportDiagnostic.Info,
+                    NotificationOption2.Suggestion,
                     additionalLocations: null,
                     ImmutableDictionary<string, string?>.Empty.Add(NameKey, stringValue)));
             }

@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             if (!styleOption.Value)
                 return;
 
-            var severity = styleOption.Notification.Severity;
             var subpattern = (SubpatternSyntax)syntaxContext.Node;
             if (!SimplifyPropertyPatternHelpers.IsSimplifiable(subpattern, out _, out var expressionColon))
                 return;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 expressionColon.GetLocation(),
-                severity,
+                styleOption.Notification,
                 ImmutableArray.Create(subpattern.GetLocation()),
                 properties: null));
         }

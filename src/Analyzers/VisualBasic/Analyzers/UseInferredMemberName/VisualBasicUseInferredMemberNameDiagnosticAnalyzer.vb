@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColonEquals.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub

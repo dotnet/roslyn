@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
                 return;
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
-            Recurse(context, option.Notification.Severity, stack);
+            Recurse(context, option.Notification, stack);
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ArrayBuilder<SyntaxNode> stack)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, ArrayBuilder<SyntaxNode> stack)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
                     if (child.IsNode)
                         stack.Add(child.AsNode()!);
                     else if (child.IsToken)
-                        ProcessToken(context, severity, text, child.AsToken());
+                        ProcessToken(context, notificationOption, text, child.AsToken());
                 }
             }
         }
 
-        private void ProcessToken(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SourceText text, SyntaxToken token)
+        private void ProcessToken(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SourceText text, SyntaxToken token)
         {
             if (!HasExcessBlankLinesAfter(text, token, out var secondBrace, out _))
                 return;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 secondBrace.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }
